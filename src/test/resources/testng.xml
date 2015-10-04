@@ -1,0 +1,13 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="Kobalt" verbose="1" parallel="false" thread-count="2"
+    data-provider-thread-count="3">
+
+  <test name="Main">
+    <classes>
+      <class name="com.beust.kobalt.maven.DependencyTest" />
+    </classes>
+  </test>
+
+</suite>
+

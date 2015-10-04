@@ -1,0 +1,42 @@
+import com.beust.kobalt.*
+import com.beust.kobalt.plugin.packaging.assemble
+{{imports}}
+
+val p = {{directive}} {
+    name = "{{name}}"
+    group = "{{group}}"
+    artifactId = name
+    version = "{{version}}"
+
+    sourceDirectories {
+        {{#sourceDirectories}}
+            path("{{toString}}")
+        {{/sourceDirectories}}
+    }
+
+    sourceDirectoriesTest {
+        {{#sourceDirectoriesTest}}
+            path("{{toString}}")
+        {{/sourceDirectoriesTest}}
+    }
+
+    dependencies {
+//        compile("com.beust:jcommander:1.48")
+        {{#mainDependencies}}
+            compile("{{groupId}}:{{artifactId}}:{{version}}")
+        {{/mainDependencies}}
+    }
+
+    dependenciesTest {
+//        compile("org.testng:testng:6.9.5")
+        {{#testDependencies}}
+            compile("{{groupId}}:{{artifactId}}:{{version}}")
+        {{/testDependencies}}
+
+    }
+}
+
+val packProject = assemble(p) {
+    jar {
+    }
+}
