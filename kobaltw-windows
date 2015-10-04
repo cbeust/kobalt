@@ -1,3 +1,0 @@
-jar=`ls -ltr $HOME/kotlin/kobalt/build/libs/*jar|grep -v sources|awk '{print $9}'`
-java -jar $jar $*
-
