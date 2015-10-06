@@ -82,6 +82,7 @@ public class ProjectGenerator : KobaltLogger {
         map.put("properties", properties
               .entrySet()
               .map({ Pair(mapped.get(it.key), it.value) }))
+        
         val partition = pom.dependencies.groupBy { it.scope }
               .flatMap { it.value }
               .map { updateVersion(it, mapped) }
