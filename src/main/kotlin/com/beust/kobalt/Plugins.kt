@@ -166,7 +166,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
         if (method.returnType != TaskResult::class.java) {
             throw IllegalArgumentException("${t}should return a TaskResult")
         }
-        if (method.parameterCount != 1) {
+        if (method.parameterTypes.size() != 1) {
             throw IllegalArgumentException("${t}should take exactly one parameter of type a Project")
         }
         with(method.parameterTypes) {

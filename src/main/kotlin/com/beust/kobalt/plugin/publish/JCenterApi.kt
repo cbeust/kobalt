@@ -124,8 +124,8 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
         } else {
             result = TaskResult(false, failures.values().join(" "))
             error("Failed to upload ${failures.size()} files:")
-            failures.forEach { k, v ->
-                error(" - ${k} : ${v}")
+            failures.forEach{ entry ->
+                error(" - ${entry.key} : ${entry.value}")
             }
         }
 
