@@ -71,7 +71,7 @@ public class KotlinPlugin @Inject constructor(
 
         val absoluteSourceFiles = files.findRecursively(projectDir, project.sourceDirectoriesTest.map { File(it) })
             { it: String -> it.endsWith(".kt") }
-                    .map { File(projectDir, it).getAbsolutePath() }
+                    .map { File(projectDir, it).absolutePath }
 
         compilePrivate(testDependencies(project),
                 absoluteSourceFiles,
