@@ -1,6 +1,5 @@
 To do:
 
-- provided scope
 - ProjectGenerator: support migration from pom.xml (starting with dependencies)
 - Generate .idea and other IDEA files
 - Make files appear in download list automatically on bintray (undocumented API)
@@ -22,6 +21,7 @@ To do:
 
 Done:
 
+- provided scope
 - --dryRun
 - --checkVersions: displays which plugins have a newer version than the one specified in the build
 - Make it possible to target jar for individual projects: ./kobaltw kobalt:uploadJcenter
