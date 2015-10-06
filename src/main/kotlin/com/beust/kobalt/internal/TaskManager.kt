@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.Args
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
@@ -16,7 +17,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-public class TaskManager @Inject constructor(val plugins: Plugins) : KobaltLogger {
+public class TaskManager @Inject constructor(val plugins: Plugins, val args: Args) : KobaltLogger {
     private val dependentTaskMap = TreeMultimap.create<String, String>()
 
     /**
@@ -132,7 +133,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins) : KobaltLogge
                 override public fun createWorkers(nodes: List<PluginTask>): List<IWorker<PluginTask>> {
                     val result = arrayListOf<IWorker<PluginTask>>()
                     nodes.forEach {
-                        result.add(TaskWorker(arrayListOf(it)))
+                        result.add(TaskWorker(arrayListOf(it), args.dryRun))
                     }
                     return result
                 }
@@ -144,7 +145,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins) : KobaltLogge
     }
 }
 
-class TaskWorker(val tasks: List<PluginTask>) : IWorker<PluginTask>, KobaltLogger {
+class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean) : IWorker<PluginTask>, KobaltLogger {
 //    override fun compareTo(other: IWorker2<PluginTask>): Int {
 //        return priority.compareTo(other.priority)
 //    }
@@ -157,7 +158,7 @@ class TaskWorker(val tasks: List<PluginTask>) : IWorker<PluginTask>, KobaltLogge
         }
         var success = true
         tasks.forEach {
-            val tr = it.call()
+            val tr = if (dryRun) TaskResult() else it.call()
             success = success and tr.success
         }
         return TaskResult2(success, tasks.get(0))

@@ -1,5 +1,6 @@
 package com.beust.kobalt.maven
 
+import com.beust.kobalt.Args
 import com.beust.kobalt.TestModule
 import com.beust.kobalt.misc.DependencyExecutor
 import com.beust.kobalt.misc.MainModule
@@ -11,9 +12,10 @@ import javax.inject.Inject
 
 @org.testng.annotations.Guice(modules = arrayOf(TestModule::class))
 public class RemoteRepoTest @Inject constructor(val repoFinder: RepoFinder,
-        @DependencyExecutor val executor: ExecutorService){
+        @DependencyExecutor val executor: ExecutorService,
+        val args: Args){
 
-    val INJECTOR = Guice.createInjector(MainModule())
+    val INJECTOR = Guice.createInjector(MainModule(args))
 
     @Test
     public fun mavenMetadata() {

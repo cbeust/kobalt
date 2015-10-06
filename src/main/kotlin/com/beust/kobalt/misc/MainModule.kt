@@ -1,5 +1,6 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.Args
 import com.beust.kobalt.kotlin.ScriptCompiler
 import com.beust.kobalt.maven.ArtifactFetcher
 import com.beust.kobalt.maven.LocalRepo
@@ -8,6 +9,7 @@ import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.plugin.publish.JCenterApi
 import com.google.inject.AbstractModule
 import com.google.inject.BindingAnnotation
+import com.google.inject.Provider
 import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import java.lang.annotation.RetentionPolicy
@@ -24,7 +26,7 @@ import java.util.concurrent.ExecutorService
 @Retention(AnnotationRetention.RUNTIME)
 annotation class DependencyExecutor
 
-public open class MainModule : AbstractModule() {
+public open class MainModule(val args: Args) : AbstractModule() {
     val executors = KobaltExecutors()
 
     open fun configureTest() {
@@ -49,6 +51,9 @@ public open class MainModule : AbstractModule() {
         bind(object: TypeLiteral<KobaltExecutors>() {}).toInstance(executors)
         bind(object: TypeLiteral<ExecutorService>() {}).annotatedWith(DependencyExecutor::class.java)
                 .toInstance(executors.dependencyExecutor)
+        bind(Args::class.java).toProvider(object : Provider<Args> {
+            override fun get(): Args? = args
+        })
 
 
         //        bindListener(Matchers.any(), object: TypeListener {

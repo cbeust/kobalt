@@ -1,6 +1,6 @@
 package com.beust.kobalt.plugin.kotlin;
 
-import com.beust.kobalt.INJECTOR
+import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.*
@@ -81,7 +81,7 @@ class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
 }
 
 fun kotlinCompilePrivate(ini: KConfiguration.() -> Unit) : KConfiguration {
-    val result = INJECTOR.getInstance(KConfiguration::class.java)
+    val result = Kobalt.INJECTOR.getInstance(KConfiguration::class.java)
     result.ini()
     return result
 }

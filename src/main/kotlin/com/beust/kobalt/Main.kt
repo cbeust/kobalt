@@ -13,15 +13,24 @@ import com.beust.kobalt.plugin.publish.JCenterApi
 import com.beust.kobalt.plugin.publish.UnauthenticatedJCenterApi
 import com.beust.kobalt.wrapper.Wrapper
 import com.google.inject.Guice
+import com.google.inject.Injector
 import java.io.File
 import java.nio.file.Paths
 import java.util.*
 import javax.inject.Inject
 
-val INJECTOR = Guice.createInjector(MainModule())
+private fun parseArgs(argv: Array<String>): Main.RunInfo {
+    val args = Args()
+    val result = JCommander(args)
+    result.parse(*argv)
+    KobaltLogger.LOG_LEVEL = args.log
+    return Main.RunInfo(result, args)
+}
 
 public fun main(argv: Array<String>) {
-    INJECTOR.getInstance(Main::class.java).run(argv)
+    val (jc, args) = parseArgs(argv)
+    Kobalt.INJECTOR = Guice.createInjector(MainModule(args))
+    Kobalt.INJECTOR.getInstance(Main::class.java).run(jc, args)
 }
 
 private class Main @Inject constructor(
@@ -34,17 +43,15 @@ private class Main @Inject constructor(
         val localRepo: LocalRepo,
         val depFactory: DepFactory,
         val checkVersions: CheckVersions,
-        val jcenter: UnauthenticatedJCenterApi,
         val github: GithubApi)
     : KobaltLogger {
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
-    public fun run(argv: Array<String>) {
+    public fun run(jc: JCommander, args: Args) {
         benchmark("Build", {
             println(Banner.get() + Kobalt.version + "\n")
 //            runTest()
-            val (jc, args) = parseArgs(argv)
             runWithArgs(jc, args)
             executors.shutdown()
             debug("All done")
@@ -82,14 +89,6 @@ private class Main @Inject constructor(
         dg.addEdge("c1", "b2")
         val sorted = dg.sort(arrayListOf("a1", "a2", "b1", "b2", "c1", "x", "y"))
         println("Sorted: ${sorted}")
-    }
-
-    private fun parseArgs(argv: Array<String>): RunInfo {
-        val args = Args()
-        val result = JCommander(args)
-        result.parse(*argv)
-        KobaltLogger.LOG_LEVEL = args.log
-        return RunInfo(result, args)
     }
 
     private val SCRIPT_JAR = "buildScript.jar"

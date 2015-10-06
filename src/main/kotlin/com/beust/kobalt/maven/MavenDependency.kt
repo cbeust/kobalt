@@ -1,8 +1,7 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.INJECTOR
+import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.misc.*
-import com.google.common.base.CharMatcher
 import com.google.inject.Key
 import com.google.inject.assistedinject.Assisted
 import java.io.File
@@ -51,8 +50,8 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
 //    }
 
     companion object {
-        val executor = INJECTOR.getInstance(Key.get(ExecutorService::class.java, DependencyExecutor::class.java))
-        val depFactory = INJECTOR.getInstance(DepFactory::class.java)
+        val executor = Kobalt.INJECTOR.getInstance(Key.get(ExecutorService::class.java, DependencyExecutor::class.java))
+        val depFactory = Kobalt.INJECTOR.getInstance(DepFactory::class.java)
 
         fun create(id: String, ex: ExecutorService = executor) : IClasspathDependency {
             return depFactory.create(id, ex)

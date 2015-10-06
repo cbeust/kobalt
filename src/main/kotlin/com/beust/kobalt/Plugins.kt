@@ -64,7 +64,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
         val defaultPlugin : Plugin get() = getPlugin(DefaultPlugin.NAME)!!
 
         fun addPlugin(pluginClass : Class<out Plugin>) {
-            addPluginInstance(INJECTOR.getInstance(pluginClass))
+            addPluginInstance(Kobalt.INJECTOR.getInstance(pluginClass))
         }
 
         private fun addPluginInstance(plugin: Plugin) {
@@ -80,7 +80,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
                     PublishPlugin::class.java
 //                    AptPlugin::class.java
             ).map {
-                addPluginInstance(INJECTOR.getInstance(it))
+                addPluginInstance(Kobalt.INJECTOR.getInstance(it))
             }
         }
 

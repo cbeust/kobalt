@@ -9,6 +9,10 @@ class Args {
     @Parameter(names = arrayOf("-bf", "--buildFile"), description = "The build file")
     var buildFile: String? = null
 
+    @Parameter(names = arrayOf("--dryRun"), description = "Display all the tasks that will get run without " +
+            "actually running them")
+    var dryRun: Boolean = false
+
     @Parameter(names = arrayOf("--tasks"), description = "Display the tasks available for this build")
     var tasks: Boolean = false
 

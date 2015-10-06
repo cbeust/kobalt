@@ -2,6 +2,7 @@ package com.beust.kobalt.api
 
 import com.beust.kobalt.misc.Topological
 import com.google.common.collect.ArrayListMultimap
+import com.google.inject.Injector
 import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
@@ -24,6 +25,8 @@ public interface ICompilerInfo {
 
 public class Kobalt {
     companion object {
+        lateinit var INJECTOR : Injector
+
         public val compilers : ArrayList<ICompilerInfo> = arrayListOf()
 
         public fun registerCompiler(c: ICompilerInfo) {
