@@ -64,21 +64,23 @@ open public class Project(
 
     @Directive
     public fun dependencies(init: Dependencies.() -> Unit) : Dependencies {
-        dependencies = Dependencies(this, compileDependencies)
+        dependencies = Dependencies(this, compileDependencies, compileProvidedDependencies)
         dependencies!!.init()
         return dependencies!!
     }
 
-    public val compileDependencies : ArrayList<IClasspathDependency> = arrayListOf()
+    val compileDependencies : ArrayList<IClasspathDependency> = arrayListOf()
+    val compileProvidedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
 
     @Directive
     public fun dependenciesTest(init: Dependencies.() -> Unit) : Dependencies {
-        dependencies = Dependencies(this, testDependencies)
+        dependencies = Dependencies(this, testDependencies, testProvidedDependencies)
         dependencies!!.init()
         return dependencies!!
     }
 
-    public val testDependencies : ArrayList<IClasspathDependency> = arrayListOf()
+    val testDependencies : ArrayList<IClasspathDependency> = arrayListOf()
+    val testProvidedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
 }
 
 public class Sources(val project: Project, val sources: ArrayList<String>) {
@@ -88,10 +90,16 @@ public class Sources(val project: Project, val sources: ArrayList<String>) {
     }
 }
 
-public class Dependencies(val project: Project, val dependencies: ArrayList<IClasspathDependency>) {
+public class Dependencies(val project: Project, val dependencies: ArrayList<IClasspathDependency>,
+        val providedDependencies: ArrayList<IClasspathDependency>) {
     @Directive
     fun compile(vararg dep: String) {
         dep.forEach { dependencies.add(MavenDependency.create(it)) }
+    }
+
+    @Directive
+    fun provided(vararg dep: String) {
+        dep.forEach { providedDependencies.add(MavenDependency.create(it))}
     }
 }
 

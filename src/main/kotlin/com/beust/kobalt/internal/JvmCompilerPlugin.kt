@@ -37,16 +37,24 @@ abstract public class JvmCompilerPlugin @Inject constructor(
         log(1, "${project.name}: ${s}")
     }
 
-    fun calculateClasspath(dependencies : List<IClasspathDependency>): List<IClasspathDependency> {
-        return dependencyManager.transitiveClosure(dependencies)
+    fun calculateClasspath(vararg allDependencies : List<IClasspathDependency>): List<IClasspathDependency> {
+        var result = arrayListOf<IClasspathDependency>()
+        allDependencies.forEach { dependencies ->
+            result.addAll(dependencyManager.transitiveClosure(dependencies))
+        }
+        return result
     }
 
     protected fun testDependencies(project: Project) : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
-        result.add(FileDependency(makeOutputDir(project).getAbsolutePath()))
-        result.add(FileDependency(makeOutputTestDir(project).getAbsolutePath()))
-        result.addAll(calculateClasspath(project.compileDependencies))
-        result.addAll(calculateClasspath(project.testDependencies))
+        result.add(FileDependency(makeOutputDir(project).absolutePath))
+        result.add(FileDependency(makeOutputTestDir(project).absolutePath))
+        with(project) {
+            arrayListOf(compileDependencies, compileProvidedDependencies, testDependencies,
+                    testProvidedDependencies).forEach {
+                result.addAll(calculateClasspath(it))
+            }
+        }
         return dependencyManager.reorderDependencies(result)
     }
 
