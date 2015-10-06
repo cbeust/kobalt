@@ -7,7 +7,6 @@ import com.beust.kobalt.maven.Pom.Dependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltLogger
 import com.github.mustachejava.DefaultMustacheFactory
-import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 import java.io.PrintWriter
