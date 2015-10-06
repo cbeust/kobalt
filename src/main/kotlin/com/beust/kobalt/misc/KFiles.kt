@@ -15,7 +15,17 @@ import java.nio.file.StandardCopyOption
 
 public class KFiles {
     val kobaltJar : String
-        get() = joinDir(distributionsDir, Kobalt.version, "kobalt/wrapper/kobalt-" + Kobalt.version + ".jar")
+        get() {
+            val jar = joinDir(distributionsDir, Kobalt.version, "kobalt/wrapper/kobalt-" + Kobalt.version + ".jar")
+            val jarFile = File(jar)
+            if (! jarFile.exists()) {
+                // Will only happen when building kobalt itself: the jar file might not be in the dist/ directory
+                // yet since we're currently building it. Instead, use the classes directly
+                return File(joinDir("build", "classes", "main")).absolutePath
+            } else {
+                return jar
+            }
+        }
 
     init {
         File(KOBALT_DOT_DIR).mkdirs()
@@ -24,6 +34,7 @@ public class KFiles {
     companion object {
         private const val KOBALT_DOT_DIR : String = ".kobalt"
         const val KOBALT_DIR : String = "kobalt"
+        const val KOBALT_BUILD_DIR = "kobaltBuild"
 
         // Directories under ~/.kobalt
         public val localRepo = homeDir(KOBALT_DOT_DIR, "repository")

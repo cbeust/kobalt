@@ -34,25 +34,13 @@ private class Main @Inject constructor(
         val localRepo: LocalRepo,
         val depFactory: DepFactory,
         val checkVersions: CheckVersions,
-        val jcenter: UnauthenticatedJCenterApi)
+        val jcenter: UnauthenticatedJCenterApi,
+        val github: GithubApi)
     : KobaltLogger {
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
     public fun run(argv: Array<String>) {
-        // Check for new version
-        // Commented out until I can find a way to get the latest available download
-        // from bintray. Right now, it always returns all the versions uploaded, not
-        // just the one I mark
-//        val p = jcenter.kobaltPackage
-//        val current = Versions.toLongVersion(Kobalt.version)
-//        val remote = Versions.toLongVersion(p.latestPublishedVersion)
-//        if (remote > current) {
-//            log(1, "*****")
-//            log(1, "***** New Kobalt version available: ${p.latestPublishedVersion}")
-//            log(1, "*****")
-//        }
-
         benchmark("Build", {
             println(Banner.get() + Kobalt.version + "\n")
 //            runTest()
@@ -61,6 +49,17 @@ private class Main @Inject constructor(
             executors.shutdown()
             debug("All done")
         })
+
+        // Check for new version
+        // TODO(cbeust): Start the network call at the beginning of the build and
+        // get the future here, at the end of the build
+        val remote = Versions.toLongVersion(github.latestKobaltRelease)
+        val current = Versions.toLongVersion(Kobalt.version)
+        if (remote > current) {
+            log(1, "*****")
+            log(1, "***** New Kobalt version available: ${github.latestKobaltRelease}")
+            log(1, "*****")
+        }
     }
 
     public class Worker<T>(val runNodes: ArrayList<T>, val n: T) : IWorker<T>, KobaltLogger {

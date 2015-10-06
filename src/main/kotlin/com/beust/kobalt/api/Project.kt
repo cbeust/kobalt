@@ -3,6 +3,7 @@ package com.beust.kobalt.api
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.maven.MavenDependency
 import com.beust.kobalt.maven.IClasspathDependency
+import com.beust.kobalt.misc.KFiles
 import com.google.common.base.Preconditions
 import java.util.ArrayList
 
@@ -10,7 +11,7 @@ open public class Project(
         open var name: String? = null,
         open var version: String? = null,
         open var directory: String = ".",
-        open var buildDirectory: String? = "kobaltBuild",
+        open var buildDirectory: String? = KFiles.KOBALT_BUILD_DIR,
         open var group: String? = null,
         open var artifactId: String? = null,
         open var dependencies: Dependencies? = null,
