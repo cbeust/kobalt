@@ -11,6 +11,7 @@ To do:
 - Storage API: Plugins.storage("myplugin").get/set()
 - Support additional .kt files in ~/.kobalt/src
 - generateArchive() should use Path instead of File
+- --init: import dependencies from build.gradle
 - uploadMaven
   + Create sources.jar
   + Create javadoc.jar
@@ -23,6 +24,7 @@ Done:
 
 - provided scope
 - --dryRun
+- --init: import dependencies from pom.xml
 - --checkVersions: displays which plugins have a newer version than the one specified in the build
 - Make it possible to target jar for individual projects: ./kobaltw kobalt:uploadJcenter
 - --buildFile doesn't use the local .kobalt directory
