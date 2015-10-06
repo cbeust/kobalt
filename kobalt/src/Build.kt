@@ -45,20 +45,12 @@ val kobalt = kotlinProject(wrapper) {
     version = readVersion()
 
     dependenciesTest {
-//        compile("junit:junit:4.12")
         compile("org.testng:testng:6.9.5")
     }
-
-//    sourceDirectories {
-//        path("src/main/kotlin")
-//        path("src/main/resources")
-//        path("src/main/java")
-//    }
 
     dependencies {
         compile("org.jetbrains.kotlin:kotlin-stdlib:0.14.449",
                 "org.jetbrains.kotlin:kotlin-compiler-embeddable:0.14.449",
-//                "org.jetbrains.kotlin:kotlin-compiler:0.14.449",
 
 //                file(homeDir("java/jcommander/target/jcommander-1.47.jar")),
                 "com.beust:jcommander:1.48",
@@ -88,13 +80,6 @@ val assembleKobalt = assemble(kobalt) {
             attributes("Main-Class", "com.beust.kobalt.KobaltPackage")
         }
     }
-//    jar {
-//        fatJar = true
-//        name = "${kobalt.name}-wrapper.jar"
-//        manifest {
-//            attributes("Main-Class", "com.beust.kobalt.wrapper.WrapperPackage")
-//        }
-//    }
     zip {
         include("kobaltw")
         include(from("${kobalt.buildDirectory}/libs"), to("kobalt/wrapper"),
