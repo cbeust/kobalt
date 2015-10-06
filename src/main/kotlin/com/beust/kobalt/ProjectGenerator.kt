@@ -34,14 +34,16 @@ public class ProjectGenerator : KobaltLogger {
         if (compilerInfos.size() > 0) {
             compilerInfos.get(0).let {
                 val currentDir = File(".").absoluteFile.parentFile
-                map.put("name", currentDir.name)
-                map.put("group", "com.example")
-                map.put("version", "0.1")
-                map.put("directory", currentDir.absolutePath)
-                map.put("sourceDirectories", it.defaultSourceDirectories)
-                map.put("sourceDirectoriesTest", it.defaultTestDirectories)
-                map.put("imports", "import com.beust.kobalt.plugin.${it.name}.*")
-                map.put("directive", it.name + "Project")
+                with(map) {
+                    put("name", currentDir.name)
+                    put("group", "com.example")
+                    put("version", "0.1")
+                    put("directory", currentDir.absolutePath)
+                    put("sourceDirectories", it.defaultSourceDirectories)
+                    put("sourceDirectoriesTest", it.defaultTestDirectories)
+                    put("imports", "import com.beust.kobalt.plugin.${it.name}.*")
+                    put("directive", it.name + "Project")
+                }
             }
         }
 
@@ -49,8 +51,10 @@ public class ProjectGenerator : KobaltLogger {
         var testDeps = arrayListOf<Dependency>()
         map.put("mainDependencies", mainDeps)
         map.put("testDependencies", testDeps)
-        if(File("pom.xml").exists()) {
-            importPom(mainDeps, map, testDeps)
+        File("pom.xml").let {
+            if (it.exists()) {
+                importPom(it, mainDeps, testDeps, map)
+            }
         }
 
         val fileInputStream = javaClass.classLoader.getResource("build-template.mustache").openStream()
@@ -62,14 +66,16 @@ public class ProjectGenerator : KobaltLogger {
         KFiles.saveFile(File(args.buildFile), sw.toString())
     }
 
-    private fun importPom(mainDeps: ArrayList<Dependency>, map: HashMap<String, Any?>, testDeps: ArrayList<Dependency>) {
-        var pom = Pom("imported", File("pom.xml"))
-        map.put("group", pom.groupId ?: "com.example")
-        map.put("artifactId", pom.artifactId ?: "com.example")
-        map.put("version", pom.version ?: "0.1")
-        map.put("name", pom.name ?: pom.artifactId)
+    private fun importPom(pomFile: File, mainDeps: ArrayList<Dependency>, testDeps: ArrayList<Dependency>,
+            map: HashMap<String, Any?>) {
+        var pom = Pom("imported", pomFile)
+        with(map) {
+            put("group", pom.groupId ?: "com.example")
+            put("artifactId", pom.artifactId ?: "com.example")
+            put("version", pom.version ?: "0.1")
+            put("name", pom.name ?: pom.artifactId)
+        }
         val partition = pom.dependencies.groupBy { it.scope }
-              //                  .filter { it.key == null }
               .flatMap { it.value }
               .sortedBy { it.groupId + ":" + it.artifactId }
               .partition { it.scope != "test" }
