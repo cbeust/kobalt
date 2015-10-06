@@ -95,7 +95,7 @@ class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
         }
         files.saveFile(file, bytes)
 
-        log(1, "${url}: DOWNLOADED")
+        log(1, "Downloaded $url")
 
         return file
     }
