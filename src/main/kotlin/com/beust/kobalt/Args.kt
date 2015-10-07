@@ -26,5 +26,7 @@ class Args {
     @Parameter(names = arrayOf("--tasks"), description = "Display the tasks available for this build")
     var tasks: Boolean = false
 
+    @Parameter(names = arrayOf("--update"), description = "Update to the latest version of Kobalt")
+    var update: Boolean = false
 }
 

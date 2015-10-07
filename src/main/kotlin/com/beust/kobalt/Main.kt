@@ -43,7 +43,8 @@ private class Main @Inject constructor(
         val localRepo: LocalRepo,
         val depFactory: DepFactory,
         val checkVersions: CheckVersions,
-        val github: GithubApi)
+        val github: GithubApi,
+        val updateKobalt: UpdateKobalt)
     : KobaltLogger {
 
     data class RunInfo(val jc: JCommander, val args: Args)
@@ -63,9 +64,12 @@ private class Main @Inject constructor(
         val remote = Versions.toLongVersion(github.latestKobaltRelease)
         val current = Versions.toLongVersion(Kobalt.version)
         if (remote > current) {
-            log(1, "*****")
-            log(1, "***** New Kobalt version available: ${github.latestKobaltRelease}")
-            log(1, "*****")
+            "***** ".let {
+                log(1, it)
+                log(1, "$it New Kobalt version available: ${github.latestKobaltRelease}")
+                log(1, "$it To update, run       ./kobaltw --update")
+                log(1, it )
+            }
         }
     }
 
@@ -152,6 +156,8 @@ private class Main @Inject constructor(
                     println(sb.toString())
                 } else if (args.checkVersions) {
                     checkVersions.run(output.projects)
+                } else if (args.update) {
+                    updateKobalt.updateKobalt()
                 } else {
                     //
                     // Launch the build
