@@ -1,8 +1,5 @@
 To do:
 
-- Link kobalt to JCenter
-- --update
-- --resolve <dep>
 - ProjectGenerator: support migration from pom.xml (starting with dependencies)
 - Generate .idea and other IDEA files
 - Make files appear in download list automatically on bintray (undocumented API)
@@ -22,9 +19,12 @@ To do:
 - Replace File with java.nio.Files and Path
 - Create a wiki page for plugins
 - Make kobaltw executable in the zip file
+- --resolve <dep>
 
 Done:
 
+- Link kobalt to JCenter
+- --update
 - Support .pom pointing to other deps (and no jars)
 - provided scope
 - --dryRun
