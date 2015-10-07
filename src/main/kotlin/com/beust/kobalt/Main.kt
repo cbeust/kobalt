@@ -50,6 +50,7 @@ private class Main @Inject constructor(
     data class RunInfo(val jc: JCommander, val args: Args)
 
     public fun run(jc: JCommander, args: Args) {
+        val latestVersionFuture = github.latestKobaltVersion
         benchmark("Build", {
             println(Banner.get() + Kobalt.version + "\n")
 //            runTest()
@@ -59,15 +60,14 @@ private class Main @Inject constructor(
         })
 
         // Check for new version
-        // TODO(cbeust): Start the network call at the beginning of the build and
-        // get the future here, at the end of the build
-        val remote = Versions.toLongVersion(github.latestKobaltRelease)
+        val latestVersionString = latestVersionFuture.get()
+        val latestVersion = Versions.toLongVersion(latestVersionString)
         val current = Versions.toLongVersion(Kobalt.version)
-        if (remote > current) {
+        if (latestVersion > current) {
             "***** ".let {
                 log(1, it)
-                log(1, "$it New Kobalt version available: ${github.latestKobaltRelease}")
-                log(1, "$it To update, run       ./kobaltw --update")
+                log(1, "$it New Kobalt version available: $latestVersionString")
+                log(1, "$it To update, run ./kobaltw --update")
                 log(1, it )
             }
         }

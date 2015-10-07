@@ -48,13 +48,15 @@ public class KobaltExecutors : KobaltLogger {
     public fun newExecutor(name: String, threadCount: Int) : ExecutorService
             = KobaltExecutor(name, threadCount)
 
-    var dependencyExecutor = newExecutor("Dependency", 5)
+    val dependencyExecutor = newExecutor("Dependency", 5)
+    val miscExecutor = newExecutor("Misc", 2)
 
-    public fun shutdown() {
+    fun shutdown() {
         dependencyExecutor.shutdown()
+        miscExecutor.shutdown()
     }
 
-    public fun <T> completionService(name: String, threadCount: Int,
+    fun <T> completionService(name: String, threadCount: Int,
             maxMs: Long, tasks: List<Callable<T>>) : List<T> {
         val result = arrayListOf<T>()
         val executor = newExecutor(name, threadCount)
