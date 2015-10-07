@@ -75,12 +75,44 @@ public class ProjectGenerator : KobaltLogger {
             put("version", pom.version ?: "0.1")
             put("name", pom.name ?: pom.artifactId)
         }
+
+        val properties = pom.properties
+        val mapped = properties.entrySet().toMap({it.key}, {translate(it.key)})
+
+        map.put("properties", properties
+              .entrySet()
+              .map({ Pair(mapped.get(it.key), it.value) }))
+        
         val partition = pom.dependencies.groupBy { it.scope }
               .flatMap { it.value }
+              .map { updateVersion(it, mapped) }
               .sortedBy { it.groupId + ":" + it.artifactId }
               .partition { it.scope != "test" }
+
         mainDeps.addAll(partition.first)
         testDeps.addAll(partition.second)
+    }
+
+    private fun updateVersion(dep: Dependency, mapped: Map<String, String>): Dependency {
+        if ( dep.version.startsWith("\${")) {
+            val property = dep.version.substring(2, dep.version.length() - 1)
+            return Dependency(dep.groupId, dep.artifactId, "\${${mapped.get(property)}}", dep.optional, dep.scope)
+        } else {
+            return dep
+        }
+    }
+
+    private fun translate(key: String) : String {
+        val split = key.split('.')
+        return split.mapIndexed( { index, value -> if (index == 0) value else value.upperFirst() }).join("")
+    }
+
+    private fun String.upperFirst(): String {
+        if (this.isBlank()) {
+            return this
+        } else {
+            return this.substring(0, 1).toUpperCase() + this.substring(1)
+        }
     }
 
     /**
