@@ -80,15 +80,16 @@ private class Main @Inject constructor(
     }
 
     private fun runTest() {
-        val dg = Topological<String>()
-        dg.addEdge("b1", "a1")
-        dg.addEdge("b1", "a2")
-        dg.addEdge("b2", "a1")
-        dg.addEdge("b2", "a2")
-        dg.addEdge("c1", "b1")
-        dg.addEdge("c1", "b2")
-        val sorted = dg.sort(arrayListOf("a1", "a2", "b1", "b2", "c1", "x", "y"))
-        println("Sorted: ${sorted}")
+        with(Topological<String>()) {
+            addEdge("b1", "a1")
+            addEdge("b1", "a2")
+            addEdge("b2", "a1")
+            addEdge("b2", "a2")
+            addEdge("c1", "b1")
+            addEdge("c1", "b2")
+            val sorted = sort(arrayListOf("a1", "a2", "b1", "b2", "c1", "x", "y"))
+            println("Sorted: ${sorted}")
+        }
     }
 
     private val SCRIPT_JAR = "buildScript.jar"
