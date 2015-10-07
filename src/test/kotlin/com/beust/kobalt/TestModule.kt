@@ -9,7 +9,7 @@ import java.io.File
 
 class TestLocalRepo: LocalRepo(localRepo = SystemProperties.homeDir + File.separatorChar + ".kobalt-test")
 
-public class TestModule @Inject constructor(args: Args) : MainModule(args) {
+public class TestModule : MainModule(Args()) {
     override fun configureTest() {
         bind(LocalRepo::class.java).to(TestLocalRepo::class.java).`in`(Scopes.SINGLETON)
     }
