@@ -7,6 +7,7 @@ import com.beust.kobalt.misc.Strings
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
+import java.io.File
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorCompletionService
 import java.util.concurrent.TimeUnit
@@ -24,7 +25,7 @@ public class RepoFinder @Inject constructor(val http: Http, val executors: Kobal
         return FOUND_REPOS.get(id)
     }
 
-    data class RepoResult(val repoUrl: String, val found: Boolean, val version: String,
+    data class RepoResult(val repoUrl: String, val found: Boolean, val version: String, val hasJar: Boolean = true,
             val snapshotVersion: String = "")
 
     private val FOUND_REPOS: LoadingCache<String, RepoResult> = CacheBuilder.newBuilder()
@@ -83,16 +84,26 @@ public class RepoFinder @Inject constructor(val http: Http, val executors: Kobal
                     val dep = SimpleDep(c[0], c[1], c[2])
                     val snapshotVersion = findSnapshotVersion(dep.toMetadataXmlPath(false), repoUrl)
                     if (snapshotVersion != null) {
-                        return RepoResult(repoUrl, true, c[2], snapshotVersion)
+                        return RepoResult(repoUrl, true, c[2], true /* hasJar, potential bug here */, snapshotVersion)
                     } else {
                         return RepoResult(repoUrl, false, "")
                     }
                 } else {
                     val dep = SimpleDep(c[0], c[1], c[2])
-                    val url = repoUrl + "/" + dep.toJarFile(dep.version)
-                    val body = http.get(url)
-                    log(2, "Result for ${repoUrl} for ${id}: ${body.code == 200}")
-                    return RepoResult(repoUrl, body.code == 200, dep.version)
+                    // Try to find the jar file
+                    val urlJar = repoUrl + dep.toJarFile(dep.version)
+                    val hasJar = http.get(urlJar).code == 200
+
+                    val found =
+                        if (! hasJar) {
+                            // No jar, try to find the directory
+                            val url = repoUrl + File(dep.toJarFile(dep.version)).parentFile.path
+                            http.get(url).code == 200
+                        } else {
+                            true
+                        }
+                    log(2, "Result for $repoUrl for $id: $found")
+                    return RepoResult(repoUrl, found, dep.version, hasJar)
                 }
             }
         }

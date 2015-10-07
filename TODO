@@ -1,5 +1,8 @@
 To do:
 
+- Link kobalt to JCenter
+- --update
+- --resolve <dep>
 - ProjectGenerator: support migration from pom.xml (starting with dependencies)
 - Generate .idea and other IDEA files
 - Make files appear in download list automatically on bintray (undocumented API)
@@ -22,6 +25,7 @@ To do:
 
 Done:
 
+- Support .pom pointing to other deps (and no jars)
 - provided scope
 - --dryRun
 - --init: import dependencies from pom.xml

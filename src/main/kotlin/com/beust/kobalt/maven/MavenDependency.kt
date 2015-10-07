@@ -32,8 +32,12 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
         } else {
             val repoResult = repoFinder.findCorrectRepo(toId(groupId, artifactId, version))
             if (repoResult.found) {
-                jarFile = downloadManager.download(repoResult.repoUrl + toJarFile(repoResult), jar.absolutePath,
-                        executor)
+                jarFile =
+                    if (repoResult.hasJar) {
+                        downloadManager.download(repoResult.repoUrl + toJarFile(repoResult), jar.absolutePath, executor)
+                    } else {
+                        CompletedFuture(File("nonexistentFile")) // will be filtered out
+                }
                 pomFile = downloadManager.download(repoResult.repoUrl + toPomFile(repoResult), pom.absolutePath,
                         executor)
             } else {
