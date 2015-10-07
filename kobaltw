@@ -1,2 +1,5 @@
+if [ -z $KOBALT_HOME ]; then
+    KOBALT_HOME="."
+fi
 java -jar $KOBALT_HOME/kobalt/wrapper/kobalt-wrapper.jar $*
 
