@@ -93,27 +93,26 @@ public class ProjectGenerator : KobaltLogger {
         testDeps.addAll(partition.second)
     }
 
-    private fun updateVersion(dep: Dependency, mapped: Map<String, String>): Dependency {
+    private fun updateVersion(dep: Dependency, mapped: Map<String, String>) =
         if ( dep.version.startsWith("\${")) {
             val property = dep.version.substring(2, dep.version.length() - 1)
-            return Dependency(dep.groupId, dep.artifactId, "\${${mapped.get(property)}}", dep.optional, dep.scope)
+            Dependency(dep.groupId, dep.artifactId, "\${${mapped.get(property)}}", dep.optional, dep.scope)
         } else {
-            return dep
+            dep
         }
-    }
 
-    private fun translate(key: String) : String {
-        val split = key.split('.')
-        return split.mapIndexed( { index, value -> if (index == 0) value else value.upperFirst() }).join("")
-    }
+    /**
+     * Turns a dot property into a proper Kotlin identifier, e.g. common.version -> commonVersion
+     */
+    private fun translate(key: String) =
+        key.split('.').mapIndexed( { index, value -> if (index == 0) value else value.upperFirst() }).join("")
 
-    private fun String.upperFirst(): String {
+    private fun String.upperFirst() =
         if (this.isBlank()) {
-            return this
+            this
         } else {
-            return this.substring(0, 1).toUpperCase() + this.substring(1)
+            this.substring(0, 1).toUpperCase() + this.substring(1)
         }
-    }
 
     /**
      * Detect all the languages contained in this project.
