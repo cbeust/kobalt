@@ -34,7 +34,7 @@ abstract public class JvmCompilerPlugin @Inject constructor(
      * Log with a project.
      */
     protected fun lp(project: Project, s: String) {
-        log(1, "${project.name}: ${s}")
+        log(2, "${project.name}: ${s}")
     }
 
     fun calculateClasspath(vararg allDependencies : List<IClasspathDependency>): List<IClasspathDependency> {
