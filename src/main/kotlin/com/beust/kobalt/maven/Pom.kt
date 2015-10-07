@@ -5,12 +5,10 @@ import com.beust.kobalt.misc.ToString
 import com.google.inject.assistedinject.Assisted
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
-import org.w3c.dom.Text
 import org.xml.sax.InputSource
 import java.io.FileReader
 import javax.xml.xpath.XPathConstants
-import kotlin.dom.get
-import kotlin.dom.toXmlString
+import kotlin.dom.childElements
 
 public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         @Assisted documentFile: java.io.File) : KobaltLogger {
@@ -64,6 +62,12 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         artifactId = XPATH.compile("/project/artifactId").evaluate(document)
         version = XPATH.compile("/project/version").evaluate(document)
         name = XPATH.compile("/project/name").evaluate(document)
+
+        var list = XPATH.compile("/project/properties").evaluate(document, XPathConstants.NODESET) as NodeList
+        var elem = list.item(0) as Element?
+        elem.childElements().forEach {
+            properties.put(it.nodeName, it.textContent)
+        }
 
         val deps = DEPENDENCIES.evaluate(document, XPathConstants.NODESET) as NodeList
         for (i in 0..deps.getLength() - 1) {

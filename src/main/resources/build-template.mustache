@@ -2,7 +2,12 @@ import com.beust.kobalt.*
 import com.beust.kobalt.plugin.packaging.assemble
 {{imports}}
 
+{{#properties}}
+val {{first}} = {{second}}
+{{/properties}}
+
 val p = {{directive}} {
+
     name = "{{name}}"
     group = "{{group}}"
     artifactId = name
