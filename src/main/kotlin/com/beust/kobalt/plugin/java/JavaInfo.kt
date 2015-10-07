@@ -1,5 +1,7 @@
 package com.beust.kobalt.plugin.java
 
+import com.beust.kobalt.OperatingSystem
+
 import java.io.File
 
 abstract public class JavaInfo {
