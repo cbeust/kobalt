@@ -95,7 +95,6 @@ public class ProjectGenerator : KobaltLogger {
     private fun updateVersion(dep: Dependency, mapped: Map<String, String>): Dependency {
         if ( dep.version.startsWith("\${")) {
             val property = dep.version.substring(2, dep.version.length() - 1)
-            println("property = ${property}")
             return Dependency(dep.groupId, dep.artifactId, "\${${mapped.get(property)}}", dep.optional, dep.scope)
         } else {
             return dep

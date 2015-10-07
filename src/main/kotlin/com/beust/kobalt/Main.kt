@@ -55,7 +55,6 @@ private class Main @Inject constructor(
             println(Banner.get() + Kobalt.version + "\n")
 //            runTest()
             runWithArgs(jc, args)
-            log(1, "************ shutting down executors")
             executors.shutdown()
             debug("All done")
         })
