@@ -1,2 +1,2 @@
-java -jar kobalt/wrapper/kobalt-wrapper.jar $*
+java -jar $KOBALT_HOME/kobalt/wrapper/kobalt-wrapper.jar $*
 
