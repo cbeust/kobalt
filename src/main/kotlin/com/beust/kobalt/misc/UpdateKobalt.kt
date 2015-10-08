@@ -10,7 +10,7 @@ import java.io.File
 public class UpdateKobalt @Inject constructor(val http: Http, val github: GithubApi) {
     fun updateKobalt() {
         val newVersion = github.latestKobaltVersion
-        KFiles.saveFile(File("kobalt/wrapper/kobalt-wrapper.properties"), "kobalt.version=$newVersion")
+        KFiles.saveFile(File("kobalt/wrapper/kobalt-wrapper.properties"), "kobalt.version=${newVersion.get()}")
         com.beust.kobalt.wrapper.main(arrayOf())
     }
 }
