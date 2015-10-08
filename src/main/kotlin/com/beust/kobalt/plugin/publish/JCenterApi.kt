@@ -107,7 +107,9 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
             // This actually needs to be done
 //            options.add("list_in_downloads=1")
 
-            path += "?" + options.join("&")
+            if (options.size() > 0) {
+                path += "?" + options.join("&")
+            }
 
             http.uploadFile(username, password, path, it,
                     { r: Response -> successes.add(it) },
