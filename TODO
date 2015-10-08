@@ -1,6 +1,7 @@
 To do:
 
 - ProjectGenerator: support migration from pom.xml (starting with dependencies)
+- Support version ranges
 - Generate .idea and other IDEA files
 - Make files appear in download list automatically on bintray (undocumented API)
 - logs for users should not show any timestamp, class file or thread id, this should only be in --dev mode
