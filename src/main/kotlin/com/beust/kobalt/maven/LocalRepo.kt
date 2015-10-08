@@ -3,7 +3,7 @@ package com.beust.kobalt.maven
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.Versions
-import com.beust.kobalt.plugin.java.SystemProperties
+import com.beust.kobalt.SystemProperties
 import java.io.File
 import java.util.Collections
 import javax.inject.Inject

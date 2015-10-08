@@ -1,4 +1,6 @@
-package com.beust.kobalt.plugin.java
+package com.beust.kobalt
+
+import com.beust.kobalt.OperatingSystem
 
 import java.io.File
 

@@ -6,7 +6,7 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.plugin.java.SystemProperties
+import com.beust.kobalt.SystemProperties
 import java.io.File
 
 @Directive
