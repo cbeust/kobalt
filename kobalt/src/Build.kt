@@ -8,6 +8,8 @@ import com.beust.kobalt.plugin.publish.jcenter
 
 val repos = repos("https://dl.bintray.com/cbeust/maven/")
 
+//val plugins = plugins("com.beust.kobalt:kobalt-line-count:0.8")
+
 //val plugins = plugins(
 //        "com.beust:kobalt-example-plugin:0.42")
 //val plugins2 = plugins(
