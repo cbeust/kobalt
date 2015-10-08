@@ -127,9 +127,8 @@ public class KFiles {
 
         public fun saveFile(file: File, text: String) {
             file.absoluteFile.parentFile.mkdirs()
-            file.delete()
+            file.writeText(text)
             KobaltLogger.log(2, "Wrote ${file}")
-            file.appendText(text)
         }
 
         private fun isWindows() = System.getProperty("os.name").contains("Windows");
