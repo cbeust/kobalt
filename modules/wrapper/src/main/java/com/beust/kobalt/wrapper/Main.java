@@ -28,7 +28,7 @@ public class Main {
     private static final String DISTRIBUTIONS_DIR =
             System.getProperty("user.home") + "/.kobalt/wrapper/dist";
 
-    private final Properties properties = new Properties();
+    private final Properties wrapperProperties = new Properties();
 
     private static int logLevel = 1;
 
@@ -70,11 +70,11 @@ public class Main {
         if (! config.exists()) {
             saveFile(config, PROPERTY_VERSION + "=" + version);
         }
-        properties.load(new FileReader(config));
+        wrapperProperties.load(new FileReader(config));
     }
 
     private String getWrapperVersion() {
-        return properties.getProperty(PROPERTY_VERSION);
+        return wrapperProperties.getProperty(PROPERTY_VERSION);
     }
 
     private boolean isWindows() {
@@ -129,21 +129,25 @@ public class Main {
         //
         // Copy the wrapper files in the current kobalt/wrapper directory
         //
-        log(2, "Copying the wrapper files");
-        for (String file : FILES) {
-            Path from = Paths.get(zipOutputDir, file);
-            Path to = Paths.get(new File(".").getAbsolutePath(), file);
-            try {
-                if (isWindows() && to.toFile().exists()) {
-                    log(1, "Windows detected, not overwriting " + to);
-                } else {
-                    Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
+        if (! version.equals(getWrapperVersion())) {
+            log(2, "Copying the wrapper files");
+            for (String file : FILES) {
+                Path from = Paths.get(zipOutputDir, file);
+                Path to = Paths.get(new File(".").getAbsolutePath(), file);
+                try {
+                    if (isWindows() && to.toFile().exists()) {
+                        log(1, "Windows detected, not overwriting " + to);
+                    } else {
+                        Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                } catch (IOException ex) {
+                    log(1, "Couldn't copy " + from + " to " + to + ": " + ex.getMessage());
                 }
-            } catch(IOException ex) {
-                log(1, "Couldn't copy " + from + " to " + to + ": " + ex.getMessage());
             }
+            new File(KOBALTW).setExecutable(true);
+        } else {
+            log(2, "Wrapper and current versions are identical");
         }
-        new File(KOBALTW).setExecutable(true);
         return kobaltJarFile;
     }
 
