@@ -109,7 +109,7 @@ private class Main @Inject constructor(
             //
             Wrapper().install()
             ProjectGenerator().run(args)
-        } else if (args.usage || args.targets.isEmpty()) {
+        } else if (args.usage) {
             jc.usage()
         } else {
             if (! buildFile.exists()) {
