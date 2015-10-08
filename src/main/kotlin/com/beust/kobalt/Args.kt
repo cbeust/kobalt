@@ -7,7 +7,7 @@ class Args {
     var targets: List<String> = arrayListOf()
 
     @Parameter(names = arrayOf("-bf", "--buildFile"), description = "The build file")
-    var buildFile: String? = null
+    var buildFile: String = "Build.kt"
 
     @Parameter(names = arrayOf("--checkVersions"), description = "Check if there are any newer versions of the " +
             "dependencies")
@@ -16,6 +16,9 @@ class Args {
     @Parameter(names = arrayOf("--dryRun"), description = "Display all the tasks that will get run without " +
             "actually running them")
     var dryRun: Boolean = false
+
+    @Parameter(names = arrayOf("--help", "--usage"), description = "Display the help")
+    var usage: Boolean = false
 
     @Parameter(names = arrayOf("-i", "--init"), description = "Create a new build file based on the current project")
     var init: Boolean = false

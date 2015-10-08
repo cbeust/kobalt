@@ -109,6 +109,8 @@ private class Main @Inject constructor(
             //
             Wrapper().install()
             ProjectGenerator().run(args)
+        } else if (args.usage || args.targets.isEmpty()) {
+            jc.usage()
         } else {
             if (! buildFile.exists()) {
                 jc.usage()
