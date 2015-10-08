@@ -73,12 +73,8 @@ public class JarUtils : KobaltLogger {
         public fun addSingleFile(directory: String, file: IncludedFile, outputStream: ZipOutputStream,
                 expandJarFiles: Boolean, onError: (Exception) -> Unit = defaultHandler) {
             file.specs.forEach { spec ->
-                val fromPath = (file.from + "/" + spec).replace("\\", "/")
                 val path = spec.toString()
-                spec.toFiles(directory).forEach { source ->
-                    // Remove the "from" from the path
-//                    val path = fixedPath.substring(file.from.length())
-
+                spec.toFiles(directory + "/" + file.from).forEach { source ->
                     if (source.isDirectory) {
                         // Directory
                         var name = path
@@ -100,18 +96,19 @@ public class JarUtils : KobaltLogger {
                             while (entry != null) {
                                 if (!entry.isDirectory) {
                                     val ins = JarFile(source).getInputStream(entry)
-                                    addEntry(ins, JarEntry(entry), outputStream, path, onError)
+                                    addEntry(ins, JarEntry(entry), outputStream, onError)
                                 }
                                 entry = stream.nextEntry
                             }
                         } else {
-                            val entry = JarEntry((file.to + path).replace("\\", "/"))
+                            val entry = JarEntry((file.to + source.path).replace("\\", "/"))
                             entry.time = source.lastModified()
+                            val fromPath = (file.from + "/" + source.path).replace("\\", "/")
                             val entryFile = File(directory, fromPath)
                             if (! entryFile.exists()) {
                                 throw AssertionError("File should exist: ${entryFile}")
                             }
-                            addEntry(FileInputStream(entryFile), entry, outputStream, path, onError)
+                            addEntry(FileInputStream(entryFile), entry, outputStream, onError)
                         }
                     }
                 }
@@ -119,13 +116,7 @@ public class JarUtils : KobaltLogger {
         }
 
         private fun addEntry(inputStream: InputStream, entry: ZipEntry, outputStream: ZipOutputStream,
-                path: String,
                 onError: (Exception) -> Unit = defaultHandler) {
-            // This jar file is not shaded and includes its own copy of guava, so don't add the guava
-            // files from there
-//            if (entry.name.contains("com/google/common") && path.contains("kotlin-compiler")) {
-//                return
-//            }
             var bis: BufferedInputStream? = null
             try {
                 outputStream.putNextEntry(entry)
@@ -154,7 +145,7 @@ public class JarUtils : KobaltLogger {
                 val entry = entries.nextElement()
                 if (! seen.contains(entry.name)) {
                     val ins = fromFile.getInputStream(entry)
-                    addEntry(ins, JarEntry(entry), os, fromFile.name)
+                    addEntry(ins, JarEntry(entry), os)
                 }
                 seen.add(entry.name)
             }

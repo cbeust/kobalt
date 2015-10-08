@@ -12,17 +12,22 @@ import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.LocalRepo
+import com.beust.kobalt.maven.MavenDependency
+import com.beust.kobalt.maven.SimpleDep
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.ToString
 import com.beust.kobalt.plugin.java.JavaPlugin
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.nio.file.FileSystems
 import java.nio.file.PathMatcher
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.util.ArrayList
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipOutputStream
@@ -38,7 +43,7 @@ public fun assemble(project: Project, init: Package.(p: Project) -> Unit): Packa
 
 @Singleton
 public class PackagingPlugin @Inject constructor(val dependencyManager : DependencyManager,
-        val executors: KobaltExecutors) : BasePlugin(), KobaltLogger {
+        val executors: KobaltExecutors, val localRepo: LocalRepo) : BasePlugin(), KobaltLogger {
 
     companion object {
         public const val TASK_ASSEMBLE : String = "assemble"
@@ -52,6 +57,7 @@ public class PackagingPlugin @Inject constructor(val dependencyManager : Depende
     fun taskAssemble(project: Project) : TaskResult {
         packages.filter { it.project.name == project.name }.forEach { pkg ->
             pkg.jars.forEach { generateJar(pkg.project, it) }
+            pkg.wars.forEach { generateWar(pkg.project, it) }
             pkg.zips.forEach { generateZip(pkg.project, it) }
         }
         return TaskResult()
@@ -75,13 +81,46 @@ public class PackagingPlugin @Inject constructor(val dependencyManager : Depende
         return false
     }
 
+    private fun generateWar(project: Project, war: War) : File {
+        //
+        // src/main/web app and classes
+        //
+        val allFiles = arrayListOf(
+                IncludedFile(From("src/main/webapp"), To(""), listOf(Glob("**"))),
+                IncludedFile(From("kobaltBuild/classes"), To("WEB-INF/classes"), listOf(Glob("**")))
+                )
+        val manifest = java.util.jar.Manifest()//FileInputStream(mf))
+        war.attributes.forEach { attribute ->
+            manifest.mainAttributes.putValue(attribute.first, attribute.second)
+        }
+
+        //
+        // Transitive closure of libraries into WEB-INF/libs
+        //
+        val allDependencies = dependencyManager.transitiveClosure(project.compileDependencies)
+
+        val WEB_INF = "WEB-INF/lib"
+        val outDir = project.buildDirectory + "/war"
+        val fullDir = outDir + "/" + WEB_INF
+        File(fullDir).mkdirs()
+        allDependencies.map { it.jarFile.get() }.forEach {
+            KFiles.copy(Paths.get(it.absolutePath), Paths.get(fullDir, it.name),
+                    StandardCopyOption.REPLACE_EXISTING)
+        }
+        allFiles.add(IncludedFile(From(fullDir), To(WEB_INF), listOf(Glob("**"))))
+
+        val jarFactory = { os:OutputStream -> JarOutputStream(os, manifest) }
+        return generateArchive(project, war.name, ".war", allFiles,
+                false /* don't expand jar files */, jarFactory)
+    }
+
     private fun generateJar(project: Project, jar: Jar) : File {
         //
         // Add all the applicable files for the current project
         //
         val buildDir = KFiles.makeDir(project.directory, project.buildDirectory!!)
         val allFiles = arrayListOf<IncludedFile>()
-        val classesDir = KFiles.makeDir(buildDir.getPath(), "classes")
+        val classesDir = KFiles.makeDir(buildDir.path, "classes")
 
         if (jar.includedFiles.isEmpty()) {
             // If no includes were specified, assume the user wants a simple jar file made of the
@@ -192,6 +231,7 @@ public class PackagingPlugin @Inject constructor(val dependencyManager : Depende
 
 class Package(val project: Project) : AttributeHolder {
     val jars = arrayListOf<Jar>()
+    val wars = arrayListOf<War>()
     val zips = arrayListOf<Zip>()
 
     init {
@@ -212,6 +252,14 @@ class Package(val project: Project) : AttributeHolder {
         zip.init(zip)
         zips.add(zip)
         return zip
+    }
+
+    @Directive
+    fun war(init: War.(p: War) -> Unit) : War {
+        val war = War()
+        war.init(war)
+        wars.add(war)
+        return war
     }
 
     /**
@@ -327,7 +375,7 @@ interface AttributeHolder {
 /**
  * A jar is exactly like a zip with the addition of a manifest and an optional fatJar boolean.
  */
-class Jar(override var name: String? = null, var fatJar: Boolean = false) : Zip(name), AttributeHolder {
+open class Jar(override var name: String? = null, var fatJar: Boolean = false) : Zip(name), AttributeHolder {
     @Directive
     public fun manifest(init: Manifest.(p: Manifest) -> Unit) : Manifest {
         val m = Manifest(this)
@@ -341,6 +389,13 @@ class Jar(override var name: String? = null, var fatJar: Boolean = false) : Zip(
 
     override fun addAttribute(k: String, v: String) {
         attributes.add(Pair(k, v))
+    }
+}
+
+class War(override var name: String? = null) : Jar(name), AttributeHolder {
+    init {
+        include(from("src/main/webapp"),to(""), glob("**"))
+        include(from("kobaltBuild/classes"), to("WEB-INF/classes"), glob("**"))
     }
 }
 
