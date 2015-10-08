@@ -2,6 +2,8 @@ import com.beust.kobalt.*
 import com.beust.kobalt.plugin.packaging.assemble
 {{imports}}
 
+val repos = repos({{{repositories}}})
+
 {{#properties}}
 val {{first}} = "{{second}}"
 {{/properties}}

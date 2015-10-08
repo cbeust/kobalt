@@ -22,7 +22,7 @@ public class ProjectGenerator : KobaltLogger {
     fun run(args: Args) {
         if (File(args.buildFile).exists()) {
             log(1, "Build file ${args.buildFile} already exists, not overwriting it")
-            return
+//            return
         }
 
         val compilerInfos = detect(File("."))
@@ -74,6 +74,7 @@ public class ProjectGenerator : KobaltLogger {
             put("artifactId", pom.artifactId ?: "com.example")
             put("version", pom.version ?: "0.1")
             put("name", pom.name ?: pom.artifactId)
+            put("repositories", pom.repos.map({ "\"${it}\"" }).join(","))
         }
 
         val properties = pom.properties
