@@ -139,6 +139,7 @@ public class KFiles {
                 KobaltLogger.log(2, "Windows detected, not overwriting ${to!!}")
             } else {
                 try {
+                    KobaltLogger.log(2, "Copy from $from!! to ${to!!}")
                     Files.copy(from, to, option)
                 } catch(ex: IOException) {
                     // Windows is anal about this
