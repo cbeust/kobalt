@@ -22,7 +22,7 @@ public class ProjectGenerator : KobaltLogger {
     fun run(args: Args) {
         if (File(args.buildFile).exists()) {
             log(1, "Build file ${args.buildFile} already exists, not overwriting it")
-//            return
+            return
         }
 
         val compilerInfos = detect(File("."))
