@@ -2,7 +2,7 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.KobaltLogger
-import com.beust.kobalt.plugin.java.SystemProperties
+import com.beust.kobalt.SystemProperties
 import com.google.common.base.Preconditions
 import com.google.inject.assistedinject.Assisted
 import org.apache.maven.model.Developer

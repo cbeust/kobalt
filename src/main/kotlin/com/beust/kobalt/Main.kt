@@ -8,7 +8,7 @@ import com.beust.kobalt.kotlin.BuildFile
 import com.beust.kobalt.kotlin.ScriptCompiler
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.*
-import com.beust.kobalt.plugin.java.SystemProperties
+import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.plugin.publish.JCenterApi
 import com.beust.kobalt.plugin.publish.UnauthenticatedJCenterApi
 import com.beust.kobalt.wrapper.Wrapper

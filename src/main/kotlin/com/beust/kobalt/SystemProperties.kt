@@ -1,4 +1,4 @@
-package com.beust.kobalt.plugin.java
+package com.beust.kobalt
 
 import java.util.concurrent.locks.ReentrantLock
 import javax.inject.Inject

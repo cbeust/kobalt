@@ -4,8 +4,8 @@ import com.beust.kobalt.maven.Http
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.benchmark
-import com.beust.kobalt.plugin.java.JavaInfo
-import com.beust.kobalt.plugin.java.SystemProperties
+import com.beust.kobalt.JavaInfo
+import com.beust.kobalt.SystemProperties
 import java.io.File
 import java.io.FileReader
 import java.io.IOException
