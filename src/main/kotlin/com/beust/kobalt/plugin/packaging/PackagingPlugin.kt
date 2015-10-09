@@ -96,6 +96,7 @@ public class PackagingPlugin @Inject constructor(val dependencyManager : Depende
 
         //
         // Transitive closure of libraries into WEB-INF/libs
+        // Copy them all in kobaltBuild/war/WEB-INF/libs and created one IncludedFile out of that directory
         //
         val allDependencies = dependencyManager.transitiveClosure(project.compileDependencies)
 
