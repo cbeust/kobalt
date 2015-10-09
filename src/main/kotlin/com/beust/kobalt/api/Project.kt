@@ -64,17 +64,18 @@ open public class Project(
 
     @Directive
     public fun dependencies(init: Dependencies.() -> Unit) : Dependencies {
-        dependencies = Dependencies(this, compileDependencies, compileProvidedDependencies)
+        dependencies = Dependencies(this, compileDependencies, compileProvidedDependencies, compileRuntimeDependencies)
         dependencies!!.init()
         return dependencies!!
     }
 
     val compileDependencies : ArrayList<IClasspathDependency> = arrayListOf()
     val compileProvidedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
+    val compileRuntimeDependencies : ArrayList<IClasspathDependency> = arrayListOf()
 
     @Directive
     public fun dependenciesTest(init: Dependencies.() -> Unit) : Dependencies {
-        dependencies = Dependencies(this, testDependencies, testProvidedDependencies)
+        dependencies = Dependencies(this, testDependencies, testProvidedDependencies, compileRuntimeDependencies)
         dependencies!!.init()
         return dependencies!!
     }
@@ -91,7 +92,8 @@ public class Sources(val project: Project, val sources: ArrayList<String>) {
 }
 
 public class Dependencies(val project: Project, val dependencies: ArrayList<IClasspathDependency>,
-        val providedDependencies: ArrayList<IClasspathDependency>) {
+        val providedDependencies: ArrayList<IClasspathDependency>,
+        val runtimeDependencies: ArrayList<IClasspathDependency>) {
     @Directive
     fun compile(vararg dep: String) {
         dep.forEach { dependencies.add(MavenDependency.create(it)) }
@@ -100,6 +102,11 @@ public class Dependencies(val project: Project, val dependencies: ArrayList<ICla
     @Directive
     fun provided(vararg dep: String) {
         dep.forEach { providedDependencies.add(MavenDependency.create(it))}
+    }
+
+    @Directive
+    fun runtime(vararg dep: String) {
+        dep.forEach { runtimeDependencies.add(MavenDependency.create(it))}
     }
 }
 

@@ -143,14 +143,17 @@ public class PackagingPlugin @Inject constructor(val dependencyManager : Depende
         }
 
         //
-        // If fatJar is true, add all the transitive dependencies too
+        // If fatJar is true, add all the transitive dependencies as well (both compile and runtime)
         //
         if (jar.fatJar) {
             log(2, "Creating fat jar")
-            val allDependencies = dependencyManager.transitiveClosure(project.compileDependencies)
-            allDependencies.map { it.jarFile.get() }.forEach {
-                if (! isExcluded(it, jar.excludes)) {
-                    allFiles.add(IncludedFile(arrayListOf(FileSpec(it.path))))
+
+            listOf(dependencyManager.transitiveClosure(project.compileDependencies),
+                    dependencyManager.transitiveClosure(project.compileRuntimeDependencies)).forEach { dep ->
+                dep.map { it.jarFile.get() }.forEach {
+                    if (!isExcluded(it, jar.excludes)) {
+                        allFiles.add(IncludedFile(arrayListOf(FileSpec(it.path))))
+                    }
                 }
             }
         }
