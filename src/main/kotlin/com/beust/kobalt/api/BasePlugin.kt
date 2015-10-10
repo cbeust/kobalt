@@ -16,19 +16,14 @@ abstract public class BasePlugin : Plugin {
     override fun accept(project: Project) = true
     var plugins : Plugins by Delegates.notNull()
 
-    fun addSyntheticTask(name: String, project: Project, task: (Project) -> TaskResult) {
-        val task = object: PluginTask() {
-            override val doc = "A synthetic task"
-            override val name = name
-            override val plugin = this@BasePlugin
-            override val project = project
-
-            override fun call(): TaskResult2<PluginTask>? {
-                val taskResult = task(project)
-                return TaskResult2(taskResult.success, this)
-            }
-        }
-        tasks.add(task)
+    /**
+     * Add a dynamic task.
+     */
+    fun addTask(project: Project, name: String, description: String = "",
+            runBefore: List<String> = arrayListOf<String>(),
+            runAfter: List<String> = arrayListOf<String>(),
+            task: (Project) -> TaskResult) {
+        addGenericTask(project, name, description, runBefore, runAfter, task)
     }
 
 }

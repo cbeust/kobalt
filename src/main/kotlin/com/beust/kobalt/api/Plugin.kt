@@ -18,12 +18,21 @@ public interface Plugin {
     val methodTasks : ArrayList<MethodTask>
 
     fun addStaticTask(annotation: Task, project: Project, task: (Project) -> TaskResult) {
-        tasks.add(object : BasePluginTask(this, annotation.name, annotation.description, project) {
-            override fun call(): TaskResult2<PluginTask> {
-                val taskResult = task(project)
-                return TaskResult2(taskResult.success, this)
-            }
-        })
+        addGenericTask(project, annotation.name, annotation.description, annotation.runBefore.toList(),
+                annotation.runAfter.toList(), task)
+    }
+
+    fun addGenericTask(project: Project, name: String, description: String,
+            runBefore: List<String>, runAfter: List<String>, task: (Project) -> TaskResult) {
+        tasks.add(
+            object : BasePluginTask(this, name, description, project) {
+                override fun call(): TaskResult2<PluginTask> {
+                    val taskResult = task(project)
+                    return TaskResult2(taskResult.success, this)
+                }
+            })
+        runBefore.forEach { dependsOn(it, name) }
+        runAfter.forEach { dependsOn(name, it) }
     }
 
     var taskManager : TaskManager

@@ -154,8 +154,6 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
 
                 projects.filter { plugin.accept(it) }.forEach { project ->
                     plugin.addStaticTask(annotation, project, toTask(method, project, plugin))
-                    annotation.runBefore.forEach { plugin.dependsOn(it, annotation.name) }
-                    annotation.runAfter.forEach { plugin.dependsOn(annotation.name, it) }
                 }
             }
         }
