@@ -19,6 +19,15 @@ import java.util.HashMap
  * Generate a new project.
  */
 public class ProjectGenerator : KobaltLogger {
+    companion object {
+        /**
+         * Turns a dot property into a proper Kotlin identifier, e.g. common.version -> commonVersion
+         */
+        fun translate(key: String): String {
+            return key.split('.').mapIndexed( { index, value -> if (index == 0) value else value.upperFirst() }).join("")
+        }
+    }
+
     fun run(args: Args) {
         if (File(args.buildFile).exists()) {
             log(1, "Build file ${args.buildFile} already exists, not overwriting it")
@@ -52,7 +61,7 @@ public class ProjectGenerator : KobaltLogger {
         map.put("mainDependencies", mainDeps)
         map.put("testDependencies", testDeps)
         File("pom.xml").let {
-            if (it.exists()) {
+            if (it.absoluteFile.exists()) {
                 importPom(it, mainDeps, testDeps, map)
             }
         }
@@ -68,13 +77,13 @@ public class ProjectGenerator : KobaltLogger {
 
     private fun importPom(pomFile: File, mainDeps: ArrayList<Dependency>, testDeps: ArrayList<Dependency>,
             map: HashMap<String, Any?>) {
-        var pom = Pom("imported", pomFile)
+        var pom = Pom("imported", pomFile.absoluteFile)
         with(map) {
             put("group", pom.groupId ?: "com.example")
             put("artifactId", pom.artifactId ?: "com.example")
             put("version", pom.version ?: "0.1")
             put("name", pom.name ?: pom.artifactId)
-            put("repositories", pom.repos.map({ "\"${it}\"" }).join(","))
+            put("repositories", pom.repositories.map({ "\"${it}\"" }).join(","))
         }
 
         val properties = pom.properties
@@ -102,18 +111,6 @@ public class ProjectGenerator : KobaltLogger {
             dep
         }
 
-    /**
-     * Turns a dot property into a proper Kotlin identifier, e.g. common.version -> commonVersion
-     */
-    private fun translate(key: String) =
-        key.split('.').mapIndexed( { index, value -> if (index == 0) value else value.upperFirst() }).join("")
-
-    private fun String.upperFirst() =
-        if (this.isBlank()) {
-            this
-        } else {
-            this.substring(0, 1).toUpperCase() + this.substring(1)
-        }
 
     /**
      * Detect all the languages contained in this project.
@@ -129,4 +126,8 @@ public class ProjectGenerator : KobaltLogger {
         Collections.sort(result, { p1, p2 -> p1.second.size().compareTo(p2.second.size()) })
         return result.map { it.first }
     }
+}
+
+private fun String.upperFirst(): String {
+    return if (this.isBlank()) this else this.substring(0, 1).toUpperCase() + this.substring(1)
 }

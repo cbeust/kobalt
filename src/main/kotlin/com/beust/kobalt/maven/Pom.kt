@@ -19,7 +19,7 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
     var version: String? = null
     var name: String? = null
     var properties = sortedMapOf<String, String>()
-    var repos = listOf<String>()
+    var repositories = listOf<String>()
 
     public interface IFactory {
         fun create(@Assisted id: String, @Assisted documentFile : java.io.File) : Pom
@@ -63,13 +63,15 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         artifactId = XPATH.compile("/project/artifactId").evaluate(document)
         version = XPATH.compile("/project/version").evaluate(document)
         name = XPATH.compile("/project/name").evaluate(document)
-        var list = XPATH.compile("/project/repositories").evaluate(document, XPathConstants.NODESET) as NodeList
-        var elem = list.item(0) as Element?
-        repos = elem.childElements()
-              .map({ it.getElementsByTagName("url").item(0).textContent })
+        var repositoriesList = XPATH.compile("/project/repositories").evaluate(document, XPathConstants.NODESET) as NodeList
+//        if (repositoriesList.getLength() != 0) {
+            var elem = repositoriesList.item(0) as Element?
+            repositories = elem.childElements()
+                  .map({ it.getElementsByTagName("url").item(0).textContent })
+//        }
 
-        list = XPATH.compile("/project/properties").evaluate(document, XPathConstants.NODESET) as NodeList
-        elem = list.item(0) as Element?
+        val propertiesList = XPATH.compile("/project/properties").evaluate(document, XPathConstants.NODESET) as NodeList
+        /*var*/ elem = propertiesList.item(0) as Element?
         elem.childElements().forEach {
             properties.put(it.nodeName, it.textContent)
         }
