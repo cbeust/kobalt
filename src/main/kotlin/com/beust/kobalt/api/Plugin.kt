@@ -33,13 +33,9 @@ public interface Plugin {
                     return TaskResult2(taskResult.success, this)
                 }
             })
-        runBefore.forEach { dependsOn(it, name) }
-        runAfter.forEach { dependsOn(name, it) }
+        runBefore.forEach { taskManager.runBefore(it, name) }
+        runAfter.forEach { taskManager.runBefore(name, it) }
     }
 
     var taskManager : TaskManager
-
-    fun dependsOn(task1: String, task2: String) {
-        taskManager.dependsOn(task1, task2)
-    }
 }

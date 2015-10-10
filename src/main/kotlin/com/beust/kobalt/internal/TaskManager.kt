@@ -14,14 +14,19 @@ import javax.inject.Singleton
 
 @Singleton
 public class TaskManager @Inject constructor(val plugins: Plugins, val args: Args) : KobaltLogger {
-    private val dependentTaskMap = TreeMultimap.create<String, String>()
+    private val runBefore = TreeMultimap.create<String, String>()
+    private val runAfter= TreeMultimap.create<String, String>()
 
     /**
      * Called by plugins to indicate task dependencies defined at runtime. Keys depend on values.
      * Declare that `task1` depends on `task2`.
      */
-    fun dependsOn(task1: String, task2: String) {
-        dependentTaskMap.put(task1, task2)
+    fun runBefore(task1: String, task2: String) {
+        runBefore.put(task1, task2)
+    }
+
+    fun runAfter(task1: String, task2: String) {
+        runAfter.put(task1, task2)
     }
 
     class TaskInfo(val id: String) {
@@ -47,22 +52,22 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             //
             plugins.allTasks.filter { it.project.name == project.name }.forEach { rt ->
                 tasksByNames.put(rt.name, rt)
-                if (rt.dependsOn.size() > 0) {
-                    rt.dependsOn.forEach { d ->
-                        dependentTaskMap.put(rt.name, d)
+                if (rt.runBefore.size() > 0) {
+                    rt.runBefore.forEach { d ->
+                        runBefore.put(rt.name, d)
                     }
                 }
             }
 
             val freeTaskMap = hashMapOf<String, PluginTask>()
             tasksByNames.keySet().forEach {
-                if (!dependentTaskMap.containsKey(it)) freeTaskMap.put(it, tasksByNames.get(it).elementAt(0))
+                if (! runBefore.containsKey(it)) freeTaskMap.put(it, tasksByNames.get(it).elementAt(0))
             }
 
             log(2, "Free tasks: ${freeTaskMap.keySet()}")
             log(2, "Dependent tasks:")
-            dependentTaskMap.keySet().forEach { t ->
-                log(2, "  ${t} -> ${dependentTaskMap.get(t)}}")
+            runBefore.keySet().forEach { t ->
+                log(2, "  ${t} -> ${runBefore.get(t)}}")
             }
 
             //
@@ -102,7 +107,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                                 throw KobaltException("Unknown task: ${target}")
                             }
                             tasks.forEach { task ->
-                                val dependencyNames = dependentTaskMap.get(task.name)
+                                val dependencyNames = runBefore.get(task.name)
                                 dependencyNames.forEach { dependencyName ->
                                     if (!seen.contains(dependencyName)) {
                                         newToProcess.add(dependencyName)
@@ -127,7 +132,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             //
             val graph = DynamicGraph<PluginTask>()
             freeTaskMap.values().filter { transitiveClosure.contains(it.name) } forEach { graph.addNode(it) }
-            dependentTaskMap.entries().filter {
+            runBefore.entries().filter {
                 transitiveClosure.contains(it.key)
             }.forEach { entry ->
                 plugins.findTasks(entry.key).filter { it.project.name == project.name }.forEach { from ->
