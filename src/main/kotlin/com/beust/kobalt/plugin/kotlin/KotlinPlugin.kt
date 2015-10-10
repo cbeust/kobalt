@@ -32,14 +32,6 @@ public class KotlinPlugin @Inject constructor(
         Kobalt.registerCompiler(KotlinCompilerInfo())
     }
 
-    override fun apply(project: Project, context: KobaltContext) {
-        log(1, "ADD SYNTH TASK")
-//        addTask(project, "syntheticTask", "A dynamic task", runBefore = listOf("clean")) { p: Project ->
-//            println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Synthetic task")
-//            TaskResult()
-//        }
-    }
-
     companion object {
         public const val TASK_COMPILE: String = "compile"
         public const val TASK_COMPILE_TEST: String = "compileTest"

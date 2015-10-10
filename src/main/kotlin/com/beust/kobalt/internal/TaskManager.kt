@@ -15,7 +15,8 @@ import javax.inject.Singleton
 @Singleton
 public class TaskManager @Inject constructor(val plugins: Plugins, val args: Args) : KobaltLogger {
     private val runBefore = TreeMultimap.create<String, String>()
-    private val runAfter= TreeMultimap.create<String, String>()
+    private val runAfter = TreeMultimap.create<String, String>()
+    private val wrapAfter = TreeMultimap.create<String, String>()
 
     /**
      * Called by plugins to indicate task dependencies defined at runtime. Keys depend on values.
@@ -27,6 +28,10 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
 
     fun runAfter(task1: String, task2: String) {
         runAfter.put(task1, task2)
+    }
+
+    fun wrapAfter(task1: String, task2: String) {
+        wrapAfter.put(task1, task2)
     }
 
     class TaskInfo(val id: String) {
@@ -101,6 +106,9 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                                     target
                                 }
                         if (actualTarget != null) {
+                            wrapAfter.get(actualTarget).let {
+                                newToProcess.addAll(it)
+                            }
                             transitiveClosure.add(actualTarget)
                             val tasks = tasksByNames.get(actualTarget)
                             if (tasks.isEmpty()) {
