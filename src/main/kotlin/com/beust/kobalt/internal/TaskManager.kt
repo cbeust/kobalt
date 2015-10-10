@@ -157,9 +157,13 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             log(3, "toProcess size: " + toProcess.size())
             toProcess.forEach { target ->
 
-//                wrapAfter.get(ti.id).let {
-//                    newToProcess.addAll(it)
-//                }
+                wrapAfter.get(ti.id).let {
+                    val tasks = tasksByNames.get(it)
+                    if (tasks != null) {
+                        tasks.forEach {
+                            newToProcess.add(TaskInfo(project.name!!, task!!.name))
+                        }
+                }
 
                 val currentTask = TaskInfo(project.name!!, target.task)
                 transitiveClosure.add(tasksByNames.get(currentTask.task)!!)
