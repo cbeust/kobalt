@@ -70,10 +70,13 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                 if (ti.matches(projectName)) {
                     val task = tasksByNames.get(ti.task)
                     if (task != null && task.plugin.accept(project)) {
+                        val allTasks = arrayListOf<PluginTask>()
                         //
                         // Add free tasks as nodes to the graph
                         //
-                        calculateFreeTasks(tasksByNames).forEach {
+                        val freeTasks = calculateFreeTasks(tasksByNames)
+                        allTasks.addAll(freeTasks)
+                        freeTasks.forEach {
                             val thisTaskInfo = TaskInfo(projectName, it.name)
                             if (! tasksAlreadyRun.contains(thisTaskInfo.id)) {
                                 graph.addNode(it)
@@ -84,7 +87,9 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                         //
                         // Add the transitive closure of the current task as edges to the graph
                         //
-                        calculateTransitiveClosure(project, tasksByNames, ti, task).forEach { pluginTask ->
+                        val transitiveClosure = calculateTransitiveClosure(project, tasksByNames, ti, task)
+                        allTasks.addAll(transitiveClosure)
+                        transitiveClosure.forEach { pluginTask ->
                             val rb = runBefore.get(pluginTask.name)
                             rb.forEach {
                                 val to = tasksByNames.get(it)
@@ -96,6 +101,20 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                                     }
                                 } else {
                                     throw KobaltException("Should have found $it")
+                                }
+                            }
+                        }
+
+                        //
+                        // Now that we have free and non-free nodes in the graph, see if any of them
+                        // has a wrapAfter task and if they do, add the corresponding edge to the graph
+                        //
+                        allTasks.forEach {
+                            val after = wrapAfter.get(it.name)
+                            after.forEach { af ->
+                                val afterTask = tasksByNames.get(af)
+                                if (afterTask != null) {
+                                    graph.addEdge(afterTask, it)
                                 }
                             }
                         }
@@ -156,14 +175,6 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             val newToProcess = hashSetOf<TaskInfo>()
             log(3, "toProcess size: " + toProcess.size())
             toProcess.forEach { target ->
-
-                wrapAfter.get(ti.id).let {
-                    val tasks = tasksByNames.get(it)
-                    if (tasks != null) {
-                        tasks.forEach {
-                            newToProcess.add(TaskInfo(project.name!!, task!!.name))
-                        }
-                }
 
                 val currentTask = TaskInfo(project.name!!, target.task)
                 transitiveClosure.add(tasksByNames.get(currentTask.task)!!)
