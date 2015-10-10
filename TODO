@@ -1,5 +1,6 @@
 To do:
 
+- use groupId/artifactId
 - ProjectGenerator: support migration from pom.xml (starting with dependencies)
 - Support version ranges
 - Generate .idea and other IDEA files
