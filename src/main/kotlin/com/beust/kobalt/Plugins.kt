@@ -105,7 +105,13 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
                 plugin.taskManager = taskManagerProvider.get()
                 plugin.plugins = this
             }
+
+            // Call apply() on each plug-in that accepts a project
             log(2, "Applying plug-in \"${plugin.name}\"")
+            projects.filter { plugin.accept(it) }.forEach { project ->
+                plugin.apply(project, context)
+            }
+
 
             var currentClass : Class<in Any> = plugin.javaClass
 
@@ -147,11 +153,9 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
                 }
 
                 projects.filter { plugin.accept(it) }.forEach { project ->
-                    plugin.addTask(annotation, project, toTask(method, project, plugin))
+                    plugin.addStaticTask(annotation, project, toTask(method, project, plugin))
                     annotation.runBefore.forEach { plugin.dependsOn(it, annotation.name) }
                     annotation.runAfter.forEach { plugin.dependsOn(annotation.name, it) }
-
-                    plugin.apply(project, context)
                 }
             }
         }

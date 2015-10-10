@@ -4,15 +4,11 @@ import com.beust.kobalt.Args
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.Task
 import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.maven.KobaltException
-import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.TreeMultimap
 import java.util.HashSet
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,6 +24,13 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
         dependentTaskMap.put(task1, task2)
     }
 
+    class TaskInfo(val id: String) {
+        val project: String?
+            get() = if (id.contains(":")) id.split(":").get(0) else null
+        val task: String
+            get() = if (id.contains(":")) id.split(":").get(1) else id
+    }
+
     public fun runTargets(targets: List<String>, projects: List<Project>) {
         val tasksByNames = HashMultimap.create<String, PluginTask>()
 
@@ -35,6 +38,9 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             log(1, "")
             log(1, "                   Building project ${project.name}")
             log(1, "")
+
+            val allTasksByNames = hashMapOf<String, PluginTask>()
+            plugins.allTasks.forEach { allTasksByNames.put(TaskInfo(it.name).task, it)}
 
             //
             // Locate all the tasks
@@ -70,38 +76,45 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                 val newToProcess = hashSetOf<String>()
                 log(3, "toProcess size: " + toProcess.size())
                 toProcess.forEach { target ->
-                    log(3, "Processing ${target}")
-                    val actualTarget =
-                        if (target.contains(":")) {
-                            // The target specifies a project explicitly
-                            target.split(":").let {
-                                val projectName = it[0]
-                                if (projectName == project.name) {
-                                    it[1]
+                    val pluginTask = allTasksByNames.get(target)
+                    // Only calculate the transitive closure for this target if its plug-in accepts the
+                    // current project
+                    if (pluginTask != null && pluginTask.plugin.accept(project)) {
+                        log(3, "Processing ${target}")
+                        val actualTarget =
+                                if (target.contains(":")) {
+                                    // The target specifies a project explicitly
+                                    target.split(":").let {
+                                        val projectName = it[0]
+                                        if (projectName == project.name) {
+                                            it[1]
+                                        } else {
+                                            null
+                                        }
+                                    }
                                 } else {
-                                    null
+                                    target
+                                }
+                        if (actualTarget != null) {
+                            transitiveClosure.add(actualTarget)
+                            val tasks = tasksByNames.get(actualTarget)
+                            if (tasks.isEmpty()) {
+                                throw KobaltException("Unknown task: ${target}")
+                            }
+                            tasks.forEach { task ->
+                                val dependencyNames = dependentTaskMap.get(task.name)
+                                dependencyNames.forEach { dependencyName ->
+                                    if (!seen.contains(dependencyName)) {
+                                        newToProcess.add(dependencyName)
+                                        seen.add(dependencyName)
+                                    }
                                 }
                             }
                         } else {
-                            target
+                            log(2, "Target ${target} specified so not running it for project ${project.name}")
                         }
-                    if (actualTarget != null) {
-                        transitiveClosure.add(actualTarget)
-                        val tasks = tasksByNames.get(actualTarget)
-                        if (tasks.isEmpty()) {
-                            throw KobaltException("Unknown task: ${target}")
-                        }
-                        tasks.forEach { task ->
-                            val dependencyNames = dependentTaskMap.get(task.name)
-                            dependencyNames.forEach { dependencyName ->
-                                if (!seen.contains(dependencyName)) {
-                                    newToProcess.add(dependencyName)
-                                    seen.add(dependencyName)
-                                }
-                            }
-                        }
-                    } else {
-                        log(2, "Target ${target} specified so not running it for project ${project.name}")
+                    } else if (pluginTask == null) {
+                        throw AssertionError("Should have found the task for $target")
                     }
                 }
                 done = newToProcess.isEmpty()

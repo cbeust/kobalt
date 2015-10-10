@@ -17,7 +17,7 @@ public interface Plugin {
     class MethodTask(val method: Method, val taskAnnotation: Task)
     val methodTasks : ArrayList<MethodTask>
 
-    fun addTask(annotation: Task, project: Project, task: (Project) -> TaskResult) {
+    fun addStaticTask(annotation: Task, project: Project, task: (Project) -> TaskResult) {
         tasks.add(object : BasePluginTask(this, annotation.name, annotation.description, project) {
             override fun call(): TaskResult2<PluginTask> {
                 val taskResult = task(project)
