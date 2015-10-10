@@ -26,6 +26,6 @@ public class JavaProject(
         override var dependencies: Dependencies? = null)
     : Project(name, version, directory, buildDirectory, group, artifactId, dependencies, ".java", JavaCompilerInfo()) {
 
-    override public fun toString() = ToString("JavaProject", name!!, "name").s
+    override public fun toString() = ToString("JavaProject", "name", name!!).s
 }
 
