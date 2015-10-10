@@ -11,7 +11,7 @@ import javax.xml.xpath.XPathConstants
 import kotlin.dom.childElements
 
 public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
-        @Assisted documentFile: java.io.File) : KobaltLogger {
+                                                  @Assisted documentFile: java.io.File) : KobaltLogger {
     val XPATH_FACTORY = javax.xml.xpath.XPathFactory.newInstance()
     val XPATH = XPATH_FACTORY.newXPath()
     var groupId: String? = null
@@ -22,19 +22,19 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
     var repositories = listOf<String>()
 
     public interface IFactory {
-        fun create(@Assisted id: String, @Assisted documentFile : java.io.File) : Pom
+        fun create(@Assisted id: String, @Assisted documentFile: java.io.File): Pom
     }
 
     data public class Dependency(val groupId: String, val artifactId: String, val version: String,
-            val optional: Boolean = false, val scope: String? = null) : KobaltLogger {
+                                 val optional: Boolean = false, val scope: String? = null) : KobaltLogger {
 
         /** When a variable is used in a maven file, e.g. ${version} */
         private val VAR = "$" + "{"
 
         val mustDownload: Boolean
-            get() = ! optional && "provided" != scope && "test" != scope
+            get() = !optional && "provided" != scope && "test" != scope
 
-        val isValid : Boolean
+        val isValid: Boolean
             get() {
                 var result = false
                 if (version.contains(VAR)) {
@@ -64,15 +64,13 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         version = XPATH.compile("/project/version").evaluate(document)
         name = XPATH.compile("/project/name").evaluate(document)
         var repositoriesList = XPATH.compile("/project/repositories").evaluate(document, XPathConstants.NODESET) as NodeList
-//        if (repositoriesList.getLength() != 0) {
-            var elem = repositoriesList.item(0) as Element?
-            repositories = elem.childElements()
-                  .map({ it.getElementsByTagName("url").item(0).textContent })
-//        }
+        var repoElem = repositoriesList.item(0) as Element?
+        repositories = repoElem.childElements()
+              .map({ it.getElementsByTagName("url").item(0).textContent })
 
         val propertiesList = XPATH.compile("/project/properties").evaluate(document, XPathConstants.NODESET) as NodeList
-        /*var*/ elem = propertiesList.item(0) as Element?
-        elem.childElements().forEach {
+        var propsElem = propertiesList.item(0) as Element?
+        propsElem.childElements().forEach {
             properties.put(it.nodeName, it.textContent)
         }
 
