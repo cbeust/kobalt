@@ -15,15 +15,4 @@ abstract public class BasePlugin : Plugin {
     override var methodTasks = arrayListOf<Plugin.MethodTask>()
     override fun accept(project: Project) = true
     var plugins : Plugins by Delegates.notNull()
-
-    /**
-     * Add a dynamic task.
-     */
-    fun addTask(project: Project, name: String, description: String = "",
-            runBefore: List<String> = arrayListOf<String>(),
-            runAfter: List<String> = arrayListOf<String>(),
-            task: (Project) -> TaskResult) {
-        addGenericTask(project, name, description, runBefore, runAfter, task)
-    }
-
 }
