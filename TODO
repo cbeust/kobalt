@@ -1,21 +1,19 @@
 To do:
 
+- use groupId/artifactId
 - ProjectGenerator: support migration from pom.xml (starting with dependencies)
 - Support version ranges
 - Generate .idea and other IDEA files
-- Make files appear in download list automatically on bintray (undocumented API)
 - logs for users should not show any timestamp, class file or thread id, this should only be in --dev mode
-- Project ordering: kotlinProject(wrapper) {}
 - Fetch .pom with DynamicGraph
 - Centralize all the executors
+- Archetypes (e.g. "--initWith kobalt-plug-in")
 - Compile TestNG (including generating Version.java and OSGi headers)
 - Storage API: Plugins.storage("myplugin").get/set()
 - Support additional .kt files in ~/.kobalt/src
 - generateArchive() should use Path instead of File
+- archetypes, e.g. --initWith kotlin
 - --init: import dependencies from build.gradle
-- uploadMaven
-  + Create sources.jar
-  + Create javadoc.jar
 - Bug: --tasks displays multiple tasks when there are multiple projects
 - Bug: ./kobaltw --dryRun kobalt:uploadJcenter runs "kobalt-wrapper:clean" twice
 - Replace File with java.nio.Files and Path
@@ -25,7 +23,12 @@ To do:
 
 Done:
 
+- Project ordering: kotlinProject(wrapper) {}
+- Make files appear in download list automatically on bintray (undocumented API)
 - Link kobalt to JCenter
+- uploadMaven
+  + Create sources.jar
+  + Create javadoc.jar
 - --update
 - Support .pom pointing to other deps (and no jars)
 - provided scope

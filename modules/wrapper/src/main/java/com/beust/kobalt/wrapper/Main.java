@@ -12,6 +12,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 public class Main {
@@ -96,32 +97,39 @@ public class Main {
                 getWrapperDir().getPath() + "/" + FILE_NAME + "-" + getWrapperVersion() + ".jar");
         if (! Files.exists(localZipFile) || ! Files.exists(kobaltJarFile)) {
             if (!Files.exists(localZipFile)) {
-                String fullUrl = URL + "/" + fileName;
-                download(fullUrl, localZipFile.toFile());
-                if (!Files.exists(localZipFile)) {
-                    log(2, localZipFile + " downloaded, extracting it");
-                } else {
-                    log(2, localZipFile + " already exists, extracting it");
-                }
+                download(fileName, localZipFile.toFile());
             }
 
             //
             // Extract all the zip files
             //
-            ZipFile zipFile = new ZipFile(localZipFile.toFile());
-            Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            File outputDirectory = new File(DISTRIBUTIONS_DIR);
-            outputDirectory.mkdirs();
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = entries.nextElement();
-                File entryFile = new File(entry.getName());
-                if (entry.isDirectory()) {
-                    entryFile.mkdirs();
-                } else {
-                    Path dest = Paths.get(zipOutputDir, entryFile.getPath());
-                    log(2, "  Writing " + entry.getName() + " to " + dest);
-                    Files.createDirectories(dest.getParent());
-                    Files.copy(zipFile.getInputStream(entry), dest, StandardCopyOption.REPLACE_EXISTING);
+            boolean success = false;
+            int retries = 0;
+            while (! success && retries < 2) {
+                try {
+                    ZipFile zipFile = new ZipFile(localZipFile.toFile());
+                    Enumeration<? extends ZipEntry> entries = zipFile.entries();
+                    File outputDirectory = new File(DISTRIBUTIONS_DIR);
+                    outputDirectory.mkdirs();
+                    while (entries.hasMoreElements()) {
+                        ZipEntry entry = entries.nextElement();
+                        File entryFile = new File(entry.getName());
+                        if (entry.isDirectory()) {
+                            entryFile.mkdirs();
+                        } else {
+                            Path dest = Paths.get(zipOutputDir, entryFile.getPath());
+                            log(2, "  Writing " + entry.getName() + " to " + dest);
+                            Files.createDirectories(dest.getParent());
+                            Files.copy(zipFile.getInputStream(entry), dest, StandardCopyOption.REPLACE_EXISTING);
+                        }
+                    }
+                    success = true;
+                } catch (ZipException e) {
+                    retries++;
+                    error("Couldn't open zip file " + localZipFile + ": " + e.getMessage());
+                    error("The file is probably corrupt, downloading it again");
+                    Files.delete(localZipFile);
+                    download(fileName, localZipFile.toFile());
                 }
             }
         }
@@ -153,7 +161,9 @@ public class Main {
 
     private static final String[] FILES = new String[] { KOBALTW, "kobalt/wrapper/" + FILE_NAME + "-wrapper.jar" };
 
-    private void download(String fileUrl, File file) throws IOException {
+    private void download(String fn, File file) throws IOException {
+        String fileUrl = URL + "/" + fn;
+
         URL url = new URL(fileUrl);
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
         int responseCode = httpConn.getResponseCode();
@@ -214,6 +224,12 @@ public class Main {
             error("No file to download. Server replied HTTP code: " + responseCode);
         }
         httpConn.disconnect();
+
+        if (! file.exists()) {
+            log(2, file + " downloaded, extracting it");
+        } else {
+            log(2, file + " already exists, extracting it");
+        }
     }
 
     private void saveFile(File file, String text) throws IOException {

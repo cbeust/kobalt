@@ -57,7 +57,7 @@ public class Http : KobaltLogger {
             .build()
 
         val response = OkHttpClient().newCall(request).execute()
-        if (! response.isSuccessful()) {
+        if (! response.isSuccessful) {
             error(response)
         } else {
             success(response)

@@ -4,8 +4,8 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltLogger
-import com.beust.kobalt.plugin.java.JavaInfo
-import com.beust.kobalt.plugin.java.SystemProperties
+import com.beust.kobalt.JavaInfo
+import com.beust.kobalt.SystemProperties
 import java.io.File
 
 abstract class GenericTestRunner(open val project: Project, open val classpath: List<IClasspathDependency>)

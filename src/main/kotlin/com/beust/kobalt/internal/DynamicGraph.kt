@@ -59,7 +59,11 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
                         log(2, "Received task result ${taskResult}")
                         n--
                         graph.setStatus(taskResult.value,
-                                if (taskResult.success) DynamicGraph.Status.FINISHED else DynamicGraph.Status.ERROR)
+                            if (taskResult.success) {
+                                DynamicGraph.Status.FINISHED
+                            } else {
+                                DynamicGraph.Status.ERROR
+                            })
                     } catch(ex: TimeoutException) {
                         log(2, "Time out")
                     }

@@ -12,8 +12,8 @@ import kotlin.dom.childElements
 
 public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         @Assisted documentFile: java.io.File) : KobaltLogger {
-    val XPATH_FACTORY = javax.xml.xpath.XPathFactory.newInstance();
-    val XPATH = XPATH_FACTORY.newXPath();
+    val XPATH_FACTORY = javax.xml.xpath.XPathFactory.newInstance()
+    val XPATH = XPATH_FACTORY.newXPath()
     var groupId: String? = null
     var artifactId: String? = null
     var version: String? = null
@@ -70,22 +70,22 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         }
 
         val deps = DEPENDENCIES.evaluate(document, XPathConstants.NODESET) as NodeList
-        for (i in 0..deps.getLength() - 1) {
+        for (i in 0..deps.length - 1) {
             val d = deps.item(i) as NodeList
             var groupId: String? = null
             var artifactId: String? = null
             var version: String = ""
             var optional: Boolean? = false
             var scope: String? = null
-            for (j in 0..d.getLength() - 1) {
+            for (j in 0..d.length - 1) {
                 val e = d.item(j)
                 if (e is Element) {
-                    when (e.getTagName()) {
-                        "groupId" -> groupId = e.getTextContent ()
-                        "artifactId" -> artifactId = e.getTextContent()
-                        "version" -> version = e.getTextContent()
-                        "optional" -> optional = "true".equals(e.getTextContent(), true)
-                        "scope" -> scope = e.getTextContent()
+                    when (e.tagName) {
+                        "groupId" -> groupId = e.textContent
+                        "artifactId" -> artifactId = e.textContent
+                        "version" -> version = e.textContent
+                        "optional" -> optional = "true".equals(e.textContent, true)
+                        "scope" -> scope = e.textContent
                     }
                 }
             }
