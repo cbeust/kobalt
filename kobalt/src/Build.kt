@@ -5,19 +5,18 @@ import com.beust.kobalt.plugin.kotlin.kotlinProject
 import com.beust.kobalt.plugin.packaging.assemble
 import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.publish.jcenter
+import com.beust.kobalt.plugin.linecount.lineCount
 
 val repos = repos("https://dl.bintray.com/cbeust/maven/")
 
-//val plugins = plugins("com.beust.kobalt:kobalt-line-count:0.8")
+val plugins = plugins(
+        "com.beust.kobalt:kobalt-line-count:0.13"
+//        file(homeDir("kotlin/kobalt-line-count/kobaltBuild/libs/kobalt-line-count-0.9.jar"))
+)
 
-//val plugins = plugins(
-//        "com.beust:kobalt-example-plugin:0.42")
-//val plugins2 = plugins(
-//        "com.beust.kobalt:kobalt-line-count:0.2"
-////        file(homeDir("kotlin/kobalt-line-count/kobaltBuild/libs/kobalt-line-count-0.1.jar"))
-////        file(homeDir("kotlin/kobalt-example-plugin/kobaltBuild/libs/kobalt-example-plugin-0.17.jar"))
-//)
-
+val lc = lineCount {
+    suffix = "**.md"
+}
 
 fun readVersion() : String {
     val p = java.util.Properties()
@@ -39,7 +38,6 @@ val assembleWrapper = assemble(wrapper) {
         }
     }
 }
-
 val kobalt = kotlinProject(wrapper) {
     name = "kobalt"
     group = "com.beust"
