@@ -5,16 +5,11 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.internal.*
 import com.beust.kobalt.kotlin.BuildFile
-import com.beust.kobalt.kotlin.ScriptCompiler
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.*
-import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.kotlin.ScriptCompiler2
-import com.beust.kobalt.plugin.publish.JCenterApi
-import com.beust.kobalt.plugin.publish.UnauthenticatedJCenterApi
 import com.beust.kobalt.wrapper.Wrapper
 import com.google.inject.Guice
-import com.google.inject.Injector
 import java.io.File
 import java.nio.file.Paths
 import java.util.*
@@ -35,7 +30,6 @@ public fun main(argv: Array<String>) {
 }
 
 private class Main @Inject constructor(
-        val scriptCompilerFactory: ScriptCompiler.IFactory,
         val script2: ScriptCompiler2.IFactory,
         val plugins: Plugins,
         val taskManager: TaskManager,

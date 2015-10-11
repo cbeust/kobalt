@@ -1,7 +1,6 @@
 package com.beust.kobalt.misc
 
 import com.beust.kobalt.Args
-import com.beust.kobalt.kotlin.ScriptCompiler
 import com.beust.kobalt.kotlin.ScriptCompiler2
 import com.beust.kobalt.maven.ArtifactFetcher
 import com.beust.kobalt.maven.LocalRepo
@@ -41,7 +40,6 @@ public open class MainModule(val args: Args) : AbstractModule() {
                 PomGenerator.IFactory::class.java,
                 JCenterApi.IFactory::class.java,
                 Pom.IFactory::class.java,
-                ScriptCompiler.IFactory::class.java,
                 ScriptCompiler2.IFactory::class.java,
                 ArtifactFetcher.IFactory::class.java)
             .forEach {
@@ -58,17 +56,17 @@ public open class MainModule(val args: Args) : AbstractModule() {
         })
 
 
-        //        bindListener(Matchers.any(), object: TypeListener {
-        //            override fun <I> hear(typeLiteral: TypeLiteral<I>?, typeEncounter: TypeEncounter<I>?) {
-        //                val bean = object: InjectionListener<I> {
-        //                    override public fun afterInjection(injectee: I) {
-        //                        if (Scopes.isCircularProxy(injectee)) {
-        //                            println("CYCLE: " + typeLiteral?.getRawType()?.getName());
-        //                        }
-        //                    }
-        //                }
-        //                typeEncounter?.register(bean)
-        //            }
-        //        })
+//        bindListener(Matchers.any(), object: TypeListener {
+//            override fun <I> hear(typeLiteral: TypeLiteral<I>?, typeEncounter: TypeEncounter<I>?) {
+//                val bean = object: InjectionListener<I> {
+//                    override public fun afterInjection(injectee: I) {
+//                        if (Scopes.isCircularProxy(injectee)) {
+//                            println("CYCLE: " + typeLiteral?.getRawType()?.getName());
+//                        }
+//                    }
+//                }
+//                typeEncounter?.register(bean)
+//            }
+//        })
     }
 }
