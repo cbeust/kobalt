@@ -18,6 +18,11 @@ public class KFiles {
         get() {
             val jar = joinDir(distributionsDir, Kobalt.version, "kobalt/wrapper/kobalt-" + Kobalt.version + ".jar")
             val jarFile = File(jar)
+            val envJar = System.getenv("KOBALT_JAR")
+            if (! jarFile.exists() && envJar != null) {
+                KobaltLogger.debug("Using kobalt jar $envJar")
+                return File(envJar).absolutePath
+            }
             if (! jarFile.exists()) {
                 // Will only happen when building kobalt itself: the jar file might not be in the dist/ directory
                 // yet since we're currently building it. Instead, use the classes directly
@@ -162,10 +167,10 @@ public class KFiles {
         }
 
         public fun createTempFile(suffix : String = "", deleteOnExit: Boolean = false) : File =
-                File.createTempFile("kobalt", suffix, File(SystemProperties.tmpDir)).let {
-                    if (deleteOnExit) it.deleteOnExit()
-                    return it
-                }
+            File.createTempFile("kobalt", suffix, File(SystemProperties.tmpDir)).let {
+                if (deleteOnExit) it.deleteOnExit()
+                return it
+            }
 
         fun src(filePath: String): String = KFiles.joinDir(KOBALT_DIR, SRC, filePath)
     }

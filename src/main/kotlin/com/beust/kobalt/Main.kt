@@ -9,6 +9,7 @@ import com.beust.kobalt.kotlin.ScriptCompiler
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.*
 import com.beust.kobalt.SystemProperties
+import com.beust.kobalt.kotlin.ScriptCompiler2
 import com.beust.kobalt.plugin.publish.JCenterApi
 import com.beust.kobalt.plugin.publish.UnauthenticatedJCenterApi
 import com.beust.kobalt.wrapper.Wrapper
@@ -35,6 +36,7 @@ public fun main(argv: Array<String>) {
 
 private class Main @Inject constructor(
         val scriptCompilerFactory: ScriptCompiler.IFactory,
+        val script2: ScriptCompiler2.IFactory,
         val plugins: Plugins,
         val taskManager: TaskManager,
         val http: Http,
@@ -115,20 +117,21 @@ private class Main @Inject constructor(
             if (! buildFile.exists()) {
                 jc.usage()
             } else {
-                // Install all the plugins found
-                plugins.installDynamicPlugins(arrayListOf(buildFile))
-
-                // Compile the build script
-                val output = scriptCompilerFactory.create(plugins.pluginJarFiles,
-                        { n: String, j: File? ->
-                            plugins.instantiateClassName(n, j)
-                        })
-                    .compile(buildFile, buildFile.lastModified(), KFiles.findBuildScriptLocation(buildFile, SCRIPT_JAR))
+                val allProjects = script2.create(arrayListOf(buildFile)).findProjects()
+//                // Install all the plugins found
+//                val classLoaders = plugins.installDynamicPlugins(arrayListOf(buildFile))
+//
+//                // Compile the build script
+//                val output = scriptCompilerFactory.create(plugins.pluginJarFiles,
+//                        // @@
+//                        { cl: ClassLoader, n: String -> plugins.instantiateClassName(classLoaders.get(0), n) }
+//                    ).compile(buildFile, buildFile.lastModified(),
+//                        KFiles.findBuildScriptLocation(buildFile, SCRIPT_JAR))
 
                 //
                 // Force each project.directory to be an absolute path, if it's not already
                 //
-                output.projects.forEach {
+                allProjects.forEach {
                     val fd = File(it.directory)
                     if (! fd.isAbsolute) {
                         it.directory =
@@ -140,7 +143,7 @@ private class Main @Inject constructor(
                     }
                 }
 
-                plugins.applyPlugins(KobaltContext(args), output.projects)
+                plugins.applyPlugins(KobaltContext(args), allProjects)
 
                 if (args.tasks) {
                     //
@@ -157,14 +160,14 @@ private class Main @Inject constructor(
                     }
                     println(sb.toString())
                 } else if (args.checkVersions) {
-                    checkVersions.run(output.projects)
+                    checkVersions.run(allProjects)
                 } else if (args.update) {
                     updateKobalt.updateKobalt()
                 } else {
                     //
                     // Launch the build
                     //
-                    taskManager.runTargets(args.targets, output.projects)
+                    taskManager.runTargets(args.targets, allProjects)
                 }
             }
         }

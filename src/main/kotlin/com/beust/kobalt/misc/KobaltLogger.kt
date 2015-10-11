@@ -20,6 +20,10 @@ public interface KobaltLogger {
         fun warn(s: String, e: Throwable? = null) {
             LoggerFactory.getLogger(KobaltLogger::class.java.simpleName).warn(s, e)
         }
+
+        fun debug(s: String) {
+            LoggerFactory.getLogger(KobaltLogger::class.java.simpleName).debug(s)
+        }
     }
 
     final fun log(level: Int = 1, message: String) {

@@ -2,6 +2,7 @@ package com.beust.kobalt.misc
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.kotlin.ScriptCompiler
+import com.beust.kobalt.kotlin.ScriptCompiler2
 import com.beust.kobalt.maven.ArtifactFetcher
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.Pom
@@ -41,6 +42,7 @@ public open class MainModule(val args: Args) : AbstractModule() {
                 JCenterApi.IFactory::class.java,
                 Pom.IFactory::class.java,
                 ScriptCompiler.IFactory::class.java,
+                ScriptCompiler2.IFactory::class.java,
                 ArtifactFetcher.IFactory::class.java)
             .forEach {
                 install(builder.build(it))

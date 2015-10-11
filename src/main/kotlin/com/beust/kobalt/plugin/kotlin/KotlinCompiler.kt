@@ -17,7 +17,7 @@ import kotlin.properties.Delegates
  * @since 08 03, 2015
  */
 @Singleton
-private class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
+class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
         override val files: com.beust.kobalt.misc.KFiles,
         override val depFactory: DepFactory,
         override val dependencyManager: DependencyManager,

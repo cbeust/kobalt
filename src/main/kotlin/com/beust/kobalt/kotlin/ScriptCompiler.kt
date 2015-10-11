@@ -8,13 +8,13 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltLogger
-import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import com.google.inject.assistedinject.Assisted
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.lang.reflect.Modifier
+import java.net.URLClassLoader
 import java.util.jar.JarInputStream
 import javax.inject.Inject
 import kotlin.properties.Delegates
@@ -24,17 +24,17 @@ import kotlin.properties.Delegates
  */
 public class ScriptCompiler @Inject constructor(
         @Assisted("jarFiles") val jarFiles: List<String>,
-        @Assisted("instantiate") val instantiate: (String, File?) -> Class<*>,
+        @Assisted("instantiate") val instantiate: (ClassLoader, String) -> Class<*>,
         val files: KFiles) : KobaltLogger {
 
     interface IFactory {
         fun create(@Assisted("jarFiles") jarFiles: List<String>,
-                @Assisted("instantiate") instantiate: (String, File?) -> Class<*>) : ScriptCompiler
+                @Assisted("instantiate") instantiate: (ClassLoader, String) -> Class<*>) : ScriptCompiler
     }
 
     private var buildScriptJarFile by Delegates.notNull<File>()
 
-    public class CompileOutput(val projects: List<Project>, val plugins: List<String>)
+    public class CompileOutput(val projects: List<Project>, val plugins: List<String>, val classLoader: ClassLoader)
 
     public fun compile(buildFile: BuildFile, lastModified: Long, jarFileName: String) : CompileOutput {
 
@@ -54,7 +54,8 @@ public class ScriptCompiler @Inject constructor(
             log(2, "Need to recompile ${buildFile.name}")
             generateJarFile(buildFile)
         }
-        return CompileOutput(instantiateBuildFile(), arrayListOf<String>())
+        val pi = instantiateBuildFile()
+        return CompileOutput(pi.projects, arrayListOf<String>(), pi.classLoader)
     }
 
     private fun generateJarFile(buildFile: BuildFile) {
@@ -66,10 +67,14 @@ public class ScriptCompiler @Inject constructor(
         }.compile()
     }
 
-    private fun instantiateBuildFile() : List<Project> {
+    class  ProjectInfo(val projects: List<Project>, val classLoader: ClassLoader)
+
+    private fun instantiateBuildFile() : ProjectInfo {
         val result = arrayListOf<Project>()
         var stream : InputStream? = null
+        val classLoader = URLClassLoader(arrayOf(buildScriptJarFile.toURI().toURL()))
         try {
+            log(1, "!!!!!!!!! CREATED CLASSLOADER FOR buildScriptJarFile: $classLoader")
             stream = JarInputStream(FileInputStream(buildScriptJarFile))
             var entry = stream.nextJarEntry
 
@@ -78,7 +83,7 @@ public class ScriptCompiler @Inject constructor(
                 val name = entry.name;
                 if (name.endsWith(".class")) {
                     val className = name.substring(0, name.length() - 6).replace("/", ".")
-                    var cl : Class<*>? = instantiate(className, buildScriptJarFile)
+                    var cl : Class<*>? = instantiate(classLoader, className)
                     if (cl != null) {
                         classes.add(cl)
                     } else {
@@ -123,7 +128,7 @@ public class ScriptCompiler @Inject constructor(
         }
 
         // Now that we all the projects, sort them topologically
-        return Kobalt.sortProjects(result)
+        return ProjectInfo(Kobalt.sortProjects(result), classLoader)
     }
 }
 
