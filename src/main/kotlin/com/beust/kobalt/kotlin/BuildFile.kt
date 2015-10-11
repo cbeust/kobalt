@@ -11,8 +11,8 @@ import java.nio.file.attribute.BasicFileAttributes
 public class BuildFile(val path: Path, val name: String) {
     public fun exists() : Boolean = Files.exists(path)
 
-    public fun lastModified() : Long = Files.readAttributes(path, BasicFileAttributes::class.java).lastModifiedTime()
-            .toMillis()
+    public val lastModified : Long
+        get() = Files.readAttributes(path, BasicFileAttributes::class.java).lastModifiedTime().toMillis()
 
     public val directory : File get() = path.toFile().directory
 }

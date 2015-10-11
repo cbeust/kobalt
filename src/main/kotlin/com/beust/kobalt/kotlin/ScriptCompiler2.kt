@@ -35,22 +35,37 @@ public class ScriptCompiler2 @Inject constructor(@Assisted("buildFiles") val bui
         val result = arrayListOf<Project>()
         buildFiles.forEach { buildFile ->
             val pluginUrls = findPlugInUrls(buildFile)
-            val script = File(KFiles.findBuildScriptLocation(buildFile, SCRIPT_JAR))
+            val buildScriptJarFile = File(KFiles.findBuildScriptLocation(buildFile, SCRIPT_JAR))
 
-            log(1, "Compiling main build file ${buildFile.path}")
-            kotlinCompilePrivate {
-                classpath(files.kobaltJar)
-                classpath(pluginUrls.map { it.file })
-                sourceFiles(listOf(buildFile.path.toFile().absolutePath))
-                output = script.absolutePath
-            }.compile()
-
-            val output = parseBuildScriptJarFile(script, pluginUrls)
+            maybeCompileBuildFile(buildFile, buildScriptJarFile, pluginUrls)
+            val output = parseBuildScriptJarFile(buildScriptJarFile, pluginUrls)
             result.addAll(output.projects)
         }
         return result
     }
 
+    private fun maybeCompileBuildFile(buildFile: BuildFile, buildScriptJarFile: File, pluginUrls: List<URL>) {
+        log(2, "Running build file ${buildFile.name} jar: $buildScriptJarFile")
+
+        if (buildFile.exists() && buildScriptJarFile.exists()
+                && buildFile.lastModified < buildScriptJarFile.lastModified()) {
+            log(2, "Build file is up to date")
+        } else {
+            log(2, "Need to recompile ${buildFile.name}")
+
+            kotlinCompilePrivate {
+                classpath(files.kobaltJar)
+                classpath(pluginUrls.map { it.file })
+                sourceFiles(listOf(buildFile.path.toFile().absolutePath))
+                output = buildScriptJarFile.absolutePath
+            }.compile()
+        }
+    }
+
+    /**
+     * Generate the script file with only the plugins()/repos() directives and run it. Then return
+     * the URL's of all the plug-ins that were found.
+     */
     private fun findPlugInUrls(buildFile: BuildFile): List<URL> {
         val result = arrayListOf<URL>()
         val pluginCode = arrayListOf(
