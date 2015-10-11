@@ -3,6 +3,7 @@ To do:
 - "All artifacts successfully uploaded" is shown before the upload is actually done
 - use groupId/artifactId
 - ProjectGenerator: support migration from pom.xml (starting with dependencies)
+- repos() must appear before plugins(): fix that
 - Support version ranges
 - Generate .idea and other IDEA files
 - logs for users should not show any timestamp, class file or thread id, this should only be in --dev mode
