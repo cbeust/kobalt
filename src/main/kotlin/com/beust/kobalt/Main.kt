@@ -112,15 +112,6 @@ private class Main @Inject constructor(
                 jc.usage()
             } else {
                 val allProjects = script2.create(arrayListOf(buildFile)).findProjects()
-//                // Install all the plugins found
-//                val classLoaders = plugins.installDynamicPlugins(arrayListOf(buildFile))
-//
-//                // Compile the build script
-//                val output = scriptCompilerFactory.create(plugins.pluginJarFiles,
-//                        // @@
-//                        { cl: ClassLoader, n: String -> plugins.instantiateClassName(classLoaders.get(0), n) }
-//                    ).compile(buildFile, buildFile.lastModified(),
-//                        KFiles.findBuildScriptLocation(buildFile, SCRIPT_JAR))
 
                 //
                 // Force each project.directory to be an absolute path, if it's not already
