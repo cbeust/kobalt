@@ -31,7 +31,9 @@ public class Kobalt {
 
         public val compilers : ArrayList<ICompilerInfo> = arrayListOf()
 
-        public fun registerCompiler(c: ICompilerInfo) {
+        var context: KobaltContext? = null
+
+        fun registerCompiler(c: ICompilerInfo) {
             compilers.add(c)
         }
 

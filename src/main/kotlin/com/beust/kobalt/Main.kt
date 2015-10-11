@@ -111,6 +111,8 @@ private class Main @Inject constructor(
             if (! buildFile.exists()) {
                 jc.usage()
             } else {
+                val context = KobaltContext(args)
+                Kobalt.context = context
                 val allProjects = script2.create(arrayListOf(buildFile)).findProjects()
 
                 //
@@ -128,7 +130,7 @@ private class Main @Inject constructor(
                     }
                 }
 
-                plugins.applyPlugins(KobaltContext(args), allProjects)
+                plugins.applyPlugins(context, allProjects)
 
                 if (args.tasks) {
                     //
