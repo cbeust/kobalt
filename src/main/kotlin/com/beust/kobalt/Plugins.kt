@@ -51,8 +51,6 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
 //            return storageMap.get(pluginName)?.get(key)
 //        }
 
-        val defaultPlugin : Plugin get() = getPlugin(DefaultPlugin.NAME)!!
-
         fun addPlugin(pluginClass : Class<out Plugin>) {
             addPluginInstance(Kobalt.INJECTOR.getInstance(pluginClass))
         }
@@ -74,8 +72,6 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
             }
         }
 
-        public fun getPlugin(name: String) : Plugin? = pluginMap.get(name)
-
         public val plugins : List<Plugin>
             get() = ArrayList(pluginMap.values())
 
@@ -83,6 +79,10 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
          * The list of plugins found in the build file.
          */
         public val dynamicPlugins : ArrayList<IClasspathDependency> = arrayListOf()
+
+        val defaultPlugin : Plugin get() = findPlugin(DefaultPlugin.NAME)!!
+
+        public fun findPlugin(name: String) : Plugin? = pluginMap.get(name)
     }
 
     fun applyPlugins(context: KobaltContext, projects: List<Project>) {

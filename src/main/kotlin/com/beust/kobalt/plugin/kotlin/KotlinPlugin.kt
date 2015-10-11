@@ -113,7 +113,7 @@ public fun kotlinProject(vararg project: Project, init: KotlinProject.() -> Unit
 
 class KotlinCompilerConfig {
     fun args(vararg options: String) {
-        (Plugins.getPlugin("kotlin") as KotlinPlugin).addCompilerArgs(*options)
+        (Kobalt.findPlugin("kotlin") as KotlinPlugin).addCompilerArgs(*options)
     }
 }
 

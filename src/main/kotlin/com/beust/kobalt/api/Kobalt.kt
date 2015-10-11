@@ -1,6 +1,8 @@
 package com.beust.kobalt.api
 
+import com.beust.kobalt.Plugins
 import com.beust.kobalt.misc.Topological
+import com.beust.kobalt.plugins
 import com.google.common.collect.ArrayListMultimap
 import com.google.inject.Injector
 import java.io.File
@@ -92,5 +94,7 @@ public class Kobalt {
          */
         fun sortProjects(allProjects: ArrayList<Project>) : List<Project>
              = topological.sort(allProjects)
+
+        fun findPlugin(name: String) = Plugins.findPlugin(name)
     }
 }

@@ -42,7 +42,7 @@ public class RepoFinder @Inject constructor(val http: Http, val executors: Kobal
         val cs = ExecutorCompletionService<RepoResult>(executor)
 
         try {
-            log(2, "Looking for ${id}")
+            log(2, "Looking for $id")
             Kobalt.repos.forEach { cs.submit(RepoFinderCallable(id, it)) }
             for (i in 0..Kobalt.repos.size() - 1) {
                 try {

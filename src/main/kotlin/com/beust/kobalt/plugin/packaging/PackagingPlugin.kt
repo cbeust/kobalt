@@ -5,6 +5,7 @@ import com.beust.kobalt.IFileSpec.Glob
 import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.BasePlugin
+import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
@@ -239,7 +240,7 @@ class Package(val project: Project) : AttributeHolder {
     val zips = arrayListOf<Zip>()
 
     init {
-        (Plugins.getPlugin("packaging") as PackagingPlugin).addPackage(this)
+        (Kobalt.findPlugin("packaging") as PackagingPlugin).addPackage(this)
     }
 
     @Directive

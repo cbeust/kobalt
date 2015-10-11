@@ -3,6 +3,7 @@ package com.beust.kobalt.plugin.publish
 import com.beust.klaxon.string
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.BasePlugin
+import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
@@ -87,8 +88,7 @@ public class PublishPlugin @Inject constructor(val http: Http, val files: com.be
         //
         configuration?.let { conf : JCenterConfiguration ->
             conf.files.forEach {
-                val taskResult = jcenter.uploadFile(File(project.directory, it.first), it.second /* url */,
-                        conf)
+                val taskResult = jcenter.uploadFile(File(project.directory, it.first), it.second /* url */, conf)
                 success = success and taskResult.success
                 if (!taskResult.success) {
                     messages.add(taskResult.errorMessage!!)
@@ -123,6 +123,6 @@ public fun jcenter(project: Project, ini: JCenterConfiguration.() -> Unit)
         : JCenterConfiguration {
     val pd = JCenterConfiguration(project)
     pd.ini()
-    (Plugins.getPlugin("publish") as PublishPlugin).addConfiguration(project.name!!, pd)
+    (Kobalt.findPlugin("publish") as PublishPlugin).addConfiguration(project.name!!, pd)
     return pd
 }

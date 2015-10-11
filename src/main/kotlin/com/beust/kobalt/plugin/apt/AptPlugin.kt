@@ -3,6 +3,7 @@ package com.beust.kobalt.plugin.apt
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.Dependencies
+import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
@@ -33,5 +34,5 @@ public class AptPlugin : BasePlugin(), KobaltLogger {
 
 @Directive
 public fun Dependencies.apt(dep: String) {
-    (Plugins.getPlugin("apt") as AptPlugin).addApt(dep)
+    (Kobalt.findPlugin("apt") as AptPlugin).addApt(dep)
 }
