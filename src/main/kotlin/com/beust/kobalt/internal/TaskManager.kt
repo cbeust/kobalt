@@ -18,7 +18,7 @@ import javax.inject.Singleton
 public class TaskManager @Inject constructor(val plugins: Plugins, val args: Args) : KobaltLogger {
     private val runBefore = TreeMultimap.create<String, String>()
     private val runAfter = TreeMultimap.create<String, String>()
-    private val wrapAfter = TreeMultimap.create<String, String>()
+    private val alwaysRunAfter = TreeMultimap.create<String, String>()
 
     /**
      * Called by plugins to indicate task dependencies defined at runtime. Keys depend on values.
@@ -32,8 +32,8 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
         runAfter.put(task1, task2)
     }
 
-    fun wrapAfter(task1: String, task2: String) {
-        wrapAfter.put(task1, task2)
+    fun alwaysRunAfter(task1: String, task2: String) {
+        alwaysRunAfter.put(task1, task2)
     }
 
     data class TaskInfo(val id: String) {
@@ -62,8 +62,6 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             log(1, "")
 
             targets.forEach { target ->
-                tasksAlreadyRun.add(TaskInfo(projectName, target).id)
-
                 val graph = DynamicGraph<PluginTask>()
 
                 val ti = TaskInfo(target)
@@ -71,20 +69,24 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                     val task = tasksByNames.get(ti.task)
                     if (task != null && task.plugin.accept(project)) {
                         //
-                        // Add free tasks as nodes to the graph
+                        // If the current target is free, add it as a single node to the graph
                         //
-                        calculateFreeTasks(tasksByNames).forEach {
-                            val thisTaskInfo = TaskInfo(projectName, it.name)
-                            if (! tasksAlreadyRun.contains(thisTaskInfo.id)) {
-                                graph.addNode(it)
-                                tasksAlreadyRun.add(thisTaskInfo.id)
+                        val currentFreeTask = calculateFreeTasks(tasksByNames).filter { it.name == target }
+                        if (currentFreeTask.size() == 1) {
+                            currentFreeTask.get(0).let {
+                                val thisTaskInfo = TaskInfo(projectName, it.name)
+                                if (! tasksAlreadyRun.contains(thisTaskInfo.id)) {
+                                    graph.addNode(it)
+                                    tasksAlreadyRun.add(thisTaskInfo.id)
+                                }
                             }
                         }
 
                         //
                         // Add the transitive closure of the current task as edges to the graph
                         //
-                        calculateTransitiveClosure(project, tasksByNames, ti, task).forEach { pluginTask ->
+                        val transitiveClosure = calculateTransitiveClosure(project, tasksByNames, ti, task)
+                        transitiveClosure.forEach { pluginTask ->
                             val rb = runBefore.get(pluginTask.name)
                             rb.forEach {
                                 val to = tasksByNames.get(it)

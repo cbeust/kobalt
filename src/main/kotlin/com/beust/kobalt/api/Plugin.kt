@@ -19,13 +19,13 @@ public interface Plugin {
 
     fun addStaticTask(annotation: Task, project: Project, task: (Project) -> TaskResult) {
         addTask(project, annotation.name, annotation.description, annotation.runBefore.toList(),
-                annotation.runAfter.toList(), annotation.wrapAfter.toList(), task)
+                annotation.runAfter.toList(), annotation.alwaysRunAfter.toList(), task)
     }
 
     fun addTask(project: Project, name: String, description: String = "",
             runBefore: List<String> = arrayListOf<String>(),
             runAfter: List<String> = arrayListOf<String>(),
-            wrapAfter: List<String> = arrayListOf<String>(),
+            alwaysRunAfter: List<String> = arrayListOf<String>(),
             task: (Project) -> TaskResult) {
         tasks.add(
             object : BasePluginTask(this, name, description, project) {
@@ -36,7 +36,7 @@ public interface Plugin {
             })
         runBefore.forEach { taskManager.runBefore(it, name) }
         runAfter.forEach { taskManager.runBefore(name, it) }
-        wrapAfter.forEach { taskManager.wrapAfter(it, name)}
+        alwaysRunAfter.forEach { taskManager.alwaysRunAfter(it, name)}
     }
 
     var taskManager : TaskManager

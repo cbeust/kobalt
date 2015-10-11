@@ -7,6 +7,7 @@ annotation class Directive
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Task(val name: String,
         val description: String,
+
         /** Tasks that this task depends on */
         val runBefore: Array<String> = arrayOf(),
 
@@ -14,5 +15,5 @@ annotation class Task(val name: String,
         val runAfter: Array<String> = arrayOf(),
 
         /** Tasks that this task will always run after */
-        val wrapAfter: Array<String> = arrayOf()
+        val alwaysRunAfter: Array<String> = arrayOf()
 )
