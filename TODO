@@ -1,5 +1,6 @@
 To do:
 
+- "All artifacts successfully uploaded" is shown before the upload is actually done
 - use groupId/artifactId
 - ProjectGenerator: support migration from pom.xml (starting with dependencies)
 - Support version ranges
