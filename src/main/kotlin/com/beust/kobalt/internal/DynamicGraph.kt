@@ -136,12 +136,12 @@ public class DynamicGraph<T> : KobaltLogger {
             }
 
             // Sort the free nodes if requested (e.g. priorities)
-            //            if (! result.isEmpty()) {
-            //                if (comparator != null) {
-            //                    Collections.sort(result, comparator)
-            //                    debug("Nodes after sorting:" + result.get(0))
-            //                }
-            //            }
+//            if (! result.isEmpty()) {
+//                if (comparator != null) {
+//                    Collections.sort(result, comparator)
+//                    debug("Nodes after sorting:" + result.get(0))
+//                }
+//            }
 
             log(2, "freeNodes: ${result}")
             return result
