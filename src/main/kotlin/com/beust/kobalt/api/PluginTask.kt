@@ -9,8 +9,6 @@ abstract public class PluginTask : Callable<TaskResult2<PluginTask>> {
     open val name: String = ""
     open val doc: String = ""
     abstract val project: Project
-    val runBefore = arrayListOf<String>()
-    val runAfter = arrayListOf<String>()
 
     override public fun toString() : String {
         return ToString("PluginTask", "id", project.name + ":" + name).s
