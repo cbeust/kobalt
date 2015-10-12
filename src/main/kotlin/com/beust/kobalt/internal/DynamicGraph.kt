@@ -4,6 +4,8 @@ import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.NamedThreadFactory
 import com.beust.kobalt.misc.ToString
 import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.HashMultimap
+import com.google.common.collect.TreeMultimap
 import java.util.*
 import java.util.concurrent.*
 
@@ -230,6 +232,25 @@ public class DynamicGraph<T> : KobaltLogger {
         //        }
         result.append("]");
         return result.toString();
+    }
+
+    val nodes : Set<T> get() = nodesReady
+
+    fun dump() : String {
+        val result = StringBuffer()
+        val free = arrayListOf<T>()
+        nodesReady.forEach { node ->
+            val d = dependedUpon.get(node)
+            if (d == null || d.isEmpty()) {
+                free.add(node)
+            }
+        }
+
+        result.append("Free: $free").append("\n  Dependencies:\n")
+        dependedUpon.keySet().forEach {
+            result.append("     $it -> ${dependedUpon.get(it)}\n")
+        }
+        return result.toString()
     }
 }
 
