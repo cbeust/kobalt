@@ -68,10 +68,20 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                 if (ti.matches(projectName)) {
                     val task = tasksByNames.get(ti.task)
                     if (task != null && task.plugin.accept(project)) {
+                        val reverseAfter = hashMapOf<String, String>()
+                        alwaysRunAfter.keys().forEach { from ->
+                            val tasks = alwaysRunAfter.get(from)
+                            tasks.forEach {
+                                reverseAfter.put(it, from)
+                            }
+                        }
+
                         //
                         // If the current target is free, add it as a single node to the graph
                         //
-                        val currentFreeTask = calculateFreeTasks(tasksByNames).filter { it.name == target }
+                        val currentFreeTask = calculateFreeTasks(tasksByNames, reverseAfter).filter {
+                            it.name == target
+                        }
                         if (currentFreeTask.size() == 1) {
                             currentFreeTask.get(0).let {
                                 val thisTaskInfo = TaskInfo(projectName, it.name)
@@ -101,7 +111,24 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                                 }
                             }
                         }
+
+                        //
+                        // If any of the nodes in the graph has an "alwaysRunAfter", add that edge too
+                        //
+                        val allNodes = arrayListOf<PluginTask>()
+                        allNodes.addAll(graph.nodes)
+                        allNodes.forEach { node ->
+                            val other = alwaysRunAfter.get(node.name)
+                            other?.forEach { o ->
+                                val pluginTask = tasksByNames.get(o)
+                                if (pluginTask != null) {
+                                    graph.addEdge(pluginTask, node)
+                                }
+                            }
+                        }
                     }
+
+                    log(2, "About to run graph:\n  ${graph.dump()}  ")
 
                     //
                     // Now that we have a full graph, run it
@@ -126,18 +153,12 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
     /**
      * Find the free tasks of the graph.
      */
-    private fun calculateFreeTasks(tasksByNames: Map<String, PluginTask>): Collection<PluginTask> {
+    private fun calculateFreeTasks(tasksByNames: Map<String, PluginTask>, reverseAfter: HashMap<String, String>): Collection<PluginTask> {
         val freeTaskMap = hashMapOf<String, PluginTask>()
         tasksByNames.keySet().forEach {
-            if (! runBefore.containsKey(it)) {
+            if (! runBefore.containsKey(it) && ! reverseAfter.containsKey(it)) {
                 freeTaskMap.put(it, tasksByNames.get(it)!!)
             }
-        }
-
-        log(2, "Free tasks: ${freeTaskMap.keySet()}")
-        log(2, "Dependent tasks:")
-        runBefore.keySet().forEach { t ->
-            log(2, "  ${t} -> ${runBefore.get(t)}}")
         }
 
         return freeTaskMap.values()
@@ -159,15 +180,11 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             log(3, "toProcess size: " + toProcess.size())
             toProcess.forEach { target ->
 
-//                wrapAfter.get(ti.id).let {
-//                    newToProcess.addAll(it)
-//                }
-
                 val currentTask = TaskInfo(project.name!!, target.task)
                 transitiveClosure.add(tasksByNames.get(currentTask.task)!!)
                 val task = tasksByNames.get(target.task)
                 if (task == null) {
-                    throw KobaltException("Unknown task: ${target}")
+                    throw KobaltException("Unknown task: $target")
                 } else {
                     val dependencyNames = runBefore.get(task.name)
                     dependencyNames.forEach { dependencyName ->
