@@ -45,7 +45,7 @@ public class Kobalt {
 
         val repos = ArrayList<String>(DEFAULT_REPOS)
 
-        fun addRepo(repo: String) = repos.add(repo)
+        fun addRepo(repo: String) = repos.add(if (repo.endsWith("/")) repo else repo + "/")
 
         private val PROPERTY_KOBALT_VERSION = "kobalt.version"
         private val KOBALT_PROPERTIES = "kobalt.properties"
