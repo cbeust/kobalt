@@ -120,9 +120,8 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                         allNodes.forEach { node ->
                             val other = alwaysRunAfter.get(node.name)
                             other?.forEach { o ->
-                                val pluginTask = tasksByNames.get(o)
-                                if (pluginTask != null) {
-                                    graph.addEdge(pluginTask, node)
+                                tasksByNames.get(o)?.let {
+                                    graph.addEdge(it, node)
                                 }
                             }
                         }
