@@ -2,6 +2,7 @@ To do:
 
 - "All artifacts successfully uploaded" is shown before the upload is actually done
 - use groupId/artifactId
+- Console mode with watch service, so recompilation can occur as soon as a source file is modified
 - ProjectGenerator: support migration from pom.xml (starting with dependencies)
 - repos() must appear before plugins(): fix that
 - Support version ranges
