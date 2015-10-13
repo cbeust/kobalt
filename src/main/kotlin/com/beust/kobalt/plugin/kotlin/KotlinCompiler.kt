@@ -48,6 +48,8 @@ class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
         classpathList.addAll(otherClasspath)
         classpathList.addAll(calculateClasspath(compileDependencies).map { it.id })
 
+        validateClasspath(classpathList)
+
         log(2, "Compiling ${source.size()} files with classpath:\n  " + classpathList.join("\n  "))
         K2JVMCompiler.main(arrayOf(
                 "-d", output,

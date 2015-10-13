@@ -110,6 +110,14 @@ abstract public class JvmCompilerPlugin @Inject constructor(
             lp(project, "No resources to copy for ${sourceSet}")
         }
     }
+
+    protected fun validateClasspath(cp: List<String>) {
+        cp.forEach {
+            if (! File(it).exists()) {
+                throw KobaltException("Couldn't find $it")
+            }
+        }
+    }
 }
 
 

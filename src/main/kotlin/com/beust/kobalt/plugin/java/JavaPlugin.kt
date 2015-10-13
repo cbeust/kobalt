@@ -51,8 +51,10 @@ public class JavaPlugin @Inject constructor(
                 javac!!.absolutePath,
                 "-d", outputDirectory.absolutePath)
         if (cpList.size() > 0) {
+            val stringClasspath = cpList.map { it.jarFile.get().absolutePath }
+            validateClasspath(stringClasspath)
             args.add("-classpath")
-            args.add(cpList.map { it.jarFile.get().absolutePath }.join(File.pathSeparator))
+            args.add(stringClasspath.join(File.pathSeparator))
         }
         args.addAll(sourceFiles)
 
