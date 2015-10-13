@@ -15,7 +15,7 @@ val plugins = plugins(
 )
 
 val lc = lineCount {
-    suffix = "**.md"
+    suffix = "**Plugin.kt"
 }
 
 fun readVersion() : String {
