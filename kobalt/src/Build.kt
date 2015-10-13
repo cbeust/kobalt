@@ -7,10 +7,10 @@ import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.publish.jcenter
 import com.beust.kobalt.plugin.linecount.lineCount
 
-val repos = repos("https://dl.bintray.com/cbeust/maven/")
+//val repos = repos("https://dl.bintray.com/cbeust/maven/")
 
 val plugins = plugins(
-        "com.beust.kobalt:kobalt-line-count:0.14"
+        "com.beust.kobalt:kobalt-line-count:0.15"
 //        file(homeDir("kotlin/kobalt-line-count/kobaltBuild/libs/kobalt-line-count-0.14.jar"))
 )
 
