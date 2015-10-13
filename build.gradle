@@ -54,7 +54,7 @@ dependencies {
             'com.github.spullara.mustache.java:compiler:0.8.18'
 
 //    compile files("/Users/beust/.kobalt/repository/com/beust/kobalt-example-plugin/build/libs/kobalt-example-plugin.jar")
-    testCompile 'org.testng:testng:6.9.4'
+    testCompile 'org.testng:testng:6.9.6'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 //    testCompile 'junit:junit:4.12'
 }
