@@ -27,9 +27,9 @@ abstract class GenericTestRunner(open val project: Project, open val classpath: 
         val jvm = JavaInfo.create(File(SystemProperties.javaBase))
         val java = jvm.javaExecutable
         val allArgs = arrayListOf<String>()
-        allArgs.add(java!!.getAbsolutePath())
+        allArgs.add(java!!.absolutePath)
         allArgs.add("-classpath")
-        allArgs.add(classpath.map { it.jarFile.get().getAbsolutePath() }.join(File.pathSeparator))
+        allArgs.add(classpath.map { it.jarFile.get().absolutePath }.join(File.pathSeparator))
         allArgs.add(mainClass)
         allArgs.addAll(args)
 
