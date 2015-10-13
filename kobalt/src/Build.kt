@@ -11,7 +11,7 @@ val repos = repos("https://dl.bintray.com/cbeust/maven/")
 
 val plugins = plugins(
         "com.beust.kobalt:kobalt-line-count:0.14"
-//        file(homeDir("kotlin/kobalt-line-count/kobaltBuild/libs/kobalt-line-count-0.9.jar"))
+//        file(homeDir("kotlin/kobalt-line-count/kobaltBuild/libs/kobalt-line-count-0.14.jar"))
 )
 
 val lc = lineCount {
