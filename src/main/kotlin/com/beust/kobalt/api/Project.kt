@@ -4,7 +4,6 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.maven.MavenDependency
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
-import com.google.common.base.Preconditions
 import java.util.ArrayList
 
 open public class Project(
@@ -16,7 +15,11 @@ open public class Project(
         open var artifactId: String? = null,
         open var dependencies: Dependencies? = null,
         open var sourceSuffix : String = "",
-        open var compilerInfo : ICompilerInfo ) {
+        open var compilerInfo : ICompilerInfo,
+        open var description : String = "",
+        open var scm : Scm? = null,
+        open var url: String? = null,
+        open var licenses: List<License> = arrayListOf<License>()) {
 
     var testArgs: ArrayList<String> = arrayListOf()
 
@@ -110,3 +113,14 @@ public class Dependencies(val project: Project, val dependencies: ArrayList<ICla
     }
 }
 
+public class Scm(val connection: String, val developerConnection: String, val url: String)
+
+public class License(val name: String, val url: String) {
+    fun toMavenLicense() : org.apache.maven.model.License {
+        val result = org.apache.maven.model.License()
+        result.name = name
+        result.url = url
+        return result
+    }
+
+}

@@ -5,18 +5,18 @@ import com.beust.kobalt.plugin.kotlin.kotlinProject
 import com.beust.kobalt.plugin.packaging.assemble
 import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.publish.jcenter
-import com.beust.kobalt.plugin.linecount.lineCount
-
-//val repos = repos("https://dl.bintray.com/cbeust/maven/")
-
-val plugins = plugins(
-        "com.beust.kobalt:kobalt-line-count:0.15"
-//        file(homeDir("kotlin/kobalt-line-count/kobaltBuild/libs/kobalt-line-count-0.14.jar"))
-)
-
-val lc = lineCount {
-    suffix = "**Plugin.kt"
-}
+//import com.beust.kobalt.plugin.linecount.lineCount
+//
+////val repos = repos("https://dl.bintray.com/cbeust/maven/")
+//
+//val plugins = plugins(
+//        "com.beust.kobalt:kobalt-line-count:0.15"
+////        file(homeDir("kotlin/kobalt-line-count/kobaltBuild/libs/kobalt-line-count-0.14.jar"))
+//)
+//
+//val lc = lineCount {
+//    suffix = "**Plugin.kt"
+//}
 
 fun readVersion() : String {
     val p = java.util.Properties()
@@ -43,6 +43,13 @@ val kobalt = kotlinProject(wrapper) {
     group = "com.beust"
     artifactId = name
     version = readVersion()
+    description = "A build system in Kotlin"
+    url = "http://beust.com/kobalt"
+    licenses = listOf(com.beust.kobalt.api.License("Apache 2.0", "http://www.apache.org/licenses/LICENSE-2.0"))
+    scm = com.beust.kobalt.api.Scm(
+            url = "http://github.com/cbeust/kobalt",
+            connection = "https://github.com/cbeust/kobalt.git",
+            developerConnection = "git@github.com:cbeust/kobalt.git")
 
     dependenciesTest {
         compile("org.testng:testng:6.9.6")

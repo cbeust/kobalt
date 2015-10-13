@@ -6,11 +6,14 @@ import com.beust.kobalt.SystemProperties
 import com.google.common.base.Preconditions
 import com.google.inject.assistedinject.Assisted
 import org.apache.maven.model.Developer
+import org.apache.maven.model.License
 import org.apache.maven.model.Model
+import org.apache.maven.model.Scm
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer
 import java.io.File
 import java.io.StringWriter
 import java.nio.charset.Charset
+import java.util.*
 import javax.inject.Inject
 
 public class PomGenerator @Inject constructor(@Assisted val project: Project) : KobaltLogger {
@@ -26,6 +29,16 @@ public class PomGenerator @Inject constructor(@Assisted val project: Project) : 
             artifactId = project.artifactId
             groupId = project.group
             version = project.version
+            description = project.description
+            licenses = project.licenses.map { it.toMavenLicense() }
+            url = project.url
+            scm = Scm().apply {
+                project.scm?.let {
+                    url = it.url
+                    connection = it.connection
+                    developerConnection = it.developerConnection
+                }
+            }
         }
         with(Developer()) {
             name = SystemProperties.username
@@ -46,6 +59,6 @@ public class PomGenerator @Inject constructor(@Assisted val project: Project) : 
         val pomFile = SimpleDep(project.group!!, project.artifactId!!, project.version!!).toPomFileName()
         val outputFile = File(outputDir, pomFile)
         outputFile.writeText(s.toString(), Charset.defaultCharset())
-        log(1, "Wrote ${outputFile}")
+        log(1, "Wrote $outputFile")
     }
 }
