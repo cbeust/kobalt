@@ -1,9 +1,7 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.file
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltLogger
-import com.beust.kobalt.plugin.packaging.JarUtils
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
@@ -66,14 +64,14 @@ class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
     }
 
     private fun getBytes(url: String) : ByteArray {
-        log(2, "${url}: downloading to ${fileName}")
+        log(2, "$url: downloading to $fileName")
         val body = http.get(url)
         if (body.code == 200) {
             val buffer = ByteArrayOutputStream(estimatedSize)
             body.getAsStream().copyTo(buffer, estimatedSize)
             return buffer.toByteArray()
         } else {
-            throw KobaltException("${url}: failed to download, code: ${body.code}")
+            throw KobaltException("$url: failed to download, code: ${body.code}")
         }
     }
 
@@ -89,9 +87,9 @@ class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
         file.parentFile.mkdirs()
         val bytes = getBytes(url)
         if (remoteMd5 != null && remoteMd5 != toMd5(bytes)) {
-            throw KobaltException("MD5 not matching for ${url}")
+            throw KobaltException("MD5 not matching for $url")
         } else {
-            log(2, "No md5 found for ${url}, skipping md5 check")
+            log(2, "No md5 found for $url, skipping md5 check")
         }
         files.saveFile(file, bytes)
 
