@@ -52,7 +52,6 @@ public class PublishPlugin @Inject constructor(val http: Http, val files: com.be
         val result = files.findRecursively(File(project.directory, project.buildDirectory)) { file ->
                 VALID.any { file.endsWith(it)} and file.contains(project.version!!)
             }.map { it -> File(it) }
-        log(1, "${project.name}: Found ${result.size()} artifacts to upload")
         return result
     }
 

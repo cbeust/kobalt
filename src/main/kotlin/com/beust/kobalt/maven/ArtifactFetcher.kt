@@ -52,17 +52,6 @@ class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
     private val estimatedSize: Int
         get() = if (url.contains("kotlin-compiler")) 18000000 else 1000000
 
-    private fun toMd5(bytes: ByteArray) : String {
-        val result = StringBuilder()
-        val md5 = MessageDigest.getInstance("MD5").digest(bytes)
-        md5.forEach {
-            val byte = it.toInt() and 0xff
-            if (byte < 16) result.append("0")
-            result.append(Integer.toHexString(byte))
-        }
-        return result.toString()
-    }
-
     private fun getBytes(url: String) : ByteArray {
         log(2, "$url: downloading to $fileName")
         val body = http.get(url)
@@ -86,7 +75,7 @@ class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
         val file = File(fileName)
         file.parentFile.mkdirs()
         val bytes = getBytes(url)
-        if (remoteMd5 != null && remoteMd5 != toMd5(bytes)) {
+        if (remoteMd5 != null && remoteMd5 != Md5.toMd5(bytes)) {
             throw KobaltException("MD5 not matching for $url")
         } else {
             log(2, "No md5 found for $url, skipping md5 check")

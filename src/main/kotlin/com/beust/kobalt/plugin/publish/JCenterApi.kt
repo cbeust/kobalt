@@ -5,6 +5,7 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.KobaltException
+import com.beust.kobalt.maven.Md5
 import com.beust.kobalt.misc.KobaltLogger
 import com.google.inject.assistedinject.Assisted
 import com.squareup.okhttp.Response
@@ -12,9 +13,12 @@ import org.jetbrains.annotations.Nullable
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.charset.Charset
+import java.nio.file.Files
+import java.nio.file.Paths
 import javax.inject.Inject
 
 data class JCenterPackage(val jo: JsonObject) {
+    @Suppress("UNCHECKED_CAST")
     val latestPublishedVersion = (jo.get("versions") as JsonArray<String>).get(0)
 }
 
@@ -82,35 +86,54 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
                     project.group!!.replace(".", "/"),
                     project.artifactId!!,
                     project.version!!,
-                    f.getName())
+                    f.name)
                 .join("/")
         }
 
-        return upload(files, configuration, fileToPath)
+        return upload(files, configuration, fileToPath, true)
     }
 
-    fun uploadFile(file: File, url: String, configuration: JCenterConfiguration) =
+    fun uploadFile(file: File, url: String, configuration: JCenterConfiguration, generateMd5: Boolean = false) =
             upload(arrayListOf(file), configuration, {
-                f: File -> "${UnauthenticatedJCenterApi.BINTRAY_URL_API_CONTENT}/${username}/generic/${url}"
-            })
+                f: File -> "${UnauthenticatedJCenterApi.BINTRAY_URL_API_CONTENT}/$username/generic/$url"
+            }, generateMd5)
 
-    private fun upload(files: List<File>, configuration : JCenterConfiguration?, fileToPath: (File) -> String)
-            : TaskResult {
+    private fun upload(files: List<File>, configuration : JCenterConfiguration?, fileToPath: (File) -> String,
+            generateMd5: Boolean = false) : TaskResult {
         val successes = arrayListOf<File>()
         val failures = hashMapOf<File, String>()
+        val filesToUpload = arrayListOf<File>()
         files.forEach {
+
+            // Create the md5 for this file
+            filesToUpload.add(it)
+            if (generateMd5) {
+                with(File(it.absolutePath)) {
+                    val md5: String = Md5.toMd5(this)
+                    val md5File = File(absolutePath + ".md5")
+                    md5File.writeText(md5)
+                    filesToUpload.add(md5File)
+                }
+            }
+        }
+
+        //
+        // If any configuration was given, apply them so the URL reflects them, e.g. ?publish=1
+        //
+        val options = arrayListOf<String>()
+        if (configuration?.publish == true) options.add("publish=1")
+
+        //
+        // TODO: These files should be uploaded from a thread pool instead of serially
+        //
+        log(1, "Found ${filesToUpload.size()} artifacts to upload")
+        filesToUpload.forEach {
             var path = fileToPath(it)
-
-            // Apply the configurations for this project, if any
-            val options = arrayListOf<String>()
-            if (configuration?.publish == true) options.add("publish=1")
-            // This actually needs to be done
-//            options.add("list_in_downloads=1")
-
             if (options.size() > 0) {
                 path += "?" + options.join("&")
             }
 
+            log(1, "  Uploading $it to $path")
             http.uploadFile(username, password, path, it,
                     { r: Response -> successes.add(it) },
                     { r: Response ->
@@ -120,7 +143,7 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
         }
 
         val result: TaskResult
-        if (successes.size() == files.size()) {
+        if (successes.size() == filesToUpload.size()) {
             log(1, "All artifacts successfully uploaded")
             result = TaskResult(true)
         } else {
