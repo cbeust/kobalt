@@ -23,8 +23,7 @@ fun plugins(vararg dependency : IClasspathDependency) {
 
 @Directive
 fun plugins(vararg dependencies : String) {
-    val executor = Kobalt.INJECTOR.getInstance(KobaltExecutors::class.java)
-            .newExecutor("BuildScript", 5)
+    val executor = Kobalt.INJECTOR.getInstance(KobaltExecutors::class.java).miscExecutor
     val factory = Kobalt.INJECTOR.getInstance(DepFactory::class.java)
     dependencies.forEach {
         Plugins.dynamicPlugins.add(factory.create(it, executor))
