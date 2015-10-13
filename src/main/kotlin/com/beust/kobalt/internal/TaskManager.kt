@@ -81,7 +81,6 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                         //
                         val allFreeTasks = calculateFreeTasks(tasksByNames, reverseAfter)
                         val currentFreeTask = allFreeTasks.filter {
-                            println("COMPARING ${it.name} and $target")
                             TaskInfo(projectName, it.name).id == target
                         }
                         if (currentFreeTask.size() == 1) {
