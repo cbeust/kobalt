@@ -79,8 +79,10 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                         //
                         // If the current target is free, add it as a single node to the graph
                         //
-                        val currentFreeTask = calculateFreeTasks(tasksByNames, reverseAfter).filter {
-                            it.name == target
+                        val allFreeTasks = calculateFreeTasks(tasksByNames, reverseAfter)
+                        val currentFreeTask = allFreeTasks.filter {
+                            println("COMPARING ${it.name} and $target")
+                            TaskInfo(projectName, it.name).id == target
                         }
                         if (currentFreeTask.size() == 1) {
                             currentFreeTask.get(0).let {
@@ -152,7 +154,8 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
     /**
      * Find the free tasks of the graph.
      */
-    private fun calculateFreeTasks(tasksByNames: Map<String, PluginTask>, reverseAfter: HashMap<String, String>): Collection<PluginTask> {
+    private fun calculateFreeTasks(tasksByNames: Map<String, PluginTask>, reverseAfter: HashMap<String, String>)
+            : Collection<PluginTask> {
         val freeTaskMap = hashMapOf<String, PluginTask>()
         tasksByNames.keySet().forEach {
             if (! runBefore.containsKey(it) && ! reverseAfter.containsKey(it)) {
