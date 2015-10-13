@@ -11,7 +11,7 @@ import javax.xml.xpath.XPathConstants
 import kotlin.dom.childElements
 
 public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
-                                                  @Assisted documentFile: java.io.File) : KobaltLogger {
+        @Assisted documentFile: java.io.File) : KobaltLogger {
     val XPATH_FACTORY = javax.xml.xpath.XPathFactory.newInstance()
     val XPATH = XPATH_FACTORY.newXPath()
     var groupId: String? = null
@@ -26,7 +26,7 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
     }
 
     data public class Dependency(val groupId: String, val artifactId: String, val version: String,
-                                 val optional: Boolean = false, val scope: String? = null) : KobaltLogger {
+            val optional: Boolean = false, val scope: String? = null) : KobaltLogger {
 
         /** When a variable is used in a maven file, e.g. ${version} */
         private val VAR = "$" + "{"
@@ -63,10 +63,10 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         artifactId = XPATH.compile("/project/artifactId").evaluate(document)
         version = XPATH.compile("/project/version").evaluate(document)
         name = XPATH.compile("/project/name").evaluate(document)
-        var repositoriesList = XPATH.compile("/project/repositories").evaluate(document, XPathConstants.NODESET) as NodeList
+        var repositoriesList = XPATH.compile("/project/repositories").evaluate(document, XPathConstants.NODESET)
+                as NodeList
         var repoElem = repositoriesList.item(0) as Element?
-        repositories = repoElem.childElements()
-              .map({ it.getElementsByTagName("url").item(0).textContent })
+        repositories = repoElem.childElements().map({ it.getElementsByTagName("url").item(0).textContent })
 
         val propertiesList = XPATH.compile("/project/properties").evaluate(document, XPathConstants.NODESET) as NodeList
         var propsElem = propertiesList.item(0) as Element?
