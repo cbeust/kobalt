@@ -50,7 +50,7 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
             }
 
 
-        val id: String = "${groupId}:${artifactId}:${version}"
+        val id: String = "$groupId:$artifactId:$version"
     }
 
     var dependencies = arrayListOf<Dependency>()
@@ -94,7 +94,7 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
                     }
                 }
             }
-            log(3, "Done parsing: ${groupId} ${artifactId} ${version}")
+            log(3, "Done parsing: $groupId $artifactId $version")
             val tmpDependency = Dependency(groupId!!, artifactId!!, version, optional!!, scope)
             dependencies.add(tmpDependency)
         }
