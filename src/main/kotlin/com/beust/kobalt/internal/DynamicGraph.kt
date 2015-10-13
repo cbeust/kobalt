@@ -104,6 +104,7 @@ public class DynamicGraph<T> : KobaltLogger {
      * Add a node to the graph.
      */
     public fun addNode(value: T) : T {
+        nodes.add(value)
         nodesReady.add(value)
         return value
     }
@@ -113,6 +114,8 @@ public class DynamicGraph<T> : KobaltLogger {
      * (they will be added by this method). Makes "to" depend on "from".
      */
     public fun addEdge(from: T, to: T) {
+        nodes.add(from)
+        nodes.add(to)
         val fromNode = addNode(from)
         val toNode = addNode(to)
         dependingOn.put(toNode, fromNode)
@@ -234,7 +237,7 @@ public class DynamicGraph<T> : KobaltLogger {
         return result.toString();
     }
 
-    val nodes : Set<T> get() = nodesReady
+    val nodes = hashSetOf<T>()
 
     fun dump() : String {
         val result = StringBuffer()
