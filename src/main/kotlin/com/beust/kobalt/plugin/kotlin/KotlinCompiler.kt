@@ -4,6 +4,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.*
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.KobaltLogger
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
@@ -28,9 +29,10 @@ class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
     override val name = "kotlin"
 
     private fun getKotlinCompilerJar(name: String) : String {
-        return com.beust.kobalt.misc.KFiles.joinDir(localRepo.toFullPath(""),
-                File("org/jetbrains/kotlin/${name}").path,
-                File("${KOTLIN_VERSION}/${name}-${KOTLIN_VERSION}.jar").getPath())
+        val id = "org.jetbrains.kotlin:$name:$KOTLIN_VERSION"
+        val dep = MavenDependency.create(id, executors.miscExecutor)
+        val result = dep.jarFile.get().absolutePath
+        return result
     }
 
     fun compile(compileDependencies: List<IClasspathDependency>, otherClasspath: List<String>,
