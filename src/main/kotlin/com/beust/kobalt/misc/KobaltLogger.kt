@@ -70,23 +70,24 @@ fun Any.error(text: String, e: Throwable? = null) {
 class Logger(val dev: Boolean) {
     val FORMAT = SimpleDateFormat("HH:mm:ss.SSS")
 
-    private fun getPattern(type: String, tag: String, message: String) =
+    private fun getPattern(type: String, devType: String, tag: String, message: String) =
         if (dev) {
             val ts = FORMAT.format(Date())
             "$type/$ts [" + Thread.currentThread().name + "] $tag - $message"
         } else {
-            message
+            devType + message
         }
 
     final fun debug(tag: String, message: String) =
-        println(getPattern("D", tag, message))
+        println(getPattern("D", "Debug ", tag, message))
 
     final fun error(tag: String, message: String, e: Throwable? = null) =
-        println(getPattern("***** E", tag, message) + " Exception: " + e?.getMessage())
+        println(getPattern("***** E", "***** ERROR ", tag, message) +
+                if (e != null) " Exception: " + e.getMessage() else "")
 
     final fun warn(tag: String, message: String, e: Throwable? = null) =
-        println(getPattern("W", tag, message))
+        println(getPattern("W", "***** WARNING ", tag, message))
 
     final fun log(tag: String, message: String) =
-        println(getPattern("L", tag, message))
+        println(getPattern("L", "", tag, message))
 }
