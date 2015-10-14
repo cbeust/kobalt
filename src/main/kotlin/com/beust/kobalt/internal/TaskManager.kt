@@ -6,10 +6,7 @@ import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.maven.KobaltException
-import com.beust.kobalt.plugins
-import com.google.common.collect.HashMultimap
 import com.google.common.collect.TreeMultimap
-import org.jetbrains.kotlin.cfg.pseudocode.or
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
