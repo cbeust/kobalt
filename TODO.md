@@ -4,6 +4,9 @@ To do:
 - [ ] use groupId/artifactId
 - [ ] Console mode with watch service, so recompilation can occur as soon as a source file is modified
 - [ ] ProjectGenerator: support migration from pom.xml (starting with dependencies)
+- [ ] Specify where to upload snapshots
+- [ ] Add the % download display in the Kotlin wrapper
+- [ ] Upload in a thread pool
 - [ ] repos() must appear before plugins(): fix that
 - [ ] Support version ranges
 - [ ] Generate .idea and other IDEA files
