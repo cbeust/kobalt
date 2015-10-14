@@ -41,7 +41,7 @@ public class Gpg {
                 val pb = ProcessBuilder(allArgs)
                 pb.directory(directory)
                 pb.inheritIO()
-                log(1, "Signing files: " + allArgs.join(" "))
+                log(2, "Signing file: " + allArgs.join(" "))
                 val process = pb.start()
                 val errorCode = process.waitFor()
                 if (errorCode != 0) {
