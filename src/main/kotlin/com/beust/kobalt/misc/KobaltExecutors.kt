@@ -66,12 +66,12 @@ public class KobaltExecutors {
             val r = cs.take().get(remainingMs, TimeUnit.MILLISECONDS)
             result.add(r)
             remainingMs -= (System.currentTimeMillis() - start)
-            log(2, "Received ${r}, remaining: ${remainingMs} ms")
+            log(2, "Received $r, remaining: $remainingMs ms")
             i++
         }
 
         if (remainingMs < 0) {
-            warn("Didn't receive all the results in time: ${i} / ${tasks.size()}")
+            warn("Didn't receive all the results in time: $i / ${tasks.size()}")
         } else {
             log(2, "Received all results in ${maxMs - remainingMs} ms")
         }
