@@ -20,7 +20,7 @@ public class KFiles {
             val jarFile = File(jar)
             val envJar = System.getenv("KOBALT_JAR")
             if (! jarFile.exists() && envJar != null) {
-                KobaltLogger.debug("Using kobalt jar $envJar")
+                debug("Using kobalt jar $envJar")
                 return File(envJar).absolutePath
             }
             if (! jarFile.exists()) {
@@ -80,7 +80,7 @@ public class KFiles {
 
             allDirs.forEach {
                 if (! it.exists()) {
-                    KobaltLogger.log(2, "Couldn't find directory ${it}")
+                    log(2, "Couldn't find directory ${it}")
                 } else {
                     result.addAll(findRecursively(it, function))
                 }
@@ -126,28 +126,28 @@ public class KFiles {
          */
         fun findBuildScriptLocation(buildFile: BuildFile, jarFile: String) : String {
             val result = joinDir(findDotDir(buildFile.directory).absolutePath, KFiles.SCRIPT_BUILD_DIR, jarFile)
-            KobaltLogger.log(2, "Script jar file: ${result}")
+            log(2, "Script jar file: ${result}")
             return result
         }
 
         public fun saveFile(file: File, text: String) {
             file.absoluteFile.parentFile.mkdirs()
             file.writeText(text)
-            KobaltLogger.log(2, "Wrote ${file}")
+            log(2, "Wrote ${file}")
         }
 
         private fun isWindows() = System.getProperty("os.name").contains("Windows");
 
         public fun copy(from: Path?, to: Path?, option: StandardCopyOption) {
             if (isWindows() && to!!.toFile().exists()) {
-                KobaltLogger.log(2, "Windows detected, not overwriting ${to!!}")
+                log(2, "Windows detected, not overwriting ${to!!}")
             } else {
                 try {
-                    KobaltLogger.log(2, "Copy from $from!! to ${to!!}")
+                    log(2, "Copy from $from!! to ${to!!}")
                     Files.copy(from, to, option)
                 } catch(ex: IOException) {
                     // Windows is anal about this
-                    KobaltLogger.log(1, "Couldn't copy ${from} to ${to}: ${ex.getMessage()}")
+                    log(1, "Couldn't copy ${from} to ${to}: ${ex.getMessage()}")
                 }
             }
         }

@@ -18,7 +18,7 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
         val repoFinder: RepoFinder,
         val pomFactory: Pom.IFactory,
         val downloadManager: DownloadManager)
-            : LocalDep(groupId, artifactId, version, localRepo), KobaltLogger, IClasspathDependency,
+            : LocalDep(groupId, artifactId, version, localRepo), IClasspathDependency,
                 Comparable<MavenDependency> {
     override var jarFile: Future<File> by Delegates.notNull()
     var pomFile: Future<File> by Delegates.notNull()

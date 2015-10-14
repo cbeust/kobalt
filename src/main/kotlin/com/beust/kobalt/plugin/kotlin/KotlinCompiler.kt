@@ -4,9 +4,8 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.*
-import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.KobaltLogger
+import com.beust.kobalt.misc.log
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import java.io.File
 import javax.inject.Inject
@@ -23,7 +22,7 @@ class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
         override val depFactory: DepFactory,
         override val dependencyManager: DependencyManager,
         override val executors: KobaltExecutors)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors), KobaltLogger {
+        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors) {
     private val KOTLIN_VERSION = "0.14.449"
 
     override val name = "kotlin"

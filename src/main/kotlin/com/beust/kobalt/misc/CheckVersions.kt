@@ -10,7 +10,7 @@ import com.google.inject.Inject
  * Find out if any newer versions of the dependencies are available.
  */
 public class CheckVersions @Inject constructor(val depFactory : DepFactory,
-        val executors : KobaltExecutors) : KobaltLogger {
+        val executors : KobaltExecutors) {
 
     fun run(projects: List<Project>) {
         val executor = executors.newExecutor("CheckVersions", 5)

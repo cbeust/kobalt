@@ -40,12 +40,12 @@ private class Main @Inject constructor(
         val depFactory: DepFactory,
         val checkVersions: CheckVersions,
         val github: GithubApi,
-        val updateKobalt: UpdateKobalt)
-    : KobaltLogger {
+        val updateKobalt: UpdateKobalt) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
     public fun run(jc: JCommander, args: Args) {
+
         val latestVersionFuture = github.latestKobaltVersion
         benchmark("Build", {
             println(Banner.get() + Kobalt.version + "\n")
@@ -69,7 +69,7 @@ private class Main @Inject constructor(
         }
     }
 
-    public class Worker<T>(val runNodes: ArrayList<T>, val n: T) : IWorker<T>, KobaltLogger {
+    public class Worker<T>(val runNodes: ArrayList<T>, val n: T) : IWorker<T> {
         override val priority = 0
 
         override fun call() : TaskResult2<T> {

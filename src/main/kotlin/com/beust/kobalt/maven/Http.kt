@@ -1,6 +1,6 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.misc.KobaltLogger
+import com.beust.kobalt.misc.log
 import com.squareup.okhttp.*
 import java.io.File
 import java.io.IOException
@@ -8,7 +8,7 @@ import java.io.InputStream
 import javax.inject.Singleton
 
 @Singleton
-public class Http : KobaltLogger {
+public class Http {
     class Body(val body: ResponseBody, val code: Int) {
         public fun getAsString() : String {
             return body.string()

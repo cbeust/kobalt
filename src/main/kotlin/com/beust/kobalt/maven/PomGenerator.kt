@@ -1,22 +1,20 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.SystemProperties
+import com.beust.kobalt.misc.log
 import com.google.common.base.Preconditions
 import com.google.inject.assistedinject.Assisted
 import org.apache.maven.model.Developer
-import org.apache.maven.model.License
 import org.apache.maven.model.Model
 import org.apache.maven.model.Scm
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer
 import java.io.File
 import java.io.StringWriter
 import java.nio.charset.Charset
-import java.util.*
 import javax.inject.Inject
 
-public class PomGenerator @Inject constructor(@Assisted val project: Project) : KobaltLogger {
+public class PomGenerator @Inject constructor(@Assisted val project: Project) {
     interface IFactory {
         fun create(project: Project) : PomGenerator
     }

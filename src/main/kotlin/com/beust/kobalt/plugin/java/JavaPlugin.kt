@@ -10,10 +10,10 @@ import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.JavaInfo
 import com.beust.kobalt.Jvm
 import com.beust.kobalt.SystemProperties
+import com.beust.kobalt.misc.log
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,7 +25,7 @@ public class JavaPlugin @Inject constructor(
         override val depFactory: DepFactory,
         override val dependencyManager: DependencyManager,
         override val executors: KobaltExecutors)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors), KobaltLogger {
+        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors) {
 
     init {
         Kobalt.registerCompiler(JavaCompilerInfo())

@@ -2,8 +2,9 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.Strings
+import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.warn
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
@@ -20,7 +21,7 @@ import kotlin.dom.parseXml
  * Find the repo that contains the given dependency among a list of repos. Searches are performed in parallel and
  * cached so we never make a network call for the same dependency more than once.
  */
-public class RepoFinder @Inject constructor(val http: Http, val executors: KobaltExecutors) : KobaltLogger {
+public class RepoFinder @Inject constructor(val http: Http, val executors: KobaltExecutors) {
     public fun findCorrectRepo(id: String): RepoResult {
         return FOUND_REPOS.get(id)
     }

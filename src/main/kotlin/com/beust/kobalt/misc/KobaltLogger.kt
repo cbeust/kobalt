@@ -1,34 +1,33 @@
 package com.beust.kobalt.misc
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import com.beust.kobalt.api.Kobalt
+import java.text.SimpleDateFormat
+import java.util.*
 
-public interface KobaltLogger {
-    val logger : Logger
-        get() = LoggerFactory.getLogger(javaClass.simpleName)
-
+internal interface KobaltLogger {
     companion object {
-
         public var LOG_LEVEL : Int = 1
+
+        val logger : Logger get() = Logger(Kobalt.context!!.args.dev)
 
         fun log(level: Int, s: String) {
             if (level <= LOG_LEVEL) {
-                LoggerFactory.getLogger(KobaltLogger::class.java.simpleName).info(s)
+                logger.log("Logger", s)
             }
         }
 
         fun warn(s: String, e: Throwable? = null) {
-            LoggerFactory.getLogger(KobaltLogger::class.java.simpleName).warn(s, e)
+            logger.warn("Logger", s, e)
         }
 
         fun debug(s: String) {
-            LoggerFactory.getLogger(KobaltLogger::class.java.simpleName).debug(s)
+            logger.debug(s)
         }
     }
 
     final fun log(level: Int = 1, message: String) {
         if (level <= LOG_LEVEL) {
-            logger.info(message)
+            logger.log("Logger", message)
         }
     }
 
@@ -37,10 +36,48 @@ public interface KobaltLogger {
     }
 
     final fun error(message: String, e: Throwable? = null) {
-        logger.error("***** $message", e)
+        logger.error("Logger", "***** $message", e)
     }
 
     final fun warn(message: String, e: Throwable? = null) {
-        logger.warn(message, e)
+        logger.warn("Logger", message, e)
     }
+}
+
+fun Any.log(level: Int, text: String) {
+    if (level <= KobaltLogger.LOG_LEVEL) {
+        KobaltLogger.logger.log(javaClass.simpleName, text)
+    }
+}
+
+fun Any.debug(text: String) {
+    KobaltLogger.logger.debug(javaClass.simpleName, text)
+}
+
+fun Any.warn(text: String) {
+    KobaltLogger.logger.warn(javaClass.simpleName, text)
+}
+
+class Logger(val dev: Boolean) {
+    val FORMAT = SimpleDateFormat("HH:mm:ss.SSS")
+
+    private fun getPattern(type: String, tag: String, message: String) =
+        if (dev) {
+            val ts = FORMAT.format(Date())
+            "$type/$ts [" + Thread.currentThread().name + "] $tag - $message"
+        } else {
+            message
+        }
+
+    final fun debug(tag: String, message: String) =
+        println(getPattern("D", tag, message))
+
+    final fun error(tag: String, message: String, e: Throwable? = null) =
+        println(getPattern("E", tag, message))
+
+    final fun warn(tag: String, message: String, e: Throwable? = null) =
+        println(getPattern("W", tag, message))
+
+    final fun log(tag: String, message: String) =
+        println(getPattern("L", tag, message))
 }

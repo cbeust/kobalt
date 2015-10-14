@@ -1,20 +1,15 @@
 package com.beust.kobalt.plugin.kotlin
 
-import com.beust.kobalt.Plugins
-import com.beust.kobalt.api.ICompilerInfo
 import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.TaskResult
-import com.beust.kobalt.internal.TaskResult2
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.KobaltLogger
-import com.beust.kobalt.plugin.java.JavaProject
+import com.beust.kobalt.misc.log
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,7 +21,7 @@ public class KotlinPlugin @Inject constructor(
         override val depFactory: DepFactory,
         override val dependencyManager: DependencyManager,
         override val executors: KobaltExecutors)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors), KobaltLogger {
+        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors) {
 
     init {
         Kobalt.registerCompiler(KotlinCompilerInfo())

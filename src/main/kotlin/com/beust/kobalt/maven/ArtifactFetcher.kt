@@ -1,14 +1,13 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.KobaltLogger
+import com.beust.kobalt.misc.log
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.inject.assistedinject.Assisted
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.security.MessageDigest
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
@@ -43,7 +42,7 @@ class DownloadManager @Inject constructor(val factory: ArtifactFetcher.IFactory)
  */
 class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
         @Assisted("fileName") val fileName: String,
-        val files: KFiles, val http: Http) : Callable<File>, KobaltLogger {
+        val files: KFiles, val http: Http) : Callable<File> {
     interface IFactory {
         fun create(@Assisted("url") url: String, @Assisted("fileName") fileName: String) : ArtifactFetcher
     }

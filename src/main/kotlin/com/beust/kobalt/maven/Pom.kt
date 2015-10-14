@@ -1,7 +1,7 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.ToString
+import com.beust.kobalt.misc.log
 import com.google.inject.assistedinject.Assisted
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
@@ -11,7 +11,7 @@ import javax.xml.xpath.XPathConstants
 import kotlin.dom.childElements
 
 public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
-        @Assisted documentFile: java.io.File) : KobaltLogger {
+        @Assisted documentFile: java.io.File) {
     val XPATH_FACTORY = javax.xml.xpath.XPathFactory.newInstance()
     val XPATH = XPATH_FACTORY.newXPath()
     var groupId: String? = null
@@ -26,7 +26,7 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
     }
 
     data public class Dependency(val groupId: String, val artifactId: String, val version: String,
-            val optional: Boolean = false, val scope: String? = null) : KobaltLogger {
+            val optional: Boolean = false, val scope: String? = null) {
 
         /** When a variable is used in a maven file, e.g. ${version} */
         private val VAR = "$" + "{"

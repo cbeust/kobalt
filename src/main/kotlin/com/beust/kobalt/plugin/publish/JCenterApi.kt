@@ -6,15 +6,13 @@ import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.maven.Md5
-import com.beust.kobalt.misc.KobaltLogger
+import com.beust.kobalt.misc.log
 import com.google.inject.assistedinject.Assisted
 import com.squareup.okhttp.Response
 import org.jetbrains.annotations.Nullable
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.charset.Charset
-import java.nio.file.Files
-import java.nio.file.Paths
 import javax.inject.Inject
 
 data class JCenterPackage(val jo: JsonObject) {
@@ -45,7 +43,7 @@ open public class UnauthenticatedJCenterApi @Inject constructor(open val http: H
 
 public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val username: String?,
         @Nullable @Assisted("password") val password: String?,
-        override val http: Http) : UnauthenticatedJCenterApi(http), KobaltLogger {
+        override val http: Http) : UnauthenticatedJCenterApi(http) {
 
     interface IFactory {
         fun create(@Nullable @Assisted("username") username: String?,

@@ -1,11 +1,9 @@
 package com.beust.kobalt.internal
 
-import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.NamedThreadFactory
 import com.beust.kobalt.misc.ToString
+import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
-import com.google.common.collect.HashMultimap
-import com.google.common.collect.TreeMultimap
 import java.util.*
 import java.util.concurrent.*
 
@@ -38,17 +36,17 @@ public interface IThreadWorkerFactory<T> {
 }
 
 public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
-        val factory: IThreadWorkerFactory<T>) : KobaltLogger {
+        val factory: IThreadWorkerFactory<T>) {
     val executor = Executors.newFixedThreadPool(5, NamedThreadFactory("DynamicGraphExecutor"))
     val completion = ExecutorCompletionService<TaskResult2<T>>(executor)
 
     public fun run() {
         while (graph.freeNodes.size() > 0) {
-            log(2, "Current count: ${graph.nodeCount}")
+            log(3, "Current count: ${graph.nodeCount}")
             synchronized(graph) {
                 val freeNodes = graph.freeNodes
                 freeNodes.forEach { graph.setStatus(it, DynamicGraph.Status.RUNNING)}
-                log(2, "submitting free nodes ${freeNodes}")
+                log(3, "submitting free nodes ${freeNodes}")
                 val callables : List<IWorker<T>> = factory.createWorkers(freeNodes)
                 callables.forEach { completion.submit(it) }
                 var n = callables.size()
@@ -58,7 +56,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
                     try {
                         val future = completion.take()
                         val taskResult = future.get(2, TimeUnit.SECONDS)
-                        log(2, "Received task result ${taskResult}")
+                        log(3, "Received task result ${taskResult}")
                         n--
                         graph.setStatus(taskResult.value,
                             if (taskResult.success) {
@@ -79,7 +77,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
 /**
  * Representation of the graph of methods.
  */
-public class DynamicGraph<T> : KobaltLogger {
+public class DynamicGraph<T> {
     private val DEBUG = false
 
     private val nodesReady = linkedSetOf<T>()
@@ -148,7 +146,7 @@ public class DynamicGraph<T> : KobaltLogger {
 //                }
 //            }
 
-            log(2, "freeNodes: ${result}")
+            log(3, "freeNodes: ${result}")
             return result
         }
 
@@ -178,7 +176,7 @@ public class DynamicGraph<T> : KobaltLogger {
     private fun setSkipStatus(node: T, status: Status) {
         dependingOn.get(node).forEach {
             if (! nodesSkipped.contains(it)) {
-                log(2, "Node skipped: ${it}")
+                log(3, "Node skipped: ${it}")
                 nodesSkipped.add(it)
                 nodesReady.remove(it)
                 setSkipStatus(it, status)
@@ -196,7 +194,7 @@ public class DynamicGraph<T> : KobaltLogger {
             Status.RUNNING -> nodesRunning.add(node)
             Status.FINISHED -> nodesFinished.add(node)
             Status.ERROR -> {
-                log(2, "Node in error: ${node}")
+                log(3, "Node in error: ${node}")
                 nodesReady.remove(node)
                 nodesInError.add(node)
                 setSkipStatus(node, status)

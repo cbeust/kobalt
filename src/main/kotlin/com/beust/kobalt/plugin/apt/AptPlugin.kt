@@ -1,6 +1,5 @@
 package com.beust.kobalt.plugin.apt
 
-import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.Dependencies
 import com.beust.kobalt.api.Kobalt
@@ -8,11 +7,11 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.TaskResult
-import com.beust.kobalt.misc.KobaltLogger
+import com.beust.kobalt.misc.log
 import javax.inject.Singleton
 
 @Singleton
-public class AptPlugin : BasePlugin(), KobaltLogger {
+public class AptPlugin : BasePlugin() {
     companion object {
         public const val TASK_APT: String = "runApt"
     }

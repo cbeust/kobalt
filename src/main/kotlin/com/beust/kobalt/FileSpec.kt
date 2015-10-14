@@ -1,7 +1,6 @@
 package com.beust.kobalt
 
-import com.beust.kobalt.api.Project
-import com.beust.kobalt.misc.KobaltLogger
+import com.beust.kobalt.misc.log
 import java.io.File
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
@@ -15,7 +14,7 @@ sealed class IFileSpec {
         override public fun toString() = spec
     }
 
-    class Glob(val spec: String) : IFileSpec(), KobaltLogger {
+    class Glob(val spec: String) : IFileSpec() {
         override public fun toFiles(directory: String): List<File> {
             val result = arrayListOf<File>()
 

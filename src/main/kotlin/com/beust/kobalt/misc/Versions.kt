@@ -16,7 +16,7 @@ public class Versions {
                 try {
                     return java.lang.Long.parseLong(s, radix)
                 } catch(ex: NumberFormatException) {
-                    KobaltLogger.warn("Couldn't parse version \"${version}\"")
+                    warn("Couldn't parse version \"${version}\"")
                     return 0L
                 }
             }

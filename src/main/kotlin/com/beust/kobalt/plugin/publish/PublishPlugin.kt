@@ -1,7 +1,5 @@
 package com.beust.kobalt.plugin.publish
 
-import com.beust.klaxon.string
-import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
@@ -9,10 +7,7 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.Http
-import com.beust.kobalt.maven.KobaltException
-import com.beust.kobalt.misc.KobaltLogger
 import com.google.common.base.Preconditions
-import org.jetbrains.kotlin.utils.sure
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,7 +16,7 @@ import javax.inject.Singleton
 public class PublishPlugin @Inject constructor(val http: Http, val files: com.beust.kobalt.misc.KFiles,
             val factory: com.beust.kobalt.maven.PomGenerator.IFactory,
             val jcenterFactory: JCenterApi.IFactory)
-        : BasePlugin(), KobaltLogger {
+        : BasePlugin() {
 
     override val name = "publish"
 

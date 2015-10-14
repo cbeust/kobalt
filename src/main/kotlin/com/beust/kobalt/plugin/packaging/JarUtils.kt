@@ -1,7 +1,7 @@
 package com.beust.kobalt.plugin.packaging
 
 import com.beust.kobalt.IFileSpec
-import com.beust.kobalt.misc.KobaltLogger
+import com.beust.kobalt.misc.log
 import java.io.*
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
@@ -10,7 +10,7 @@ import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-public class JarUtils : KobaltLogger {
+public class JarUtils {
     companion object {
 //        private fun isExcluded(entryName: String) : Boolean {
 //            val isAuth = entryName.startsWith("META-INF") and (
@@ -90,7 +90,7 @@ public class JarUtils : KobaltLogger {
                         addSingleFile(directory, subFiles, outputStream, expandJarFiles)
                     } else {
                         if (expandJarFiles and source.name.endsWith(".jar")) {
-                            KobaltLogger.log(2, "Writing contents of jar file ${source}")
+                            log(2, "Writing contents of jar file ${source}")
                             val stream = JarInputStream(FileInputStream(source))
                             var entry = stream.nextEntry
                             while (entry != null) {
@@ -151,7 +151,7 @@ public class JarUtils : KobaltLogger {
             }
             os.close()
 
-            KobaltLogger.log(1, "Deduplicated $fromFile.name")
+            log(1, "Deduplicated $fromFile.name")
         }
 
     }

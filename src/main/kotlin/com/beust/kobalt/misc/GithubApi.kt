@@ -13,7 +13,7 @@ import java.util.concurrent.Future
 /**
  * Retrieve Kobalt's latest release version from github.
  */
-public class GithubApi @Inject constructor(val executors: KobaltExecutors) : KobaltLogger {
+public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
     companion object {
         const val HOST = "https://api.github.com/"
     }

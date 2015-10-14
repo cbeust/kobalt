@@ -7,7 +7,7 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.KobaltLogger
+import com.beust.kobalt.misc.log
 import java.io.File
 import java.util.ArrayList
 import javax.inject.Inject
@@ -19,7 +19,7 @@ abstract public class JvmCompilerPlugin @Inject constructor(
         open val files: KFiles,
         open val depFactory: DepFactory,
         open val dependencyManager: DependencyManager,
-        open val executors: KobaltExecutors) : BasePlugin(), KobaltLogger {
+        open val executors: KobaltExecutors) : BasePlugin() {
 
     companion object {
         const val TASK_CLEAN = "clean"

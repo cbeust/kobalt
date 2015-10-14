@@ -14,22 +14,15 @@ import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
-import com.beust.kobalt.maven.MavenDependency
-import com.beust.kobalt.maven.SimpleDep
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.KobaltLogger
-import com.beust.kobalt.misc.ToString
+import com.beust.kobalt.misc.*
 import com.beust.kobalt.plugin.java.JavaPlugin
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.nio.file.FileSystems
 import java.nio.file.PathMatcher
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
-import java.util.ArrayList
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
@@ -44,7 +37,7 @@ public fun assemble(project: Project, init: Package.(p: Project) -> Unit): Packa
 
 @Singleton
 public class PackagingPlugin @Inject constructor(val dependencyManager : DependencyManager,
-        val executors: KobaltExecutors, val localRepo: LocalRepo) : BasePlugin(), KobaltLogger {
+        val executors: KobaltExecutors, val localRepo: LocalRepo) : BasePlugin() {
 
     companion object {
         public const val TASK_ASSEMBLE : String = "assemble"

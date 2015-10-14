@@ -1,15 +1,14 @@
 package com.beust.kobalt
 
-import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.maven.KobaltException
-import com.beust.kobalt.OperatingSystem
+import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.warn
 import java.io.File
 import java.io.IOException
-import java.util.HashMap
 
 public open class Jvm constructor(
         val os: com.beust.kobalt.OperatingSystem,
-        var javaBase: File? = null) : JavaInfo(), KobaltLogger {
+        var javaBase: File? = null) : JavaInfo() {
 
     private var _javaHome: File? = null
     override public var javaHome: File? = null

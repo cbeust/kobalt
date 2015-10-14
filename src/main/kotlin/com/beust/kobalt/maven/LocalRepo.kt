@@ -1,16 +1,13 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.Versions
-import com.beust.kobalt.SystemProperties
 import java.io.File
 import java.util.Collections
-import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-open public class LocalRepo(open val localRepo: String = KFiles.localRepo) : KobaltLogger {
+open public class LocalRepo(open val localRepo: String = KFiles.localRepo) {
     init {
         val l = File(localRepo)
         if (! l.exists()) {

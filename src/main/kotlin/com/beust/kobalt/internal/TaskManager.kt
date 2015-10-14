@@ -4,15 +4,15 @@ import com.beust.kobalt.Args
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.maven.KobaltException
+import com.beust.kobalt.misc.log
 import com.google.common.collect.TreeMultimap
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-public class TaskManager @Inject constructor(val plugins: Plugins, val args: Args) : KobaltLogger {
+public class TaskManager @Inject constructor(val plugins: Plugins, val args: Args) {
     private val runBefore = TreeMultimap.create<String, String>()
     private val runAfter = TreeMultimap.create<String, String>()
     private val alwaysRunAfter = TreeMultimap.create<String, String>()
@@ -206,7 +206,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
     }
 }
 
-class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean) : IWorker<PluginTask>, KobaltLogger {
+class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean) : IWorker<PluginTask> {
 //    override fun compareTo(other: IWorker2<PluginTask>): Int {
 //        return priority.compareTo(other.priority)
 //    }

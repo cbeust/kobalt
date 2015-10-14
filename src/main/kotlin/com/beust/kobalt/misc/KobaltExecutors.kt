@@ -1,10 +1,6 @@
 package com.beust.kobalt.misc
 
-import com.beust.kobalt.maven.KobaltException
-import com.google.inject.Provides
 import java.util.concurrent.*
-import javax.inject.Singleton
-import kotlin.properties.Delegates
 
 class NamedThreadFactory(val n: String) : ThreadFactory {
     private val PREFIX = "K-"
@@ -21,11 +17,11 @@ class NamedThreadFactory(val n: String) : ThreadFactory {
 }
 
 class KobaltExecutor(name: String, threadCount: Int)
-        : KobaltLogger, ThreadPoolExecutor(threadCount, threadCount, 5L, TimeUnit.SECONDS,
+        : ThreadPoolExecutor(threadCount, threadCount, 5L, TimeUnit.SECONDS,
                 LinkedBlockingQueue<Runnable>(), NamedThreadFactory(name)) {
 
     override protected fun afterExecute(r: Runnable, t: Throwable?) {
-        super<ThreadPoolExecutor>.afterExecute(r, t)
+        super.afterExecute(r, t)
         var ex : Throwable? = null
         if (t == null && r is Future<*>) {
             try {
@@ -44,7 +40,7 @@ class KobaltExecutor(name: String, threadCount: Int)
     }
 }
 
-public class KobaltExecutors : KobaltLogger {
+public class KobaltExecutors {
     public fun newExecutor(name: String, threadCount: Int) : ExecutorService
             = KobaltExecutor(name, threadCount)
 

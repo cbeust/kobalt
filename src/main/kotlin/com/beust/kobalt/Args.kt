@@ -13,6 +13,9 @@ class Args {
             "dependencies")
     var checkVersions = false
 
+    @Parameter(names = arrayOf("--dev"), description = "Turn of dev mode, resulting in a more verbose log output")
+    var dev: Boolean = false
+
     @Parameter(names = arrayOf("--dryRun"), description = "Display all the tasks that will get run without " +
             "actually running them")
     var dryRun: Boolean = false

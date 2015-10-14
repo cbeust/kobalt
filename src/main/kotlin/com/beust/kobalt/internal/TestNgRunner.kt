@@ -3,11 +3,7 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.KobaltLogger
-import com.beust.kobalt.JavaInfo
-import com.beust.kobalt.SystemProperties
 import java.io.File
-import java.util.*
 
 public class TestNgRunner(override val project: Project, override val classpath: List<IClasspathDependency>)
         : GenericTestRunner(project, classpath) {

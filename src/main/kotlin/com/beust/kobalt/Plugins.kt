@@ -10,7 +10,7 @@ import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.KobaltLogger
+import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.DefaultPlugin
 import com.beust.kobalt.plugin.java.JavaPlugin
 import com.beust.kobalt.plugin.kotlin.KotlinPlugin
@@ -31,7 +31,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
         val files: KFiles,
         val depFactory: DepFactory,
         val localRepo: LocalRepo,
-        val executors: KobaltExecutors): KobaltLogger {
+        val executors: KobaltExecutors) {
 
     companion object {
         public val MANIFEST_PLUGIN_CLASS : String = "Kobalt-Plugin-Class"

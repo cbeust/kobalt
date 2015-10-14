@@ -7,8 +7,8 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.countChar
+import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import com.google.inject.assistedinject.Assisted
 import java.io.File
@@ -23,7 +23,7 @@ import java.util.jar.JarInputStream
 import javax.inject.Inject
 
 public class ScriptCompiler2 @Inject constructor(@Assisted("buildFiles") val buildFiles: List<BuildFile>,
-        val files: KFiles, val plugins: Plugins) : KobaltLogger {
+        val files: KFiles, val plugins: Plugins) {
 
     interface IFactory {
         fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>) : ScriptCompiler2

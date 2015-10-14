@@ -1,12 +1,6 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.maven.DownloadManager
-import com.beust.kobalt.maven.KobaltException
-import com.beust.kobalt.maven.Pom
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.KobaltLogger
-import java.util.ArrayList
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import javax.inject.Inject
 
@@ -14,7 +8,7 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
         val repoFinder: RepoFinder,
         val executors: KobaltExecutors,
         val downloadManager: DownloadManager,
-        val pomFactory: Pom.IFactory) : KobaltLogger {
+        val pomFactory: Pom.IFactory) {
 
     /**
      * Parse the id and return the correct IClasspathDependency

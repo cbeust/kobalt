@@ -2,13 +2,12 @@ package com.beust.kobalt.wrapper
 
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.benchmark
 import com.beust.kobalt.JavaInfo
 import com.beust.kobalt.SystemProperties
+import com.beust.kobalt.misc.log
 import java.io.File
 import java.io.FileReader
-import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
@@ -23,7 +22,7 @@ public fun main(argv: Array<String>) {
 /**
  * Download and install a new wrapper if requested.
  */
-public class Wrapper : KobaltLogger {
+public class Wrapper {
     // kobalt.properties
     private val KOBALT_PROPERTIES = "kobalt.properties"
     private val KOBALTW = "kobaltw"
