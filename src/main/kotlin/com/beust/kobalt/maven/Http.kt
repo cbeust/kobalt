@@ -50,7 +50,6 @@ public class Http {
     public fun uploadFile(user: String?, password: String?, url: String, file: File,
             success: (Response) -> Unit,
             error: (Response) -> Unit) {
-        log(2, "Uploading ${file} to ${url}")
         val request = builder(user, password)
             .url(url)
             .put(RequestBody.create(MEDIA_TYPE_BINARY, file))
