@@ -1,9 +1,7 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.file
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.security.MessageDigest
 
