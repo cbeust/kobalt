@@ -7,7 +7,7 @@ import java.io.File
 import java.io.IOException
 
 public open class Jvm constructor(
-        val os: com.beust.kobalt.OperatingSystem,
+        val os: OperatingSystem,
         var javaBase: File? = null) : JavaInfo() {
 
     private var _javaHome: File? = null
@@ -67,7 +67,7 @@ public open class Jvm constructor(
         if (toolsJar.exists()) {
             return toolsJar
         }
-        if (javaHome!!.getName().equals("jre", true)) {
+        if (javaHome!!.name.equals("jre", true)) {
             javaHome = javaHome!!.parentFile
             toolsJar = File(javaHome, "lib/tools.jar")
             if (toolsJar.exists()) {
@@ -78,8 +78,8 @@ public open class Jvm constructor(
         if (os.isWindows()) {
             val version = SystemProperties.Companion.javaVersion
             if (javaHome!!.name.toRegex().matches("jre\\d+")
-                    || javaHome!!.getName() == "jre${version}") {
-                javaHome = File(javaHome!!.parentFile, "jdk${version}")
+                    || javaHome!!.name == "jre$version") {
+                javaHome = File(javaHome!!.parentFile, "jdk$version")
                 toolsJar = File(javaHome, "lib/tools.jar")
                 if (toolsJar.exists()) {
                     return toolsJar
