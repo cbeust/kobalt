@@ -1,8 +1,13 @@
 package com.beust.kobalt.maven
 
+import com.beust.kobalt.OperatingSystem
+import com.beust.kobalt.misc.error
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.warn
 import com.google.inject.Singleton
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
 
 @Singleton
 public class Gpg {
@@ -12,7 +17,11 @@ public class Gpg {
         val path = System.getenv("PATH")
         if (path != null) {
             path.split(File.pathSeparator).forEach { dir ->
-                COMMANDS.map { File(dir, it) }.firstOrNull { it.exists() }?.let {
+                COMMANDS.map {
+                    File(dir, if (OperatingSystem.current().isWindows()) it + ".exe" else it)
+                }.firstOrNull {
+                    it.exists()
+                }?.let {
                     return it.absolutePath
                 }
             }
@@ -40,18 +49,26 @@ public class Gpg {
 
                 val pb = ProcessBuilder(allArgs)
                 pb.directory(directory)
-                pb.inheritIO()
                 log(2, "Signing file: " + allArgs.join(" "))
                 val process = pb.start()
+
+                val br = BufferedReader(InputStreamReader(process.errorStream))
                 val errorCode = process.waitFor()
                 if (errorCode != 0) {
+                    var line = br.readLine()
+                    while (line != null) {
+                        error(line)
+                        line = br.readLine()
+                    }
                     throw KobaltException("Couldn't sign file $file")
                 }
             }
 
             return files.map { File(it.absolutePath + ".asc") }
         } else {
-            throw KobaltException("Couldn't find the command, is it installed and in your PATH?")
+            warn("Couldn't find the gpg command, make sure it is on your PATH")
+            warn("Signing of artifacts with PGP (.asc) disabled")
+            return arrayListOf()
         }
     }
 }
