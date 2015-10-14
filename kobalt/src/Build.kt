@@ -40,13 +40,13 @@ val kobalt = kotlinProject(wrapper) {
     group = "com.beust"
     artifactId = name
     version = readVersion()
-//    description = "A build system in Kotlin"
-//    url = "http://beust.com/kobalt"
-//    licenses = listOf(com.beust.kobalt.api.License("Apache 2.0", "http://www.apache.org/licenses/LICENSE-2.0"))
-//    scm = com.beust.kobalt.api.Scm(
-//            url = "http://github.com/cbeust/kobalt",
-//            connection = "https://github.com/cbeust/kobalt.git",
-//            developerConnection = "git@github.com:cbeust/kobalt.git")
+    description = "A build system in Kotlin"
+    url = "http://beust.com/kobalt"
+    licenses = listOf(com.beust.kobalt.api.License("Apache 2.0", "http://www.apache.org/licenses/LICENSE-2.0"))
+    scm = com.beust.kobalt.api.Scm(
+            url = "http://github.com/cbeust/kobalt",
+            connection = "https://github.com/cbeust/kobalt.git",
+            developerConnection = "git@github.com:cbeust/kobalt.git")
 
     dependenciesTest {
         compile("org.testng:testng:6.9.6")
