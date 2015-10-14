@@ -25,6 +25,7 @@ To do:
 - [ ] Replace File with java.nio.Files and Path
 - [ ] Create a wiki page for plugins
 - [ ] Make kobaltw executable in the zip file
+- [ ] Encapsulate ProcessBuilder code
 - [ ] --resolve <dep>
 
 Done:
