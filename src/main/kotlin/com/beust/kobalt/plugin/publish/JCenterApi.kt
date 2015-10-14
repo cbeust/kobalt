@@ -7,7 +7,7 @@ import com.beust.kobalt.maven.Gpg
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.maven.Md5
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.*
 import com.google.inject.assistedinject.Assisted
 import com.squareup.okhttp.Response
 import org.jetbrains.annotations.Nullable

@@ -63,6 +63,10 @@ fun Any.warn(text: String) {
     KobaltLogger.logger.warn(javaClass.simpleName, text)
 }
 
+fun Any.error(text: String, e: Throwable? = null) {
+    KobaltLogger.logger.error(javaClass.simpleName, text, e)
+}
+
 class Logger(val dev: Boolean) {
     val FORMAT = SimpleDateFormat("HH:mm:ss.SSS")
 
@@ -78,7 +82,7 @@ class Logger(val dev: Boolean) {
         println(getPattern("D", tag, message))
 
     final fun error(tag: String, message: String, e: Throwable? = null) =
-        println(getPattern("E", tag, message))
+        println(getPattern("***** E", tag, message) + " Exception: " + e?.getMessage())
 
     final fun warn(tag: String, message: String, e: Throwable? = null) =
         println(getPattern("W", tag, message))
