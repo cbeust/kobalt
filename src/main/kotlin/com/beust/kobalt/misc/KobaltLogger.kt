@@ -8,7 +8,12 @@ internal interface KobaltLogger {
     companion object {
         public var LOG_LEVEL : Int = 1
 
-        val logger : Logger get() = Logger(Kobalt.context!!.args.dev)
+        val logger : Logger get() =
+            if (Kobalt.context != null) {
+                Logger(Kobalt.context!!.args.dev)
+            } else {
+                Logger(false)
+            }
 
         fun log(level: Int, s: String) {
             if (level <= LOG_LEVEL) {
