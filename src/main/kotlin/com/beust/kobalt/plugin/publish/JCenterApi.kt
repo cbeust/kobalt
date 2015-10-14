@@ -3,6 +3,7 @@ package com.beust.kobalt.plugin.publish
 import com.beust.klaxon.*
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.TaskResult
+import com.beust.kobalt.maven.Gpg
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.maven.Md5
@@ -43,7 +44,7 @@ open public class UnauthenticatedJCenterApi @Inject constructor(open val http: H
 
 public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val username: String?,
         @Nullable @Assisted("password") val password: String?,
-        override val http: Http) : UnauthenticatedJCenterApi(http) {
+        override val http: Http, val gpg: Gpg) : UnauthenticatedJCenterApi(http) {
 
     interface IFactory {
         fun create(@Nullable @Assisted("username") username: String?,
@@ -88,24 +89,29 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
                 .join("/")
         }
 
-        return upload(files, configuration, fileToPath, true)
+        return upload(files, configuration, fileToPath, generateMd5 = true, generateAsc = true)
     }
 
-    fun uploadFile(file: File, url: String, configuration: JCenterConfiguration, generateMd5: Boolean = false) =
-            upload(arrayListOf(file), configuration, {
-                f: File -> "${UnauthenticatedJCenterApi.BINTRAY_URL_API_CONTENT}/$username/generic/$url"
-            }, generateMd5)
+    fun uploadFile(file: File, url: String, configuration: JCenterConfiguration, generateMd5: Boolean = false,
+            generateAsc: Boolean = false) =
+        upload(arrayListOf(file), configuration, {
+                f: File -> "${UnauthenticatedJCenterApi.BINTRAY_URL_API_CONTENT}/$username/generic/$url"},
+                generateMd5, generateAsc)
 
     private fun upload(files: List<File>, configuration : JCenterConfiguration?, fileToPath: (File) -> String,
-            generateMd5: Boolean = false) : TaskResult {
+            generateMd5: Boolean = false, generateAsc: Boolean) : TaskResult {
         val successes = arrayListOf<File>()
         val failures = hashMapOf<File, String>()
         val filesToUpload = arrayListOf<File>()
-        files.forEach {
 
-            // Create the md5 for this file
+        if (generateAsc) {
+            // Create the .asc files
+            filesToUpload.addAll(gpg.runGpg(files))
+        }
+        files.forEach {
             filesToUpload.add(it)
             if (generateMd5) {
+                // Create and upload the md5 for this file
                 with(File(it.absolutePath)) {
                     val md5: String = Md5.toMd5(this)
                     val md5File = File(absolutePath + ".md5")
