@@ -4,7 +4,7 @@ import com.beust.kobalt.api.Kobalt
 import java.text.SimpleDateFormat
 import java.util.*
 
-internal interface KobaltLogger {
+interface KobaltLogger {
     companion object {
         public var LOG_LEVEL : Int = 1
 
