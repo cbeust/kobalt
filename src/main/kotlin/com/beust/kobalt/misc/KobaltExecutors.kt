@@ -11,7 +11,7 @@ class NamedThreadFactory(val n: String) : ThreadFactory {
     override
     public fun newThread(r: Runnable) : Thread {
         val result = Thread(r)
-        result.setName(name + "-" + result.getId())
+        result.name = name + "-" + result.id
         return result
     }
 }
@@ -25,7 +25,7 @@ class KobaltExecutor(name: String, threadCount: Int)
         var ex : Throwable? = null
         if (t == null && r is Future<*>) {
             try {
-                if (r.isDone()) r.get();
+                if (r.isDone) r.get();
             } catch (ce: CancellationException) {
                 ex = ce;
             } catch (ee: ExecutionException) {
@@ -52,8 +52,8 @@ public class KobaltExecutors {
         miscExecutor.shutdown()
     }
 
-    fun <T> completionService(name: String, threadCount: Int,
-            maxMs: Long, tasks: List<Callable<T>>) : List<T> {
+    fun <T> completionService(name: String, threadCount: Int, maxMs: Long, tasks: List<Callable<T>>,
+            progress: (T) -> Unit = {}) : List<T> {
         val result = arrayListOf<T>()
         val executor = newExecutor(name, threadCount)
         val cs = ExecutorCompletionService<T>(executor)
@@ -64,6 +64,7 @@ public class KobaltExecutors {
         while (i < tasks.size() && remainingMs >= 0) {
             var start = System.currentTimeMillis()
             val r = cs.take().get(remainingMs, TimeUnit.MILLISECONDS)
+            progress(r)
             result.add(r)
             remainingMs -= (System.currentTimeMillis() - start)
             log(2, "Received $r, remaining: $remainingMs ms")

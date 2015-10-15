@@ -57,6 +57,6 @@ public class PomGenerator @Inject constructor(@Assisted val project: Project) {
         val pomFile = SimpleDep(project.group!!, project.artifactId!!, project.version!!).toPomFileName()
         val outputFile = File(outputDir, pomFile)
         outputFile.writeText(s.toString(), Charset.defaultCharset())
-        log(1, "Wrote $outputFile")
+        log(1, "  Wrote $outputFile")
     }
 }

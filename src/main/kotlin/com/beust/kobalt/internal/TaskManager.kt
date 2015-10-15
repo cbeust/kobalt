@@ -43,8 +43,8 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
         fun matches(projectName: String) = project == null || project == projectName
     }
 
-    public fun runTargets(targets: List<String>, projects: List<Project>) {
-        val tasksAlreadyRun = hashSetOf<String>()
+    public fun runTargets(targets: List<String>, projects: List<Project>) : Int {
+        var result = 0
         projects.forEach { project ->
             val projectName = project.name!!
             val tasksByNames = hashMapOf<String, PluginTask>()
@@ -58,8 +58,8 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             log(1, "                   Building project ${project.name}")
             log(1, "")
 
+            val graph = DynamicGraph<PluginTask>()
             targets.forEach { target ->
-                val graph = DynamicGraph<PluginTask>()
 
                 val ti = TaskInfo(target)
                 if (ti.matches(projectName)) {
@@ -83,10 +83,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                         if (currentFreeTask.size() == 1) {
                             currentFreeTask.get(0).let {
                                 val thisTaskInfo = TaskInfo(projectName, it.name)
-                                if (! tasksAlreadyRun.contains(thisTaskInfo.id)) {
-                                    graph.addNode(it)
-                                    tasksAlreadyRun.add(thisTaskInfo.id)
-                                }
+                                graph.addNode(it)
                             }
                         }
 
@@ -99,11 +96,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                             rb.forEach {
                                 val to = tasksByNames.get(it)
                                 if (to != null) {
-                                    val taskInfo = TaskInfo(projectName, to.name)
-                                    if (! tasksAlreadyRun.contains(taskInfo.id)) {
-                                        graph.addEdge(pluginTask, to)
-                                        tasksAlreadyRun.add(taskInfo.id)
-                                    }
+                                    graph.addEdge(pluginTask, to)
                                 } else {
                                     throw KobaltException("Should have found $it")
                                 }
@@ -124,27 +117,32 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                             }
                         }
                     }
-
-                    log(2, "About to run graph:\n  ${graph.dump()}  ")
-
-                    //
-                    // Now that we have a full graph, run it
-                    //
-                    val factory = object : IThreadWorkerFactory<PluginTask> {
-                        override public fun createWorkers(nodes: List<PluginTask>): List<IWorker<PluginTask>> {
-                            val result = arrayListOf<IWorker<PluginTask>>()
-                            nodes.forEach {
-                                result.add(TaskWorker(arrayListOf(it), args.dryRun))
-                            }
-                            return result
-                        }
-                    }
-
-                    val executor = DynamicGraphExecutor(graph, factory)
-                    executor.run()
                 }
             }
+
+            //
+            // Now that we have a full graph, run it
+            //
+            log(2, "About to run graph:\n  ${graph.dump()}  ")
+
+            val factory = object : IThreadWorkerFactory<PluginTask> {
+                override public fun createWorkers(nodes: List<PluginTask>): List<IWorker<PluginTask>> {
+                    val result = arrayListOf<IWorker<PluginTask>>()
+                    nodes.forEach {
+                        result.add(TaskWorker(arrayListOf(it), args.dryRun))
+                    }
+                    return result
+                }
+            }
+
+            val executor = DynamicGraphExecutor(graph, factory)
+            val thisResult = executor.run()
+            if (result == 0) {
+                result = thisResult
+            }
+
         }
+        return result
     }
 
     /**

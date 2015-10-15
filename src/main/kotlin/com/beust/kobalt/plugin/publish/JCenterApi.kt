@@ -44,7 +44,7 @@ open public class UnauthenticatedJCenterApi @Inject constructor(open val http: H
 
 public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val username: String?,
         @Nullable @Assisted("password") val password: String?,
-        override val http: Http, val gpg: Gpg) : UnauthenticatedJCenterApi(http) {
+        override val http: Http, val gpg: Gpg, val executors: KobaltExecutors) : UnauthenticatedJCenterApi(http) {
 
     interface IFactory {
         fun create(@Nullable @Assisted("username") username: String?,
@@ -100,8 +100,6 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
 
     private fun upload(files: List<File>, configuration : JCenterConfiguration?, fileToPath: (File) -> String,
             generateMd5: Boolean = false, generateAsc: Boolean) : TaskResult {
-        val successes = arrayListOf<File>()
-        val failures = hashMapOf<File, String>()
         val filesToUpload = arrayListOf<File>()
 
         if (generateAsc) {
@@ -127,37 +125,48 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
         val options = arrayListOf<String>()
         if (configuration?.publish == true) options.add("publish=1")
 
-        //
-        // TODO: These files should be uploaded from a thread pool instead of serially
-        //
-        log(1, "Found ${filesToUpload.size()} artifacts to upload")
-        filesToUpload.forEach {
-            var path = fileToPath(it)
-            if (options.size() > 0) {
-                path += "?" + options.join("&")
-            }
-
-            log(1, "  Uploading $it to $path")
-            http.uploadFile(username, password, path, it,
-                    { r: Response -> successes.add(it) },
-                    { r: Response ->
-                        val jo = parseResponse(r.body().string())
-                        failures.put(it, jo.string("message") ?: "No message found")
-                    })
+        val optionPath = StringBuffer()
+        if (options.size() > 0) {
+            optionPath.append("?" + options.join("&"))
         }
 
-        val result: TaskResult
-        if (successes.size() == filesToUpload.size()) {
-            log(1, "All artifacts successfully uploaded")
-            result = TaskResult(true)
+        //
+        // Uploads can'be done in parallel or JCenter rejects them
+        //
+        val fileCount = filesToUpload.size()
+        if (fileCount > 0) {
+            log(1, "  Found $fileCount artifacts to upload: " + filesToUpload.get(0)
+                    + if (fileCount > 1) "..." else "")
+            var i = 1
+            val errorMessages = arrayListOf<String>()
+
+
+            fun dots(total: Int, list: List<Boolean>) : String {
+                val spaces : String = Array(total - list.size(), { " " }).join("")
+                return "|" + list.map { if (it) "." else "X" }.join("") + spaces + "|"
+            }
+
+            val results = arrayListOf<Boolean>()
+            filesToUpload.forEach { file ->
+                http.uploadFile(username, password, fileToPath(file) + optionPath, file,
+                        { r: Response -> results.add(true)},
+                        { r: Response ->
+                            results.add(false)
+                            val jo = parseResponse(r.body().string())
+                            errorMessages.add(jo.string("message") ?: "No message found")
+                        })
+                val end = if (i >= fileCount) "\n" else ""
+                log(1, "    Uploading " + (i++) + " / $fileCount " + dots(fileCount, results) + end, false)
+            }
+            if (errorMessages.isEmpty()) {
+                return TaskResult()
+            } else {
+                error("Errors while uploading:\n" + errorMessages.map { "    $it" }.join("\n"))
+                return TaskResult(false, errorMessages.join("\n"))
+            }
         } else {
-            result = TaskResult(false, failures.values().join(" "))
-            error("Failed to upload ${failures.size()} files:")
-            failures.forEach{ entry ->
-                error(" - ${entry.key} : ${entry.value}")
-            }
+            warn("Found no artifacts to upload")
+            return TaskResult()
         }
-
-        return result
     }
 }

@@ -4,7 +4,7 @@ import com.beust.kobalt.misc.NamedThreadFactory
 import com.beust.kobalt.misc.ToString
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
-import java.util.*
+import com.google.common.collect.HashMultimap
 import java.util.concurrent.*
 
 open class TaskResult2<T>(success: Boolean, val value: T) : TaskResult(success) {
@@ -40,13 +40,17 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
     val executor = Executors.newFixedThreadPool(5, NamedThreadFactory("DynamicGraphExecutor"))
     val completion = ExecutorCompletionService<TaskResult2<T>>(executor)
 
-    public fun run() {
+    /**
+     * @return 0 if all went well, > 0 otherwise
+     */
+    public fun run() : Int {
+        var lastResult = TaskResult()
         while (graph.freeNodes.size() > 0) {
             log(3, "Current count: ${graph.nodeCount}")
             synchronized(graph) {
                 val freeNodes = graph.freeNodes
                 freeNodes.forEach { graph.setStatus(it, DynamicGraph.Status.RUNNING)}
-                log(3, "submitting free nodes ${freeNodes}")
+                log(3, "submitting free nodes $freeNodes")
                 val callables : List<IWorker<T>> = factory.createWorkers(freeNodes)
                 callables.forEach { completion.submit(it) }
                 var n = callables.size()
@@ -56,7 +60,8 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
                     try {
                         val future = completion.take()
                         val taskResult = future.get(2, TimeUnit.SECONDS)
-                        log(3, "Received task result ${taskResult}")
+                        lastResult = taskResult
+                        log(3, "Received task result $taskResult")
                         n--
                         graph.setStatus(taskResult.value,
                             if (taskResult.success) {
@@ -71,6 +76,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
             }
         }
         executor.shutdown()
+        return if (lastResult.success) 0 else 1
     }
 }
 
@@ -78,21 +84,19 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
  * Representation of the graph of methods.
  */
 public class DynamicGraph<T> {
-    private val DEBUG = false
-
     private val nodesReady = linkedSetOf<T>()
     private val nodesRunning = linkedSetOf<T>()
     private val nodesFinished = linkedSetOf<T>()
     private val nodesInError = linkedSetOf<T>()
     private val nodesSkipped = linkedSetOf<T>()
-    private val dependedUpon = ArrayListMultimap.create<T, T>()
-    private val dependingOn = ArrayListMultimap.create<T, T>()
+    private val dependedUpon = HashMultimap.create<T, T>()
+    private val dependingOn = HashMultimap.create<T, T>()
 
     /**
      * Define a comparator for the nodes of this graph, which will be used
      * to order the free nodes when they are asked.
      */
-    public val comparator : Comparator<T>? = null
+//    public val comparator : Comparator<T>? = null
 
     enum class Status {
         READY, RUNNING, FINISHED, ERROR, SKIPPED
@@ -146,14 +150,14 @@ public class DynamicGraph<T> {
 //                }
 //            }
 
-            log(3, "freeNodes: ${result}")
+            log(3, "freeNodes: $result")
             return result
         }
 
     /**
      * @return a list of all the nodes that have a status other than FINISHED.
      */
-    private fun getUnfinishedNodes(nodes: List<T>) : Collection<T> {
+    private fun getUnfinishedNodes(nodes: Set<T>) : Collection<T> {
         val result = hashSetOf<T>()
         nodes.forEach { node ->
             if (nodesReady.contains(node) || nodesRunning.contains(node)) {
@@ -176,7 +180,7 @@ public class DynamicGraph<T> {
     private fun setSkipStatus(node: T, status: Status) {
         dependingOn.get(node).forEach {
             if (! nodesSkipped.contains(it)) {
-                log(3, "Node skipped: ${it}")
+                log(3, "Node skipped: $it")
                 nodesSkipped.add(it)
                 nodesReady.remove(it)
                 setSkipStatus(it, status)
@@ -194,7 +198,7 @@ public class DynamicGraph<T> {
             Status.RUNNING -> nodesRunning.add(node)
             Status.FINISHED -> nodesFinished.add(node)
             Status.ERROR -> {
-                log(3, "Node in error: ${node}")
+                log(3, "Node in error: $node")
                 nodesReady.remove(node)
                 nodesInError.add(node)
                 setSkipStatus(node, status)
