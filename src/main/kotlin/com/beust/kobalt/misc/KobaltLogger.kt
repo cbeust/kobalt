@@ -15,9 +15,9 @@ interface KobaltLogger {
                 Logger(false)
             }
 
-        fun log(level: Int, s: String) {
+        fun log(level: Int, s: String, newLine: Boolean = true) {
             if (level <= LOG_LEVEL) {
-                logger.log("Logger", s)
+                logger.log("Logger", s, newLine)
             }
         }
 
@@ -30,28 +30,28 @@ interface KobaltLogger {
         }
     }
 
-    final fun log(level: Int = 1, message: String) {
-        if (level <= LOG_LEVEL) {
-            logger.log("Logger", message)
-        }
-    }
-
-    final fun debug(message: String) {
-        logger.debug(message)
-    }
-
-    final fun error(message: String, e: Throwable? = null) {
-        logger.error("Logger", "***** $message", e)
-    }
-
-    final fun warn(message: String, e: Throwable? = null) {
-        logger.warn("Logger", message, e)
-    }
+//    final fun log(level: Int = 1, message: String) {
+//        if (level <= LOG_LEVEL) {
+//            logger.log("Logger", message)
+//        }
+//    }
+//
+//    final fun debug(message: String) {
+//        logger.debug(message)
+//    }
+//
+//    final fun error(message: String, e: Throwable? = null) {
+//        logger.error("Logger", "***** $message", e)
+//    }
+//
+//    final fun warn(message: String, e: Throwable? = null) {
+//        logger.warn("Logger", message, e)
+//    }
 }
 
-fun Any.log(level: Int, text: String) {
+fun Any.log(level: Int, text: String, newLine : Boolean = true) {
     if (level <= KobaltLogger.LOG_LEVEL) {
-        KobaltLogger.logger.log(javaClass.simpleName, text)
+        KobaltLogger.logger.log(javaClass.simpleName, text, newLine)
     }
 }
 
@@ -88,6 +88,9 @@ class Logger(val dev: Boolean) {
     final fun warn(tag: String, message: String, e: Throwable? = null) =
         println(getPattern("W", "***** WARNING ", tag, message))
 
-    final fun log(tag: String, message: String) =
-        println(getPattern("L", "", tag, message))
+    final fun log(tag: String, message: String, newLine: Boolean) =
+        with(getPattern("L", "", tag, message)) {
+            if (newLine) println(this)
+            else print("\r" + this)
+        }
 }

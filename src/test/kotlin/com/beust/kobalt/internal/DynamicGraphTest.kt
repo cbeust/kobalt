@@ -34,7 +34,7 @@ public class DynamicGraphTest {
         override val priority = 0
 
         override fun call() : TaskResult2<T> {
-            log(2, "Running node $n")
+            KobaltLogger.log(2, "Running node $n")
             runNodes.add(n)
             return TaskResult2(errorFunction(n), n)
         }

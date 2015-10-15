@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.charset.Charset
+import java.util.concurrent.Callable
 import javax.inject.Inject
 
 data class JCenterPackage(val jo: JsonObject) {
@@ -44,7 +45,7 @@ open public class UnauthenticatedJCenterApi @Inject constructor(open val http: H
 
 public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val username: String?,
         @Nullable @Assisted("password") val password: String?,
-        override val http: Http, val gpg: Gpg) : UnauthenticatedJCenterApi(http) {
+        override val http: Http, val gpg: Gpg, val executors: KobaltExecutors) : UnauthenticatedJCenterApi(http) {
 
     interface IFactory {
         fun create(@Nullable @Assisted("username") username: String?,
@@ -100,8 +101,6 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
 
     private fun upload(files: List<File>, configuration : JCenterConfiguration?, fileToPath: (File) -> String,
             generateMd5: Boolean = false, generateAsc: Boolean) : TaskResult {
-        val successes = arrayListOf<File>()
-        val failures = hashMapOf<File, String>()
         val filesToUpload = arrayListOf<File>()
 
         if (generateAsc) {
@@ -130,34 +129,36 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
         //
         // TODO: These files should be uploaded from a thread pool instead of serially
         //
-        log(1, "Found ${filesToUpload.size()} artifacts to upload")
-        filesToUpload.forEach {
-            var path = fileToPath(it)
-            if (options.size() > 0) {
-                path += "?" + options.join("&")
-            }
+        val fileCount = filesToUpload.size()
+        log(1, "Found $fileCount artifacts to upload")
+        val callables = filesToUpload.map { FileUploadCallable(username, password, fileToPath(it), it) }
+        var i = 1
+        val results = executors.completionService("FileUpload", 5, 60000000, callables, { tr: TaskResult ->
+            val last = i >= fileCount
+            val end = if (last) "\n" else ""
+            log(1, "  Uploading " + (i++) + " / $fileCount$end", false)
+        })
+        val errorMessages = results.filter { ! it.success }.map { it.errorMessage!! }
+        if (errorMessages.isEmpty()) {
+            return TaskResult()
+        } else {
+            error("Errors while uploading:\n" + errorMessages.map { "  $it" }.join("\n"))
+            return com.beust.kobalt.internal.TaskResult(false, errorMessages.join("\n"))
+        }
+    }
 
-            log(1, "  Uploading $it to $path")
-            http.uploadFile(username, password, path, it,
-                    { r: Response -> successes.add(it) },
+    inner class FileUploadCallable(val username: String?, val password: String?, val url: String, val file: File)
+            : Callable<TaskResult> {
+        override fun call(): TaskResult? {
+            var result: TaskResult? = null
+            http.uploadFile(username, password, url, file,
+                    { result = TaskResult() },
                     { r: Response ->
                         val jo = parseResponse(r.body().string())
-                        failures.put(it, jo.string("message") ?: "No message found")
+                        result = TaskResult(false, jo.string("message") ?: "No message found")
                     })
+            return result
         }
 
-        val result: TaskResult
-        if (successes.size() == filesToUpload.size()) {
-            log(1, "All artifacts successfully uploaded")
-            result = TaskResult(true)
-        } else {
-            result = TaskResult(false, failures.values().join(" "))
-            error("Failed to upload ${failures.size()} files:")
-            failures.forEach{ entry ->
-                error(" - ${entry.key} : ${entry.value}")
-            }
-        }
-
-        return result
     }
 }

@@ -55,6 +55,7 @@ public class Http {
             .put(RequestBody.create(MEDIA_TYPE_BINARY, file))
             .build()
 
+        log(2, "Uploading $file to $url")
         val response = OkHttpClient().newCall(request).execute()
         if (! response.isSuccessful) {
             error(response)

@@ -39,7 +39,11 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
     val executor = Executors.newFixedThreadPool(5, NamedThreadFactory("DynamicGraphExecutor"))
     val completion = ExecutorCompletionService<TaskResult2<T>>(executor)
 
-    public fun run() {
+    /**
+     * @return 0 if all went well, > 0 otherwise
+     */
+    public fun run() : Int {
+        var lastResult : TaskResult? = null
         while (graph.freeNodes.size() > 0) {
             log(3, "Current count: ${graph.nodeCount}")
             synchronized(graph) {
@@ -55,6 +59,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
                     try {
                         val future = completion.take()
                         val taskResult = future.get(2, TimeUnit.SECONDS)
+                        lastResult = taskResult
                         log(3, "Received task result $taskResult")
                         n--
                         graph.setStatus(taskResult.value,
@@ -70,6 +75,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
             }
         }
         executor.shutdown()
+        return if (lastResult?.success!!) 0 else 1
     }
 }
 

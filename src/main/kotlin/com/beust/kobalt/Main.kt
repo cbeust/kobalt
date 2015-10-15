@@ -44,13 +44,13 @@ private class Main @Inject constructor(
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
-    public fun run(jc: JCommander, args: Args) {
-
+    public fun run(jc: JCommander, args: Args) : Int {
+        var result = 0
         val latestVersionFuture = github.latestKobaltVersion
         benchmark("Build", {
             println(Banner.get() + Kobalt.version + "\n")
 //            runTest()
-            runWithArgs(jc, args)
+            result = runWithArgs(jc, args)
             executors.shutdown()
             debug("All done")
         })
@@ -67,6 +67,7 @@ private class Main @Inject constructor(
                 log(1, it )
             }
         }
+        return result
     }
 
     public class Worker<T>(val runNodes: ArrayList<T>, val n: T) : IWorker<T> {
@@ -94,7 +95,8 @@ private class Main @Inject constructor(
 
     private val SCRIPT_JAR = "buildScript.jar"
 
-    private fun runWithArgs(jc: JCommander, args: Args) {
+    private fun runWithArgs(jc: JCommander, args: Args) : Int {
+        var result = 0
         val p = if (args.buildFile != null) File(args.buildFile) else findBuildFile()
         args.buildFile = p.absolutePath
         val buildFile = BuildFile(Paths.get(p.absolutePath), p.name)
@@ -154,10 +156,14 @@ private class Main @Inject constructor(
                     //
                     // Launch the build
                     //
-                    taskManager.runTargets(args.targets, allProjects)
+                    val thisResult = taskManager.runTargets(args.targets, allProjects)
+                    if (result == 0) {
+                        result = thisResult
+                    }
                 }
             }
         }
+        return result
     }
 
     private fun findBuildFile(): File {

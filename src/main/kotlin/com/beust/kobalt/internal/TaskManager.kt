@@ -43,7 +43,8 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
         fun matches(projectName: String) = project == null || project == projectName
     }
 
-    public fun runTargets(targets: List<String>, projects: List<Project>) {
+    public fun runTargets(targets: List<String>, projects: List<Project>) : Int {
+        var result = 0
         val tasksAlreadyRun = hashSetOf<String>()
         projects.forEach { project ->
             val projectName = project.name!!
@@ -141,10 +142,14 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                     }
 
                     val executor = DynamicGraphExecutor(graph, factory)
-                    executor.run()
+                    val thisResult = executor.run()
+                    if (result == 0) {
+                        result = thisResult
+                    }
                 }
             }
         }
+        return result
     }
 
     /**
