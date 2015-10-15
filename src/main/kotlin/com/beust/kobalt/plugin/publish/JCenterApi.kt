@@ -140,15 +140,17 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
                     + if (fileCount > 1) "..." else "")
             var i = 1
             val errorMessages = arrayListOf<String>()
+            var dots = ""
             filesToUpload.forEach { file ->
                 http.uploadFile(username, password, fileToPath(file) + optionPath, file,
-                        { },
+                        { r: Response -> dots += "."},
                         { r: Response ->
+                            dots += "X"
                             val jo = parseResponse(r.body().string())
                             errorMessages.add(jo.string("message") ?: "No message found")
                         })
                 val end = if (i >= fileCount) "\n" else ""
-                log(1, "  Uploading " + (i++) + " / $fileCount$end", false)
+                log(1, "  Uploading " + (i++) + " / $fileCount$end $dots", false)
             }
             if (errorMessages.isEmpty()) {
                 return TaskResult()
