@@ -126,10 +126,17 @@ public class JavaPlugin @Inject constructor(
                 { it: String -> it.endsWith(".java") }
                 .map { File(projectDir, it).absolutePath }
 
-        return compilePrivate(project,
-                testDependencies(project),
-                absoluteSourceFiles,
-                makeOutputTestDir(project))
+        val result =
+            if (absoluteSourceFiles.size() > 0) {
+                compilePrivate(project,
+                        testDependencies(project),
+                        absoluteSourceFiles,
+                        makeOutputTestDir(project))
+            } else {
+                // No files to compile
+                TaskResult()
+            }
+        return result
     }
 
 }
