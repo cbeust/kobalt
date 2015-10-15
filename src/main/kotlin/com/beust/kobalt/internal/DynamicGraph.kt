@@ -43,7 +43,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
      * @return 0 if all went well, > 0 otherwise
      */
     public fun run() : Int {
-        var lastResult : TaskResult? = null
+        var lastResult = TaskResult()
         while (graph.freeNodes.size() > 0) {
             log(3, "Current count: ${graph.nodeCount}")
             synchronized(graph) {
@@ -75,7 +75,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
             }
         }
         executor.shutdown()
-        return if (lastResult?.success!!) 0 else 1
+        return if (lastResult.success) 0 else 1
     }
 }
 
