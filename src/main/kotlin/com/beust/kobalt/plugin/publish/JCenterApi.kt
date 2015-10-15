@@ -126,39 +126,39 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
         val options = arrayListOf<String>()
         if (configuration?.publish == true) options.add("publish=1")
 
+        val optionPath = StringBuffer()
+        if (options.size() > 0) {
+            optionPath.append("?" + options.join("&"))
+        }
+
         //
-        // TODO: These files should be uploaded from a thread pool instead of serially
+        // Uploads can'be done in parallel or JCenter rejects them
         //
         val fileCount = filesToUpload.size()
-        log(1, "Found $fileCount artifacts to upload")
-        val callables = filesToUpload.map { FileUploadCallable(username, password, fileToPath(it), it) }
-        var i = 1
-        val results = executors.completionService("FileUpload", 5, 60000000, callables, { tr: TaskResult ->
-            val last = i >= fileCount
-            val end = if (last) "\n" else ""
-            log(1, "  Uploading " + (i++) + " / $fileCount$end", false)
-        })
-        val errorMessages = results.filter { ! it.success }.map { it.errorMessage!! }
-        if (errorMessages.isEmpty()) {
-            return TaskResult()
+        if (fileCount > 0) {
+            log(1, "Found $fileCount artifacts to upload: " + filesToUpload.get(0)
+                    + if (fileCount > 1) "..." else "")
+            var i = 1
+            val errorMessages = arrayListOf<String>()
+            filesToUpload.forEach { file ->
+                http.uploadFile(username, password, fileToPath(file) + optionPath, file,
+                        { },
+                        { r: Response ->
+                            val jo = parseResponse(r.body().string())
+                            errorMessages.add(jo.string("message") ?: "No message found")
+                        })
+                val end = if (i >= fileCount) "\n" else ""
+                log(1, "  Uploading " + (i++) + " / $fileCount$end", false)
+            }
+            if (errorMessages.isEmpty()) {
+                return TaskResult()
+            } else {
+                error("Errors while uploading:\n" + errorMessages.map { "  $it" }.join("\n"))
+                return TaskResult(false, errorMessages.join("\n"))
+            }
         } else {
-            error("Errors while uploading:\n" + errorMessages.map { "  $it" }.join("\n"))
-            return com.beust.kobalt.internal.TaskResult(false, errorMessages.join("\n"))
+            warn("Found no artifacts to upload")
+            return TaskResult()
         }
-    }
-
-    inner class FileUploadCallable(val username: String?, val password: String?, val url: String, val file: File)
-            : Callable<TaskResult> {
-        override fun call(): TaskResult? {
-            var result: TaskResult? = null
-            http.uploadFile(username, password, url, file,
-                    { result = TaskResult() },
-                    { r: Response ->
-                        val jo = parseResponse(r.body().string())
-                        result = TaskResult(false, jo.string("message") ?: "No message found")
-                    })
-            return result
-        }
-
     }
 }
