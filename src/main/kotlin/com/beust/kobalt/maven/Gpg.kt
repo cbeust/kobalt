@@ -38,10 +38,8 @@ public class Gpg {
         if (gpg != null) {
             val directory = files.get(0).parentFile.absoluteFile
             files.forEach { file ->
-                with(File(directory, file.absolutePath + ".asc")) {
-                    delete()
-                    result.add(this)
-                }
+                val ascFile = File(directory, file.absolutePath + ".asc")
+                ascFile.delete()
                 val allArgs = arrayListOf<String>()
                 allArgs.add(gpg)
                 allArgs.add("-ab")
@@ -60,11 +58,13 @@ public class Gpg {
                         error(line)
                         line = br.readLine()
                     }
-                    throw KobaltException("Couldn't sign file $file")
+                    warn("Couldn't sign file $file")
+                } else {
+                    result.add(ascFile)
                 }
             }
 
-            return files.map { File(it.absolutePath + ".asc") }
+            return result
         } else {
             warn("Couldn't find the gpg command, make sure it is on your PATH")
             warn("Signing of artifacts with PGP (.asc) disabled")
