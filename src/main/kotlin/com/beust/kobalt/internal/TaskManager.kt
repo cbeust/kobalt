@@ -43,6 +43,32 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
         fun matches(projectName: String) = project == null || project == projectName
     }
 
+    fun box(s: String) : List<String> {
+        val ul = "\u2554"
+        val ur = "\u2557"
+        val h = "\u2550"
+        val v = "\u2551"
+        val bl = "\u255a"
+        val br = "\u255d"
+
+        fun r(n: Int, w: String) : String {
+            with(StringBuffer()) {
+                repeat(n, { append(w) })
+                return toString()
+            }
+        }
+
+        return arrayListOf(
+                ul + r(s.length() + 2, h) + ur,
+                "$v $s $v",
+                bl + r(s.length() + 2, h) + br)
+    }
+
+    fun logBox(s: String) {
+        box(s).forEach {
+            log(1, "          $it")
+        }
+    }
     public fun runTargets(targets: List<String>, projects: List<Project>) : Int {
         var result = 0
         projects.forEach { project ->
@@ -54,9 +80,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                 tasksByNames.put(it.name, it)
             }
 
-            log(1, "")
-            log(1, "                   Building project ${project.name}")
-            log(1, "")
+            logBox("Building project ${project.name}")
 
             val graph = DynamicGraph<PluginTask>()
             targets.forEach { target ->
