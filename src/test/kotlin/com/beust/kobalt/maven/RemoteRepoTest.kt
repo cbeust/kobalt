@@ -12,10 +12,7 @@ import javax.inject.Inject
 
 @org.testng.annotations.Guice(modules = arrayOf(TestModule::class))
 public class RemoteRepoTest @Inject constructor(val repoFinder: RepoFinder,
-        @DependencyExecutor val executor: ExecutorService,
-        val args: Args){
-
-    val INJECTOR = Guice.createInjector(MainModule(args))
+        @DependencyExecutor val executor: ExecutorService, val args: Args){
 
     @Test
     public fun mavenMetadata() {
