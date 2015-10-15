@@ -24,9 +24,16 @@ private fun parseArgs(argv: Array<String>): Main.RunInfo {
 }
 
 public fun main(argv: Array<String>) {
+    val result = mainNoExit(argv)
+    if (result != 0) {
+        System.exit(result)
+    }
+}
+
+public fun mainNoExit(argv: Array<String>) : Int {
     val (jc, args) = parseArgs(argv)
     Kobalt.INJECTOR = Guice.createInjector(MainModule(args))
-    Kobalt.INJECTOR.getInstance(Main::class.java).run(jc, args)
+    return Kobalt.INJECTOR.getInstance(Main::class.java).run(jc, args)
 }
 
 private class Main @Inject constructor(
