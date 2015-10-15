@@ -20,10 +20,12 @@ public class RemoteRepoTest @Inject constructor(val repoFinder: RepoFinder,
     @Test
     public fun mavenMetadata() {
         val dep = MavenDependency.create("org.codehaus.groovy:groovy-all:")
-        Assert.assertEquals(dep.id.split(":")[2], "2.4.4")
+        // Note: this test might fail if a new version of Groovy gets uploaded, need
+        // to find a stable (i.e. abandoned) package
+        Assert.assertEquals(dep.id.split(":")[2], "2.4.5")
     }
 
-    @Test
+    @Test(enabled = false)
     public fun metadataForSnapshots() {
         val jar = MavenDependency.create("org.apache.maven.wagon:wagon-provider-test:2.10-SNAPSHOT", executor)
                 .jarFile

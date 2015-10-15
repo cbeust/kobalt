@@ -6,12 +6,14 @@ import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.MainModule
 import com.beust.kobalt.TestModule
+import com.beust.kobalt.api.Kobalt
 import com.google.inject.Module
 import com.google.inject.util.Modules
 import org.testng.Assert
 import org.testng.IModuleFactory
 import org.testng.ITestContext
 import org.testng.annotations.BeforeClass
+import org.testng.annotations.BeforeSuite
 import org.testng.annotations.Guice
 import org.testng.annotations.Test
 import java.io.File
@@ -28,6 +30,11 @@ public class DownloadTest @Inject constructor(
         val localRepo: LocalRepo,
         val executors: KobaltExecutors) {
     var executor: ExecutorService by Delegates.notNull()
+
+    @BeforeSuite
+    public fun bs() {
+        Kobalt.INJECTOR = com.google.inject.Guice.createInjector(TestModule())
+    }
 
     @BeforeClass
     public fun bc() {
