@@ -156,7 +156,7 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
                             errorMessages.add(jo.string("message") ?: "No message found")
                         })
                 val end = if (i >= fileCount) "\n" else ""
-                log(1, "    Uploading " + (i++) + " / $fileCount$end " + dots(fileCount, results), false)
+                log(1, "    Uploading " + (i++) + " / $fileCount " + dots(fileCount, results) + end, false)
             }
             if (errorMessages.isEmpty()) {
                 return TaskResult()
