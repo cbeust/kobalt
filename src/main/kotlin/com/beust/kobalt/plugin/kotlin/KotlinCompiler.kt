@@ -6,6 +6,7 @@ import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
+import org.jetbrains.kotlin.cli.common.CLICompiler
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import java.io.File
 import javax.inject.Inject
@@ -52,7 +53,7 @@ class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
         validateClasspath(classpathList)
 
         log(2, "Compiling ${source.size()} files with classpath:\n  " + classpathList.join("\n  "))
-        K2JVMCompiler.main(arrayOf(
+        CLICompiler.doMainNoExit(K2JVMCompiler(), arrayOf(
                 "-d", output,
                 "-classpath", classpathList.join(File.pathSeparator), *source.toTypedArray(),
                 *args.toTypedArray()))
