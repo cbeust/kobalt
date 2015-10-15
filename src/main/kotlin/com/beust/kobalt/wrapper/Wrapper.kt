@@ -55,7 +55,7 @@ public class Wrapper {
         if (url != null) {
             readProperties(result, url.openConnection().inputStream)
         } else {
-            throw IllegalArgumentException("Couldn't find ${KOBALT_PROPERTIES}")
+            throw IllegalArgumentException("Couldn't find $KOBALT_PROPERTIES")
         }
 
         return result
@@ -64,7 +64,7 @@ public class Wrapper {
     private fun initWrapperFile(version: String) {
         val config = File(WRAPPER_DIR, KOBALT_WRAPPER_PROPERTIES)
         if (! config.exists()) {
-            KFiles.saveFile(config, "${PROPERTY_VERSION}=${version}")
+            KFiles.saveFile(config, "$PROPERTY_VERSION=$version")
         }
         properties.load(FileReader(config))
     }
@@ -84,16 +84,16 @@ public class Wrapper {
         val version = properties.getProperty(PROPERTY_VERSION)
         initWrapperFile(version)
 
-        log(2, "Wrapper version: ${wrapperVersion}")
+        log(2, "Wrapper version: $wrapperVersion")
 
-        val fileName = "${FILE_NAME}-${wrapperVersion}.zip"
+        val fileName = "$FILE_NAME-$wrapperVersion.zip"
         File(KFiles.distributionsDir).mkdirs()
         val localZipFile = Paths.get(KFiles.distributionsDir, fileName)
         val zipOutputDir = KFiles.distributionsDir + "/" + wrapperVersion
-        val kobaltJarFile = Paths.get(zipOutputDir, "kobalt/wrapper/${FILE_NAME}-${wrapperVersion}.jar")
+        val kobaltJarFile = Paths.get(zipOutputDir, "kobalt/wrapper/$FILE_NAME-$wrapperVersion.jar")
         if (!Files.exists(localZipFile) || !Files.exists(kobaltJarFile)) {
-            log(1, "Downloading ${fileName}")
-            val fullUrl = "${URL}/${fileName}"
+            log(1, "Downloading $fileName")
+            val fullUrl = "$URL/$fileName"
             val body = Http().get(fullUrl)
             if (body.code == 200) {
                 if (!Files.exists(localZipFile)) {
@@ -105,9 +105,9 @@ public class Wrapper {
                         // the BufferedSource returned in the ResponseBody
                         Files.copy(ins, target)
                     }
-                    log(2, "${localZipFile} downloaded, extracting it")
+                    log(2, "$localZipFile downloaded, extracting it")
                 } else {
-                    log(2, "${localZipFile} already exists, extracting it")
+                    log(2, "$localZipFile already exists, extracting it")
                 }
 
                 //
@@ -124,16 +124,16 @@ public class Wrapper {
                         entryFile.mkdirs()
                     } else {
                         val dest = Paths.get(zipOutputDir, entryFile.path)
-                        log(2, "  Writing ${entry.name} to ${dest}")
+                        log(2, "  Writing ${entry.name} to $dest")
                         Files.createDirectories(dest.parent)
                         Files.copy(zipFile.getInputStream(entry),
                                 dest,
                                 java.nio.file.StandardCopyOption.REPLACE_EXISTING)
                     }
                 }
-                log(2, "${localZipFile} extracted")
+                log(2, "$localZipFile extracted")
             } else {
-                error("Couldn't download ${URL}")
+                error("Couldn't download $URL")
             }
         }
 
@@ -141,7 +141,7 @@ public class Wrapper {
         // Copy the wrapper files in the current kobalt/wrapper directory
         //
         log(2, "Copying the wrapper files...")
-        arrayListOf(KOBALTW, "kobalt/wrapper/${FILE_NAME}-wrapper.jar").forEach {
+        arrayListOf(KOBALTW, "kobalt/wrapper/$FILE_NAME-wrapper.jar").forEach {
             val from = Paths.get(zipOutputDir, it)
             val to = Paths.get(File(".").absolutePath, it)
             KFiles.copy(from, to, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
@@ -169,7 +169,7 @@ public class Wrapper {
         args.addAll(argv)
         val pb = ProcessBuilder(args)
         pb.inheritIO()
-        log(1, "Launching\n    ${args.join(" ")}")
+        log(2, "Launching\n    ${args.join(" ")}")
         val process = pb.start()
         process.waitFor()
     }
