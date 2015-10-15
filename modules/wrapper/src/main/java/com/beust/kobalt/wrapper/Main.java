@@ -162,7 +162,7 @@ public class Main {
     private static final String[] FILES = new String[] { KOBALTW, "kobalt/wrapper/" + FILE_NAME + "-wrapper.jar" };
 
     private void download(String fn, File file) throws IOException {
-        String fileUrl = URL + "/" + fn;
+        String fileUrl = URL + fn;
 
         URL url = new URL(fileUrl);
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
