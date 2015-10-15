@@ -4,9 +4,9 @@
     data-provider-thread-count="3">
 
   <test name="Main">
-    <classes>
-      <class name="com.beust.kobalt.maven.DependencyTest" />
-    </classes>
+      <packages>
+          <package name="com.beust.*"/>
+      </packages>
   </test>
 
 </suite>
