@@ -4,51 +4,6 @@ import com.beust.kobalt.api.Kobalt
 import java.text.SimpleDateFormat
 import java.util.*
 
-interface KobaltLogger {
-    companion object {
-        public var LOG_LEVEL : Int = 1
-
-        val logger : Logger get() =
-            if (Kobalt.context != null) {
-                Logger(Kobalt.context!!.args.dev)
-            } else {
-                Logger(false)
-            }
-
-        fun log(level: Int, s: String, newLine: Boolean = true) {
-            if (level <= LOG_LEVEL) {
-                logger.log("Logger", s, newLine)
-            }
-        }
-
-        fun warn(s: String, e: Throwable? = null) {
-            logger.warn("Logger", s, e)
-        }
-
-        fun debug(s: String) {
-            logger.debug(s)
-        }
-    }
-
-//    final fun log(level: Int = 1, message: String) {
-//        if (level <= LOG_LEVEL) {
-//            logger.log("Logger", message)
-//        }
-//    }
-//
-//    final fun debug(message: String) {
-//        logger.debug(message)
-//    }
-//
-//    final fun error(message: String, e: Throwable? = null) {
-//        logger.error("Logger", "***** $message", e)
-//    }
-//
-//    final fun warn(message: String, e: Throwable? = null) {
-//        logger.warn("Logger", message, e)
-//    }
-}
-
 fun Any.log(level: Int, text: String, newLine : Boolean = true) {
     if (level <= KobaltLogger.LOG_LEVEL) {
         KobaltLogger.logger.log(javaClass.simpleName, text, newLine)
@@ -65,6 +20,19 @@ fun Any.warn(text: String) {
 
 fun Any.error(text: String, e: Throwable? = null) {
     KobaltLogger.logger.error(javaClass.simpleName, text, e)
+}
+
+interface KobaltLogger {
+    companion object {
+        public var LOG_LEVEL: Int = 1
+
+        val logger: Logger get() =
+        if (Kobalt.context != null) {
+            Logger(Kobalt.context!!.args.dev)
+        } else {
+            Logger(false)
+        }
+    }
 }
 
 class Logger(val dev: Boolean) {

@@ -3,6 +3,7 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.Topological
+import com.beust.kobalt.misc.log
 import javafx.concurrent.Worker
 import org.testng.Assert
 import org.testng.annotations.Test
@@ -34,7 +35,7 @@ public class DynamicGraphTest {
         override val priority = 0
 
         override fun call() : TaskResult2<T> {
-            KobaltLogger.log(2, "Running node $n")
+            log(2, "Running node $n")
             runNodes.add(n)
             return TaskResult2(errorFunction(n), n)
         }
