@@ -2,6 +2,7 @@ package com.beust.kobalt.plugin.publish
 
 import com.beust.klaxon.*
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.dots
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.Gpg
 import com.beust.kobalt.maven.Http
@@ -140,17 +141,24 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
                     + if (fileCount > 1) "..." else "")
             var i = 1
             val errorMessages = arrayListOf<String>()
-            var dots = ""
+
+
+            fun dots(total: Int, list: List<Boolean>) : String {
+                val spaces : String = Array(total - list.size(), { " " }).join("")
+                return "|" + list.map { if (it) "." else "X" }.join("") + spaces + "|"
+            }
+
+            val results = arrayListOf<Boolean>()
             filesToUpload.forEach { file ->
                 http.uploadFile(username, password, fileToPath(file) + optionPath, file,
-                        { r: Response -> dots += "."},
+                        { r: Response -> results.add(true)},
                         { r: Response ->
-                            dots += "X"
+                            results.add(false)
                             val jo = parseResponse(r.body().string())
                             errorMessages.add(jo.string("message") ?: "No message found")
                         })
                 val end = if (i >= fileCount) "\n" else ""
-                log(1, "  Uploading " + (i++) + " / $fileCount$end $dots", false)
+                log(1, "  Uploading " + (i++) + " / $fileCount$end " + dots(fileCount, results), false)
             }
             if (errorMessages.isEmpty()) {
                 return TaskResult()
