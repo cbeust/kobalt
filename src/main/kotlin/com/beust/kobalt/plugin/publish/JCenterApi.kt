@@ -2,7 +2,6 @@ package com.beust.kobalt.plugin.publish
 
 import com.beust.klaxon.*
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.dots
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.Gpg
 import com.beust.kobalt.maven.Http
@@ -15,7 +14,6 @@ import org.jetbrains.annotations.Nullable
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.charset.Charset
-import java.util.concurrent.Callable
 import javax.inject.Inject
 
 data class JCenterPackage(val jo: JsonObject) {
@@ -137,7 +135,7 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
         //
         val fileCount = filesToUpload.size()
         if (fileCount > 0) {
-            log(1, "Found $fileCount artifacts to upload: " + filesToUpload.get(0)
+            log(1, "  Found $fileCount artifacts to upload: " + filesToUpload.get(0)
                     + if (fileCount > 1) "..." else "")
             var i = 1
             val errorMessages = arrayListOf<String>()
@@ -158,12 +156,12 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
                             errorMessages.add(jo.string("message") ?: "No message found")
                         })
                 val end = if (i >= fileCount) "\n" else ""
-                log(1, "  Uploading " + (i++) + " / $fileCount$end " + dots(fileCount, results), false)
+                log(1, "    Uploading " + (i++) + " / $fileCount$end " + dots(fileCount, results), false)
             }
             if (errorMessages.isEmpty()) {
                 return TaskResult()
             } else {
-                error("Errors while uploading:\n" + errorMessages.map { "  $it" }.join("\n"))
+                error("Errors while uploading:\n" + errorMessages.map { "    $it" }.join("\n"))
                 return TaskResult(false, errorMessages.join("\n"))
             }
         } else {

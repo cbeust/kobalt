@@ -65,8 +65,8 @@ public class JavaPlugin @Inject constructor(
         //        pb.redirectError(File("/tmp/kobalt-err"))
         //        pb.redirectOutput(File("/tmp/kobalt-out"))
         val line = args.join(" ")
-        log(1, "Compiling ${sourceFiles.size()} files with classpath size ${cpList.size()}")
-        log(2, "Compiling ${project}:\n${line}")
+        log(1, "  Compiling ${sourceFiles.size()} files with classpath size ${cpList.size()}")
+        log(2, "  Compiling $project:\n$line")
         val process = pb.start()
         val errorCode = process.waitFor()
 

@@ -218,7 +218,7 @@ public class PackagingPlugin @Inject constructor(val dependencyManager : Depende
         log(2, "Added ${includedFiles.size()} files to ${result}")
         outStream.flush()
         outStream.close()
-        log(1, "Created ${result}")
+        log(1, "  Created ${result}")
         return result
     }
 
