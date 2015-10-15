@@ -4,6 +4,7 @@ import com.beust.kobalt.misc.NamedThreadFactory
 import com.beust.kobalt.misc.ToString
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.HashMultimap
 import java.util.concurrent.*
 
 open class TaskResult2<T>(success: Boolean, val value: T) : TaskResult(success) {
@@ -88,8 +89,8 @@ public class DynamicGraph<T> {
     private val nodesFinished = linkedSetOf<T>()
     private val nodesInError = linkedSetOf<T>()
     private val nodesSkipped = linkedSetOf<T>()
-    private val dependedUpon = ArrayListMultimap.create<T, T>()
-    private val dependingOn = ArrayListMultimap.create<T, T>()
+    private val dependedUpon = HashMultimap.create<T, T>()
+    private val dependingOn = HashMultimap.create<T, T>()
 
     /**
      * Define a comparator for the nodes of this graph, which will be used
@@ -156,7 +157,7 @@ public class DynamicGraph<T> {
     /**
      * @return a list of all the nodes that have a status other than FINISHED.
      */
-    private fun getUnfinishedNodes(nodes: List<T>) : Collection<T> {
+    private fun getUnfinishedNodes(nodes: Set<T>) : Collection<T> {
         val result = hashSetOf<T>()
         nodes.forEach { node ->
             if (nodesReady.contains(node) || nodesRunning.contains(node)) {
