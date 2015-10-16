@@ -3,12 +3,9 @@ package com.beust.kobalt.misc
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.kotlin.BuildFile
-import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.SystemProperties
 import java.io.File
 import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
@@ -75,18 +72,18 @@ public class KFiles {
             if (directories.isEmpty()) {
                 allDirs.add(rootDir)
             } else {
-                allDirs.addAll(directories.map { File(rootDir, it.getPath()) })
+                allDirs.addAll(directories.map { File(rootDir, it.path) })
             }
 
             allDirs.forEach {
                 if (! it.exists()) {
-                    log(2, "Couldn't find directory ${it}")
+                    log(2, "Couldn't find directory $it")
                 } else {
                     result.addAll(findRecursively(it, function))
                 }
             }
             // Return files relative to rootDir
-            val r = result.map { it.substring(rootDir.getAbsolutePath().length() + 1)}
+            val r = result.map { it.substring(rootDir.absolutePath.length() + 1)}
             return r
         }
 
@@ -116,7 +113,7 @@ public class KFiles {
                 result = result.parentFile
             }
             if (result == null) {
-                throw IllegalArgumentException("Couldn't locate ${KOBALT_DOT_DIR} in ${startDir}")
+                throw IllegalArgumentException("Couldn't locate $KOBALT_DOT_DIR in $startDir")
             }
             return File(result, KOBALT_DOT_DIR)
         }
@@ -126,14 +123,14 @@ public class KFiles {
          */
         fun findBuildScriptLocation(buildFile: BuildFile, jarFile: String) : String {
             val result = joinDir(findDotDir(buildFile.directory).absolutePath, KFiles.SCRIPT_BUILD_DIR, jarFile)
-            log(2, "Script jar file: ${result}")
+            log(2, "Script jar file: $result")
             return result
         }
 
         public fun saveFile(file: File, text: String) {
             file.absoluteFile.parentFile.mkdirs()
             file.writeText(text)
-            log(2, "Wrote ${file}")
+            log(2, "Wrote $file")
         }
 
         private fun isWindows() = System.getProperty("os.name").contains("Windows");
@@ -147,24 +144,24 @@ public class KFiles {
                     Files.copy(from, to, option)
                 } catch(ex: IOException) {
                     // Windows is anal about this
-                    log(1, "Couldn't copy ${from} to ${to}: ${ex.getMessage()}")
+                    log(1, "Couldn't copy $from to $to: ${ex.getMessage()}")
                 }
             }
         }
 
-        public fun copy(from: InputStream, to: OutputStream, bufSize: Int): Long {
-            val buf = ByteArray(bufSize)
-            var total: Long = 0
-            while (true) {
-                val r = from.read(buf, 0, buf.size())
-                if (r == -1) {
-                    break
-                }
-                to.write(buf, 0, r)
-                total += r.toLong()
-            }
-            return total
-        }
+//        public fun copy(from: InputStream, to: OutputStream, bufSize: Int): Long {
+//            val buf = ByteArray(bufSize)
+//            var total: Long = 0
+//            while (true) {
+//                val r = from.read(buf, 0, buf.size())
+//                if (r == -1) {
+//                    break
+//                }
+//                to.write(buf, 0, r)
+//                total += r.toLong()
+//            }
+//            return total
+//        }
 
         public fun createTempFile(suffix : String = "", deleteOnExit: Boolean = false) : File =
             File.createTempFile("kobalt", suffix, File(SystemProperties.tmpDir)).let {
