@@ -55,7 +55,7 @@ private class Main @Inject constructor(
         var result = 0
         val latestVersionFuture = github.latestKobaltVersion
         benchmark("Build", {
-            println(Banner.get() + Kobalt.version + "\n")
+            println(AsciiArt.banner + Kobalt.version + "\n")
 //            runTest()
             result = runWithArgs(jc, args)
             executors.shutdown()
