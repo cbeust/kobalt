@@ -1,16 +1,12 @@
 package com.beust.kobalt.internal
 
-import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.Topological
 import com.beust.kobalt.misc.log
-import javafx.concurrent.Worker
 import org.testng.Assert
 import org.testng.annotations.Test
 import java.util.ArrayList
 import java.util.HashSet
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
 
 public class DynamicGraphTest {
 
