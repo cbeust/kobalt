@@ -47,11 +47,19 @@ private class Main @Inject constructor(
         val depFactory: DepFactory,
         val checkVersions: CheckVersions,
         val github: GithubApi,
-        val updateKobalt: UpdateKobalt) {
+        val updateKobalt: UpdateKobalt,
+        val client: KobaltClient,
+        val server: KobaltServer) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
     public fun run(jc: JCommander, args: Args) : Int {
+
+        if (args.client) {
+            client.run()
+            return 0
+        }
+
         var result = 0
         val latestVersionFuture = github.latestKobaltVersion
         benchmark("Build", {
@@ -77,30 +85,28 @@ private class Main @Inject constructor(
         return result
     }
 
-    public class Worker<T>(val runNodes: ArrayList<T>, val n: T) : IWorker<T> {
-        override val priority = 0
-
-        override fun call() : TaskResult2<T> {
-            log(2, "Running node ${n}")
-            runNodes.add(n)
-            return TaskResult2(n != 3, n)
-        }
-    }
-
-    private fun runTest() {
-        with(Topological<String>()) {
-            addEdge("b1", "a1")
-            addEdge("b1", "a2")
-            addEdge("b2", "a1")
-            addEdge("b2", "a2")
-            addEdge("c1", "b1")
-            addEdge("c1", "b2")
-            val sorted = sort(arrayListOf("a1", "a2", "b1", "b2", "c1", "x", "y"))
-            println("Sorted: ${sorted}")
-        }
-    }
-
-    private val SCRIPT_JAR = "buildScript.jar"
+//    public class Worker<T>(val runNodes: ArrayList<T>, val n: T) : IWorker<T> {
+//        override val priority = 0
+//
+//        override fun call() : TaskResult2<T> {
+//            log(2, "Running node $n")
+//            runNodes.add(n)
+//            return TaskResult2(n != 3, n)
+//        }
+//    }
+//
+//    private fun runTest() {
+//        with(Topological<String>()) {
+//            addEdge("b1", "a1")
+//            addEdge("b1", "a2")
+//            addEdge("b2", "a1")
+//            addEdge("b2", "a2")
+//            addEdge("c1", "b1")
+//            addEdge("c1", "b2")
+//            val sorted = sort(arrayListOf("a1", "a2", "b1", "b2", "c1", "x", "y"))
+//            println("Sorted: $sorted")
+//        }
+//    }
 
     private fun runWithArgs(jc: JCommander, args: Args) : Int {
         var result = 0
@@ -122,7 +128,15 @@ private class Main @Inject constructor(
             } else {
                 val context = KobaltContext(args)
                 Kobalt.context = context
-                val allProjects = script2.create(arrayListOf(buildFile)).findProjects()
+                val scriptCompiler = script2.create(arrayListOf(buildFile))
+
+                if (args.serverMode) {
+                    scriptCompiler.observable.subscribe {
+                        info -> server.sendInfo(info)
+                    }
+                    executors.miscExecutor.submit(server)
+                }
+                val allProjects = scriptCompiler.findProjects()
 
                 //
                 // Force each project.directory to be an absolute path, if it's not already

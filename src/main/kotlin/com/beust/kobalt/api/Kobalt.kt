@@ -94,8 +94,7 @@ public class Kobalt {
         /**
          * @return the projects sorted topologically.
          */
-        fun sortProjects(allProjects: ArrayList<Project>) : List<Project>
-             = topological.sort(allProjects)
+        fun sortProjects(allProjects: ArrayList<Project>) = topological.sort(allProjects)
 
         fun findPlugin(name: String) = Plugins.findPlugin(name)
     }

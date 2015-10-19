@@ -13,19 +13,21 @@ import java.nio.file.StandardCopyOption
 public class KFiles {
     val kobaltJar : String
         get() {
-            val jar = joinDir(distributionsDir, Kobalt.version, "kobalt/wrapper/kobalt-" + Kobalt.version + ".jar")
-            val jarFile = File(jar)
             val envJar = System.getenv("KOBALT_JAR")
-            if (! jarFile.exists() && envJar != null) {
+            if (envJar != null) {
                 debug("Using kobalt jar $envJar")
                 return File(envJar).absolutePath
-            }
-            if (! jarFile.exists()) {
-                // Will only happen when building kobalt itself: the jar file might not be in the dist/ directory
-                // yet since we're currently building it. Instead, use the classes directly
-                return File(joinDir("build", "classes", "main")).absolutePath
             } else {
-                return jar
+                val jar = joinDir(distributionsDir, Kobalt.version, "kobalt/wrapper/kobalt-" + Kobalt.version + ".jar")
+                val jarFile = File(jar)
+                if (! jarFile.exists()) {
+                    return jarFile.absolutePath
+                } else {
+                    // Will only happen when building kobalt itself: the jar file might not be in the dist/ directory
+                    // yet since we're currently building it. Instead, use the classes directly
+                    debug("Couldn't find a kobalt.jar file, using build/classes/main")
+                    return java.io.File(joinDir("build", "classes", "main")).absolutePath
+                }
             }
         }
 

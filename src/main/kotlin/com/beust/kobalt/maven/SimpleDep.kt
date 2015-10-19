@@ -25,7 +25,7 @@ open public class SimpleDep(override val groupId: String, override val artifactI
 
     fun toPomFile(r: RepoFinder.RepoResult) = toFile(r.version, r.snapshotVersion, ".pom")
 
-    fun toJarFile(v: String) = toFile(v, "", ".jar")
+    fun toJarFile(v: String = version) = toFile(v, "", ".jar")
 
     fun toJarFile(r: RepoFinder.RepoResult) = toFile(r.version, r.snapshotVersion, ".jar")
 
