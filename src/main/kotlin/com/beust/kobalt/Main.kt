@@ -59,7 +59,7 @@ private class Main @Inject constructor(
 //            runTest()
             result = runWithArgs(jc, args)
             executors.shutdown()
-            debug("All done")
+            log(1, "All done")
         })
 
         // Check for new version
