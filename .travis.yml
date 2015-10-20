@@ -3,9 +3,6 @@ language: java
 jdk:
   - oraclejdk8
 
-before_install:
-  - touch local.properties
-
 install: true
 
 script: exec ./kobaltw assemble test
