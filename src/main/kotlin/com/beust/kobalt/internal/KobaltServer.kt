@@ -15,6 +15,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.ServerSocket
+import java.net.SocketException
 import java.nio.file.Paths
 
 public class KobaltServer @Inject constructor(val args: Args, val executors: KobaltExecutors,
@@ -26,24 +27,34 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
         val portNumber = args.port
 
         log(1, "Starting on port $portNumber")
+        var quit = false
         val serverSocket = ServerSocket(portNumber)
-        val clientSocket = serverSocket.accept()
-        outgoing = PrintWriter(clientSocket.outputStream, true)
-        if (pending.size() > 0) {
-            log(1, "Emptying the queue, size $pending.size()")
-            synchronized(pending) {
-                pending.forEach { sendInfo(it) }
-                pending.clear()
+        while (! quit) {
+            val clientSocket = serverSocket.accept()
+            outgoing = PrintWriter(clientSocket.outputStream, true)
+            if (pending.size() > 0) {
+                log(1, "Emptying the queue, size $pending.size()")
+                synchronized(pending) {
+                    pending.forEach { sendInfo(it) }
+                    pending.clear()
+                }
             }
-        }
-        val ins = BufferedReader(InputStreamReader(clientSocket.inputStream))
-        var inputLine = ins.readLine()
-        while (inputLine != null) {
-            log(1, "Received $inputLine")
-            runCommand(inputLine)
-            if (inputLine.equals("Bye."))
-                break;
-            inputLine = ins.readLine()
+            val ins = BufferedReader(InputStreamReader(clientSocket.inputStream))
+            try {
+                var inputLine = ins.readLine()
+                while (!quit && inputLine != null) {
+                    log(1, "Received $inputLine")
+                    if (inputLine == "Quit") {
+                        log(1, "Quitting")
+                        quit = true
+                    } else {
+                        runCommand(inputLine)
+                        inputLine = ins.readLine()
+                    }
+                }
+            } catch(ex: SocketException) {
+                log(1, "Client disconnected, resetting")
+            }
         }
     }
 
