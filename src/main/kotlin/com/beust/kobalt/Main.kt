@@ -77,30 +77,28 @@ private class Main @Inject constructor(
         return result
     }
 
-    public class Worker<T>(val runNodes: ArrayList<T>, val n: T) : IWorker<T> {
-        override val priority = 0
-
-        override fun call() : TaskResult2<T> {
-            log(2, "Running node ${n}")
-            runNodes.add(n)
-            return TaskResult2(n != 3, n)
-        }
-    }
-
-    private fun runTest() {
-        with(Topological<String>()) {
-            addEdge("b1", "a1")
-            addEdge("b1", "a2")
-            addEdge("b2", "a1")
-            addEdge("b2", "a2")
-            addEdge("c1", "b1")
-            addEdge("c1", "b2")
-            val sorted = sort(arrayListOf("a1", "a2", "b1", "b2", "c1", "x", "y"))
-            println("Sorted: ${sorted}")
-        }
-    }
-
-    private val SCRIPT_JAR = "buildScript.jar"
+//    public class Worker<T>(val runNodes: ArrayList<T>, val n: T) : IWorker<T> {
+//        override val priority = 0
+//
+//        override fun call() : TaskResult2<T> {
+//            log(2, "Running node $n")
+//            runNodes.add(n)
+//            return TaskResult2(n != 3, n)
+//        }
+//    }
+//
+//    private fun runTest() {
+//        with(Topological<String>()) {
+//            addEdge("b1", "a1")
+//            addEdge("b1", "a2")
+//            addEdge("b2", "a1")
+//            addEdge("b2", "a2")
+//            addEdge("c1", "b1")
+//            addEdge("c1", "b2")
+//            val sorted = sort(arrayListOf("a1", "a2", "b1", "b2", "c1", "x", "y"))
+//            println("Sorted: $sorted")
+//        }
+//    }
 
     private fun runWithArgs(jc: JCommander, args: Args) : Int {
         var result = 0
