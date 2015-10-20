@@ -8,6 +8,8 @@ import com.beust.kobalt.maven.MavenDependency
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.google.gson.Gson
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.google.inject.Inject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -54,7 +56,7 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
         override fun run() = sendInfo("{ \"response\" : \"$s\" }")
     }
 
-    inner class GetDependenciesCommand(val s: String) : Command {
+    inner class GetDependenciesCommand() : Command {
         override fun run() {
             val buildFile = BuildFile(Paths.get("c:\\Users\\cbeust\\java\\jcommander\\Build.kt"), "JCommander build")
             val scriptCompiler = buildFileCompilerFactory.create(listOf(buildFile))
@@ -92,22 +94,29 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
                     project.testDependencies.map { toDependencyData(it) },
                     project.testProvidedDependencies.map { toDependencyData(it) }))
         }
-        log(1, "Returning JSON for BuildScriptInfo")
+        log(1, "Returning BuildScriptInfo")
         val result = Gson().toJson(GetDependenciesData(projects))
+        log(2, "  $result")
         return result
     }
 
-    private fun getCommand(command: String): Command? {
-        if (command == "g") {
-            return GetDependenciesCommand(command)
+    private val COMMANDS = hashMapOf<String, Command>(
+            Pair("GetDependencies", GetDependenciesCommand())
+    )
+
+    private fun getCommand(json: String): Command? {
+        val jo = JsonParser().parse(json) as JsonObject
+        val command = jo.get("name").asString
+        if (command != null) {
+            return COMMANDS.getOrElse(command, { PingCommand(command) })
         } else {
-            return PingCommand(command)
+            error("Did not find a name in command: $json")
+            return null
         }
     }
 
     fun sendInfo(info: String) {
         if (outgoing != null) {
-//            val json = toJson(info, executors.miscExecutor)
             outgoing!!.println(info)
         } else {
             log(1, "Queuing $info")
