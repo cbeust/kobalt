@@ -5,10 +5,9 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Plugin
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.internal.KobaltServer
 import com.beust.kobalt.maven.KobaltException
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.countChar
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.*
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import com.google.inject.assistedinject.Assisted
 import rx.subjects.PublishSubject
@@ -110,7 +109,7 @@ public class ScriptCompiler2 @Inject constructor(@Assisted("buildFiles") val bui
         //
         // Run preBuildScript.jar to initialize plugins and repos
         //
-        val projectInfo = parseBuildScriptJarFile(buildScriptJarFile, arrayListOf<URL>())
+        parseBuildScriptJarFile(buildScriptJarFile, arrayListOf<URL>())
 
         //
         // All the plug-ins are now in Plugins.dynamicPlugins, download them if they're not already
@@ -159,7 +158,7 @@ public class ScriptCompiler2 @Inject constructor(@Assisted("buildFiles") val bui
                     if (cl != null) {
                         classes.add(cl)
                     } else {
-                        throw KobaltException("Couldn't instantiate ${className}")
+                        throw KobaltException("Couldn't instantiate $className")
                     }
                 }
                 entry = stream.nextJarEntry;
@@ -174,13 +173,12 @@ public class ScriptCompiler2 @Inject constructor(@Assisted("buildFiles") val bui
                     if (method.name.startsWith("get") && Modifier.isStatic(method.modifiers)) {
                         val r = method.invoke(null)
                         if (r is Project) {
-                            log(2, "Found project ${r} in class ${cls}")
+                            log(2, "Found project $r in class $cls")
                             projects.add(r)
                         }
                     } else {
                         val taskAnnotation = method.getAnnotation(Task::class.java)
                         if (taskAnnotation != null) {
-                            //                            Plugins.defaultPlugin.addTask(taskAnnotation, )
                             Plugins.defaultPlugin.methodTasks.add(Plugin.MethodTask(method, taskAnnotation))
                         }
 
