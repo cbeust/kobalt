@@ -20,12 +20,12 @@ public class KFiles {
             } else {
                 val jar = joinDir(distributionsDir, Kobalt.version, "kobalt/wrapper/kobalt-" + Kobalt.version + ".jar")
                 val jarFile = File(jar)
-                if (! jarFile.exists()) {
+                if (jarFile.exists()) {
                     return jarFile.absolutePath
                 } else {
                     // Will only happen when building kobalt itself: the jar file might not be in the dist/ directory
                     // yet since we're currently building it. Instead, use the classes directly
-                    debug("Couldn't find a kobalt.jar file, using build/classes/main")
+                    debug("Couldn't find ${jarFile.absolutePath}, using build/classes/main")
                     return java.io.File(joinDir("build", "classes", "main")).absolutePath
                 }
             }
