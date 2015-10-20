@@ -60,14 +60,14 @@ val kobalt = kotlinProject(wrapper) {
                 "com.beust:jcommander:1.48",
                 "com.beust:klaxon:0.16",
                 "com.squareup.okhttp:okhttp:2.5.0",
-                "org.slf4j:slf4j-api:1.7.12",
                 "org.jsoup:jsoup:1.8.3",
                 "com.google.inject:guice:4.0",
                 "com.google.inject.extensions:guice-assistedinject:4.0",
                 "com.google.guava:guava:19.0-rc2",
                 "org.apache.maven:maven-model:3.3.3",
                 "com.github.spullara.mustache.java:compiler:0.9.1",
-                "io.reactivex:rxjava:1.0.14"
+                "io.reactivex:rxjava:1.0.14",
+                "com.google.code.gson:gson:2.4"
               )
     }
 }

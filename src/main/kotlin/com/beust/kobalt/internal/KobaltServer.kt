@@ -1,24 +1,19 @@
 package com.beust.kobalt.internal
 
-import com.beust.klaxon.json
 import com.beust.kobalt.Args
-import com.beust.kobalt.api.Project
 import com.beust.kobalt.kotlin.BuildFile
 import com.beust.kobalt.kotlin.ScriptCompiler2
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.MavenDependency
-import com.beust.kobalt.maven.SimpleDep
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
+import com.google.gson.Gson
 import com.google.inject.Inject
-import com.google.inject.assistedinject.Assisted
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.ServerSocket
 import java.nio.file.Paths
-import java.util.concurrent.Executor
-import java.util.concurrent.ExecutorService
 
 public class KobaltServer @Inject constructor(val args: Args, val executors: KobaltExecutors,
         val buildFileCompilerFactory: ScriptCompiler2.IFactory) : Runnable {
@@ -44,9 +39,7 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
         while (inputLine != null) {
             log(1, "Received $inputLine")
             val command = getCommand(inputLine)
-            if (command != null) {
-                command!!.run()
-            }
+            command?.run()
             if (inputLine.equals("Bye."))
                 break;
             inputLine = ins.readLine()
@@ -72,9 +65,36 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
         }
     }
 
+    class DependencyData(val id: String, val path: String)
+
+    class ProjectData( val name: String, val dependencies: List<DependencyData>,
+            val providedDependencies: List<DependencyData>,
+            val runtimeDependencies: List<DependencyData>,
+            val testDependencies: List<DependencyData>,
+            val testProvidedDependencies: List<DependencyData>)
+
+    class GetDependenciesData(val projects: List<ProjectData>)
+
     private fun toJson(info: ScriptCompiler2.BuildScriptInfo) : String {
+        val executor = executors.miscExecutor
+        val projects = arrayListOf<ProjectData>()
+
+        fun toDependencyData(d: IClasspathDependency) : DependencyData {
+            val dep = MavenDependency.create(d.id, executor)
+            return DependencyData(d.id, dep.jarFile.get().absolutePath)
+        }
+
+        info.projects.forEach { project ->
+            projects.add(ProjectData(project.name!!,
+                    project.compileDependencies.map { toDependencyData(it) },
+                    project.compileProvidedDependencies.map { toDependencyData(it) },
+                    project.compileRuntimeDependencies.map { toDependencyData(it) },
+                    project.testDependencies.map { toDependencyData(it) },
+                    project.testProvidedDependencies.map { toDependencyData(it) }))
+        }
         log(1, "Returning JSON for BuildScriptInfo")
-        return toJson(info, executors.miscExecutor)
+        val result = Gson().toJson(GetDependenciesData(projects))
+        return result
     }
 
     private fun getCommand(command: String): Command? {
@@ -94,42 +114,6 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
             synchronized(pending) {
                 pending.add(info)
             }
-        }
-    }
-
-    companion object {
-        internal fun toJson(info: ScriptCompiler2.BuildScriptInfo, executor: ExecutorService): String {
-            val result = "{ projects: [" +
-                    info.projects.map { toJson(it, executor) }.join(",\n") +
-                    "]\n}\n"
-            return result
-        }
-
-        private fun toJson(project: Project, executor: ExecutorService): String {
-            var result = "{\n" +
-                arrayListOf(
-                        "\"name\" : \"${project.name}\"",
-                        toJson("dependencies", project.compileDependencies, executor),
-                        toJson("providedDependencies", project.compileProvidedDependencies, executor),
-                        toJson("runtimeDependencies", project.compileRuntimeDependencies, executor),
-                        toJson("testDependencies", project.testDependencies, executor),
-                        toJson("testProvidedDependencies", project.testProvidedDependencies, executor)
-                ).join(",\n") +
-                "}\n"
-            return result
-        }
-
-        private fun toJson(name: String, dependencies: List<IClasspathDependency>, executor: ExecutorService) : String {
-            return "\"$name\" : [" +
-                    dependencies.map {
-                        val dep = MavenDependency.create(it.id, executor)
-                        val path = dep.jarFile.get()
-                        "{\n" +
-                                "\"id\" : \"${it.id}\",\n" +
-                                "\"path\" : \"$path\"" +
-                                "}\n"
-                    }.join(",") +
-                    "]"
         }
     }
 }
