@@ -3,6 +3,7 @@ package com.beust.kobalt
 import com.beust.jcommander.JCommander
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.KobaltContext
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.*
 import com.beust.kobalt.kotlin.BuildFile
 import com.beust.kobalt.maven.*
@@ -37,7 +38,7 @@ public fun mainNoExit(argv: Array<String>) : Int {
 }
 
 private class Main @Inject constructor(
-        val script2: ScriptCompiler2.IFactory,
+        val buildFileCompilerFactory: ScriptCompiler2.IFactory,
         val plugins: Plugins,
         val taskManager: TaskManager,
         val http: Http,
@@ -122,38 +123,13 @@ private class Main @Inject constructor(
             ProjectGenerator().run(args)
         } else if (args.usage) {
             jc.usage()
+        } else if (args.serverMode) {
+            server.run()
         } else {
             if (! buildFile.exists()) {
                 jc.usage()
             } else {
-                val context = KobaltContext(args)
-                Kobalt.context = context
-                val scriptCompiler = script2.create(arrayListOf(buildFile))
-
-                if (args.serverMode) {
-                    scriptCompiler.observable.subscribe {
-                        info -> server.sendInfo(info)
-                    }
-                    executors.miscExecutor.submit(server)
-                }
-                val allProjects = scriptCompiler.findProjects()
-
-                //
-                // Force each project.directory to be an absolute path, if it's not already
-                //
-                allProjects.forEach {
-                    val fd = File(it.directory)
-                    if (! fd.isAbsolute) {
-                        it.directory =
-                            if (args.buildFile != null) {
-                                KFiles.findDotDir(File(args.buildFile)).parentFile.absolutePath
-                            } else {
-                                fd.absolutePath
-                            }
-                    }
-                }
-
-                plugins.applyPlugins(context, allProjects)
+                val allProjects = buildFileCompilerFactory.create(listOf(buildFile)).compileBuildFiles(args)
 
                 if (args.tasks) {
                     //

@@ -1,7 +1,9 @@
 package com.beust.kobalt.kotlin
 
+import com.beust.kobalt.Args
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Plugin
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Task
@@ -33,7 +35,32 @@ public class ScriptCompiler2 @Inject constructor(@Assisted("buildFiles") val bui
 
     private val SCRIPT_JAR = "buildScript.jar"
 
-    fun findProjects(): List<Project> {
+    fun compileBuildFiles(args: Args): List<Project> {
+        val context = KobaltContext(args)
+        Kobalt.context = context
+
+        val allProjects = findProjects()
+
+        //
+        // Force each project.directory to be an absolute path, if it's not already
+        //
+        allProjects.forEach {
+            val fd = File(it.directory)
+            if (! fd.isAbsolute) {
+                it.directory =
+                        if (args.buildFile != null) {
+                            KFiles.findDotDir(File(args.buildFile)).parentFile.absolutePath
+                        } else {
+                            fd.absolutePath
+                        }
+            }
+        }
+
+        plugins.applyPlugins(context, allProjects)
+        return allProjects
+    }
+
+    private fun findProjects(): List<Project> {
         val result = arrayListOf<Project>()
         buildFiles.forEach { buildFile ->
             val pluginUrls = findPlugInUrls(buildFile)
