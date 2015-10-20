@@ -40,8 +40,7 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
         var inputLine = ins.readLine()
         while (inputLine != null) {
             log(1, "Received $inputLine")
-            val command = getCommand(inputLine)
-            command?.run()
+            runCommand(inputLine)
             if (inputLine.equals("Bye."))
                 break;
             inputLine = ins.readLine()
@@ -49,16 +48,16 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
     }
 
     interface Command {
-        fun run()
+        fun run(jo: JsonObject)
     }
 
-    inner class PingCommand(val s: String) : Command {
-        override fun run() = sendInfo("{ \"response\" : \"$s\" }")
+    inner class PingCommand() : Command {
+        override fun run(jo: JsonObject) = sendInfo("{ \"response\" : \"${jo.toString()}\" }")
     }
 
     inner class GetDependenciesCommand() : Command {
-        override fun run() {
-            val buildFile = BuildFile(Paths.get("c:\\Users\\cbeust\\java\\jcommander\\Build.kt"), "JCommander build")
+        override fun run(jo: JsonObject) {
+            val buildFile = BuildFile(Paths.get(jo.get("buildFile").asString), "GetDependenciesCommand")
             val scriptCompiler = buildFileCompilerFactory.create(listOf(buildFile))
             scriptCompiler.observable.subscribe {
                 info -> sendInfo(toJson(info))
@@ -104,14 +103,13 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
             Pair("GetDependencies", GetDependenciesCommand())
     )
 
-    private fun getCommand(json: String): Command? {
+    private fun runCommand(json: String) {
         val jo = JsonParser().parse(json) as JsonObject
         val command = jo.get("name").asString
         if (command != null) {
-            return COMMANDS.getOrElse(command, { PingCommand(command) })
+            COMMANDS.getOrElse(command, { PingCommand() }).run(jo)
         } else {
             error("Did not find a name in command: $json")
-            return null
         }
     }
 
@@ -126,3 +124,5 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
         }
     }
 }
+
+
