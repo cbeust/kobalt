@@ -13,6 +13,9 @@ class Args {
             "dependencies")
     var checkVersions = false
 
+    @Parameter(names = arrayOf("--client"))
+    var client: Boolean = false
+
     @Parameter(names = arrayOf("--dev"), description = "Turn of dev mode, resulting in a more verbose log output")
     var dev: Boolean = false
 
@@ -28,6 +31,16 @@ class Args {
 
     @Parameter(names = arrayOf("--log"), description = "Define the log level (1-3)")
     var log: Int = 1
+
+    companion object {
+        const val DEFAULT_SERVER_PORT = 3867
+    }
+
+    @Parameter(names = arrayOf("--port"), description = "Port, if --server was specified")
+    var port: Int = DEFAULT_SERVER_PORT
+
+    @Parameter(names = arrayOf("--server"), description = "Run in server mode")
+    var serverMode: Boolean = false
 
     @Parameter(names = arrayOf("--tasks"), description = "Display the tasks available for this build")
     var tasks: Boolean = false

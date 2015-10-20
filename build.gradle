@@ -48,7 +48,8 @@ dependencies {
             'com.google.inject.extensions:guice-assistedinject:4.0',
             'com.google.guava:guava:18.0',
             'org.apache.maven:maven-model:3.3.3',
-            'com.github.spullara.mustache.java:compiler:0.8.18'
+            'com.github.spullara.mustache.java:compiler:0.8.18',
+            "io.reactivex:rxjava:1.0.14"
 
 //    compile files("/Users/beust/.kobalt/repository/com/beust/kobalt-example-plugin/build/libs/kobalt-example-plugin.jar")
     testCompile 'org.testng:testng:6.9.6'

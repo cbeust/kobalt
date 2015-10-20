@@ -11,6 +11,7 @@ import com.beust.kobalt.misc.countChar
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import com.google.inject.assistedinject.Assisted
+import rx.subjects.PublishSubject
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
@@ -29,6 +30,8 @@ public class ScriptCompiler2 @Inject constructor(@Assisted("buildFiles") val bui
         fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>) : ScriptCompiler2
     }
 
+    val observable = PublishSubject.create<BuildScriptInfo>()
+
     private val SCRIPT_JAR = "buildScript.jar"
 
     fun findProjects(): List<Project> {
@@ -38,8 +41,8 @@ public class ScriptCompiler2 @Inject constructor(@Assisted("buildFiles") val bui
             val buildScriptJarFile = File(KFiles.findBuildScriptLocation(buildFile, SCRIPT_JAR))
 
             maybeCompileBuildFile(buildFile, buildScriptJarFile, pluginUrls)
-            val output = parseBuildScriptJarFile(buildScriptJarFile, pluginUrls)
-            result.addAll(output.projects)
+            val buildScriptInfo = parseBuildScriptJarFile(buildScriptJarFile, pluginUrls)
+            result.addAll(buildScriptInfo.projects)
         }
         return result
     }
@@ -130,7 +133,7 @@ public class ScriptCompiler2 @Inject constructor(@Assisted("buildFiles") val bui
     class BuildScriptInfo(val projects: List<Project>, val classLoader: ClassLoader)
 
     private fun parseBuildScriptJarFile(buildScriptJarFile: File, urls: List<URL>) : BuildScriptInfo {
-        val result = arrayListOf<Project>()
+        val projects = arrayListOf<Project>()
         var stream : InputStream? = null
         val allUrls = arrayListOf<URL>().plus(urls).plus(arrayOf(
                 buildScriptJarFile.toURI().toURL(),
@@ -172,7 +175,7 @@ public class ScriptCompiler2 @Inject constructor(@Assisted("buildFiles") val bui
                         val r = method.invoke(null)
                         if (r is Project) {
                             log(2, "Found project ${r} in class ${cls}")
-                            result.add(r)
+                            projects.add(r)
                         }
                     } else {
                         val taskAnnotation = method.getAnnotation(Task::class.java)
@@ -188,6 +191,8 @@ public class ScriptCompiler2 @Inject constructor(@Assisted("buildFiles") val bui
         }
 
         // Now that we all the projects, sort them topologically
-        return BuildScriptInfo(Kobalt.sortProjects(result), classLoader)
+        val result = BuildScriptInfo(Kobalt.sortProjects(projects), classLoader)
+        observable.onNext(result)
+        return result
     }
 }

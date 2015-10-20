@@ -47,11 +47,19 @@ private class Main @Inject constructor(
         val depFactory: DepFactory,
         val checkVersions: CheckVersions,
         val github: GithubApi,
-        val updateKobalt: UpdateKobalt) {
+        val updateKobalt: UpdateKobalt,
+        val client: KobaltClient,
+        val server: KobaltServer) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
     public fun run(jc: JCommander, args: Args) : Int {
+
+        if (args.client) {
+            client.run()
+            return 0
+        }
+
         var result = 0
         val latestVersionFuture = github.latestKobaltVersion
         benchmark("Build", {
@@ -120,7 +128,15 @@ private class Main @Inject constructor(
             } else {
                 val context = KobaltContext(args)
                 Kobalt.context = context
-                val allProjects = script2.create(arrayListOf(buildFile)).findProjects()
+                val scriptCompiler = script2.create(arrayListOf(buildFile))
+
+                if (args.serverMode) {
+                    scriptCompiler.observable.subscribe {
+                        info -> server.sendInfo(info)
+                    }
+                    executors.miscExecutor.submit(server)
+                }
+                val allProjects = scriptCompiler.findProjects()
 
                 //
                 // Force each project.directory to be an absolute path, if it's not already
