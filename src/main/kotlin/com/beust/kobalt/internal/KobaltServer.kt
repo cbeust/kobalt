@@ -26,7 +26,7 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
     override fun run() {
         val portNumber = args.port
 
-        log(1, "Starting on port $portNumber")
+        log(1, "Listening to port $portNumber")
         var quit = false
         val serverSocket = ServerSocket(portNumber)
         while (! quit) {
@@ -63,6 +63,8 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
         fun run(jo: JsonObject)
     }
 
+    class CommandData(val commandName: String, val data: String)
+
     inner class PingCommand() : Command {
         override fun run(jo: JsonObject) = sendData("{ \"response\" : \"${jo.toString()}\" }")
     }
@@ -72,7 +74,9 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
             val buildFile = BuildFile(Paths.get(jo.get("buildFile").asString), "GetDependenciesCommand")
             val scriptCompiler = buildFileCompilerFactory.create(listOf(buildFile))
             scriptCompiler.observable.subscribe {
-                buildScriptInfo -> sendData(toJson(buildScriptInfo))
+                buildScriptInfo -> if (buildScriptInfo.projects.size() > 0) {
+                    sendData(toJson(buildScriptInfo))
+                }
             }
             scriptCompiler.compileBuildFiles(args)
             sendData("{ \"name\": \"Quit\" }")
@@ -87,7 +91,12 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
             val testDependencies: List<DependencyData>,
             val testProvidedDependencies: List<DependencyData>)
 
-    class GetDependenciesData(val projects: List<ProjectData>)
+    class GetDependenciesData(val projects: List<ProjectData>) {
+        fun toData() : CommandData {
+            val data = Gson().toJson(this)
+            return CommandData("GetDependencies", data)
+        }
+    }
 
     private fun toJson(info: BuildFileCompiler.BuildScriptInfo) : String {
         val executor = executors.miscExecutor
@@ -107,7 +116,7 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
                     project.testProvidedDependencies.map { toDependencyData(it) }))
         }
         log(1, "Returning BuildScriptInfo")
-        val result = Gson().toJson(GetDependenciesData(projects))
+        val result = Gson().toJson(GetDependenciesData(projects).toData())
         log(2, "  $result")
         return result
     }

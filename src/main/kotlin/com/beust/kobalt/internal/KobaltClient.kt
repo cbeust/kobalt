@@ -5,6 +5,7 @@ import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.kotlin.BuildFileCompiler
 import com.beust.kobalt.mainNoExit
 import com.beust.kobalt.misc.log
+import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.inject.Inject
@@ -25,12 +26,14 @@ public class KobaltClient @Inject constructor() : Runnable {
 
         var done = false
         var attempts = 1
-        while (attempts < 3 && ! done) {
+        while (attempts < 10 && ! done) {
             try {
                 val socket = Socket("localhost", portNumber)
                 outgoing = PrintWriter(socket.outputStream, true)
                 val testBuildfile = Paths.get(SystemProperties.homeDir, "java", "testng", "Build.kt")
                     .toFile().absolutePath
+                val testBuildfile2 = Paths.get(SystemProperties.homeDir, "java", "jcommander", "Build.kt")
+                        .toFile().absolutePath
                 val c : String = "{ \"name\":\"GetDependencies\", \"buildFile\": \"$testBuildfile\"}"
                 outgoing!!.println(c)
                 val ins = BufferedReader(InputStreamReader(socket.inputStream))
@@ -40,9 +43,12 @@ public class KobaltClient @Inject constructor() : Runnable {
                     val jo = JsonParser().parse(line) as JsonObject
                     if (jo.has("name") && "Quit" == jo.get("name").asString) {
                         log(1, "Quitting")
-                        outgoing!!.println("{ \"name\": \"Quit\" }")
+//                        outgoing!!.println("{ \"name\": \"Quit\" }")
                         done = true
                     } else {
+                        val data = jo.get("data").asString
+                        val dd = Gson().fromJson(data, KobaltServer.GetDependenciesData::class.java)
+                        println("Read GetDependencyData, project count: ${dd.projects.size()}")
                         line = ins.readLine()
                     }
                 }
