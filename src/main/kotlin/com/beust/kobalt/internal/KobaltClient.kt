@@ -2,7 +2,7 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.SystemProperties
-import com.beust.kobalt.kotlin.ScriptCompiler2
+import com.beust.kobalt.kotlin.BuildFileCompiler
 import com.beust.kobalt.mainNoExit
 import com.beust.kobalt.misc.log
 import com.google.gson.JsonObject
@@ -54,7 +54,7 @@ public class KobaltClient @Inject constructor() : Runnable {
         }
     }
 
-    fun sendInfo(info: ScriptCompiler2.BuildScriptInfo) {
+    fun sendInfo(info: BuildFileCompiler.BuildScriptInfo) {
         outgoing!!.println("Sending info with project count: " + info.projects.size())
     }
 }

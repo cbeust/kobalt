@@ -8,7 +8,7 @@ import com.beust.kobalt.internal.*
 import com.beust.kobalt.kotlin.BuildFile
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.*
-import com.beust.kobalt.kotlin.ScriptCompiler2
+import com.beust.kobalt.kotlin.BuildFileCompiler
 import com.beust.kobalt.wrapper.Wrapper
 import com.google.inject.Guice
 import java.io.File
@@ -38,7 +38,7 @@ public fun mainNoExit(argv: Array<String>) : Int {
 }
 
 private class Main @Inject constructor(
-        val buildFileCompilerFactory: ScriptCompiler2.IFactory,
+        val buildFileCompilerFactory: BuildFileCompiler.IFactory,
         val plugins: Plugins,
         val taskManager: TaskManager,
         val http: Http,

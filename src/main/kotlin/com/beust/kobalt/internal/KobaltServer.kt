@@ -1,9 +1,8 @@
 package com.beust.kobalt.internal
 
-import com.beust.klaxon.json
 import com.beust.kobalt.Args
 import com.beust.kobalt.kotlin.BuildFile
-import com.beust.kobalt.kotlin.ScriptCompiler2
+import com.beust.kobalt.kotlin.BuildFileCompiler
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.MavenDependency
 import com.beust.kobalt.misc.KobaltExecutors
@@ -20,7 +19,7 @@ import java.net.SocketException
 import java.nio.file.Paths
 
 public class KobaltServer @Inject constructor(val args: Args, val executors: KobaltExecutors,
-        val buildFileCompilerFactory: ScriptCompiler2.IFactory) : Runnable {
+        val buildFileCompilerFactory: BuildFileCompiler.IFactory) : Runnable {
     var outgoing: PrintWriter? = null
     val pending = arrayListOf<String>()
 
@@ -90,7 +89,7 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
 
     class GetDependenciesData(val projects: List<ProjectData>)
 
-    private fun toJson(info: ScriptCompiler2.BuildScriptInfo) : String {
+    private fun toJson(info: BuildFileCompiler.BuildScriptInfo) : String {
         val executor = executors.miscExecutor
         val projects = arrayListOf<ProjectData>()
 

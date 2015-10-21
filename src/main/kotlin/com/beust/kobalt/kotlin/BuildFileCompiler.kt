@@ -24,11 +24,11 @@ import java.nio.file.Paths
 import java.util.jar.JarInputStream
 import javax.inject.Inject
 
-public class ScriptCompiler2 @Inject constructor(@Assisted("buildFiles") val buildFiles: List<BuildFile>,
+public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFiles: List<BuildFile>,
         val files: KFiles, val plugins: Plugins) {
 
     interface IFactory {
-        fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>) : ScriptCompiler2
+        fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>) : BuildFileCompiler
     }
 
     val observable = PublishSubject.create<BuildScriptInfo>()
