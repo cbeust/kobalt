@@ -26,14 +26,14 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
     override fun run() {
         val portNumber = args.port
 
-        log(1, "Listening to port $portNumber")
+        log1("Listening to port $portNumber")
         var quit = false
         val serverSocket = ServerSocket(portNumber)
         while (! quit) {
             val clientSocket = serverSocket.accept()
             outgoing = PrintWriter(clientSocket.outputStream, true)
             if (pending.size() > 0) {
-                log(1, "Emptying the queue, size $pending.size()")
+                log1("Emptying the queue, size $pending.size()")
                 synchronized(pending) {
                     pending.forEach { sendData(it) }
                     pending.clear()
@@ -43,10 +43,10 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
             try {
                 var line = ins.readLine()
                 while (!quit && line != null) {
-                    log(1, "Received from client $line")
+                    log1("Received from client $line")
                     val jo = JsonParser().parse(line) as JsonObject
                     if ("Quit" == jo.get("name").asString) {
-                        log(1, "Quitting")
+                        log1("Quitting")
                         quit = true
                     } else {
                         runCommand(jo)
@@ -54,7 +54,7 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
                     }
                 }
             } catch(ex: SocketException) {
-                log(1, "Client disconnected, resetting")
+                log1("Client disconnected, resetting")
             }
         }
     }
@@ -83,13 +83,9 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
         }
     }
 
-    class DependencyData(val id: String, val path: String)
+    class DependencyData(val id: String, val scope: String, val path: String)
 
-    class ProjectData( val name: String, val dependencies: List<DependencyData>,
-            val providedDependencies: List<DependencyData>,
-            val runtimeDependencies: List<DependencyData>,
-            val testDependencies: List<DependencyData>,
-            val testProvidedDependencies: List<DependencyData>)
+    class ProjectData( val name: String, val dependencies: List<DependencyData>)
 
     class GetDependenciesData(val projects: List<ProjectData>) {
         fun toData() : CommandData {
@@ -102,22 +98,24 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
         val executor = executors.miscExecutor
         val projects = arrayListOf<ProjectData>()
 
-        fun toDependencyData(d: IClasspathDependency) : DependencyData {
+        fun toDependencyData(d: IClasspathDependency, scope: String) : DependencyData {
             val dep = MavenDependency.create(d.id, executor)
-            return DependencyData(d.id, dep.jarFile.get().absolutePath)
+            return DependencyData(d.id, scope, dep.jarFile.get().absolutePath)
         }
 
         info.projects.forEach { project ->
-            projects.add(ProjectData(project.name!!,
-                    project.compileDependencies.map { toDependencyData(it) },
-                    project.compileProvidedDependencies.map { toDependencyData(it) },
-                    project.compileRuntimeDependencies.map { toDependencyData(it) },
-                    project.testDependencies.map { toDependencyData(it) },
-                    project.testProvidedDependencies.map { toDependencyData(it) }))
+            val allDependencies =
+                    project.compileDependencies.map { toDependencyData(it, "compile") } +
+                    project.compileProvidedDependencies.map { toDependencyData(it, "provided") } +
+                    project.compileRuntimeDependencies.map { toDependencyData(it, "runtime") } +
+                    project.testDependencies.map { toDependencyData(it, "testCompile") } +
+                    project.testProvidedDependencies.map { toDependencyData(it, "testProvided") }
+
+            projects.add(ProjectData(project.name!!, allDependencies))
         }
-        log(1, "Returning BuildScriptInfo")
+        log1("Returning BuildScriptInfo")
         val result = Gson().toJson(GetDependenciesData(projects).toData())
-        log(2, "  $result")
+        log2("  $result")
         return result
     }
 
@@ -138,11 +136,19 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
         if (outgoing != null) {
             outgoing!!.println(info)
         } else {
-            log(1, "Queuing $info")
+            log1("Queuing $info")
             synchronized(pending) {
                 pending.add(info)
             }
         }
+    }
+
+    private fun log1(s: String) {
+        log(1, "[KobaltServer] $s")
+    }
+
+    private fun log2(s: String) {
+        log(2, "[KobaltServer] $s")
     }
 }
 
