@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.klaxon.json
 import com.beust.kobalt.Args
 import com.beust.kobalt.kotlin.BuildFile
 import com.beust.kobalt.kotlin.ScriptCompiler2
@@ -35,21 +36,22 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
             if (pending.size() > 0) {
                 log(1, "Emptying the queue, size $pending.size()")
                 synchronized(pending) {
-                    pending.forEach { sendInfo(it) }
+                    pending.forEach { sendData(it) }
                     pending.clear()
                 }
             }
             val ins = BufferedReader(InputStreamReader(clientSocket.inputStream))
             try {
-                var inputLine = ins.readLine()
-                while (!quit && inputLine != null) {
-                    log(1, "Received $inputLine")
-                    if (inputLine == "Quit") {
+                var line = ins.readLine()
+                while (!quit && line != null) {
+                    log(1, "Received from client $line")
+                    val jo = JsonParser().parse(line) as JsonObject
+                    if ("Quit" == jo.get("name").asString) {
                         log(1, "Quitting")
                         quit = true
                     } else {
-                        runCommand(inputLine)
-                        inputLine = ins.readLine()
+                        runCommand(jo)
+                        line = ins.readLine()
                     }
                 }
             } catch(ex: SocketException) {
@@ -63,7 +65,7 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
     }
 
     inner class PingCommand() : Command {
-        override fun run(jo: JsonObject) = sendInfo("{ \"response\" : \"${jo.toString()}\" }")
+        override fun run(jo: JsonObject) = sendData("{ \"response\" : \"${jo.toString()}\" }")
     }
 
     inner class GetDependenciesCommand() : Command {
@@ -71,9 +73,10 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
             val buildFile = BuildFile(Paths.get(jo.get("buildFile").asString), "GetDependenciesCommand")
             val scriptCompiler = buildFileCompilerFactory.create(listOf(buildFile))
             scriptCompiler.observable.subscribe {
-                info -> sendInfo(toJson(info))
+                buildScriptInfo -> sendData(toJson(buildScriptInfo))
             }
             scriptCompiler.compileBuildFiles(args)
+            sendData("{ \"name\": \"Quit\" }")
         }
     }
 
@@ -114,17 +117,16 @@ public class KobaltServer @Inject constructor(val args: Args, val executors: Kob
             Pair("GetDependencies", GetDependenciesCommand())
     )
 
-    private fun runCommand(json: String) {
-        val jo = JsonParser().parse(json) as JsonObject
+    private fun runCommand(jo: JsonObject) {
         val command = jo.get("name").asString
         if (command != null) {
             COMMANDS.getOrElse(command, { PingCommand() }).run(jo)
         } else {
-            error("Did not find a name in command: $json")
+            error("Did not find a name in command: $jo")
         }
     }
 
-    fun sendInfo(info: String) {
+    fun sendData(info: String) {
         if (outgoing != null) {
             outgoing!!.println(info)
         } else {

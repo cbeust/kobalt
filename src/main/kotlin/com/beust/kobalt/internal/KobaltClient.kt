@@ -1,9 +1,12 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.kotlin.ScriptCompiler2
 import com.beust.kobalt.mainNoExit
 import com.beust.kobalt.misc.log
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.google.inject.Inject
 import java.io.BufferedReader
 import java.io.BufferedWriter
@@ -11,6 +14,7 @@ import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.ConnectException
 import java.net.Socket
+import java.nio.file.Paths
 import java.util.concurrent.Executors
 
 public class KobaltClient @Inject constructor() : Runnable {
@@ -25,23 +29,23 @@ public class KobaltClient @Inject constructor() : Runnable {
             try {
                 val socket = Socket("localhost", portNumber)
                 outgoing = PrintWriter(socket.outputStream, true)
-                val c : String = "{ \"name\":\"GetDependencies\", \"buildFile\": \"c:\\\\users\\\\cbeust\\\\java\\\\testng\\\\Build.kt\"}"
+                val testBuildfile = Paths.get(SystemProperties.homeDir, "java", "testng", "Build.kt")
+                    .toFile().absolutePath
+                val c : String = "{ \"name\":\"GetDependencies\", \"buildFile\": \"$testBuildfile\"}"
                 outgoing!!.println(c)
-                done = true
                 val ins = BufferedReader(InputStreamReader(socket.inputStream))
-                var fromServer = ins.readLine()
-                while (fromServer != null) {
-                    log(1, "Response from server:\n" + fromServer)
-                    fromServer = ins.readLine()
+                var line = ins.readLine()
+                while (! done && line != null) {
+                    log(1, "Received from server:\n" + line)
+                    val jo = JsonParser().parse(line) as JsonObject
+                    if (jo.has("name") && "Quit" == jo.get("name").asString) {
+                        log(1, "Quitting")
+                        outgoing!!.println("{ \"name\": \"Quit\" }")
+                        done = true
+                    } else {
+                        line = ins.readLine()
+                    }
                 }
-//                done = true
-//                log(1, "Launching listening server")
-//                while (fromServer != null) {
-//                    log(1, "From server: " + fromServer);
-//                    if (fromServer.equals("Bye."))
-//                        break;
-//                    fromServer = ins.readLine()
-//                }
             } catch(ex: ConnectException) {
                 log(1, "Server not up, sleeping a bit")
                 Thread.sleep(2000)
