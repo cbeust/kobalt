@@ -126,11 +126,11 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
 
             val factory = object : IThreadWorkerFactory<PluginTask> {
                 override public fun createWorkers(nodes: List<PluginTask>): List<IWorker<PluginTask>> {
-                    val result = arrayListOf<IWorker<PluginTask>>()
+                    val thisResult = arrayListOf<IWorker<PluginTask>>()
                     nodes.forEach {
-                        result.add(TaskWorker(arrayListOf(it), args.dryRun))
+                        thisResult.add(TaskWorker(arrayListOf(it), args.dryRun))
                     }
-                    return result
+                    return thisResult
                 }
             }
 
@@ -177,11 +177,11 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
 
                 val currentTask = TaskInfo(project.name!!, target.task)
                 transitiveClosure.add(tasksByNames.get(currentTask.task)!!)
-                val task = tasksByNames.get(target.task)
-                if (task == null) {
+                val thisTask = tasksByNames.get(target.task)
+                if (thisTask == null) {
                     throw KobaltException("Unknown task: $target")
                 } else {
-                    val dependencyNames = runBefore.get(task.name)
+                    val dependencyNames = runBefore.get(thisTask.name)
                     dependencyNames.forEach { dependencyName ->
                         if (! seen.contains(dependencyName)) {
                             newToProcess.add(currentTask)
@@ -189,7 +189,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                         }
                     }
 
-                    runBefore.get(task.name).forEach {
+                    runBefore.get(thisTask.name).forEach {
                         newToProcess.add(TaskInfo(project.name!!, it))
                     }
                 }
