@@ -12,6 +12,15 @@ import com.google.gson.JsonObject
 import com.google.inject.Inject
 import java.nio.file.Paths
 
+/**
+ * This command returns the list of dependencies for the given buildFile.
+ * Payload:
+ * {
+ *   "name" : "getDependencies"
+ *   "buildFile": "Build.kt"
+ * }
+ * The response is a GetDependenciesData.
+ */
 class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
         val buildFileCompilerFactory: BuildFileCompiler.IFactory, val args: Args) : ICommand {
     override val name = "getDependencies"
@@ -37,11 +46,11 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
 
         info.projects.forEach { project ->
             val allDependencies =
-                    project.compileDependencies.map { toDependencyData(it, "compile") } +
-                            project.compileProvidedDependencies.map { toDependencyData(it, "provided") } +
-                            project.compileRuntimeDependencies.map { toDependencyData(it, "runtime") } +
-                            project.testDependencies.map { toDependencyData(it, "testCompile") } +
-                            project.testProvidedDependencies.map { toDependencyData(it, "testProvided") }
+                project.compileDependencies.map { toDependencyData(it, "compile") } +
+                project.compileProvidedDependencies.map { toDependencyData(it, "provided") } +
+                project.compileRuntimeDependencies.map { toDependencyData(it, "runtime") } +
+                project.testDependencies.map { toDependencyData(it, "testCompile") } +
+                project.testProvidedDependencies.map { toDependencyData(it, "testProvided") }
 
             projects.add(ProjectData(project.name!!, allDependencies))
         }
