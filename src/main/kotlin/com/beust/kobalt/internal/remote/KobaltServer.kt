@@ -62,14 +62,14 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
                 while (!quit && line != null) {
                     log1("Received from client $line")
                     val jo = JsonParser().parse(line) as JsonObject
-                    if ("Quit" == jo.get("name").asString) {
+                    if ("quit" == jo.get("name").asString) {
                         log1("Quitting")
                         quit = true
                     } else {
                         runCommand(jo)
 
                         // Done, send a quit to the client
-                        sendData("{ \"name\": \"Quit\" }")
+                        sendData("{ \"name\": \"quit\" }")
 
                         line = ins.readLine()
                     }
