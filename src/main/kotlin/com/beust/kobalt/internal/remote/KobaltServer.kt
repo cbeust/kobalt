@@ -83,19 +83,19 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
     private fun runCommand(jo: JsonObject) {
         val command = jo.get("name").asString
         if (command != null) {
-            COMMANDS.getOrElse(command, { PingCommand() }).run(this, jo)
+            COMMANDS.getOrElse(command, { COMMANDS.get("ping") })!!.run(this, jo)
         } else {
             error("Did not find a name in command: $jo")
         }
     }
 
-    override fun sendData(info: String) {
+    override fun sendData(content: String) {
         if (outgoing != null) {
-            outgoing!!.println(info)
+            outgoing!!.println(content)
         } else {
-            log1("Queuing $info")
+            log1("Queuing $content")
             synchronized(pending) {
-                pending.add(info)
+                pending.add(content)
             }
         }
     }
