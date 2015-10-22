@@ -29,7 +29,7 @@ interface ICommand {
      */
     fun run(sender: ICommandSender, received: JsonObject)
 
-    fun toCommandDataJson(data: String) = Gson().toJson(CommandData(name, data))
+    fun toCommandData(data: String) = CommandData(name, data)
 }
 
 /**
@@ -37,7 +37,7 @@ interface ICommand {
  * @param The string content that will be sent in the "data" field.
  */
 interface ICommandSender {
-    fun sendData(data: String)
+    fun sendData(commandData: CommandData)
 }
 
 /**
@@ -56,7 +56,7 @@ class CommandData(val commandName: String, val data: String)
 @Singleton
 public class KobaltServer @Inject constructor(val args: Args) : Runnable, ICommandSender {
     var outgoing: PrintWriter? = null
-    val pending = arrayListOf<String>()
+    val pending = arrayListOf<CommandData>()
 
     private val COMMAND_CLASSES = listOf(GetDependenciesCommand::class.java, PingCommand::class.java)
     private val COMMANDS = COMMAND_CLASSES.map {
@@ -92,7 +92,7 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
                         runCommand(jo)
 
                         // Done, send a quit to the client
-                        sendData("{ \"name\": \"quit\" }")
+                        sendData(CommandData("quit", ""))
 
                         line = ins.readLine()
                     }
@@ -112,13 +112,14 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
         }
     }
 
-    override fun sendData(content: String) {
+    override fun sendData(commandData: CommandData) {
+        val content = Gson().toJson(commandData)
         if (outgoing != null) {
             outgoing!!.println(content)
         } else {
             log1("Queuing $content")
             synchronized(pending) {
-                pending.add(content)
+                pending.add(commandData)
             }
         }
     }

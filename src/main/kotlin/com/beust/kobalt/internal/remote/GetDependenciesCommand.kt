@@ -35,7 +35,7 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
         scriptCompiler.compileBuildFiles(args)
     }
 
-    private fun toJson(info: BuildFileCompiler.BuildScriptInfo) : String {
+    private fun toJson(info: BuildFileCompiler.BuildScriptInfo) : CommandData {
         val executor = executors.miscExecutor
         val projects = arrayListOf<ProjectData>()
 
@@ -55,7 +55,7 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
             projects.add(ProjectData(project.name!!, allDependencies))
         }
         log(1, "Returning BuildScriptInfo")
-        val result = toCommandDataJson(Gson().toJson(GetDependenciesData(projects)))
+        val result = toCommandData(Gson().toJson(GetDependenciesData(projects)))
         log(2, "  $result")
         return result
     }

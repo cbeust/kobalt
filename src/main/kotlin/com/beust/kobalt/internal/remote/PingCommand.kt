@@ -16,10 +16,7 @@ class PingCommand() : ICommand {
     override val name = "ping"
 
     override fun run(sender: ICommandSender, received: JsonObject) {
-        val commandData = toCommandDataJson(Gson().toJson(PingData(received.toString())))
-        val result = Gson().toJson(commandData)
-        log(1, "ping returning: $result")
-        sender.sendData(result)
+        sender.sendData(toCommandData(Gson().toJson(PingData(received.toString()))))
     }
 
     class PingData(val received: String)
