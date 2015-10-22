@@ -18,19 +18,19 @@ import java.nio.file.Paths
 import java.util.*
 import javax.inject.Inject
 
+public fun main(argv: Array<String>) {
+    val result = mainNoExit(argv)
+    if (result != 0) {
+        System.exit(result)
+    }
+}
+
 private fun parseArgs(argv: Array<String>): Main.RunInfo {
     val args = Args()
     val result = JCommander(args)
     result.parse(*argv)
     KobaltLogger.LOG_LEVEL = args.log
     return Main.RunInfo(result, args)
-}
-
-public fun main(argv: Array<String>) {
-    val result = mainNoExit(argv)
-    if (result != 0) {
-        System.exit(result)
-    }
 }
 
 public fun mainNoExit(argv: Array<String>) : Int {
