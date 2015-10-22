@@ -7,7 +7,7 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Plugin
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.internal.KobaltServer
+import com.beust.kobalt.internal.remote.KobaltServer
 import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.misc.*
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate

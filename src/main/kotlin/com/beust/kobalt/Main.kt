@@ -5,6 +5,8 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.*
+import com.beust.kobalt.internal.remote.KobaltClient
+import com.beust.kobalt.internal.remote.KobaltServer
 import com.beust.kobalt.kotlin.BuildFile
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.*

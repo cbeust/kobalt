@@ -1,4 +1,4 @@
-package com.beust.kobalt.internal
+package com.beust.kobalt.internal.remote
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.SystemProperties
@@ -47,7 +47,7 @@ public class KobaltClient @Inject constructor() : Runnable {
                         done = true
                     } else {
                         val data = jo.get("data").asString
-                        val dd = Gson().fromJson(data, KobaltServer.GetDependenciesData::class.java)
+                        val dd = Gson().fromJson(data, GetDependenciesData::class.java)
                         println("Read GetDependencyData, project count: ${dd.projects.size()}")
                         line = ins.readLine()
                     }
