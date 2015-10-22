@@ -29,13 +29,13 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
         val scriptCompiler = buildFileCompilerFactory.create(listOf(buildFile))
         scriptCompiler.observable.subscribe {
             buildScriptInfo -> if (buildScriptInfo.projects.size() > 0) {
-                sender.sendData(toJson(buildScriptInfo))
+                sender.sendData(toData(buildScriptInfo))
             }
         }
         scriptCompiler.compileBuildFiles(args)
     }
 
-    private fun toJson(info: BuildFileCompiler.BuildScriptInfo) : CommandData {
+    private fun toData(info: BuildFileCompiler.BuildScriptInfo) : CommandData {
         val executor = executors.miscExecutor
         val projects = arrayListOf<ProjectData>()
 
