@@ -24,7 +24,7 @@ interface ICommand {
     val name: String
 
     /**
-     * Run this command based on the information received from the server. When done, use
+     * Run this command based on the information received from the client. When done, use
      * the sender object to send back a response.
      */
     fun run(sender: ICommandSender, received: JsonObject)
