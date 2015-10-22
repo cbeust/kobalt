@@ -55,21 +55,18 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
             projects.add(ProjectData(project.name!!, allDependencies))
         }
         log(1, "Returning BuildScriptInfo")
-        val result = Gson().toJson(GetDependenciesData(projects).toData())
+        val result = toCommandDataJson(Gson().toJson(GetDependenciesData(projects)))
         log(2, "  $result")
         return result
     }
+
+    /////
+    // The JSON payloads that this command uses
+    //
+
+    class DependencyData(val id: String, val scope: String, val path: String)
+
+    class ProjectData( val name: String, val dependencies: List<DependencyData>)
+
+    class GetDependenciesData(val projects: List<ProjectData>)
 }
-
-class DependencyData(val id: String, val scope: String, val path: String)
-
-class ProjectData( val name: String, val dependencies: List<DependencyData>)
-
-class GetDependenciesData(val projects: List<ProjectData>) {
-    fun toData() : CommandData {
-        val data = Gson().toJson(this)
-        return CommandData("getDependencies", data)
-    }
-}
-
-

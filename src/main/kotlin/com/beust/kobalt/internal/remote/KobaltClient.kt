@@ -47,7 +47,7 @@ public class KobaltClient @Inject constructor() : Runnable {
                         done = true
                     } else {
                         val data = jo.get("data").asString
-                        val dd = Gson().fromJson(data, GetDependenciesData::class.java)
+                        val dd = Gson().fromJson(data, GetDependenciesCommand.GetDependenciesData::class.java)
                         println("Read GetDependencyData, project count: ${dd.projects.size()}")
                         line = ins.readLine()
                     }
@@ -58,9 +58,5 @@ public class KobaltClient @Inject constructor() : Runnable {
                 attempts++
             }
         }
-    }
-
-    fun sendInfo(info: BuildFileCompiler.BuildScriptInfo) {
-        outgoing!!.println("Sending info with project count: " + info.projects.size())
     }
 }
