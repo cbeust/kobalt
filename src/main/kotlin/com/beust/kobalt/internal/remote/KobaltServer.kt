@@ -51,7 +51,7 @@ interface ICommandSender {
  * it into a Kotlin *Data class. The downside of this approach is a double parsing,
  * but since the data part is parsed as a string first, this is probably not a huge deal.
  */
-class CommandData(val commandName: String, val data: String)
+class CommandData(val name: String, val data: String)
 
 @Singleton
 public class KobaltServer @Inject constructor(val args: Args) : Runnable, ICommandSender {
@@ -66,14 +66,14 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
     override fun run() {
         val portNumber = args.port
 
-        log1("Listening to port $portNumber")
+        log(1, "Listening to port $portNumber")
         var quit = false
         val serverSocket = ServerSocket(portNumber)
         while (! quit) {
             val clientSocket = serverSocket.accept()
             outgoing = PrintWriter(clientSocket.outputStream, true)
             if (pending.size() > 0) {
-                log1("Emptying the queue, size $pending.size()")
+                log(1, "Emptying the queue, size $pending.size()")
                 synchronized(pending) {
                     pending.forEach { sendData(it) }
                     pending.clear()
@@ -83,10 +83,10 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
             try {
                 var line = ins.readLine()
                 while (!quit && line != null) {
-                    log1("Received from client $line")
+                    log(1, "Received from client $line")
                     val jo = JsonParser().parse(line) as JsonObject
                     if ("quit" == jo.get("name").asString) {
-                        log1("Quitting")
+                        log(1, "Quitting")
                         quit = true
                     } else {
                         runCommand(jo)
@@ -98,7 +98,7 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
                     }
                 }
             } catch(ex: SocketException) {
-                log1("Client disconnected, resetting")
+                log(1, "Client disconnected, resetting")
             }
         }
     }
@@ -117,19 +117,11 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
         if (outgoing != null) {
             outgoing!!.println(content)
         } else {
-            log1("Queuing $content")
+            log(1, "Queuing $content")
             synchronized(pending) {
                 pending.add(commandData)
             }
         }
-    }
-
-    private fun log1(s: String) {
-        log(1, "[KobaltServer] $s")
-    }
-
-    private fun log2(s: String) {
-        log(2, "[KobaltServer] $s")
     }
 }
 
