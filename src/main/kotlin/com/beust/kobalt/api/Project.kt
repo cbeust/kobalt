@@ -7,19 +7,19 @@ import com.beust.kobalt.misc.KFiles
 import java.util.ArrayList
 
 open public class Project(
-        open var name: String? = null,
-        open var version: String? = null,
-        open var directory: String = ".",
-        open var buildDirectory: String? = KFiles.KOBALT_BUILD_DIR,
-        open var group: String? = null,
-        open var artifactId: String? = null,
-        open var dependencies: Dependencies? = null,
-        open var sourceSuffix : String = "",
-        open var compilerInfo : ICompilerInfo,
-        open var description : String = "",
-        open var scm : Scm? = null,
-        open var url: String? = null,
-        open var licenses: List<License> = arrayListOf<License>()) {
+        @Directive open var name: String? = null,
+        @Directive open var version: String? = null,
+        @Directive open var directory: String = ".",
+        @Directive open var buildDirectory: String? = KFiles.KOBALT_BUILD_DIR,
+        @Directive open var group: String? = null,
+        @Directive open var artifactId: String? = null,
+        @Directive open var dependencies: Dependencies? = null,
+        @Directive open var sourceSuffix : String = "",
+        @Directive open var compilerInfo : ICompilerInfo,
+        @Directive open var description : String = "",
+        @Directive open var scm : Scm? = null,
+        @Directive open var url: String? = null,
+        @Directive open var licenses: List<License> = arrayListOf<License>()) {
 
     var testArgs: ArrayList<String> = arrayListOf()
 
