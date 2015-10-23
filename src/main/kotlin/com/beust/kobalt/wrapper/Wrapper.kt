@@ -44,7 +44,7 @@ public class Wrapper {
     private fun readProperties(properties: Properties, ins: InputStream) {
         properties.load(ins)
         ins.close()
-        properties.forEach { es -> System.setProperty(es.getKey().toString(), es.getValue().toString()) }
+        properties.forEach { es -> System.setProperty(es.key.toString(), es.value.toString()) }
     }
 
     private fun maybeCreateProperties() : Properties {
@@ -169,7 +169,7 @@ public class Wrapper {
         args.addAll(argv)
         val pb = ProcessBuilder(args)
         pb.inheritIO()
-        log(2, "Launching\n    ${args.join(" ")}")
+        log(2, "Launching\n    ${args.joinToString(" ")}")
         val process = pb.start()
         process.waitFor()
     }

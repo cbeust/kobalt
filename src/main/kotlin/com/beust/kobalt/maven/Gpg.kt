@@ -47,7 +47,7 @@ public class Gpg {
 
                 val pb = ProcessBuilder(allArgs)
                 pb.directory(directory)
-                log(2, "Signing file: " + allArgs.join(" "))
+                log(2, "Signing file: " + allArgs.joinToString(" "))
                 val process = pb.start()
 
                 val br = BufferedReader(InputStreamReader(process.errorStream))

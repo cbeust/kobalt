@@ -63,7 +63,7 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
 
         fun hasVersion(id: String) : Boolean {
             val c = id.split(":")
-            return c.size() == 3 && !Strings.isEmpty(c[2])
+            return c.size == 3 && !Strings.isEmpty(c[2])
         }
 
         fun toId(g: String, a: String, v: String) = "$g:$a:$v"

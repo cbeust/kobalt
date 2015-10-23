@@ -67,7 +67,7 @@ public class PublishPlugin @Inject constructor(val http: Http, val files: com.be
 
         val jcenter = jcenterFactory.create(user, password)
 
-        val configuration = configurations.get(project.name)
+        val configuration = configurations.getRaw(project.name)
 
         //
         // Upload to Maven
@@ -89,7 +89,7 @@ public class PublishPlugin @Inject constructor(val http: Http, val files: com.be
                 }
             }
         }
-        return TaskResult(success, messages.join("\n  "))
+        return TaskResult(success, messages.joinToString("\n  "))
     }
 
     /**

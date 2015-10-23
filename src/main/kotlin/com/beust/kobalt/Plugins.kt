@@ -73,7 +73,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
         }
 
         public val plugins : List<Plugin>
-            get() = ArrayList(pluginMap.values())
+            get() = ArrayList(pluginMap.values)
 
         /**
          * The list of plugins found in the build file.
@@ -157,7 +157,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
         if (method.returnType != TaskResult::class.java) {
             throw IllegalArgumentException("${t}should return a TaskResult")
         }
-        if (method.parameterTypes.size() != 1) {
+        if (method.parameterTypes.size != 1) {
             throw IllegalArgumentException("${t}should take exactly one parameter of type a Project")
         }
         with(method.parameterTypes) {

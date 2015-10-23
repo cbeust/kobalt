@@ -34,7 +34,7 @@ open public class LocalRepo(open val localRepo: String = KFiles.localRepo) {
 
         if (files != null) {
             val directories = files.filter { it.isDirectory }
-            if (directories.size() > 0) {
+            if (directories.size > 0) {
                 Collections.sort(directories, { f1, f2 ->
                     val v1 = Versions.toLongVersion(f1.name)
                     val v2 = Versions.toLongVersion(f2.name)

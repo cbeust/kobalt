@@ -45,7 +45,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
      */
     public fun run() : Int {
         var lastResult = TaskResult()
-        while (graph.freeNodes.size() > 0) {
+        while (graph.freeNodes.size > 0) {
             log(3, "Current count: ${graph.nodeCount}")
             synchronized(graph) {
                 val freeNodes = graph.freeNodes
@@ -53,10 +53,10 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
                 log(3, "submitting free nodes $freeNodes")
                 val callables : List<IWorker<T>> = factory.createWorkers(freeNodes)
                 callables.forEach { completion.submit(it) }
-                var n = callables.size()
+                var n = callables.size
 
                 // When a callable ends, see if it freed a node. If not, keep looping
-                while (n > 0 && graph.freeNodes.size() == 0) {
+                while (n > 0 && graph.freeNodes.size == 0) {
                     try {
                         val future = completion.take()
                         val taskResult = future.get(2, TimeUnit.SECONDS)
@@ -137,7 +137,7 @@ public class DynamicGraph<T> {
                 // - no other nodes depend on it
                 if (! dependedUpon.containsKey(m)) {
                     result.add(m)
-                } else if (getUnfinishedNodes(du).size() == 0) {
+                } else if (getUnfinishedNodes(du).size == 0) {
                     result.add(m)
                 }
             }
@@ -221,7 +221,7 @@ public class DynamicGraph<T> {
      * @return the number of nodes in this graph.
      */
     public val nodeCount: Int
-        get() = nodesReady.size() + nodesRunning.size() + nodesFinished.size()
+        get() = nodesReady.size + nodesRunning.size + nodesFinished.size
 
     override public fun toString() : String {
         val result = StringBuilder("[DynamicGraph ")

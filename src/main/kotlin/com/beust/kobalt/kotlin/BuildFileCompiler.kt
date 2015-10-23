@@ -122,7 +122,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         // will add all the dynamic plugins found in this code to Plugins.dynamicPlugins
         //
         val pluginSourceFile = KFiles.createTempFile(".kt")
-        pluginSourceFile.writeText(pluginCode.join("\n"), Charset.defaultCharset())
+        pluginSourceFile.writeText(pluginCode.joinToString("\n"), Charset.defaultCharset())
         log(2, "Saved ${pluginSourceFile.absolutePath}")
 
         //
@@ -180,7 +180,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
             while (entry != null) {
                 val name = entry.name;
                 if (name.endsWith(".class")) {
-                    val className = name.substring(0, name.length() - 6).replace("/", ".")
+                    val className = name.substring(0, name.length - 6).replace("/", ".")
                     var cl : Class<*>? = classLoader.loadClass(className)
                     if (cl != null) {
                         classes.add(cl)

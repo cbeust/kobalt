@@ -48,7 +48,7 @@ public class KobaltClient @Inject constructor() : Runnable {
                     } else {
                         val data = jo.get("data").asString
                         val dd = Gson().fromJson(data, GetDependenciesCommand.GetDependenciesData::class.java)
-                        println("Read GetDependencyData, project count: ${dd.projects.size()}")
+                        println("Read GetDependencyData, project count: ${dd.projects.size}")
                         line = ins.readLine()
                     }
                 }

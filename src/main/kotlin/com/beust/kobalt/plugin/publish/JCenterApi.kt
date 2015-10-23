@@ -1,6 +1,5 @@
 package com.beust.kobalt.plugin.publish
 
-import com.beust.klaxon.*
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.Gpg
@@ -8,6 +7,9 @@ import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.maven.Md5
 import com.beust.kobalt.misc.*
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.google.inject.assistedinject.Assisted
 import com.squareup.okhttp.Response
 import org.jetbrains.annotations.Nullable
@@ -17,8 +19,8 @@ import java.nio.charset.Charset
 import javax.inject.Inject
 
 data class JCenterPackage(val jo: JsonObject) {
-    @Suppress("UNCHECKED_CAST")
-    val latestPublishedVersion = (jo.get("versions") as JsonArray<String>).get(0)
+//    @Suppress("UNCHECKED_CAST")
+//    val latestPublishedVersion = (jo.get("versions") as JsonArray).get(0) as JsonObject).
 }
 
 open public class UnauthenticatedJCenterApi @Inject constructor(open val http: Http){
@@ -28,11 +30,12 @@ open public class UnauthenticatedJCenterApi @Inject constructor(open val http: H
     }
 
     fun parseResponse(response: String) : JsonObject {
-        return Parser().parse(ByteArrayInputStream(response.toByteArray(Charset.defaultCharset()))) as JsonObject
+        return JsonParser().parse(response).asJsonObject
+//        return Parser().parse(ByteArrayInputStream(response.toByteArray(Charset.defaultCharset()))) as JsonObject
     }
 
     fun getPackage(name: String) : JCenterPackage {
-        val url = arrayListOf(BINTRAY_URL_API, "packages", "cbeust", "maven", "kobalt").join("/")
+        val url = arrayListOf(BINTRAY_URL_API, "packages", "cbeust", "maven", "kobalt").joinToString("/")
         val response = http.get(url).getAsString()
         val result = parseResponse(response)
         return JCenterPackage(result)
@@ -53,21 +56,20 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
 
     fun packageExists(packageName: String) : Boolean {
         val url = arrayListOf(UnauthenticatedJCenterApi.BINTRAY_URL_API, "packages", username!!, "maven", packageName)
-                .join("/")
+                .joinToString("/")
         val response = http.get(username, password, url).getAsString()
         val jo = parseResponse(response)
 
-        return jo.string("name") == packageName
+        return jo.get("name").asString == packageName
     }
 
-    fun createPackage(packageName: String) : String {
-        val url = arrayListOf(UnauthenticatedJCenterApi.BINTRAY_URL_API, "packages", username!!, "maven").join("/")
-        val jo = json {
-            obj("name" to packageName)
-            obj("license" to array("Apache 2.0"))
-        }
-        return http.post(username, password, url, jo.toJsonString())
-    }
+//    class ForPost(val name: String, val license: Array<String>)
+//
+//    fun createPackage(packageName: String) : String {
+//        val url = arrayListOf(UnauthenticatedJCenterApi.BINTRAY_URL_API, "packages", username!!, "maven").join("/")
+//        val jsonString = Gson().toJson(ForPost(packageName, arrayOf("Apache 2.0")))
+//        return http.post(username, password, url, jsonString)
+//    }
 
     fun uploadMaven(project: Project, files: List<File>, configuration : JCenterConfiguration?) : TaskResult {
         if (! packageExists(project.name!!)) {
@@ -86,7 +88,7 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
                     project.artifactId!!,
                     project.version!!,
                     f.name)
-                .join("/")
+                    .joinToString("/")
         }
 
         return upload(files, configuration, fileToPath, generateMd5 = true, generateAsc = true)
@@ -126,14 +128,14 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
         if (configuration?.publish == true) options.add("publish=1")
 
         val optionPath = StringBuffer()
-        if (options.size() > 0) {
-            optionPath.append("?" + options.join("&"))
+        if (options.size > 0) {
+            optionPath.append("?" + options.joinToString("&"))
         }
 
         //
         // Uploads can'be done in parallel or JCenter rejects them
         //
-        val fileCount = filesToUpload.size()
+        val fileCount = filesToUpload.size
         if (fileCount > 0) {
             log(1, "  Found $fileCount artifacts to upload: " + filesToUpload.get(0)
                     + if (fileCount > 1) "..." else "")
@@ -142,8 +144,8 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
 
 
             fun dots(total: Int, list: List<Boolean>) : String {
-                val spaces : String = Array(total - list.size(), { " " }).join("")
-                return "|" + list.map { if (it) "." else "X" }.join("") + spaces + "|"
+                val spaces : String = Array(total - list.size, { " " }).joinToString("")
+                return "|" + list.map { if (it) "." else "X" }.joinToString("") + spaces + "|"
             }
 
             val results = arrayListOf<Boolean>()
@@ -153,7 +155,7 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
                         { r: Response ->
                             results.add(false)
                             val jo = parseResponse(r.body().string())
-                            errorMessages.add(jo.string("message") ?: "No message found")
+                            errorMessages.add(jo.get("message").asString ?: "No message found")
                         })
                 val end = if (i >= fileCount) "\n" else ""
                 log(1, "    Uploading " + (i++) + " / $fileCount " + dots(fileCount, results) + end, false)
@@ -161,8 +163,8 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
             if (errorMessages.isEmpty()) {
                 return TaskResult()
             } else {
-                error("Errors while uploading:\n" + errorMessages.map { "    $it" }.join("\n"))
-                return TaskResult(false, errorMessages.join("\n"))
+                error("Errors while uploading:\n" + errorMessages.map { "    $it" }.joinToString("\n"))
+                return TaskResult(false, errorMessages.joinToString("\n"))
             }
         } else {
             warn("Found no artifacts to upload")

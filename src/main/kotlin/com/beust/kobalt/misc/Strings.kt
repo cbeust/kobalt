@@ -26,6 +26,6 @@ public class Strings {
 /**
  * @Return the number of times the given character occurs in the string
  */
-public fun String.countChar(c: Char) : Int {
+public infix fun String.countChar(c: Char) : Int {
     return CharMatcher.`is`(c).countIn(this)
 }

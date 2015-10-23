@@ -25,7 +25,7 @@ class Topological<T> {
         val result = arrayListOf<T>()
         var dependMap = HashMultimap.create<T, T>()
         dependingOn.keySet().forEach { dependMap.putAll(it, dependingOn.get(it))}
-        while (all.size() > 0) {
+        while (all.size > 0) {
             val freeNodes = all.filter {
                 dependMap.get(it).isEmpty()
             }

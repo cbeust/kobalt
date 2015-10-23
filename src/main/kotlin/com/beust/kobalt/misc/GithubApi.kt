@@ -1,11 +1,12 @@
 package com.beust.kobalt.misc
 
-import com.beust.klaxon.JsonArray
-import com.beust.klaxon.JsonObject
-import com.beust.klaxon.Parser
-import com.beust.klaxon.string
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.google.inject.Inject
+import java.io.BufferedReader
 import java.io.IOException
+import java.io.InputStreamReader
 import java.net.URL
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
@@ -26,11 +27,13 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
                 try {
                     val ins = URL(url).openConnection().inputStream
                     @Suppress("UNCHECKED_CAST")
-                    val jo = Parser().parse(ins) as JsonArray<JsonObject>
+                    val reader = BufferedReader(InputStreamReader(ins))
+                    val jo = JsonParser().parse(reader) as JsonArray
+//                    val jo = Parser().parse(ins) as JsonArray<JsonObject>
                     if (jo.size() > 0) {
-                        var versionName = jo.get(0).string("name")
+                        var versionName = (jo.get(0) as JsonObject).get("name").asString
                         if (versionName == null) {
-                            versionName = jo.get(0).string("tag_name")
+                            versionName = (jo.get(0) as JsonObject).get("tag_name").asString
                         }
                         if (versionName != null) {
                             result = versionName

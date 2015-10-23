@@ -80,7 +80,7 @@ public class Kobalt {
         private fun readProperties(properties: Properties, ins: InputStream) {
             properties.load(ins)
             ins.close()
-            properties.forEach { es -> System.setProperty(es.getKey().toString(), es.getValue().toString()) }
+            properties.forEach { es -> System.setProperty(es.key.toString(), es.value.toString()) }
         }
 
         val version = properties.getProperty(PROPERTY_KOBALT_VERSION)

@@ -50,11 +50,11 @@ public class JavaPlugin @Inject constructor(
         val args = arrayListOf(
                 javac!!.absolutePath,
                 "-d", outputDirectory.absolutePath)
-        if (cpList.size() > 0) {
+        if (cpList.size > 0) {
             val stringClasspath = cpList.map { it.jarFile.get().absolutePath }
             validateClasspath(stringClasspath)
             args.add("-classpath")
-            args.add(stringClasspath.join(File.pathSeparator))
+            args.add(stringClasspath.joinToString(File.pathSeparator))
         }
         args.addAll(sourceFiles)
 
@@ -64,8 +64,8 @@ public class JavaPlugin @Inject constructor(
         //        pb.redirectErrorStream(true)
         //        pb.redirectError(File("/tmp/kobalt-err"))
         //        pb.redirectOutput(File("/tmp/kobalt-out"))
-        val line = args.join(" ")
-        log(1, "  Compiling ${sourceFiles.size()} files with classpath size ${cpList.size()}")
+        val line = args.joinToString(" ")
+        log(1, "  Compiling ${sourceFiles.size} files with classpath size ${cpList.size}")
         log(2, "  Compiling $project:\n$line")
         val process = pb.start()
         val errorCode = process.waitFor()
@@ -89,7 +89,7 @@ public class JavaPlugin @Inject constructor(
         val classpath = calculateClasspath(project.compileDependencies)
         val args = arrayListOf(
                 javadoc!!.absolutePath,
-                "-classpath", classpath.map { it.jarFile.get().absolutePath }.join(File.pathSeparator),
+                "-classpath", classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator),
                 "-d", outputDir.absolutePath)
         args.addAll(sourceFiles)
 
@@ -127,7 +127,7 @@ public class JavaPlugin @Inject constructor(
                 .map { File(projectDir, it).absolutePath }
 
         val result =
-            if (absoluteSourceFiles.size() > 0) {
+            if (absoluteSourceFiles.size > 0) {
                 compilePrivate(project,
                         testDependencies(project),
                         absoluteSourceFiles,

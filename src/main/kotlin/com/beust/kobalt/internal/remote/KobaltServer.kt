@@ -72,7 +72,7 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
         while (! quit) {
             val clientSocket = serverSocket.accept()
             outgoing = PrintWriter(clientSocket.outputStream, true)
-            if (pending.size() > 0) {
+            if (pending.size > 0) {
                 log(1, "Emptying the queue, size $pending.size()")
                 synchronized(pending) {
                     pending.forEach { sendData(it) }

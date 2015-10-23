@@ -79,7 +79,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                         val currentFreeTask = allFreeTasks.filter {
                             TaskInfo(projectName, it.name).id == target
                         }
-                        if (currentFreeTask.size() == 1) {
+                        if (currentFreeTask.size == 1) {
                             currentFreeTask.get(0).let {
                                 val thisTaskInfo = TaskInfo(projectName, it.name)
                                 graph.addNode(it)
@@ -150,13 +150,13 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
     private fun calculateFreeTasks(tasksByNames: Map<String, PluginTask>, reverseAfter: HashMap<String, String>)
             : Collection<PluginTask> {
         val freeTaskMap = hashMapOf<String, PluginTask>()
-        tasksByNames.keySet().forEach {
+        tasksByNames.keys.forEach {
             if (! runBefore.containsKey(it) && ! reverseAfter.containsKey(it)) {
                 freeTaskMap.put(it, tasksByNames.get(it)!!)
             }
         }
 
-        return freeTaskMap.values()
+        return freeTaskMap.values
     }
 
     /**
@@ -172,7 +172,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
         var done = false
         while (! done) {
             val newToProcess = hashSetOf<TaskInfo>()
-            log(3, "toProcess size: " + toProcess.size())
+            log(3, "toProcess size: " + toProcess.size)
             toProcess.forEach { target ->
 
                 val currentTask = TaskInfo(project.name!!, target.task)
@@ -209,7 +209,7 @@ class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean) : IWorker<Plu
 //    }
 
     override fun call() : TaskResult2<PluginTask> {
-        if (tasks.size() > 0) {
+        if (tasks.size > 0) {
             tasks.get(0).let {
                 log(1, "========== ${it.project.name}:${it.name}")
             }

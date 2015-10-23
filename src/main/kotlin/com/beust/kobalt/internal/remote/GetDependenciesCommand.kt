@@ -28,7 +28,7 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
         val buildFile = BuildFile(Paths.get(received.get("buildFile").asString), "GetDependenciesCommand")
         val scriptCompiler = buildFileCompilerFactory.create(listOf(buildFile))
         scriptCompiler.observable.subscribe {
-            buildScriptInfo -> if (buildScriptInfo.projects.size() > 0) {
+            buildScriptInfo -> if (buildScriptInfo.projects.size > 0) {
                 sender.sendData(toData(buildScriptInfo))
             }
         }

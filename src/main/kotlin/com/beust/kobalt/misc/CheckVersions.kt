@@ -33,7 +33,7 @@ public class CheckVersions @Inject constructor(val depFactory : DepFactory,
             }
         }
 
-        if (newVersions.size() > 0) {
+        if (newVersions.size > 0) {
             log(1, "New versions found:")
             newVersions.forEach { log(1, "        ${it}") }
         } else {

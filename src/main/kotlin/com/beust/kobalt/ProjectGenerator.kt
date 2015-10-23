@@ -24,7 +24,8 @@ public class ProjectGenerator {
          * Turns a dot property into a proper Kotlin identifier, e.g. common.version -> commonVersion
          */
         fun translate(key: String): String {
-            return key.split('.').mapIndexed( { index, value -> if (index == 0) value else value.upperFirst() }).join("")
+            return key.split('.').mapIndexed( { index, value -> if (index == 0) value else value.upperFirst() })
+                    .joinToString("")
         }
     }
 
@@ -35,12 +36,12 @@ public class ProjectGenerator {
         }
 
         val compilerInfos = detect(File("."))
-        if (compilerInfos.size() > 1) {
+        if (compilerInfos.size > 1) {
             log(1, "Multi language project detected, not supported yet")
         }
         val map = hashMapOf<String, Any?>()
         map.put("directive", if (compilerInfos.isEmpty()) "project" else compilerInfos.get(0).directive)
-        if (compilerInfos.size() > 0) {
+        if (compilerInfos.size > 0) {
             compilerInfos.get(0).let {
                 val currentDir = File(".").absoluteFile.parentFile
                 with(map) {
@@ -83,15 +84,13 @@ public class ProjectGenerator {
             put("artifactId", pom.artifactId ?: "com.example")
             put("version", pom.version ?: "0.1")
             put("name", pom.name ?: pom.artifactId)
-            put("repositories", pom.repositories.map({ "\"${it}\"" }).join(","))
+            put("repositories", pom.repositories.map({ "\"${it}\"" }).joinToString(","))
         }
 
         val properties = pom.properties
-        val mapped = properties.entrySet().toMap({it.key}, {translate(it.key)})
+        val mapped = properties.entries.toMap({it.key}, {translate(it.key)})
 
-        map.put("properties", properties
-              .entrySet()
-              .map({ Pair(mapped.get(it.key), it.value) }))
+        map.put("properties", properties.entries.map({ Pair(mapped.get(it.key), it.value) }))
         
         val partition = pom.dependencies.groupBy { it.scope }
               .flatMap { it.value }
@@ -105,7 +104,7 @@ public class ProjectGenerator {
 
     private fun updateVersion(dep: Dependency, mapped: Map<String, String>) =
         if ( dep.version.startsWith("\${")) {
-            val property = dep.version.substring(2, dep.version.length() - 1)
+            val property = dep.version.substring(2, dep.version.length - 1)
             Dependency(dep.groupId, dep.artifactId, "\${${mapped.get(property)}}", dep.optional, dep.scope)
         } else {
             dep
@@ -119,11 +118,11 @@ public class ProjectGenerator {
         val result = arrayListOf<Pair<ICompilerInfo, List<File>>>()
         Kobalt.compilers.forEach {
             val managedFiles = it.findManagedFiles(dir)
-            if (managedFiles.size() > 0) {
+            if (managedFiles.size > 0) {
                 result.add(Pair(it, managedFiles))
             }
         }
-        Collections.sort(result, { p1, p2 -> p1.second.size().compareTo(p2.second.size()) })
+        Collections.sort(result, { p1, p2 -> p1.second.size.compareTo(p2.second.size) })
         return result.map { it.first }
     }
 }

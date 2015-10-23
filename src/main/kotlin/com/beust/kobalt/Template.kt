@@ -10,8 +10,8 @@ public class Template(val reader: Reader, val writer: PrintWriter, val map: Map<
         BufferedReader(reader).let {
             it.forEachLine { line ->
                 var replacedLine = line
-                map.keySet().forEach { key ->
-                    replacedLine = replacedLine.replace("{{${key}}}", map.get(key).toString(), false)
+                map.keys.forEach { key ->
+                    replacedLine = replacedLine.replace("{{$key}}", map.get(key).toString(), false)
                 }
                 writer.append(replacedLine).append("\n")
             }

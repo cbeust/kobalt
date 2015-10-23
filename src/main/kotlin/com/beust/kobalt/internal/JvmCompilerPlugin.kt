@@ -99,7 +99,7 @@ abstract public class JvmCompilerPlugin @Inject constructor(
             throw IllegalArgumentException("Custom source sets not supported yet: ${sourceSet}")
         }
 
-        if (sourceDirs.size() > 0) {
+        if (sourceDirs.size > 0) {
             lp(project, "Copying ${sourceSet} resources")
             val absOutputDir = File(KFiles.joinDir(project.directory, project.buildDirectory!!, outputDir))
             sourceDirs.map { File(it) }.filter { it.exists() } .forEach {

@@ -51,7 +51,7 @@ class Logger(val dev: Boolean) {
 
     final fun error(tag: String, message: String, e: Throwable? = null) =
         println(getPattern("***** E", "***** ERROR ", tag, message) +
-                if (e != null) " Exception: " + e.getMessage() else "")
+                if (e != null) " Exception: " + e.message else "")
 
     final fun warn(tag: String, message: String, e: Throwable? = null) =
         println(getPattern("W", "***** WARNING ", tag, message))

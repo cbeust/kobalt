@@ -29,7 +29,7 @@ public class Http {
             val response = client.newCall(request.build()).execute()
             return Body(response.body(), response.code())
         } catch(ex: IOException) {
-            throw KobaltException("Could not load URL ${url}, error: " + ex.getMessage(), ex)
+            throw KobaltException("Could not load URL ${url}, error: " + ex.message, ex)
         }
     }
 

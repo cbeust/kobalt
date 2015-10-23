@@ -57,7 +57,7 @@ public class JarUtils {
 
         val defaultHandler: (Exception) -> Unit = { ex: Exception ->
             // Ignore duplicate entry exceptions
-            if (! ex.getMessage()?.contains("duplicate")!!) {
+            if (! ex.message?.contains("duplicate")!!) {
                 throw ex
             }
         }

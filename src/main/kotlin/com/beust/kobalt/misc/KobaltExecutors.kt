@@ -29,13 +29,13 @@ class KobaltExecutor(name: String, threadCount: Int)
             } catch (ce: CancellationException) {
                 ex = ce;
             } catch (ee: ExecutionException) {
-                ex = ee.getCause();
+                ex = ee.cause;
             } catch (ie: InterruptedException) {
                 Thread.currentThread().interrupt(); // ignore/reset
             }
         }
         if (ex != null) {
-            error(if (ex.getMessage() != null) ex.getMessage()!! else ex.javaClass.toString())
+            error(if (ex.message != null) ex.message!! else ex.javaClass.toString())
         }
     }
 }
@@ -61,7 +61,7 @@ public class KobaltExecutors {
 
         var remainingMs = maxMs
         var i = 0
-        while (i < tasks.size() && remainingMs >= 0) {
+        while (i < tasks.size && remainingMs >= 0) {
             var start = System.currentTimeMillis()
             val r = cs.take().get(remainingMs, TimeUnit.MILLISECONDS)
             progress(r)
@@ -72,7 +72,7 @@ public class KobaltExecutors {
         }
 
         if (remainingMs < 0) {
-            warn("Didn't receive all the results in time: $i / ${tasks.size()}")
+            warn("Didn't receive all the results in time: $i / ${tasks.size}")
         } else {
             log(2, "Received all results in ${maxMs - remainingMs} ms")
         }

@@ -53,12 +53,11 @@ val kobalt = kotlinProject(wrapper) {
     }
 
     dependencies {
-        compile("org.jetbrains.kotlin:kotlin-stdlib:0.14.449",
-                "org.jetbrains.kotlin:kotlin-compiler-embeddable:0.14.449",
+        compile("org.jetbrains.kotlin:kotlin-stdlib:1.0.0-beta-1038",
+                "org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.0-beta-1038",
 
 //                file(homeDir("java/jcommander/target/jcommander-1.47.jar")),
                 "com.beust:jcommander:1.48",
-                "com.beust:klaxon:0.16",
                 "com.squareup.okhttp:okhttp:2.5.0",
                 "org.jsoup:jsoup:1.8.3",
                 "com.google.inject:guice:4.0",
@@ -80,7 +79,7 @@ val assembleKobalt = assemble(kobalt) {
     mavenJars {
         fatJar = true
         manifest {
-            attributes("Main-Class", "com.beust.kobalt.KobaltPackage")
+            attributes("Main-Class", "com.beust.kobalt.MainKt")
         }
     }
     zip {
@@ -92,9 +91,9 @@ val assembleKobalt = assemble(kobalt) {
     }
 }
 
-val cs = kotlinCompiler {
-    args("-nowarn")
-}
+//val cs = kotlinCompiler {
+//    args("-nowarn")
+//}
 
 
 val jc = jcenter(kobalt) {

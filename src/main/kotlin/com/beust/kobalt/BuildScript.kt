@@ -11,7 +11,7 @@ import java.io.File
 
 @Directive
 fun homeDir(vararg dirs: String) : String = SystemProperties.homeDir +
-        File.separator + dirs.toArrayList().join(File.separator)
+        File.separator + dirs.toArrayList().joinToString(File.separator)
 
 @Directive
 fun file(file: String) : String = IClasspathDependency.PREFIX_FILE + file

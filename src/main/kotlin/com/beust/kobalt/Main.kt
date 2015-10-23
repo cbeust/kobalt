@@ -139,7 +139,7 @@ private class Main @Inject constructor(
                     //
                     val sb = StringBuffer("List of tasks\n")
                     Plugins.plugins.forEach { plugin ->
-                        if (plugin.tasks.size() > 0) {
+                        if (plugin.tasks.size > 0) {
                             sb.append("\n  ===== ${plugin.name} =====\n")
                             plugin.tasks.forEach { task ->
                                 sb.append("    ${task.name}\t\t${task.doc}\n")

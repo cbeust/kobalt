@@ -20,7 +20,7 @@ class AsciiArt {
                 "           |_|\\_\\  \\___/  |_.__/   \\__,_| |_|  \\__|  "
         )
 
-        val banner : String get() = BANNERS.get(Random().nextInt(BANNERS.size()))
+        val banner : String get() = BANNERS.get(Random().nextInt(BANNERS.size))
 
         fun box(s: String) : List<String> {
             val ul = "\u2554"
@@ -38,9 +38,9 @@ class AsciiArt {
             }
 
             return arrayListOf(
-                    ul + r(s.length() + 2, h) + ur,
+                    ul + r(s.length + 2, h) + ur,
                     "$v $s $v",
-                    bl + r(s.length() + 2, h) + br)
+                    bl + r(s.length + 2, h) + br)
         }
 
         fun logBox(s: String) {

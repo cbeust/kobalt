@@ -16,7 +16,7 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
     public fun create(id: String, executor: ExecutorService,
             localFirst : Boolean = true) : IClasspathDependency {
         if (id.startsWith(IClasspathDependency.PREFIX_FILE)) {
-            return FileDependency(id.substring(IClasspathDependency.PREFIX_FILE.length()))
+            return FileDependency(id.substring(IClasspathDependency.PREFIX_FILE.length))
         } else {
             val c = id.split(":")
             var repoResult: RepoFinder.RepoResult?

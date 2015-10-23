@@ -66,7 +66,7 @@ public class PackagingPlugin @Inject constructor(val dependencyManager : Depende
                 ex.add(FileSystems.getDefault().getPathMatcher("glob:${it.spec}"))
             }
             ex.forEach {
-                if (it.matches(Paths.get(file.getName()))) {
+                if (it.matches(Paths.get(file.name))) {
                     log(2, "Excluding ${file}")
                     return true
                 }
@@ -129,7 +129,7 @@ public class PackagingPlugin @Inject constructor(val dependencyManager : Depende
             val filesNotExcluded : List<File> = files.filter { ! isExcluded(it, jar.excludes) }
             val fileSpecs = arrayListOf<IFileSpec>()
             filesNotExcluded.forEach {
-                fileSpecs.add(FileSpec(it.path.toString().substring(prefixPath.toString().length() + 1)))
+                fileSpecs.add(FileSpec(it.path.toString().substring(prefixPath.toString().length + 1)))
             }
             allFiles.add(IncludedFile(From(prefixPath.toString() + "/"), To(""), fileSpecs))
         } else {
@@ -189,7 +189,7 @@ public class PackagingPlugin @Inject constructor(val dependencyManager : Depende
                     warn("Directory ${fromPath} doesn't exist, not including it in the jar")
                 }
             }
-            if (includedSpecs.size() > 0) {
+            if (includedSpecs.size > 0) {
                 log(3, "Including specs ${includedSpecs}")
                 result.add(IncludedFile(From(includedFile.from), To(includedFile.to), includedSpecs))
             }
@@ -210,12 +210,12 @@ public class PackagingPlugin @Inject constructor(val dependencyManager : Depende
             outputStreamFactory: (OutputStream) -> ZipOutputStream = DEFAULT_STREAM_FACTORY) : File {
         val buildDir = KFiles.makeDir(project.directory, project.buildDirectory!!)
         val archiveDir = KFiles.makeDir(buildDir.path, "libs")
-        val fullArchiveName = archiveName ?: arrayListOf(project.name!!, project.version!!).join("-") + suffix
+        val fullArchiveName = archiveName ?: arrayListOf(project.name!!, project.version!!).joinToString("-") + suffix
         val result = File(archiveDir.path, fullArchiveName)
         val outStream = outputStreamFactory(FileOutputStream(result))
         log(2, "Creating ${result}")
         JarUtils.addFiles(project.directory, includedFiles, outStream, expandJarFiles)
-        log(2, "Added ${includedFiles.size()} files to ${result}")
+        log(2, "Added ${includedFiles.size} files to ${result}")
         outStream.flush()
         outStream.close()
         log(1, "  Created ${result}")
@@ -360,7 +360,7 @@ class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<I
     public val from: String get() = fromOriginal.path.replace("\\", "/")
     public val to: String get() = toOriginal.path.replace("\\", "/")
     override public fun toString() = ToString("IncludedFile",
-            "files", specs.map { it.toString() }.join(", "),
+            "files", specs.map { it.toString() }.joinToString(", "),
             "from", from,
             "to", to)
         .s

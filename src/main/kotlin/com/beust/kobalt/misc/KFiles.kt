@@ -55,7 +55,7 @@ public class KFiles {
 
         public val TEST_CLASSES_DIR : String = "test-classes"
 
-        public fun joinDir(vararg ts: String): String = ts.toArrayList().join(File.separator)
+        public fun joinDir(vararg ts: String): String = ts.toArrayList().joinToString(File.separator)
 
         public fun makeDir(dir: String, s: String) : File {
             val result = File(dir, s)
@@ -85,7 +85,7 @@ public class KFiles {
                 }
             }
             // Return files relative to rootDir
-            val r = result.map { it.substring(rootDir.absolutePath.length() + 1)}
+            val r = result.map { it.substring(rootDir.absolutePath.length + 1)}
             return r
         }
 
@@ -146,7 +146,7 @@ public class KFiles {
                     Files.copy(from, to, option)
                 } catch(ex: IOException) {
                     // Windows is anal about this
-                    log(1, "Couldn't copy $from to $to: ${ex.getMessage()}")
+                    log(1, "Couldn't copy $from to $to: ${ex.message}")
                 }
             }
         }

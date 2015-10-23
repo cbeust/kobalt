@@ -39,13 +39,13 @@ public class RepoFinder @Inject constructor(val http: Http, val executors: Kobal
      * Schedule an HTTP request to each repo in its own thread.
      */
     private fun loadCorrectRepo(id: String): RepoResult {
-        val executor = executors.newExecutor("RepoFinder-${id}", Kobalt.repos.size())
+        val executor = executors.newExecutor("RepoFinder-${id}", Kobalt.repos.size)
         val cs = ExecutorCompletionService<RepoResult>(executor)
 
         try {
             log(2, "Looking for $id")
             Kobalt.repos.forEach { cs.submit(RepoFinderCallable(id, it)) }
-            for (i in 0..Kobalt.repos.size() - 1) {
+            for (i in 0..Kobalt.repos.size - 1) {
                 try {
                     val result = cs.take().get(2000, TimeUnit.MILLISECONDS)
                     log(2, "Result for repo #${i}: ${result}")

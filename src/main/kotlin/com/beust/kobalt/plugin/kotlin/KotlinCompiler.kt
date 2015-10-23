@@ -24,7 +24,7 @@ class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
         override val dependencyManager: DependencyManager,
         override val executors: KobaltExecutors)
         : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors) {
-    private val KOTLIN_VERSION = "0.14.449"
+    private val KOTLIN_VERSION = "1.0.0-beta-1038"
 
     override val name = "kotlin"
 
@@ -52,10 +52,10 @@ class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
 
         validateClasspath(classpathList)
 
-        log(2, "Compiling ${source.size()} files with classpath:\n  " + classpathList.join("\n  "))
+        log(2, "Compiling ${source.size} files with classpath:\n  " + classpathList.joinToString("\n  "))
         CLICompiler.doMainNoExit(K2JVMCompiler(), arrayOf(
                 "-d", output,
-                "-classpath", classpathList.join(File.pathSeparator), *source.toTypedArray(),
+                "-classpath", classpathList.joinToString(File.pathSeparator), *source.toTypedArray(),
                 *args.toTypedArray()))
         executor.shutdown()
         return TaskResult()

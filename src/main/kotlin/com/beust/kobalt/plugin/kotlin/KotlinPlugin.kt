@@ -53,7 +53,7 @@ public class KotlinPlugin @Inject constructor(
             File(projectDirectory, it).absolutePath
         }
 
-        compilePrivate(classpath, absoluteSourceFiles, buildDirectory.getAbsolutePath())
+        compilePrivate(classpath, absoluteSourceFiles, buildDirectory.absolutePath)
         lp(project, "Compilation succeeded")
         return TaskResult()
     }
@@ -83,7 +83,7 @@ public class KotlinPlugin @Inject constructor(
             outputDirectory: String): TaskResult {
         File(outputDirectory).mkdirs()
 
-        log(1, "  Compiling ${sources.size()} files with classpath size ${cpList.size()}")
+        log(1, "  Compiling ${sources.size} files with classpath size ${cpList.size}")
 
         return kotlinCompilePrivate {
             classpath(cpList.map { it.jarFile.get().absolutePath })
