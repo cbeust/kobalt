@@ -346,7 +346,7 @@ open class Zip(open var name: String? = null) {
     val includedFiles = arrayListOf<IncludedFile>()
 }
 
-private open class Direction(open val p: String) {
+open class Direction(open val p: String) {
     override public fun toString() = path
     public val path: String get() = if (p.isEmpty() or p.endsWith("/")) p else p + "/"
 }
