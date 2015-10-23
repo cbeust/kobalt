@@ -91,50 +91,12 @@ val assembleKobalt = assemble(kobalt) {
     }
 }
 
-//val cs = kotlinCompiler {
-//    args("-nowarn")
-//}
-
+val cs = kotlinCompiler {
+    args("-nowarn")
+}
 
 val jc = jcenter(kobalt) {
     publish = true
     file("${kobalt.buildDirectory}/libs/${kobalt.name}-${kobalt.version}.zip",
             "${kobalt.name}/${kobalt.version}/${kobalt.name}-${kobalt.version}.zip")
 }
-
-//val testng = javaProject {
-//    name = "testng"
-//    group = "org.testng"
-//    artifactId = name
-//    version = "6.9.6-SNAPSHOT"
-//    directory = homeDir("java/testng")
-//    buildDirectory = "kobaltBuild"
-//
-//    sourceDirectoriesTest {
-//        path("src/test/java")
-//        path("src/test/resources")
-//    }
-//    sourceDirectories {
-//        path("src/main/java")
-//        path("src/generated/java")
-//    }
-//    dependencies {
-//        compile("org.apache.ant:ant:1.7.0",
-//                "junit:junit:4.10",
-//                "org.beanshell:bsh:2.0b4",
-//                "com.google.inject:guice:4.0:no_aop",
-//                "com.beust:jcommander:1.48",
-//                "org.yaml:snakeyaml:1.15")
-//    }
-//}
-//
-//@Task(name = "generateVersionFile", description = "Generate the Version.java file", runBefore = arrayOf("compile"))
-//fun createVersionFile(project: Project) : com.beust.kobalt.internal.TaskResult {
-//    val dirFrom = testng.directory + "/src/main/resources/org/testng/internal/"
-//    val dirTo = testng.directory + "/src/generated/java/org/testng/internal/"
-//    println("COPYING VERSION FILE")
-//    Files.copy(Paths.get(dirFrom + "VersionTemplateJava"), Paths.get(dirTo + "Version.java"),
-//            StandardCopyOption.REPLACE_EXISTING)
-//    return com.beust.kobalt.internal.TaskResult()
-//}
-//
