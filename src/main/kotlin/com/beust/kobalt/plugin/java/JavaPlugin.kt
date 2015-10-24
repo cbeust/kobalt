@@ -15,6 +15,8 @@ import com.beust.kobalt.Jvm
 import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.misc.log
 import java.io.File
+import java.nio.file.Paths
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -56,7 +58,8 @@ public class JavaPlugin @Inject constructor(
             args.add("-classpath")
             args.add(stringClasspath.joinToString(File.pathSeparator))
         }
-        args.addAll(sourceFiles)
+        val compressed = sourcesToDirectories(sourceFiles, project.sourceSuffix)
+        args.addAll(compressed)
 
         val pb = ProcessBuilder(args)
         pb.directory(File(project.directory))
@@ -65,13 +68,24 @@ public class JavaPlugin @Inject constructor(
         //        pb.redirectError(File("/tmp/kobalt-err"))
         //        pb.redirectOutput(File("/tmp/kobalt-out"))
         val line = args.joinToString(" ")
-        log(1, "  Compiling ${sourceFiles.size} files with classpath size ${cpList.size}")
+        log(1, "  Compiling ${compressed.size} directories")
         log(2, "  Compiling $project:\n$line")
         val process = pb.start()
         val errorCode = process.waitFor()
 
         return if (errorCode == 0) TaskResult(true, "Compilation succeeded")
             else TaskResult(false, "There were errors")
+    }
+
+    /**
+     * Replace all the .java files with their directories + *.java in order to limit the
+     * size of the command line (which blows up on Windows if there are a lot of files).
+     */
+    private fun sourcesToDirectories(sources: List<String>, suffix: String) : Collection<String> {
+        val dirs = HashSet(sources.map {
+            Paths.get(it).parent.toFile().path + File.separator + "*$suffix"
+        })
+        return dirs
     }
 
     @Task(name = TASK_JAVADOC, description = "Run Javadoc")
@@ -91,7 +105,8 @@ public class JavaPlugin @Inject constructor(
                 javadoc!!.absolutePath,
                 "-classpath", classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator),
                 "-d", outputDir.absolutePath)
-        args.addAll(sourceFiles)
+        val compressed = sourcesToDirectories(sourceFiles, project.sourceSuffix)
+        args.addAll(compressed)
 
         val pb = ProcessBuilder(args)
         pb.directory(File(project.directory))
