@@ -1,18 +1,19 @@
 package com.beust.kobalt.plugin.java
 
-import com.beust.kobalt.api.ICompilerInfo
+import com.beust.kobalt.JavaInfo
+import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.TaskResult
-import com.beust.kobalt.maven.*
+import com.beust.kobalt.maven.DepFactory
+import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.IClasspathDependency
+import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.JavaInfo
-import com.beust.kobalt.Jvm
-import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.misc.log
 import java.io.File
 import java.nio.file.Paths
