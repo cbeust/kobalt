@@ -1,9 +1,10 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.NamedThreadFactory
 import com.beust.kobalt.misc.ToString
 import com.beust.kobalt.misc.log
-import com.google.common.collect.ArrayListMultimap
+import com.beust.kobalt.misc.KobaltLogger.*
 import com.google.common.collect.HashMultimap
 import java.util.concurrent.*
 
@@ -45,7 +46,8 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
      */
     public fun run() : Int {
         var lastResult = TaskResult()
-        while (graph.freeNodes.size > 0) {
+        var gotError = false
+        while (graph.freeNodes.size > 0 && ! gotError) {
             log(3, "Current count: ${graph.nodeCount}")
             synchronized(graph) {
                 val freeNodes = graph.freeNodes
@@ -56,7 +58,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
                 var n = callables.size
 
                 // When a callable ends, see if it freed a node. If not, keep looping
-                while (n > 0 && graph.freeNodes.size == 0) {
+                while (n > 0 && graph.freeNodes.size == 0 && ! gotError) {
                     try {
                         val future = completion.take()
                         val taskResult = future.get(2, TimeUnit.SECONDS)
@@ -71,6 +73,9 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
                             })
                     } catch(ex: TimeoutException) {
                         log(2, "Time out")
+                    } catch(ex: Exception) {
+                        log(1, "Tests failed: ${ex.message}")
+                        gotError = true
                     }
                 }
             }
