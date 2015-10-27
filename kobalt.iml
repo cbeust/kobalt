@@ -16,30 +16,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Gradle: com.beust:jcommander:1.48" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.guava:guava:18.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.squareup.okhttp:okhttp:2.4.0" level="project" />
-    <orderEntry type="library" name="Gradle: org.jsoup:jsoup:1.8.2" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.inject:guice:4.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.inject.extensions:guice-assistedinject:4.0" level="project" />
-    <orderEntry type="library" name="Gradle: org.apache.maven:maven-model:3.3.3" level="project" />
-    <orderEntry type="library" name="Gradle: com.github.spullara.mustache.java:compiler:0.8.18" level="project" />
-    <orderEntry type="library" name="Gradle: com.squareup.okio:okio:1.4.0" level="project" />
-    <orderEntry type="library" name="Gradle: javax.inject:javax.inject:1" level="project" />
-    <orderEntry type="library" name="Gradle: aopalliance:aopalliance:1.0" level="project" />
-    <orderEntry type="library" name="Gradle: org.codehaus.plexus:plexus-utils:3.0.20" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: org.beanshell:bsh:2.0b4" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: org.testng:testng:6.9.6" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: com.google.inject:guice:4.0:no_aop" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: org.apache.ant:ant:1.7.0" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: org.yaml:snakeyaml:1.15" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: junit:junit:4.10" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: org.apache.ant:ant-launcher:1.7.0" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: org.hamcrest:hamcrest-core:1.1" level="project" />
-    <orderEntry type="library" name="Gradle: io.reactivex:rxjava:1.0.14" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.code.gson:gson:2.4" level="project" />
-    <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.0.0-beta-1038" level="project" />
-    <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.0-beta-1038" level="project" />
-    <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-runtime:1.0.0-beta-1038" level="project" />
+    <orderEntry type="library" name="kobalt.jar" level="project" />
+    <orderEntry type="library" scope="TEST" name="kobalt (Test)" level="project" />
+    <orderEntry type="library" name="kobalt (Compile)" level="project" />
   </component>
 </module>
