@@ -4,7 +4,7 @@ import org.testng.Assert
 import org.testng.annotations.Test
 import java.util.Properties
 
-@Test
+@Test(enabled = false)
 public class ResourceTest {
     val fileName = "kobalt.properties"
 
