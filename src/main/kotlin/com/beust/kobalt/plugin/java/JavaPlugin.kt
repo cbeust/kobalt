@@ -59,8 +59,7 @@ public class JavaPlugin @Inject constructor(
             args.add("-classpath")
             args.add(stringClasspath.joinToString(File.pathSeparator))
         }
-        val compressed = sourcesToDirectories(sourceFiles, project.sourceSuffix)
-        args.addAll(compressed)
+        args.addAll(sourceFiles)
 
         val pb = ProcessBuilder(args)
         pb.directory(File(project.directory))
@@ -69,7 +68,7 @@ public class JavaPlugin @Inject constructor(
         //        pb.redirectError(File("/tmp/kobalt-err"))
         //        pb.redirectOutput(File("/tmp/kobalt-out"))
         val line = args.joinToString(" ")
-        log(1, "  Compiling ${compressed.size} directories")
+        log(1, "  Compiling ${sourceFiles.size} files")
         log(2, "  Compiling $project:\n$line")
         val process = pb.start()
         val errorCode = process.waitFor()
