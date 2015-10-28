@@ -12,7 +12,7 @@ open public class SimpleDep(override val groupId: String, override val artifactI
     }
 
     override public fun toMetadataXmlPath(fileSystem: Boolean): String {
-        return toDirectory(version, fileSystem) + "/maven-metadata.xml"
+        return toDirectory(version, fileSystem) + "maven-metadata.xml"
     }
 
     private fun toFile(v: String, s: String, suffix: String) : String {

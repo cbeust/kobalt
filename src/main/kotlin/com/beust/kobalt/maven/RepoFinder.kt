@@ -48,13 +48,13 @@ public class RepoFinder @Inject constructor(val http: Http, val executors: Kobal
             for (i in 0..Kobalt.repos.size - 1) {
                 try {
                     val result = cs.take().get(2000, TimeUnit.MILLISECONDS)
-                    log(2, "Result for repo #${i}: ${result}")
+                    log(2, "Result for repo #$i: $result")
                     if (result.found) {
-                        log(2, "Located ${id} in ${result.repoUrl}")
+                        log(2, "Located $id in ${result.repoUrl}")
                         return result
                     }
                 } catch(ex: Exception) {
-                    warn("Error: ${ex}")
+                    warn("Error: $ex")
                 }
             }
             return RepoResult("", false, id)
@@ -69,7 +69,7 @@ public class RepoFinder @Inject constructor(val http: Http, val executors: Kobal
 
     inner class RepoFinderCallable(val id: String, val repoUrl: String) : Callable<RepoResult> {
         override fun call(): RepoResult {
-            log(2, "Checking ${repoUrl} for ${id}")
+            log(2, "Checking $repoUrl for $id")
 
             val c = id.split(":")
             if (! MavenDependency.hasVersion(id)) {
@@ -129,7 +129,7 @@ public class RepoFinder @Inject constructor(val http: Http, val executors: Kobal
                 }
             })
         } catch(ex: Exception) {
-            log(2, "Couldn't find metadata at ${url}")
+            log(2, "Couldn't find metadata at $url")
         }
         return null
     }
@@ -147,7 +147,7 @@ public class RepoFinder @Inject constructor(val http: Http, val executors: Kobal
                 return ts.toString() + "-" + bn.toString()
             }
         } catch(ex: Exception) {
-            log(2, "Couldn't find metadata at ${url}")
+            log(2, "Couldn't find metadata at $url")
         }
         return null
     }
