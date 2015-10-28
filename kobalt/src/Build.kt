@@ -62,6 +62,7 @@ val kobalt = kotlinProject(wrapper) {
                 "org.jsoup:jsoup:1.8.3",
                 "com.google.inject:guice:4.0",
                 "com.google.inject.extensions:guice-assistedinject:4.0",
+                "javax.inject:javax.inject:1",
                 "com.google.guava:guava:19.0-rc2",
                 "org.apache.maven:maven-model:3.3.3",
                 "com.github.spullara.mustache.java:compiler:0.9.1",

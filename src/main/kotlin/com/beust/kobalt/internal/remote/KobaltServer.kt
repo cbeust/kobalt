@@ -6,7 +6,7 @@ import com.beust.kobalt.misc.log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import com.google.inject.Inject
+import javax.inject.Inject
 import com.google.inject.Singleton
 import java.io.BufferedReader
 import java.io.InputStreamReader

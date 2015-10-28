@@ -9,7 +9,7 @@ import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import com.google.inject.Inject
+import javax.inject.Inject
 import java.nio.file.Paths
 
 /**

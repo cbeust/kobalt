@@ -3,7 +3,7 @@ package com.beust.kobalt.misc
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import com.google.inject.Inject
+import javax.inject.Inject
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader

@@ -1,7 +1,7 @@
 package com.beust.kobalt.misc
 
 import com.beust.kobalt.maven.Http
-import com.google.inject.Inject
+import javax.inject.Inject
 import java.io.File
 
 /**

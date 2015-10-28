@@ -4,7 +4,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.MavenDependency
-import com.google.inject.Inject
+import javax.inject.Inject
 
 /**
  * Find out if any newer versions of the dependencies are available.
