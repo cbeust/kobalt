@@ -35,7 +35,7 @@ public class AndroidPlugin @Inject constructor() : BasePlugin() {
 
     override fun apply(project: Project, context: KobaltContext) {
         log(1, "Applying plug-in Android on project $project")
-        project.compileDependencies.add(FileDependency(androidJar.toString()))
+//        project.compileDependencies.add(FileDependency(androidJar.toString()))
     }
 
     fun dirGet(dir: Path, vararg others: String) : String {

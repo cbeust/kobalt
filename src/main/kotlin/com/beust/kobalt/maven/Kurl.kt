@@ -7,7 +7,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLConnection
 import javax.inject.Inject
-import kotlin.properties.Delegates
 
 /**
  * Abstracts a URL so that it works transparently on either http:// or file://
@@ -34,14 +33,13 @@ public class Kurl @Inject constructor(@Assisted val url: String, val http: Http)
             return result
         }
 
-    val estimatedSize = 18000000
+    /** The Kotlin compiler is about 17M and downloading it with the default buffer size takes forever */
+    private val estimatedSize: Int
+        get() = if (url.contains("kotlin-compiler")) 18000000 else 1000000
 
-    val bytes : ByteArray
-        get() {
-            val buffer = ByteArrayOutputStream(estimatedSize)
-            ByteStreams.copy(connection.inputStream, buffer)
-            return buffer.toByteArray()
-        }
+    fun toOutputStream(os: OutputStream) = ByteStreams.copy(connection.inputStream, os)
+
+    fun toFile(file: File) = toOutputStream(FileOutputStream(file))
 
     val string: String
         get() {

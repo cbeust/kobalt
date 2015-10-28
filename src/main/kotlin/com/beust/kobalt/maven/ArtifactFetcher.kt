@@ -47,15 +47,6 @@ class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
         fun create(@Assisted("url") url: String, @Assisted("fileName") fileName: String) : ArtifactFetcher
     }
 
-    /** The Kotlin compiler is about 17M and downloading it with the default buffer size takes forever */
-    private val estimatedSize: Int
-        get() = if (url.contains("kotlin-compiler")) 18000000 else 1000000
-
-    private fun getBytes(url: String) : ByteArray {
-        log(2, "$url: downloading to $fileName")
-        return Kurl(url, http).bytes
-    }
-
     override fun call() : File {
         val k = Kurl(url + ".md5", http)
         val remoteMd5 =
@@ -64,15 +55,14 @@ class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
 
         val file = File(fileName)
         file.parentFile.mkdirs()
-        val bytes = getBytes(url)
-        if (remoteMd5 != null && remoteMd5 != Md5.toMd5(bytes)) {
+        Kurl(url, http).toFile(file)
+        log(1, "  Downloaded $url")
+
+        if (remoteMd5 != null && remoteMd5 != Md5.toMd5(file)) {
             throw KobaltException("MD5 not matching for $url")
         } else {
             log(2, "No md5 found for $url, skipping md5 check")
         }
-        files.saveFile(file, bytes)
-
-        log(1, "Downloaded $url")
 
         return file
     }
