@@ -1,6 +1,5 @@
 package com.beust.kobalt.maven
 
-import com.google.common.io.ByteStreams
 import com.google.inject.assistedinject.Assisted
 import java.io.*
 import java.net.HttpURLConnection
@@ -18,10 +17,6 @@ public class Kurl @Inject constructor(@Assisted val url: String, val http: Http)
 
     val exists : Boolean
         get() {
-            if (url.contains("android")) {
-                println("DONOTCOMMIT")
-            }
-
             val result =
                     if (connection is HttpURLConnection) {
                         (connection as HttpURLConnection).responseCode == 200
