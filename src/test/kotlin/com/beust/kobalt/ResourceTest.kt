@@ -13,9 +13,9 @@ public class ResourceTest {
         val res = ClassLoader.getSystemResource(fileName)
         if (res != null) {
             properties.load(res.openStream())
-            Assert.assertTrue(properties.get("foo") == "bar")
+            Assert.assertTrue(properties["foo"] == "bar")
         } else {
-            Assert.fail("Couldn't load ${fileName}")
+            Assert.fail("Couldn't load $fileName")
         }
     }
 }
