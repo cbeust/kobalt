@@ -70,8 +70,9 @@ private class Main @Inject constructor(
 //            runTest()
             result = runWithArgs(jc, args)
             executors.shutdown()
-            log(1, "All done")
         })
+
+        log(1, if (result != 0) "BUILD FAILED: $result" else "BUILD SUCCESSFUL")
 
         // Check for new version
         val latestVersionString = latestVersionFuture.get()
@@ -88,28 +89,16 @@ private class Main @Inject constructor(
         return result
     }
 
-//    public class Worker<T>(val runNodes: ArrayList<T>, val n: T) : IWorker<T> {
-//        override val priority = 0
-//
-//        override fun call() : TaskResult2<T> {
-//            log(2, "Running node $n")
-//            runNodes.add(n)
-//            return TaskResult2(n != 3, n)
-//        }
-//    }
-//
-//    private fun runTest() {
-//        with(Topological<String>()) {
-//            addEdge("b1", "a1")
-//            addEdge("b1", "a2")
-//            addEdge("b2", "a1")
-//            addEdge("b2", "a2")
-//            addEdge("c1", "b1")
-//            addEdge("c1", "b2")
-//            val sorted = sort(arrayListOf("a1", "a2", "b1", "b2", "c1", "x", "y"))
-//            println("Sorted: $sorted")
-//        }
-//    }
+    public fun runTest() {
+        val executor = executors.newExecutor("DependentTest", 5)
+        File(localRepo.toFullPath("org/testng/testng")).deleteRecursively()
+
+        val dep = depFactory.create("org.testng:testng:", executor)
+
+        val future = dep.jarFile
+        val file = future.get()
+        println("Name: " + file.name)
+    }
 
     private fun runWithArgs(jc: JCommander, args: Args) : Int {
         var result = 0
