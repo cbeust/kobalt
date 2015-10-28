@@ -53,23 +53,14 @@ class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
 
     private fun getBytes(url: String) : ByteArray {
         log(2, "$url: downloading to $fileName")
-        val body = http.get(url)
-        if (body.code == 200) {
-            val buffer = ByteArrayOutputStream(estimatedSize)
-            body.getAsStream().copyTo(buffer, estimatedSize)
-            return buffer.toByteArray()
-        } else {
-            throw KobaltException("$url: failed to download, code: ${body.code}")
-        }
+        return Kurl(url, http).bytes
     }
 
     override fun call() : File {
-        val md5Body = http.get(url + ".md5")
-        val remoteMd5 = if (md5Body.code == 200) {
-            md5Body.getAsString().trim(' ', '\t', '\n').substring(0, 32)
-        } else {
-            null
-        }
+        val k = Kurl(url + ".md5", http)
+        val remoteMd5 =
+            if (k.exists) k.string.trim(' ', '\t', '\n').substring(0, 32)
+            else null
 
         val file = File(fileName)
         file.parentFile.mkdirs()

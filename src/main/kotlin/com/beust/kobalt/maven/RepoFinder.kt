@@ -9,9 +9,6 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import java.io.File
-import java.net.HttpURLConnection
-import java.net.URI
-import java.net.URL
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorCompletionService
 import java.util.concurrent.TimeUnit
@@ -66,20 +63,6 @@ public class RepoFinder @Inject constructor(val http: Http, val executors: Kobal
         }
     }
 
-    private fun urlExists(url: String) : Boolean {
-        val connection = URL(url).openConnection()
-        val result =
-            if (connection is HttpURLConnection) {
-                connection.responseCode == 200
-            } else if (url.startsWith(IClasspathDependency.PREFIX_FILE)) {
-                val fileName = url.substring(IClasspathDependency.PREFIX_FILE.length)
-                File(fileName).exists()
-            } else {
-                false
-            }
-        return result
-    }
-
     /**
      * Execute a single HTTP request to one repo.
      */
@@ -114,13 +97,7 @@ public class RepoFinder @Inject constructor(val http: Http, val executors: Kobal
                     val dep = SimpleDep(groupId, artifactId, packaging, version)
                     // Try to find the jar file
                     val urlJar = repoUrl + dep.toJarFile(dep.version)
-
-                    if (repoUrl.contains("beust")) {
-                        println("DONOTCOMMIT")
-                    }
-
-                    val hasJar = urlExists(urlJar)
-
+                    val hasJar = Kurl(urlJar, http).exists
                     val found =
                         if (! hasJar) {
                             // No jar, try to find the directory

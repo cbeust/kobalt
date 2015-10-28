@@ -8,7 +8,7 @@ import java.util.concurrent.Future
 
 interface IClasspathDependency {
     companion object {
-        val PREFIX_FILE: String = "file:/"
+        val PREFIX_FILE: String = "file://"
     }
 
     /** Identifier for this dependency */

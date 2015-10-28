@@ -6,6 +6,16 @@ public class MavenId(val id: String) {
     var packaging: String? = null
     var version: String? = null
 
+    companion object {
+        fun create(groupId: String, artifactId: String, packaging: String?, version: String?) =
+               MavenId(toId(groupId, artifactId, packaging, version))
+
+        fun toId(groupId: String, artifactId: String, packaging: String? = null, version: String?) =
+                "$groupId:$artifactId" +
+                    (if (packaging != null) ":$packaging" else "") +
+                    ":$version"
+    }
+
     init {
         val c = id.split(":")
         if (c.size != 3 && c.size != 4) {
@@ -18,4 +28,7 @@ public class MavenId(val id: String) {
     }
 
     val hasVersion = version != null
+
+    val toId = MavenId.toId(groupId, artifactId, packaging, version)
+
 }

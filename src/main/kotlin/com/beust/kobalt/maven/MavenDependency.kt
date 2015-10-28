@@ -31,7 +31,7 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
             jarFile = CompletedFuture(jar)
             pomFile = CompletedFuture(pom)
         } else {
-            val repoResult = repoFinder.findCorrectRepo(toId(groupId, artifactId, packaging, version))
+            val repoResult = repoFinder.findCorrectRepo(MavenId.toId(groupId, artifactId, packaging, version))
             if (repoResult.found) {
                 jarFile =
                     if (repoResult.hasJar) {
@@ -42,7 +42,8 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
                 pomFile = downloadManager.download(repoResult.repoUrl + toPomFile(repoResult), pom.absolutePath,
                         executor)
             } else {
-                throw KobaltException("Couldn't resolve ${toId(groupId, artifactId, packaging, version)}")
+                throw KobaltException("Couldn't resolve " +
+                        "${MavenId.toId(groupId, artifactId, packaging, version)}")
             }
         }
     }
@@ -62,15 +63,15 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
             return depFactory.create(id, ex)
         }
 
-        fun toId(g: String, a: String, packaging: String?, v: String) =
+        fun _toId(g: String, a: String, packaging: String?, v: String) =
                 if (packaging.isNullOrBlank()) "$g:$a:$v"
                 else "$g:$a:$packaging:$v"
     }
 
 
-    public override fun toString() = toId(groupId, artifactId, packaging, version)
+    public override fun toString() = MavenId.toId(groupId, artifactId, packaging, version)
 
-    override val id = toId(groupId, artifactId, packaging, version)
+    override val id = MavenId.toId(groupId, artifactId, packaging, version)
 
     override fun toMavenDependencies(): org.apache.maven.model.Dependency {
         with(org.apache.maven.model.Dependency()) {
@@ -89,10 +90,14 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
 
     override fun directDependencies() : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
-        pomFactory.create(id, pomFile.get()).dependencies.filter {
-            it.mustDownload && it.isValid
-        }.forEach {
-            result.add(create(toId(it.groupId, it.artifactId, it.packaging, it.version)))
+        try {
+            pomFactory.create(id, pomFile.get()).dependencies.filter {
+                it.mustDownload && it.isValid
+            }.forEach {
+                result.add(create(MavenId.toId(it.groupId, it.artifactId, it.packaging, it.version)))
+            }
+        } catch(ex: Exception) {
+            warn("Exception when trying to resolve dependencies for $id: " + ex.message)
         }
         return result
     }
