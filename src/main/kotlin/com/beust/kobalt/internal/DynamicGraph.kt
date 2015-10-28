@@ -1,8 +1,6 @@
 package com.beust.kobalt.internal
 
-import com.beust.kobalt.misc.NamedThreadFactory
-import com.beust.kobalt.misc.ToString
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.*
 import com.google.common.collect.HashMultimap
 import java.util.concurrent.*
 
@@ -72,7 +70,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
                     } catch(ex: TimeoutException) {
                         log(2, "Time out")
                     } catch(ex: Exception) {
-                        log(1, "Tests failed: ${ex.message}")
+                        error("Error: ${ex.message}", ex)
                         gotError = true
                     }
                 }
