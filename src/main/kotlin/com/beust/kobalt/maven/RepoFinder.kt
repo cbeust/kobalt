@@ -9,6 +9,9 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URI
+import java.net.URL
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorCompletionService
 import java.util.concurrent.TimeUnit
@@ -63,17 +66,34 @@ public class RepoFinder @Inject constructor(val http: Http, val executors: Kobal
         }
     }
 
+    private fun urlExists(url: String) : Boolean {
+        val connection = URL(url).openConnection()
+        val result =
+            if (connection is HttpURLConnection) {
+                connection.responseCode == 200
+            } else if (url.startsWith(IClasspathDependency.PREFIX_FILE)) {
+                val fileName = url.substring(IClasspathDependency.PREFIX_FILE.length)
+                File(fileName).exists()
+            } else {
+                false
+            }
+        return result
+    }
+
     /**
      * Execute a single HTTP request to one repo.
      */
-
     inner class RepoFinderCallable(val id: String, val repoUrl: String) : Callable<RepoResult> {
         override fun call(): RepoResult {
             log(2, "Checking $repoUrl for $id")
 
-            val c = id.split(":")
-            if (! MavenDependency.hasVersion(id)) {
-                val ud = UnversionedDep(c[0], c[1])
+            val mavenId = MavenId(id)
+            val groupId = mavenId.groupId
+            val artifactId = mavenId.artifactId
+            var packaging = mavenId.packaging
+            val version = mavenId.version
+            if (! mavenId.hasVersion) {
+                val ud = UnversionedDep(groupId, artifactId)
                 val foundVersion = findCorrectVersionRelease(ud.toMetadataXmlPath(false), repoUrl)
                 if (foundVersion != null) {
                     return RepoResult(repoUrl, true, foundVersion)
@@ -81,19 +101,25 @@ public class RepoFinder @Inject constructor(val http: Http, val executors: Kobal
                     return RepoResult(repoUrl, false, "")
                 }
             } else {
-                if (c[2].contains("SNAPSHOT")) {
-                    val dep = SimpleDep(c[0], c[1], c[2])
+                if (version!!.contains("SNAPSHOT")) {
+                    val dep = SimpleDep(groupId, artifactId, packaging, version)
                     val snapshotVersion = findSnapshotVersion(dep.toMetadataXmlPath(false), repoUrl)
                     if (snapshotVersion != null) {
-                        return RepoResult(repoUrl, true, c[2], true /* hasJar, potential bug here */, snapshotVersion)
+                        return RepoResult(repoUrl, true, version, true /* hasJar, potential bug here */,
+                                snapshotVersion)
                     } else {
                         return RepoResult(repoUrl, false, "")
                     }
                 } else {
-                    val dep = SimpleDep(c[0], c[1], c[2])
+                    val dep = SimpleDep(groupId, artifactId, packaging, version)
                     // Try to find the jar file
                     val urlJar = repoUrl + dep.toJarFile(dep.version)
-                    val hasJar = http.get(urlJar).code == 200
+
+                    if (repoUrl.contains("beust")) {
+                        println("DONOTCOMMIT")
+                    }
+
+                    val hasJar = urlExists(urlJar)
 
                     val found =
                         if (! hasJar) {
@@ -129,7 +155,7 @@ public class RepoFinder @Inject constructor(val http: Http, val executors: Kobal
                 }
             })
         } catch(ex: Exception) {
-            log(2, "Couldn't find metadata at $url")
+            log(2, "Couldn't find metadata at $url: ${ex.message}")
         }
         return null
     }

@@ -7,8 +7,8 @@ import java.util.concurrent.Future
 import kotlin.properties.Delegates
 
 open public class LocalDep(override val groupId: String, override val artifactId: String,
-        override val version: String,
-        open val localRepo: LocalRepo) : SimpleDep(groupId, artifactId, version) {
+        override val packaging: String?, override val version: String,
+        open val localRepo: LocalRepo) : SimpleDep(groupId, artifactId, packaging, version) {
 
     fun toAbsoluteJarFilePath(v: String) = localRepo.toFullPath(toJarFile(v))
 

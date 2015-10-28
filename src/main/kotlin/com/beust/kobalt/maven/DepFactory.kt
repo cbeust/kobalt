@@ -18,26 +18,26 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
         if (id.startsWith(IClasspathDependency.PREFIX_FILE)) {
             return FileDependency(id.substring(IClasspathDependency.PREFIX_FILE.length))
         } else {
-            val c = id.split(":")
+            val mavenId = MavenId(id)
+            var version = mavenId.version
+            var packaging = mavenId.packaging
             var repoResult: RepoFinder.RepoResult?
-            var version: String? = null
 
-            if (! MavenDependency.hasVersion(id)) {
-                if (localFirst) version = localRepo.findLocalVersion(c[0], c[1])
+            if (! mavenId.hasVersion) {
+                if (localFirst) version = localRepo.findLocalVersion(mavenId.groupId, mavenId.artifactId,
+                        mavenId.packaging)
                 if (! localFirst || version == null) {
                     repoResult = repoFinder.findCorrectRepo(id)
                     if (!repoResult.found) {
-                        throw KobaltException("Couldn't resolve ${id}")
+                        throw KobaltException("Couldn't resolve $id")
                     } else {
                         version = repoResult.version
                     }
                 }
-            } else {
-                version = c[2]
             }
 
-            return MavenDependency(c[0], c[1], version, executor, localRepo, repoFinder,
-                    pomFactory, downloadManager)
+            return MavenDependency(mavenId.groupId, mavenId.artifactId, packaging, version!!,
+                    executor, localRepo, repoFinder, pomFactory, downloadManager)
         }
     }
 }

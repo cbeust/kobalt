@@ -1,14 +1,16 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.misc.Strings
-import com.google.common.base.CharMatcher
-import java.io.File
-import kotlin.properties.Delegates
 
 open public class SimpleDep(override val groupId: String, override val artifactId: String,
-        open val version: String) : UnversionedDep(groupId, artifactId) {
+        open val packaging: String?, open val version: String) : UnversionedDep(groupId, artifactId) {
     companion object {
-        fun create(id: String) = id.split(":").let { SimpleDep(it[0], it[1], it[2])}
+        fun create(id: String) = MavenId(id).let {
+            if (id.contains("android")) {
+                println("DONOTCOMMIT")
+            }
+            SimpleDep(it.groupId, it.artifactId, it.packaging, it.version!!)
+        }
     }
 
     override public fun toMetadataXmlPath(fileSystem: Boolean): String {
@@ -25,9 +27,14 @@ open public class SimpleDep(override val groupId: String, override val artifactI
 
     fun toPomFile(r: RepoFinder.RepoResult) = toFile(r.version, r.snapshotVersion, ".pom")
 
-    fun toJarFile(v: String = version) = toFile(v, "", ".jar")
+    fun toJarFile(v: String = version) = toFile(v, "", suffix)
 
-    fun toJarFile(r: RepoFinder.RepoResult) = toFile(r.version, r.snapshotVersion, ".jar")
+    fun toJarFile(r: RepoFinder.RepoResult) = toFile(r.version, r.snapshotVersion, suffix)
 
-    fun toPomFileName() = "${artifactId}-${version}.pom"
+    fun toPomFileName() = "$artifactId-$version.pom"
+
+    val suffix : String
+        get() {
+            return if (packaging != null && ! packaging.isNullOrBlank()) ".${packaging!!}" else ".jar"
+        }
 }

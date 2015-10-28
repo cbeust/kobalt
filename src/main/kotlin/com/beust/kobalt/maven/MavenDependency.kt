@@ -12,13 +12,14 @@ import kotlin.properties.Delegates
 
 public class MavenDependency @Inject constructor(override @Assisted("groupId") val groupId : String,
         override @Assisted("artifactId") val artifactId : String,
+        override @Assisted("packaging") val packaging: String?,
         override @Assisted("version") val version : String,
         val executor: ExecutorService,
         override val localRepo: LocalRepo,
         val repoFinder: RepoFinder,
         val pomFactory: Pom.IFactory,
         val downloadManager: DownloadManager)
-            : LocalDep(groupId, artifactId, version, localRepo), IClasspathDependency,
+            : LocalDep(groupId, artifactId, packaging, version, localRepo), IClasspathDependency,
                 Comparable<MavenDependency> {
     override var jarFile: Future<File> by Delegates.notNull()
     var pomFile: Future<File> by Delegates.notNull()
@@ -30,7 +31,7 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
             jarFile = CompletedFuture(jar)
             pomFile = CompletedFuture(pom)
         } else {
-            val repoResult = repoFinder.findCorrectRepo(toId(groupId, artifactId, version))
+            val repoResult = repoFinder.findCorrectRepo(toId(groupId, artifactId, packaging, version))
             if (repoResult.found) {
                 jarFile =
                     if (repoResult.hasJar) {
@@ -41,7 +42,7 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
                 pomFile = downloadManager.download(repoResult.repoUrl + toPomFile(repoResult), pom.absolutePath,
                         executor)
             } else {
-                throw KobaltException("Couldn't resolve ${toId(groupId, artifactId, version)}")
+                throw KobaltException("Couldn't resolve ${toId(groupId, artifactId, packaging, version)}")
             }
         }
     }
@@ -61,18 +62,15 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
             return depFactory.create(id, ex)
         }
 
-        fun hasVersion(id: String) : Boolean {
-            val c = id.split(":")
-            return c.size == 3 && !Strings.isEmpty(c[2])
-        }
-
-        fun toId(g: String, a: String, v: String) = "$g:$a:$v"
+        fun toId(g: String, a: String, packaging: String?, v: String) =
+                if (packaging.isNullOrBlank()) "$g:$a:$v"
+                else "$g:$a:$packaging:$v"
     }
 
 
-    public override fun toString() = toId(groupId, artifactId, version)
+    public override fun toString() = toId(groupId, artifactId, packaging, version)
 
-    override val id = toId(groupId, artifactId, version)
+    override val id = toId(groupId, artifactId, packaging, version)
 
     override fun toMavenDependencies(): org.apache.maven.model.Dependency {
         with(org.apache.maven.model.Dependency()) {
@@ -94,7 +92,7 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
         pomFactory.create(id, pomFile.get()).dependencies.filter {
             it.mustDownload && it.isValid
         }.forEach {
-            result.add(create(toId(it.groupId, it.artifactId, it.version)))
+            result.add(create(toId(it.groupId, it.artifactId, it.packaging, it.version)))
         }
         return result
     }

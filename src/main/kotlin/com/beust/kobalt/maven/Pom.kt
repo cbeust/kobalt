@@ -16,6 +16,7 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
     val XPATH = XPATH_FACTORY.newXPath()
     var groupId: String? = null
     var artifactId: String? = null
+    var packaging: String? = null
     var version: String? = null
     var name: String? = null
     var properties = sortedMapOf<String, String>()
@@ -25,8 +26,8 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         fun create(@Assisted id: String, @Assisted documentFile: java.io.File): Pom
     }
 
-    data public class Dependency(val groupId: String, val artifactId: String, val version: String,
-            val optional: Boolean = false, val scope: String? = null) {
+    data public class Dependency(val groupId: String, val artifactId: String, val packaging: String?,
+        val version: String, val optional: Boolean = false, val scope: String? = null) {
 
         /** When a variable is used in a maven file, e.g. ${version} */
         private val VAR = "$" + "{"
@@ -79,6 +80,7 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
             val d = deps.item(i) as NodeList
             var groupId: String? = null
             var artifactId: String? = null
+            var packaging: String? = null
             var version: String = ""
             var optional: Boolean? = false
             var scope: String? = null
@@ -88,6 +90,7 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
                     when (e.tagName) {
                         "groupId" -> groupId = e.textContent
                         "artifactId" -> artifactId = e.textContent
+                        "packaging" -> packaging = e.textContent
                         "version" -> version = e.textContent
                         "optional" -> optional = "true".equals(e.textContent, true)
                         "scope" -> scope = e.textContent
@@ -95,7 +98,7 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
                 }
             }
             log(3, "Done parsing: $groupId $artifactId $version")
-            val tmpDependency = Dependency(groupId!!, artifactId!!, version, optional!!, scope)
+            val tmpDependency = Dependency(groupId!!, artifactId!!, packaging, version, optional!!, scope)
             dependencies.add(tmpDependency)
         }
     }

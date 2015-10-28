@@ -13,6 +13,7 @@ open public class Project(
         @Directive open var buildDirectory: String? = KFiles.KOBALT_BUILD_DIR,
         @Directive open var group: String? = null,
         @Directive open var artifactId: String? = null,
+        @Directive open var packaging: String? = null,
         @Directive open var dependencies: Dependencies? = null,
         @Directive open var sourceSuffix : String = "",
         @Directive open var compilerInfo : ICompilerInfo,

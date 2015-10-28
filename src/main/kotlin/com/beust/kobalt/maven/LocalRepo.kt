@@ -26,7 +26,7 @@ open public class LocalRepo(open val localRepo: String = KFiles.localRepo) {
     /**
      * If the dependency is local, return the correct version for it
      */
-    fun findLocalVersion(groupId: String, artifactId: String) : String? {
+    fun findLocalVersion(groupId: String, artifactId: String, packaging: String? = null) : String? {
         // No version: look at all the directories under group/artifactId, pick the latest and see
         // if it contains a maven and jar file
         val dir = toFullPath(KFiles.joinDir(groupId.replace(".", File.separator), artifactId))
@@ -41,7 +41,7 @@ open public class LocalRepo(open val localRepo: String = KFiles.localRepo) {
                     v2.compareTo(v1) // we want the most recent at position 0
                 })
                 val result = directories.get(0).name
-                val newDep = LocalDep(groupId, artifactId, result, this)
+                val newDep = LocalDep(groupId, artifactId, packaging, result, this)
                 if (existsPom(newDep, result) && existsJar(newDep, result)) {
                     return result
                 }

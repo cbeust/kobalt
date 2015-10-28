@@ -105,7 +105,8 @@ public class ProjectGenerator {
     private fun updateVersion(dep: Dependency, mapped: Map<String, String>) =
         if ( dep.version.startsWith("\${")) {
             val property = dep.version.substring(2, dep.version.length - 1)
-            Dependency(dep.groupId, dep.artifactId, "\${${mapped.get(property)}}", dep.optional, dep.scope)
+            Dependency(dep.groupId, dep.artifactId, dep.packaging, "\${${mapped.get(property)}}", dep.optional,
+                    dep.scope)
         } else {
             dep
         }
