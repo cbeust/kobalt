@@ -49,7 +49,7 @@ val kobalt = kotlinProject(wrapper) {
             developerConnection = "git@github.com:cbeust/kobalt.git")
 
     dependenciesTest {
-        compile("org.testng:testng:6.9.6")
+        compile("org.testng:testng:6.9.9")
     }
 
     dependencies {
