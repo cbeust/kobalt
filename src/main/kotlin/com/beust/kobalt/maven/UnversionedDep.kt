@@ -9,7 +9,7 @@ import java.io.File
  */
 open public class UnversionedDep(open val groupId: String, open val artifactId: String) {
     open public fun toMetadataXmlPath(fileSystem: Boolean = true): String {
-        return toDirectory("", fileSystem) + "/maven-metadata.xml"
+        return toDirectory("", fileSystem) + "maven-metadata.xml"
     }
 
     /**
