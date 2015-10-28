@@ -27,7 +27,7 @@ public class DynamicGraphTest {
     }
 
     public class Worker<T>(val runNodes: ArrayList<T>, val n: T,
-            val errorFunction: (T) -> Boolean) : IWorker<T>, KobaltLogger {
+            val errorFunction: (T) -> Boolean) : IWorker<T> {
         override val priority = 0
 
         override fun call() : TaskResult2<T> {
