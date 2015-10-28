@@ -54,6 +54,8 @@ public class DownloadTest @Inject constructor(
         }
     }
 
+    val latestTestNg = "6.9.9"
+
     @Test
     public fun shouldDownloadNoVersion() {
         File(localRepo.toFullPath("org/testng/testng")).deleteRecursively()
@@ -63,13 +65,13 @@ public class DownloadTest @Inject constructor(
         val future = dep.jarFile
         val file = future.get()
         Assert.assertFalse(future is CompletedFuture)
-        Assert.assertEquals(file.getName(), "testng-6.9.6.jar")
+        Assert.assertEquals(file.name, "testng-$latestTestNg.jar")
         Assert.assertTrue(file.exists())
     }
 
     @Test(dependsOnMethods = arrayOf("shouldDownloadWithVersion"))
     public fun shouldFindLocalJar() {
-        val dep = depFactory.create("org.testng:testng:6.9.6", executor)
+        val dep = depFactory.create("org.testng:testng:$latestTestNg", executor)
         val future = dep.jarFile
         Assert.assertTrue(future is CompletedFuture)
         val file = future.get()
@@ -81,7 +83,7 @@ public class DownloadTest @Inject constructor(
         val dep = depFactory.create("org.testng:testng:", executor)
         val future = dep.jarFile
         val file = future.get()
-        Assert.assertEquals(file.getName(), "testng-6.9.6.jar")
+        Assert.assertEquals(file.name, "testng-$latestTestNg.jar")
         Assert.assertTrue(file.exists())
     }
 }
