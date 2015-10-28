@@ -118,7 +118,7 @@ private class Main @Inject constructor(
             server.run()
         } else {
             if (! buildFile.exists()) {
-                jc.usage()
+                error(buildFile.path.toFile().path + " does not exist")
             } else {
                 val allProjects = buildFileCompilerFactory.create(listOf(buildFile)).compileBuildFiles(args)
 
