@@ -22,16 +22,14 @@ fun Any.error(text: String, e: Throwable? = null) {
     KobaltLogger.logger.error(javaClass.simpleName, text, e)
 }
 
-interface KobaltLogger {
-    companion object {
-        public var LOG_LEVEL: Int = 1
+object KobaltLogger {
+    public var LOG_LEVEL: Int = 1
 
-        val logger: Logger get() =
-        if (Kobalt.context != null) {
-            Logger(Kobalt.context!!.args.dev)
-        } else {
-            Logger(false)
-        }
+    val logger: Logger get() =
+    if (Kobalt.context != null) {
+        Logger(Kobalt.context!!.args.dev)
+    } else {
+        Logger(false)
     }
 }
 

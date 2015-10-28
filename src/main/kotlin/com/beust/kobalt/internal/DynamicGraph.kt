@@ -1,10 +1,8 @@
 package com.beust.kobalt.internal
 
-import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.NamedThreadFactory
 import com.beust.kobalt.misc.ToString
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.misc.KobaltLogger.*
 import com.google.common.collect.HashMultimap
 import java.util.concurrent.*
 
