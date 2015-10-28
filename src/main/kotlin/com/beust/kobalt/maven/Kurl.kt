@@ -15,6 +15,7 @@ public class Kurl @Inject constructor(@Assisted val url: String, val http: Http)
     val connection : URLConnection by lazy {
         URL(url).openConnection()
     }
+
     val exists : Boolean
         get() {
             if (url.contains("android")) {
@@ -37,9 +38,33 @@ public class Kurl @Inject constructor(@Assisted val url: String, val http: Http)
     private val estimatedSize: Int
         get() = if (url.contains("kotlin-compiler")) 18000000 else 1000000
 
-    fun toOutputStream(os: OutputStream) = ByteStreams.copy(connection.inputStream, os)
+    fun toOutputStream(os: OutputStream, progress: (Long) -> Unit) = copy(connection.inputStream, os, progress)
 
-    fun toFile(file: File) = toOutputStream(FileOutputStream(file))
+    fun toFile(file: File, progress: (Long) -> Unit = {}) = toOutputStream(FileOutputStream(file), progress)
+
+    private fun copy(from: InputStream, to: OutputStream, progress: (Long) -> Unit = {}) : Long {
+        val estimate =
+            if (connection is HttpURLConnection) {
+                (connection as HttpURLConnection).let {
+                    it.contentLength
+                }
+            } else {
+                estimatedSize
+            }
+
+        val buf = ByteArray(estimatedSize)
+        var total: Long = 0
+        while (true) {
+            val r = from.read(buf)
+            if (r == -1) {
+                break
+            }
+            to.write(buf, 0, r)
+            total += r.toLong()
+            progress(total * 100 / estimate)
+        }
+        return total
+    }
 
     val string: String
         get() {
