@@ -19,7 +19,7 @@ open public class SimpleDep(override val groupId: String, override val artifactI
 
     private fun toFile(v: String, s: String, suffix: String) : String {
         val fv = if (v.contains("SNAPSHOT")) v.replace("SNAPSHOT", "") else v
-        return Strings.join("/", arrayListOf(toDirectory(v),
+        return Strings.join("/", arrayListOf(toDirectory(v, false),
                 artifactId + "-" + fv + s + suffix))
     }
 
