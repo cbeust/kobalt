@@ -5,7 +5,7 @@ jdk:
 
 install: true
 
-script: exec ./kobaltw assemble test
+script: ./kobaltw assemble test
 
 
 
