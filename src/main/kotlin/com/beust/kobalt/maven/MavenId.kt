@@ -24,7 +24,7 @@ public class MavenId(val id: String) {
         groupId = c[0]
         artifactId = c[1]
         packaging = if (c.size == 4) c[2] else null
-        version = if (c.size == 4) c[3] else c[2]
+        version = if (c.size == 4) c[3] else if (c.size == 3 && ! c[2].isBlank()) c[2] else null
     }
 
     val hasVersion = version != null
