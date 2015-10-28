@@ -69,7 +69,7 @@ public class DynamicGraphTest {
         Thread.yield()
         val expected = listOf(1, 2, 3, 5)
         if (runNodes != expected) {
-            Assert.assertFalse("Expected $expected but got $runNodes")
+            Assert.fail("Expected $expected but got $runNodes")
         }
     }
 
