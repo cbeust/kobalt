@@ -90,14 +90,8 @@ private class Main @Inject constructor(
     }
 
     public fun runTest() {
-        val executor = executors.newExecutor("DependentTest", 5)
-        File(localRepo.toFullPath("org/testng/testng")).deleteRecursively()
-
-        val dep = depFactory.create("org.testng:testng:", executor)
-
-        val future = dep.jarFile
-        val file = future.get()
-        println("Name: " + file.name)
+        val dep = MavenDependency.create("com.google.inject:guice:4.0:no_aop")
+        println("Name: " + dep)
     }
 
     private fun runWithArgs(jc: JCommander, args: Args) : Int {
