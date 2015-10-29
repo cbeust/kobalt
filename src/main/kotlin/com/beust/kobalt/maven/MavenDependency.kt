@@ -75,7 +75,7 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
         return Versions.toLongVersion(version).compareTo(Versions.toLongVersion(other.version))
     }
 
-    override val shortId = groupId + ":" + artifactId
+    override val shortId = groupId + ":" + artifactId + ":"
 
     override fun directDependencies() : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
