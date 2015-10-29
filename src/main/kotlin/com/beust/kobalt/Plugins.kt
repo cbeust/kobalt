@@ -66,7 +66,8 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
                     JavaPlugin::class.java,
                     KotlinPlugin::class.java,
                     PackagingPlugin::class.java,
-                    PublishPlugin::class.java
+                    PublishPlugin::class.java,
+                    AndroidPlugin::class.java
 //                    AptPlugin::class.java
             ).map {
                 addPluginInstance(Kobalt.INJECTOR.getInstance(it))
