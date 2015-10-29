@@ -3,6 +3,7 @@ package com.beust.kobalt.internal.remote
 import com.beust.kobalt.Args
 import com.beust.kobalt.kotlin.BuildFile
 import com.beust.kobalt.kotlin.BuildFileCompiler
+import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.MavenDependency
 import com.beust.kobalt.misc.KobaltExecutors
@@ -22,7 +23,8 @@ import java.nio.file.Paths
  * The response is a GetDependenciesData.
  */
 class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
-        val buildFileCompilerFactory: BuildFileCompiler.IFactory, val args: Args) : ICommand {
+        val buildFileCompilerFactory: BuildFileCompiler.IFactory, val args: Args,
+        val dependencyManager: DependencyManager) : ICommand {
     override val name = "getDependencies"
     override fun run(sender: ICommandSender, received: JsonObject) {
         val buildFile = BuildFile(Paths.get(received.get("buildFile").asString), "GetDependenciesCommand")
@@ -44,13 +46,15 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
             return DependencyData(d.id, scope, dep.jarFile.get().absolutePath)
         }
 
+        fun allDeps(l: List<IClasspathDependency>) = dependencyManager.transitiveClosure(l)
+
         info.projects.forEach { project ->
             val allDependencies =
-                project.compileDependencies.map { toDependencyData(it, "compile") } +
-                project.compileProvidedDependencies.map { toDependencyData(it, "provided") } +
-                project.compileRuntimeDependencies.map { toDependencyData(it, "runtime") } +
-                project.testDependencies.map { toDependencyData(it, "testCompile") } +
-                project.testProvidedDependencies.map { toDependencyData(it, "testProvided") }
+                allDeps(project.compileDependencies).map { toDependencyData(it, "compile") } +
+                allDeps(project.compileProvidedDependencies).map { toDependencyData(it, "provided") } +
+                allDeps(project.compileRuntimeDependencies).map { toDependencyData(it, "runtime") } +
+                allDeps(project.testDependencies).map { toDependencyData(it, "testCompile") } +
+                allDeps(project.testProvidedDependencies).map { toDependencyData(it, "testProvided") }
 
             projects.add(ProjectData(project.name!!, allDependencies))
         }
