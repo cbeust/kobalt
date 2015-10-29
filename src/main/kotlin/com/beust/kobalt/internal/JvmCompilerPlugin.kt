@@ -14,7 +14,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-abstract public class JvmCompilerPlugin @Inject constructor(
+abstract class JvmCompilerPlugin @Inject constructor(
         open val localRepo: LocalRepo,
         open val files: KFiles,
         open val depFactory: DepFactory,
@@ -121,15 +121,15 @@ abstract public class JvmCompilerPlugin @Inject constructor(
 }
 
 
-public class TestConfig(val project: Project) {
+class TestConfig(val project: Project) {
     fun args(vararg arg: String) {
         project.testArgs.addAll(arg)
     }
 }
 
 @Directive
-public fun test(project: Project, init: TestConfig.() -> Unit) : TestConfig {
-    val result = TestConfig(project)
+fun Project.test(init: TestConfig.() -> Unit) : TestConfig {
+    val result = TestConfig(this)
     result.init()
     return result
 }

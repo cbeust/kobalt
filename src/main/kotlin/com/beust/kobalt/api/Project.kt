@@ -86,6 +86,10 @@ open public class Project(
 
     val testDependencies : ArrayList<IClasspathDependency> = arrayListOf()
     val testProvidedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
+
+    /** Used to disambiguate various name properties */
+    @Directive
+    val projectName: String get() = name!!
 }
 
 public class Sources(val project: Project, val sources: ArrayList<String>) {

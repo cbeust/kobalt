@@ -1,9 +1,8 @@
 package com.beust.kobalt.plugin.packaging
 
+import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.IFileSpec.FileSpec
 import com.beust.kobalt.IFileSpec.Glob
-import com.beust.kobalt.IFileSpec
-import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
@@ -29,14 +28,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Directive
-public fun assemble(project: Project, init: Package.(p: Project) -> Unit): Package {
-    val pd = Package(project)
-    pd.init(project)
+fun Project.assemble(init: Package.(p: Project) -> Unit): Package {
+    val pd = Package(this)
+    pd.init(this)
     return pd
 }
 
 @Singleton
-public class PackagingPlugin @Inject constructor(val dependencyManager : DependencyManager,
+class PackagingPlugin @Inject constructor(val dependencyManager : DependencyManager,
         val executors: KobaltExecutors, val localRepo: LocalRepo) : BasePlugin() {
 
     companion object {
@@ -67,7 +66,7 @@ public class PackagingPlugin @Inject constructor(val dependencyManager : Depende
             }
             ex.forEach {
                 if (it.matches(Paths.get(file.name))) {
-                    log(2, "Excluding ${file}")
+                    log(2, "Excluding $file")
                     return true
                 }
             }
@@ -175,7 +174,7 @@ public class PackagingPlugin @Inject constructor(val dependencyManager : Depende
                 if (File(fromPath).exists()) {
                     spec.toFiles(fromPath).forEach { file ->
                         if (!File(fromPath, file.path).exists()) {
-                            throw AssertionError("File should exist: ${file}")
+                            throw AssertionError("File should exist: $file")
                         }
 
                         if (!isExcluded(file, excludes)) {
@@ -186,11 +185,11 @@ public class PackagingPlugin @Inject constructor(val dependencyManager : Depende
 
                     }
                 } else {
-                    warn("Directory ${fromPath} doesn't exist, not including it in the jar")
+                    warn("Directory $fromPath doesn't exist, not including it in the jar")
                 }
             }
             if (includedSpecs.size > 0) {
-                log(3, "Including specs ${includedSpecs}")
+                log(3, "Including specs $includedSpecs")
                 result.add(IncludedFile(From(includedFile.from), To(includedFile.to), includedSpecs))
             }
         }
@@ -213,12 +212,12 @@ public class PackagingPlugin @Inject constructor(val dependencyManager : Depende
         val fullArchiveName = archiveName ?: arrayListOf(project.name!!, project.version!!).joinToString("-") + suffix
         val result = File(archiveDir.path, fullArchiveName)
         val outStream = outputStreamFactory(FileOutputStream(result))
-        log(2, "Creating ${result}")
+        log(2, "Creating $result")
         JarUtils.addFiles(project.directory, includedFiles, outStream, expandJarFiles)
-        log(2, "Added ${includedFiles.size} files to ${result}")
+        log(2, text = "Added ${includedFiles.size} files to $result")
         outStream.flush()
         outStream.close()
-        log(1, "  Created ${result}")
+        log(1, "  Created $result")
         return result
     }
 

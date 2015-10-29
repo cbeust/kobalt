@@ -15,7 +15,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-public class KotlinPlugin @Inject constructor(
+class KotlinPlugin @Inject constructor(
         override val localRepo: LocalRepo,
         override val files: KFiles,
         override val depFactory: DepFactory,
@@ -98,7 +98,7 @@ public class KotlinPlugin @Inject constructor(
  * @param project: the list of projects that need to be built before this one.
  */
 @Directive
-public fun kotlinProject(vararg project: Project, init: KotlinProject.() -> Unit): KotlinProject {
+fun kotlinProject(vararg project: Project, init: KotlinProject.() -> Unit): KotlinProject {
     with(KotlinProject()) {
         init()
         Kobalt.declareProjectDependencies(this, project)
@@ -113,7 +113,7 @@ class KotlinCompilerConfig {
 }
 
 @Directive
-fun kotlinCompiler(init: KotlinCompilerConfig.() -> Unit) : KotlinCompilerConfig {
+fun Project.kotlinCompiler(init: KotlinCompilerConfig.() -> Unit) : KotlinCompilerConfig {
     with (KotlinCompilerConfig()) {
         init()
         return this

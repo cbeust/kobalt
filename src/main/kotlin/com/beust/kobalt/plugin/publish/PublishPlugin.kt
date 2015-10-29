@@ -114,10 +114,9 @@ data class JCenterConfiguration(val project: Project) {
 }
 
 @Directive
-public fun jcenter(project: Project, ini: JCenterConfiguration.() -> Unit)
-        : JCenterConfiguration {
-    val pd = JCenterConfiguration(project)
+public fun Project.jcenter(ini: JCenterConfiguration.() -> Unit) : JCenterConfiguration {
+    val pd = JCenterConfiguration(this)
     pd.ini()
-    (Kobalt.findPlugin("publish") as PublishPlugin).addConfiguration(project.name!!, pd)
+    (Kobalt.findPlugin("publish") as PublishPlugin).addConfiguration(name!!, pd)
     return pd
 }
