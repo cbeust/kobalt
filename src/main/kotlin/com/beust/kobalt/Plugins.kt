@@ -12,6 +12,7 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.DefaultPlugin
+import com.beust.kobalt.plugin.android.AndroidPlugin
 import com.beust.kobalt.plugin.java.JavaPlugin
 import com.beust.kobalt.plugin.kotlin.KotlinPlugin
 import com.beust.kobalt.plugin.packaging.PackagingPlugin
@@ -82,7 +83,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
 
         val defaultPlugin : Plugin get() = findPlugin(DefaultPlugin.NAME)!!
 
-        public fun findPlugin(name: String) : Plugin? = pluginMap.get(name)
+        public fun findPlugin(name: String) : Plugin? = pluginMap[name]
     }
 
     fun applyPlugins(context: KobaltContext, projects: List<Project>) {
@@ -173,11 +174,11 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
 
     public fun instantiateClassName(classLoader: ClassLoader, className : String) : Class<*> {
         try {
-            log(2, "Instantiating ${className}")
+            log(2, "Instantiating $className")
             return classLoader.loadClass(className)
         } catch(ex: Exception) {
             val urls = Arrays.toString((classLoader as URLClassLoader).urLs)
-            val message = "Couldn't instantiate ${className}\n  with classLoader $urls: ${ex}"
+            val message = "Couldn't instantiate $className\n  with classLoader $urls: $ex"
             println(message)
             throw KobaltException(message)
         }
@@ -211,13 +212,13 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
                 val manifest = jis.manifest
                 val mainClass = manifest.mainAttributes.getValue(Plugins.MANIFEST_PLUGIN_CLASS) ?:
                         throw KobaltException("Couldn't find \"${Plugins.MANIFEST_PLUGIN_CLASS}\" in the " +
-                                "manifest of ${it}")
+                                "manifest of $it")
 
                 val pluginClassName = mainClass.removeSuffix(" ")
                 val c = instantiateClassName(classLoader, pluginClassName)
                 @Suppress("UNCHECKED_CAST")
                 Plugins.addPlugin(c as Class<BasePlugin>)
-                log(1, "Added plugin ${c}")
+                log(1, "Added plugin $c")
             } finally {
                 jis?.close()
                 fis?.close()
