@@ -13,7 +13,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-public class PublishPlugin @Inject constructor(val http: Http, val files: com.beust.kobalt.misc.KFiles,
+public class PublishPlugin @Inject constructor(val files: com.beust.kobalt.misc.KFiles,
             val factory: com.beust.kobalt.maven.PomGenerator.IFactory,
             val jcenterFactory: JCenterApi.IFactory)
         : BasePlugin() {
@@ -35,10 +35,10 @@ public class PublishPlugin @Inject constructor(val http: Http, val files: com.be
     }
 
     private fun validateProject(project: Project) {
-        Preconditions.checkNotNull(project.name, "Project ${project} should have a name")
-        Preconditions.checkNotNull(project.version, "Project ${project} should have a version")
-        Preconditions.checkNotNull(project.group, "Project ${project} should have a group")
-        Preconditions.checkNotNull(project.artifactId, "Project ${project} should have a artifactId")
+        Preconditions.checkNotNull(project.name, "Project $project should have a name")
+        Preconditions.checkNotNull(project.version, "Project $project should have a version")
+        Preconditions.checkNotNull(project.group, "Project $project should have a group")
+        Preconditions.checkNotNull(project.artifactId, "Project $project should have a artifactId")
     }
 
     private val VALID = arrayListOf(".jar", ".pom")
