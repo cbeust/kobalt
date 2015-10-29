@@ -1,9 +1,9 @@
 package com.beust.kobalt.api
 
-import com.beust.kobalt.misc.ToString
+import com.beust.kobalt.misc.toString
 
 data public class Task(val pluginName: String, val taskName: String) {
     override public fun toString() : String {
-        return ToString("Task", pluginName, taskName).s
+        return toString("Task", pluginName, taskName)
     }
 }

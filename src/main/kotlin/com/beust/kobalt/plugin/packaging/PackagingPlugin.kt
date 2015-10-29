@@ -358,11 +358,10 @@ class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<I
     constructor(specs: List<IFileSpec>) : this(From(""), To(""), specs)
     public val from: String get() = fromOriginal.path.replace("\\", "/")
     public val to: String get() = toOriginal.path.replace("\\", "/")
-    override public fun toString() = ToString("IncludedFile",
+    override public fun toString() = toString("IncludedFile",
             "files", specs.map { it.toString() }.joinToString(", "),
             "from", from,
             "to", to)
-        .s
 }
 
 interface AttributeHolder {

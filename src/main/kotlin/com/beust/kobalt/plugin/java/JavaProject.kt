@@ -3,9 +3,7 @@ package com.beust.kobalt.plugin.java
 import com.beust.kobalt.api.Dependencies
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.ToString
-import java.io.File
+import com.beust.kobalt.misc.toString
 
 public class JavaProject(
         @Directive
@@ -29,6 +27,6 @@ public class JavaProject(
     : Project(name, version, directory, buildDirectory, group, artifactId, packaging, dependencies,
         ".java", JavaCompilerInfo()) {
 
-    override public fun toString() = ToString("JavaProject", "name", name!!).s
+    override public fun toString() = toString("JavaProject", "name", name!!)
 }
 

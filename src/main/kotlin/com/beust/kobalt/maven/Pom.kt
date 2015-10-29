@@ -1,8 +1,9 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.misc.ToString
+import com.beust.kobalt.misc.toString
 import com.beust.kobalt.misc.log
 import com.google.inject.assistedinject.Assisted
+import org.jetbrains.kotlin.codegen.intrinsics.ToString
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
@@ -103,5 +104,5 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         }
     }
 
-    override public fun toString() = ToString("Pom", id, "id").s
+    override public fun toString() = toString("Pom", id, "id")
 }

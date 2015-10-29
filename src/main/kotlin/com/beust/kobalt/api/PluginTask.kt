@@ -1,7 +1,7 @@
 package com.beust.kobalt.api
 
 import com.beust.kobalt.internal.TaskResult2
-import com.beust.kobalt.misc.ToString
+import com.beust.kobalt.misc.toString
 import java.util.concurrent.Callable
 
 abstract public class PluginTask : Callable<TaskResult2<PluginTask>> {
@@ -11,6 +11,6 @@ abstract public class PluginTask : Callable<TaskResult2<PluginTask>> {
     abstract val project: Project
 
     override public fun toString() : String {
-        return ToString("PluginTask", "id", project.name + ":" + name).s
+        return toString("PluginTask", "id", project.name + ":" + name)
     }
 }

@@ -1,12 +1,9 @@
 package com.beust.kobalt.plugin.kotlin
 
 import com.beust.kobalt.api.Dependencies
-import com.beust.kobalt.api.ICompilerInfo
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.ToString
-import java.io.File
+import com.beust.kobalt.misc.toString
 
 public class KotlinProject(
         @Directive
@@ -30,5 +27,5 @@ public class KotlinProject(
         : Project(name, version, directory, buildDirectory, group, artifactId, packaging, dependencies, ".kt",
                 KotlinCompilerInfo()) {
 
-    override public fun toString() = ToString("KotlinProject", "name", name!!).s
+    override public fun toString() = toString("KotlinProject", "name", name!!)
 }

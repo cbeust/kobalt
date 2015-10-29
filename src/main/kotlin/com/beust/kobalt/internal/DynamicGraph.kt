@@ -1,11 +1,13 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.misc.NamedThreadFactory
+import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.*
 import com.google.common.collect.HashMultimap
 import java.util.concurrent.*
 
 open class TaskResult2<T>(success: Boolean, val value: T) : TaskResult(success) {
-    override fun toString() = ToString("TaskResult", "success", success, "value", value).s
+    override fun toString() = toString("TaskResult", "success", success, "value", value)
 }
 
 public interface IWorker<T> : Callable<TaskResult2<T>> {
