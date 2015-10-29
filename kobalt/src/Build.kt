@@ -2,11 +2,13 @@ import com.beust.kobalt.*
 import com.beust.kobalt.api.License
 import com.beust.kobalt.api.Scm
 import com.beust.kobalt.internal.test
+import com.beust.kobalt.plugin.java.javaCompiler
 import com.beust.kobalt.plugin.java.javaProject
+import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.kotlin.kotlinProject
 import com.beust.kobalt.plugin.packaging.assemble
-import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.publish.jcenter
+
 //import com.beust.kobalt.plugin.linecount.lineCount
 //val plugins = plugins(
 //        "com.beust.kobalt:kobalt-line-count:0.15"
@@ -27,6 +29,10 @@ val wrapper = javaProject {
     name = "kobalt-wrapper"
     version = readVersion()
     directory = homeDir("kotlin/kobalt/modules/wrapper")
+
+    javaCompiler {
+        args("-source", "1.7", "-target", "1.7")
+    }
 
     assemble {
         jar {

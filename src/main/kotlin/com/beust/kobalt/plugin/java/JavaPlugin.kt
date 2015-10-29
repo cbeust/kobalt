@@ -15,6 +15,8 @@ import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.plugin.kotlin.KotlinCompilerConfig
+import com.beust.kobalt.plugin.kotlin.KotlinPlugin
 import java.io.File
 import java.nio.file.Paths
 import java.util.*
@@ -60,6 +62,7 @@ public class JavaPlugin @Inject constructor(
             args.add("-classpath")
             args.add(stringClasspath.joinToString(File.pathSeparator))
         }
+        args.addAll(compilerArgs)
         args.addAll(sourceFiles)
 
         val pb = ProcessBuilder(args)
@@ -155,8 +158,13 @@ public class JavaPlugin @Inject constructor(
         return result
     }
 
-}
+    private val compilerArgs = arrayListOf<String>()
 
+    fun addCompilerArgs(vararg args: String) {
+        compilerArgs.addAll(args)
+    }
+
+}
 
 @Directive
 public fun javaProject(init: JavaProject.() -> Unit): JavaProject {
@@ -164,3 +172,18 @@ public fun javaProject(init: JavaProject.() -> Unit): JavaProject {
     pd.init()
     return pd
 }
+
+class JavaCompilerConfig {
+    fun args(vararg options: String) {
+        (Kobalt.findPlugin("java") as JavaPlugin).addCompilerArgs(*options)
+    }
+}
+
+@Directive
+fun Project.javaCompiler(init: JavaCompilerConfig.() -> Unit) : JavaCompilerConfig {
+    with (JavaCompilerConfig()) {
+        init()
+        return this
+    }
+}
+
