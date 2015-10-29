@@ -1,5 +1,7 @@
 To do:
 
+- [ ] getDependencies() should return the transitive dependencies
+- [ ] Add a "Auto complete Build.kt" menu in the plug-in
 - [ ] "All artifacts successfully uploaded" is shown before the upload is actually done
 - [ ] use groupId/artifactId
 - [ ] Console mode with watch service, so recompilation can occur as soon as a source file is modified
