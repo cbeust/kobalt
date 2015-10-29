@@ -2,15 +2,16 @@ package com.beust.kobalt
 
 import com.beust.jcommander.JCommander
 import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.Project
-import com.beust.kobalt.internal.*
+import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.remote.KobaltClient
 import com.beust.kobalt.internal.remote.KobaltServer
 import com.beust.kobalt.kotlin.BuildFile
-import com.beust.kobalt.maven.*
-import com.beust.kobalt.misc.*
 import com.beust.kobalt.kotlin.BuildFileCompiler
+import com.beust.kobalt.maven.DepFactory
+import com.beust.kobalt.maven.Http
+import com.beust.kobalt.maven.LocalRepo
+import com.beust.kobalt.maven.MavenDependency
+import com.beust.kobalt.misc.*
 import com.beust.kobalt.wrapper.Wrapper
 import com.google.inject.Guice
 import java.io.File
