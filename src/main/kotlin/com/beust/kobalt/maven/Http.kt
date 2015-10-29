@@ -29,7 +29,7 @@ public class Http {
             val response = client.newCall(request.build()).execute()
             return Body(response.body(), response.code())
         } catch(ex: IOException) {
-            throw KobaltException("Could not load URL ${url}, error: " + ex.message, ex)
+            throw KobaltException("Could not load URL $url, error: " + ex.message, ex)
         }
     }
 
@@ -64,16 +64,16 @@ public class Http {
         }
     }
 
-    private val JSON = MediaType.parse("application/json; charset=utf-8")
-
-    fun post(user: String?, password: String?, url: String, payload: String) : String {
-        val request = builder(user, password)
-            .url(url)
-            .post(RequestBody.create(JSON, payload))
-            .build()
-        val response = OkHttpClient().newCall(request).execute()
-        return response.body().string()
-    }
+//    private val JSON = MediaType.parse("application/json; charset=utf-8")
+//
+//    fun post(user: String?, password: String?, url: String, payload: String) : String {
+//        val request = builder(user, password)
+//            .url(url)
+//            .post(RequestBody.create(JSON, payload))
+//            .build()
+//        val response = OkHttpClient().newCall(request).execute()
+//        return response.body().string()
+//    }
 }
 
 class KobaltException(s: String? = null, ex: Throwable? = null) : RuntimeException(s, ex) {
