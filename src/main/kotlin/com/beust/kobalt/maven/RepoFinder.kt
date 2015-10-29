@@ -21,7 +21,7 @@ import kotlin.dom.parseXml
  * Find the repo that contains the given dependency among a list of repos. Searches are performed in parallel and
  * cached so we never make a network call for the same dependency more than once.
  */
-public class RepoFinder @Inject constructor(val http: Http, val executors: KobaltExecutors) {
+public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val executors: KobaltExecutors) {
     public fun findCorrectRepo(id: String): RepoResult {
         return FOUND_REPOS.get(id)
     }
@@ -97,12 +97,12 @@ public class RepoFinder @Inject constructor(val http: Http, val executors: Kobal
                     val dep = SimpleDep(groupId, artifactId, packaging, version)
                     // Try to find the jar file
                     val urlJar = repoUrl + dep.toJarFile(dep.version)
-                    val hasJar = Kurl(urlJar, http).exists
+                    val hasJar = urlFactory.create(urlJar).exists
                     val found =
                         if (! hasJar) {
                             // No jar, try to find the directory
                             val url = repoUrl + File(dep.toJarFile(dep.version)).parentFile.path
-                            http.get(url).code == 200
+                            urlFactory.create(url).exists
                         } else {
                             true
                         }

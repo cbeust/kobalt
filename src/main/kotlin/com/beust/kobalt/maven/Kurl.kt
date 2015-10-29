@@ -10,9 +10,13 @@ import javax.inject.Inject
 /**
  * Abstracts a URL so that it works transparently on either http:// or file://
  */
-public class Kurl @Inject constructor(@Assisted val url: String, val http: Http) {
+class Kurl @Inject constructor(@Assisted val url: String) {
     val connection : URLConnection by lazy {
         URL(url).openConnection()
+    }
+
+    interface IFactory {
+        fun create(url: String) : Kurl
     }
 
     val exists : Boolean

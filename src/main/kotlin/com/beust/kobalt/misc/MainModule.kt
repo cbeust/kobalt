@@ -2,10 +2,7 @@ package com.beust.kobalt.misc
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.kotlin.BuildFileCompiler
-import com.beust.kobalt.maven.ArtifactFetcher
-import com.beust.kobalt.maven.LocalRepo
-import com.beust.kobalt.maven.Pom
-import com.beust.kobalt.maven.PomGenerator
+import com.beust.kobalt.maven.*
 import com.beust.kobalt.plugin.publish.JCenterApi
 import com.google.inject.AbstractModule
 import com.google.inject.BindingAnnotation
@@ -41,6 +38,7 @@ public open class MainModule(val args: Args) : AbstractModule() {
                 JCenterApi.IFactory::class.java,
                 Pom.IFactory::class.java,
                 BuildFileCompiler.IFactory::class.java,
+                Kurl.IFactory::class.java,
                 ArtifactFetcher.IFactory::class.java)
             .forEach {
                 install(builder.build(it))

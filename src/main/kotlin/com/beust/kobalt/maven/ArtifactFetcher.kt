@@ -42,20 +42,20 @@ class DownloadManager @Inject constructor(val factory: ArtifactFetcher.IFactory)
  */
 class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
         @Assisted("fileName") val fileName: String,
-        val files: KFiles, val http: Http) : Callable<File> {
+        val files: KFiles, val urlFactory: Kurl.IFactory) : Callable<File> {
     interface IFactory {
         fun create(@Assisted("url") url: String, @Assisted("fileName") fileName: String) : ArtifactFetcher
     }
 
     override fun call() : File {
-        val k = Kurl(url + ".md5", http)
+        val k = urlFactory.create(url + ".md5")
         val remoteMd5 =
             if (k.exists) k.string.trim(' ', '\t', '\n').substring(0, 32)
             else null
 
         val file = File(fileName)
         file.parentFile.mkdirs()
-        Kurl(url, http).toFile(file)
+        urlFactory.create(url).toFile(file)
         log(1, "  Downloaded $url")
 
         if (remoteMd5 != null && remoteMd5 != Md5.toMd5(file)) {
