@@ -7,14 +7,15 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.Http
+import com.beust.kobalt.maven.PomGenerator
+import com.beust.kobalt.misc.KFiles
 import com.google.common.base.Preconditions
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-public class PublishPlugin @Inject constructor(val files: com.beust.kobalt.misc.KFiles,
-            val factory: com.beust.kobalt.maven.PomGenerator.IFactory,
+public class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGenerator.IFactory,
             val jcenterFactory: JCenterApi.IFactory)
         : BasePlugin() {
 
@@ -28,6 +29,7 @@ public class PublishPlugin @Inject constructor(val files: com.beust.kobalt.misc.
         private const val PROPERTY_BINTRAY_PASSWORD = "bintray.apikey"
     }
 
+    @Suppress("UNUSED_FUNCTION_LITERAL")
     @Task(name = TASK_GENERATE_POM, description = "Generate the .pom file", runAfter = arrayOf("assemble"))
     fun taskGeneratePom(project: Project): TaskResult {
         factory.create(project).generate()
