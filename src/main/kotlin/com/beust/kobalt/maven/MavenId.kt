@@ -23,9 +23,17 @@ public class MavenId(val id: String) {
         }
         groupId = c[0]
         artifactId = c[1]
-        packaging = if (c.size == 4) c[2] else null
-        version = if (c.size == 4) c[3] else if (c.size == 3 && ! c[2].isBlank()) c[2] else null
+        if (! c[2].isEmpty()) {
+            if (isVersion(c[2])) {
+                version = c[2]
+            } else {
+                packaging = c[2]
+                version = c[3]
+            }
+        }
     }
+
+    private fun isVersion(s: String) : Boolean = Character.isDigit(s.get(0))
 
     val hasVersion = version != null
 
