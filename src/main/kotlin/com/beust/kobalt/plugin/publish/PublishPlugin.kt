@@ -6,7 +6,6 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.TaskResult
-import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.misc.KFiles
 import com.google.common.base.Preconditions
@@ -53,7 +52,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
     }
 
     private fun checkAuthentication(value: String, key: String) {
-        Preconditions.checkNotNull(value, "Couldn't find user in property ${key}, make sure you specified" +
+        Preconditions.checkNotNull(value, "Couldn't find user in property $key, make sure you specified" +
                 "your credentials in local.properties")
     }
 
