@@ -69,8 +69,8 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
         log(1, "Listening to port $portNumber")
         var quit = false
         val serverSocket = ServerSocket(portNumber)
-        while (! quit) {
-            val clientSocket = serverSocket.accept()
+        val clientSocket = serverSocket.accept()
+        while (!quit) {
             outgoing = PrintWriter(clientSocket.outputStream, true)
             if (pending.size > 0) {
                 log(1, "Emptying the queue, size $pending.size()")
@@ -99,6 +99,8 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
                 }
             } catch(ex: SocketException) {
                 log(1, "Client disconnected, resetting")
+            } catch(ex: Exception) {
+                log(1, "Command failed: ${ex.message}")
             }
         }
     }
