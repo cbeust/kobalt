@@ -54,8 +54,8 @@ public class PomGenerator @Inject constructor(@Assisted val project: Project) {
 
         val buildDir = com.beust.kobalt.misc.KFiles.makeDir(project.directory, project.buildDirectory!!)
         val outputDir = com.beust.kobalt.misc.KFiles.makeDir(buildDir.path, "libs")
-        val pomFile = SimpleDep(project.group!!, project.artifactId!!, project.packaging, project.version!!)
-                .toPomFileName()
+        val mavenId = MavenId.create(project.group!!, project.artifactId!!, project.packaging, project.version!!)
+        val pomFile = SimpleDep(mavenId).toPomFileName()
         val outputFile = File(outputDir, pomFile)
         outputFile.writeText(s.toString(), Charset.defaultCharset())
         log(1, "  Wrote $outputFile")

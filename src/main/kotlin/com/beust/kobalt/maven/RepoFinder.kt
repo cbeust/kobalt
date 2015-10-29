@@ -85,7 +85,7 @@ public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val e
                 }
             } else {
                 if (version!!.contains("SNAPSHOT")) {
-                    val dep = SimpleDep(groupId, artifactId, packaging, version)
+                    val dep = SimpleDep(mavenId)
                     val snapshotVersion = findSnapshotVersion(dep.toMetadataXmlPath(false), repoUrl)
                     if (snapshotVersion != null) {
                         return RepoResult(repoUrl, true, version, true /* hasJar, potential bug here */,
@@ -94,7 +94,7 @@ public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val e
                         return RepoResult(repoUrl, false, "")
                     }
                 } else {
-                    val dep = SimpleDep(groupId, artifactId, packaging, version)
+                    val dep = SimpleDep(mavenId)
                     // Try to find the jar file
                     val urlJar = repoUrl + dep.toJarFile(dep.version)
                     val hasJar = urlFactory.create(urlJar).exists

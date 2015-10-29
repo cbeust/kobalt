@@ -2,16 +2,14 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.misc.Strings
 
-open public class SimpleDep(override val groupId: String, override val artifactId: String,
-        open val packaging: String?, open val version: String) : UnversionedDep(groupId, artifactId) {
+open public class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.groupId, mavenId.artifactId) {
     companion object {
         fun create(id: String) = MavenId(id).let {
-            if (id.contains("android")) {
-                println("DONOTCOMMIT")
-            }
-            SimpleDep(it.groupId, it.artifactId, it.packaging, it.version!!)
+            SimpleDep(MavenId(id))
         }
     }
+
+    val version: String get() = mavenId.version!!
 
     override public fun toMetadataXmlPath(fileSystem: Boolean): String {
         return toDirectory(version, fileSystem) + "maven-metadata.xml"
@@ -35,6 +33,7 @@ open public class SimpleDep(override val groupId: String, override val artifactI
 
     val suffix : String
         get() {
-            return if (packaging != null && ! packaging.isNullOrBlank()) ".${packaging!!}" else ".jar"
+            val packaging = mavenId.packaging
+            return if (packaging != null && ! packaging.isNullOrBlank()) ".${packaging}" else ".jar"
         }
 }

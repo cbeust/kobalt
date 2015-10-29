@@ -1,26 +1,23 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.DependencyExecutor
+import com.beust.kobalt.misc.Versions
+import com.beust.kobalt.misc.warn
 import com.google.inject.Key
-import com.google.inject.assistedinject.Assisted
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
 import javax.inject.Inject
 import kotlin.properties.Delegates
 
-public class MavenDependency @Inject constructor(override @Assisted("groupId") val groupId : String,
-        override @Assisted("artifactId") val artifactId : String,
-        override @Assisted("packaging") val packaging: String?,
-        override @Assisted("version") val version : String,
+public class MavenDependency @Inject constructor(mavenId: MavenId,
         val executor: ExecutorService,
         override val localRepo: LocalRepo,
         val repoFinder: RepoFinder,
         val pomFactory: Pom.IFactory,
         val downloadManager: DownloadManager)
-            : LocalDep(groupId, artifactId, packaging, version, localRepo), IClasspathDependency,
-                Comparable<MavenDependency> {
+            : LocalDep(mavenId, localRepo), IClasspathDependency, Comparable<MavenDependency> {
     override var jarFile: Future<File> by Delegates.notNull()
     var pomFile: Future<File> by Delegates.notNull()
 
@@ -31,7 +28,7 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
             jarFile = CompletedFuture(jar)
             pomFile = CompletedFuture(pom)
         } else {
-            val repoResult = repoFinder.findCorrectRepo(MavenId.toId(groupId, artifactId, packaging, version))
+            val repoResult = repoFinder.findCorrectRepo(mavenId.toId)
             if (repoResult.found) {
                 jarFile =
                     if (repoResult.hasJar) {
@@ -42,18 +39,10 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
                 pomFile = downloadManager.download(repoResult.repoUrl + toPomFile(repoResult), pom.absolutePath,
                         executor)
             } else {
-                throw KobaltException("Couldn't resolve " +
-                        "${MavenId.toId(groupId, artifactId, packaging, version)}")
+                throw KobaltException("Couldn't resolve ${mavenId.toId}")
             }
         }
     }
-
-//    interface IFactory {
-//        fun _create(@Assisted("groupId") groupId: String,
-//                @Assisted("artifactId") artifactId: String,
-//                @Assisted("version") version: String = "",
-//                executor: ExecutorService) : MavenDependency
-//    }
 
     companion object {
         val executor = Kobalt.INJECTOR.getInstance(Key.get(ExecutorService::class.java, DependencyExecutor::class.java))
@@ -69,9 +58,9 @@ public class MavenDependency @Inject constructor(override @Assisted("groupId") v
     }
 
 
-    public override fun toString() = MavenId.toId(groupId, artifactId, packaging, version)
+    public override fun toString() = mavenId.toId
 
-    override val id = MavenId.toId(groupId, artifactId, packaging, version)
+    override val id = mavenId.toId
 
     override fun toMavenDependencies(): org.apache.maven.model.Dependency {
         with(org.apache.maven.model.Dependency()) {

@@ -36,7 +36,7 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
                 }
             }
 
-            return MavenDependency(mavenId.groupId, mavenId.artifactId, packaging, version!!,
+            return MavenDependency(MavenId.create(mavenId.groupId, mavenId.artifactId, packaging, version!!),
                     executor, localRepo, repoFinder, pomFactory, downloadManager)
         }
     }
