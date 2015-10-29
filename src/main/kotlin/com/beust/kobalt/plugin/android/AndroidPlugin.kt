@@ -1,27 +1,29 @@
 package com.beust.kobalt.plugin.android
 
 import com.beust.kobalt.api.BasePlugin
+import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.KobaltContext
+import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.annotation.Directive
+import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.FileDependency
 import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.misc.log
+import com.google.inject.Inject
+import com.google.inject.Singleton
 import java.io.File
-import java.nio.file.Paths
-import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.api.annotation.Task
 import java.nio.file.Path
-import javax.inject.Inject
-import javax.inject.Singleton
+import java.nio.file.Paths
 
-class AndroidConfiguration() {
-}
+class AndroidConfiguration(var compileSdkVersion : String = "23",
+        var buildToolsVersion : String = "23.0.1")
 
 @Directive
-public fun android(init: AndroidConfiguration.() -> Unit) : AndroidConfiguration {
+fun Project.android(init: AndroidConfiguration.() -> Unit) : AndroidConfiguration {
     val pd = AndroidConfiguration()
     pd.init()
+    (Kobalt.findPlugin("android") as AndroidPlugin).setConfiguration(this, pd)
     return pd
 }
 
@@ -30,13 +32,20 @@ public class AndroidPlugin @Inject constructor() : BasePlugin() {
     val ANDROID_HOME = "/Users/beust/android/adt-bundle-mac-x86_64-20140702/sdk"
     override val name = "android"
 
-    val compileSdkVersion = "23"
-    val buildToolsVersion = "23.0.1"
-
     override fun apply(project: Project, context: KobaltContext) {
         log(1, "Applying plug-in Android on project $project")
-//        project.compileDependencies.add(FileDependency(androidJar.toString()))
+        if (accept(project)) {
+            project.compileDependencies.add(FileDependency(androidJar(project).toString()))
+        }
     }
+
+    val configurations = hashMapOf<String, AndroidConfiguration>()
+
+    fun setConfiguration(p: Project, configuration: AndroidConfiguration) {
+        configurations.put(p.name!!, configuration)
+    }
+
+    override fun accept(p: Project) = configurations.containsKeyRaw(p.name)
 
     fun dirGet(dir: Path, vararg others: String) : String {
         val result = Paths.get(dir.toString(), *others)
@@ -47,12 +56,18 @@ public class AndroidPlugin @Inject constructor() : BasePlugin() {
         return result.toString()
     }
 
-    val androidJar = Paths.get(ANDROID_HOME, "platforms", "android-$compileSdkVersion", "android.jar")
+    fun compileSdkVersion(project: Project) = configurations.get(project.name!!)?.compileSdkVersion
+    fun buildToolsVersion(project: Project) = configurations.get(project.name!!)?.buildToolsVersion
+
+    fun androidJar(project: Project) : Path =
+            Paths.get(ANDROID_HOME, "platforms", "android-${compileSdkVersion(project)}", "android.jar")
 
     @Task(name = "generateR", description = "Generate the R.java file", runBefore = arrayOf("compile"))
     fun taskGenerateRFile(project: Project) : TaskResult {
 
         val flavor = "debug"
+        val compileSdkVersion = compileSdkVersion(project)
+        val buildToolsVersion = buildToolsVersion(project)
         val androidJar = Paths.get(ANDROID_HOME, "platforms", "android-$compileSdkVersion", "android.jar")
         val applicationId = "com.beust.example"
         val intermediates = Paths.get(project.directory, "app", "build", "intermediates")
