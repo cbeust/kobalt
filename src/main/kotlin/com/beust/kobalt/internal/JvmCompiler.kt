@@ -5,10 +5,17 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.IClasspathDependency
 import com.google.inject.Inject
+import java.io.File
 
+/**
+ * Abstract the compilation process by running an ICompilerAction parameterized  by a CompilerActionInfo.
+ * Also validates the classpath and run all the classpath contributors.
+ */
 class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) {
     fun doCompile(project: Project?, context: KobaltContext?, action: ICompilerAction, info: CompilerActionInfo)
             : TaskResult {
+        File(info.outputDir).mkdirs()
+
         val allDependencies = arrayListOf<IClasspathDependency>()
         allDependencies.addAll(info.dependencies)
         allDependencies.addAll(calculateDependencies(project, context, info.dependencies))

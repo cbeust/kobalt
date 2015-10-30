@@ -6,8 +6,8 @@ import java.io.InputStream
 import java.io.InputStreamReader
 
 public class RunCommand(val command: String) {
-    val defaultSuccess = { output: List<String> -> log(1, "Success:\n " + output.join("\n"))}
-    val defaultError = { output: List<String> -> log(1, "Error:\n " + output.join("\n"))}
+    val defaultSuccess = { output: List<String> -> log(1, "Success:\n " + output.joinToString("\n"))}
+    val defaultError = { output: List<String> -> log(1, "Error:\n " + output.joinToString("\n"))}
 
     var directory = File(".")
 
@@ -19,7 +19,7 @@ public class RunCommand(val command: String) {
 
         val pb = ProcessBuilder(allArgs)
         pb.directory(directory)
-        log(1, "Running command: " + allArgs.join(" "))
+        log(1, "Running command: " + allArgs.joinToString(" "))
         val process = pb.start()
         pb.environment().put("ANDROID_HOME", "/Users/beust/android/adt-bundle-mac-x86_64-20140702/sdk")
         val errorCode = process.waitFor()

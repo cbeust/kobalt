@@ -36,8 +36,12 @@ class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
         return result
     }
 
+    /**
+     * Create an ICompilerAction and a CompilerActionInfo suitable to be passed to doCompiler() to perform the
+     * actual compilation.
+     */
     fun compile(project: Project?, compileDependencies: List<IClasspathDependency>, otherClasspath: List<String>,
-            source: List<String>, output: String, args: List<String>) : TaskResult {
+            source: List<String>, outputDir: String, args: List<String>) : TaskResult {
 
         val executor = executors.newExecutor("KotlinCompiler", 10)
         val compilerDep = depFactory.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION", executor)
@@ -57,7 +61,7 @@ class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
             .plus(compileDependencies)
             .plus(classpathList)
             .plus(otherClasspath.map { FileDependency(it)})
-        val info = CompilerActionInfo(dependencies, source, output, args)
+        val info = CompilerActionInfo(dependencies, source, outputDir, args)
         val compilerAction = object: ICompilerAction {
             override fun compile(info: CompilerActionInfo): TaskResult {
                 log(1, "Compiling ${source.size} files")

@@ -12,7 +12,6 @@ import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.java.JavaCompiler
 import com.beust.kobalt.plugin.packaging.JarUtils
-import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.HashMultimap
 import com.google.inject.Inject
 import com.google.inject.Singleton
@@ -37,8 +36,11 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
     val ANDROID_HOME = "/Users/beust/android/adt-bundle-mac-x86_64-20140702/sdk"
     override val name = "android"
 
+    var context: KobaltContext? = null
+
     override fun apply(project: Project, context: KobaltContext) {
         log(1, "Applying plug-in Android on project $project")
+        this.context = context
         if (accept(project)) {
             project.compileDependencies.add(FileDependency(androidJar(project).toString()))
         }
@@ -144,8 +146,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         val sourceFiles = arrayListOf(Paths.get(rDirectory, "R.java").toFile().path)
         val buildDir = Paths.get(project.buildDirectory, "generated", "classes").toFile()
 
-        javaCompiler.compile("Compiling R.java", null, listOf<String>(), listOf<IClasspathDependency>(),
-                sourceFiles, buildDir)
+        javaCompiler.compile(project, context, listOf(), sourceFiles, buildDir.absolutePath, listOf())
         return buildDir
     }
 

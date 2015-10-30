@@ -48,8 +48,8 @@ public class JavaPlugin @Inject constructor(
 
     private fun compilePrivate(project: Project, cpList: List<IClasspathDependency>, sourceFiles: List<String>,
             outputDirectory: File): TaskResult {
-        val result = javaCompiler.compile(project.name!!, project.directory, compilerArgs, cpList, sourceFiles,
-                outputDirectory)
+        val result = javaCompiler.compile(project, context, cpList, sourceFiles, outputDirectory.absolutePath,
+                compilerArgs)
         return result
     }
 
