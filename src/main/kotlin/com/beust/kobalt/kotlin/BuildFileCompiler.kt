@@ -163,9 +163,8 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
     private fun parseBuildScriptJarFile(buildScriptJarFile: File, urls: List<URL>) : BuildScriptInfo {
         val projects = arrayListOf<Project>()
         var stream : InputStream? = null
-        val allUrls = arrayListOf<URL>().plus(urls).plus(arrayOf(
-                buildScriptJarFile.toURI().toURL(),
-                File(files.kobaltJar).toURI().toURL()))
+        val allUrls = (urls + arrayOf(
+                buildScriptJarFile.toURI().toURL()) + File(files.kobaltJar).toURI().toURL())
             .toTypedArray()
         val classLoader = URLClassLoader(allUrls)
 

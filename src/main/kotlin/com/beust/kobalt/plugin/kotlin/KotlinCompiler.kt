@@ -71,10 +71,7 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
                 getKotlinCompilerJar("kotlin-compiler-embeddable"))
             .map { FileDependency(it) }
 
-        val dependencies = arrayListOf<IClasspathDependency>()
-            .plus(compileDependencies)
-            .plus(classpathList)
-            .plus(otherClasspath.map { FileDependency(it)})
+        val dependencies = compileDependencies + classpathList + otherClasspath.map { FileDependency(it)}
         val info = CompilerActionInfo(dependencies, source, outputDir, args)
         return jvmCompiler.doCompile(project, context, compilerAction, info)
     }

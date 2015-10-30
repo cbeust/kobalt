@@ -22,9 +22,8 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
             : TaskResult {
         File(info.outputDir).mkdirs()
 
-        val allDependencies = arrayListOf<IClasspathDependency>()
-        allDependencies.addAll(info.dependencies)
-        allDependencies.addAll(calculateDependencies(project, context, info.dependencies))
+        val allDependencies = info.dependencies + calculateDependencies(project, context, info.dependencies)
+
         validateClasspath(allDependencies.map { it.jarFile.get().absolutePath })
         return action.compile(info.copy(dependencies = allDependencies))
     }
