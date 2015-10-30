@@ -81,7 +81,6 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                         }
                         if (currentFreeTask.size == 1) {
                             currentFreeTask.get(0).let {
-                                val thisTaskInfo = TaskInfo(projectName, it.name)
                                 graph.addNode(it)
                             }
                         }
