@@ -1,6 +1,7 @@
 package com.beust.kobalt.plugin.packaging
 
 import com.beust.kobalt.IFileSpec
+import com.beust.kobalt.file
 import com.beust.kobalt.misc.log
 import java.io.*
 import java.util.jar.JarEntry
@@ -44,7 +45,7 @@ public class JarUtils {
 //
 //                        var len = zis.read(buf)
 //                        while (len >= 0) {
-//                            outStream.write(buf, 0, len);
+//                            outStream.write(buf, 0, len)
 //                            len = zis.read(buf)
 //                        }
 //                    }
@@ -154,5 +155,30 @@ public class JarUtils {
             log(1, "Deduplicated $fromFile.name")
         }
 
+        fun extractJarFile(jarFile: File, destDir: File) {
+            val jar = java.util.jar.JarFile(jarFile)
+            val enumEntries = jar.entries()
+            while (enumEntries.hasMoreElements()) {
+                val file = enumEntries.nextElement() as JarEntry
+                val f = File(destDir.path + java.io.File.separator + file.name)
+                if (file.isDirectory) {
+                    f.mkdir()
+                    continue
+                }
+                var ins: InputStream? = null
+                var fos: OutputStream? = null
+                try {
+                    ins = jar.getInputStream(file)
+                    f.parentFile.mkdirs()
+                    fos = FileOutputStream(f)
+                    while (ins.available() > 0) {
+                        fos.write(ins.read())
+                    }
+                } finally {
+                    fos?.close()
+                    ins?.close()
+                }
+            }
+        }
     }
 }

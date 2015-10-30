@@ -1,18 +1,19 @@
 package com.beust.kobalt.plugin.android
 
-import com.beust.kobalt.api.BasePlugin
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.FileDependency
 import com.beust.kobalt.maven.IClasspathDependency
+import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.java.JavaCompiler
+import com.beust.kobalt.plugin.packaging.JarUtils
+import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.HashMultimap
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
@@ -32,7 +33,7 @@ fun Project.android(init: AndroidConfiguration.() -> Unit) : AndroidConfiguratio
 }
 
 @Singleton
-public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) : BasePlugin() {
+public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) : BasePlugin(), IClasspathContributor {
     val ANDROID_HOME = "/Users/beust/android/adt-bundle-mac-x86_64-20140702/sdk"
     override val name = "android"
 
@@ -41,6 +42,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         if (accept(project)) {
             project.compileDependencies.add(FileDependency(androidJar(project).toString()))
         }
+        context.classpathContributors.add(this)
     }
 
     val configurations = hashMapOf<String, AndroidConfiguration>()
@@ -49,7 +51,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         configurations.put(p.name!!, configuration)
     }
 
-    override fun accept(p: Project) = configurations.containsKeyRaw(p.name)
+    override fun accept(project: Project) = configurations.containsKey(project.name!!)
 
     fun dirGet(dir: Path, vararg others: String) : String {
         val result = Paths.get(dir.toString(), *others)
@@ -60,8 +62,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         return result.toString()
     }
 
-    fun compileSdkVersion(project: Project) = configurations.get(project.name!!)?.compileSdkVersion
-    fun buildToolsVersion(project: Project) = configurations.get(project.name!!)?.buildToolsVersion
+    fun compileSdkVersion(project: Project) = configurations[project.name!!]?.compileSdkVersion
+    fun buildToolsVersion(project: Project) = configurations[project.name!!]?.buildToolsVersion
 
     fun androidJar(project: Project) : Path =
             Paths.get(ANDROID_HOME, "platforms", "android-${compileSdkVersion(project)}", "android.jar")
@@ -76,11 +78,13 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         val applicationId = configurations[project.name!!]?.applicationId!!
         val intermediates = Paths.get(project.directory, "app", "build", "intermediates")
         val manifestDir = Paths.get(project.directory, "app", "src", "main").toString()
-        val manifestIntermediateDir = dirGet(intermediates, "manifests", "full", flavor)
+//        val manifestIntermediateDir = dirGet(intermediates, "manifests", "full", flavor)
         val manifest = Paths.get(manifestDir, "AndroidManifest.xml")
         val generated = Paths.get(project.directory, "app", "build", "generated")
         val aapt = "$ANDROID_HOME/build-tools/$buildToolsVersion/aapt"
         val outputDir = dirGet(intermediates, "resources", "resources-$flavor")
+
+        explodeAarFiles(project, generated)
 
         val crunchedPngDir = dirGet(intermediates, "res", flavor)
         RunCommand(aapt).apply {
@@ -119,6 +123,23 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         return TaskResult()
     }
 
+    /**
+     * Extract all the .aar files found in the dependencies and add the android.jar to classpathEntries,
+     * which will be added to the classpath at compile time
+     */
+    private fun explodeAarFiles(project: Project, outputDir: Path) {
+        project.compileDependencies.filter {
+            it.jarFile.get().name.endsWith(".aar")
+        }.forEach {
+            log(2, "Exploding ${it.jarFile.get()}")
+            val mavenId = MavenId(it.id)
+            val destDir = Paths.get(outputDir.toFile().absolutePath, mavenId.artifactId, mavenId.version).toFile()
+            JarUtils.extractJarFile(it.jarFile.get(), destDir)
+            val classesJar = Paths.get(destDir.absolutePath, "classes.jar")
+            classpathEntries.put(project.name, FileDependency(classesJar.toFile().absolutePath))
+        }
+    }
+
     private fun compile(project: Project, rDirectory: String) : File {
         val sourceFiles = arrayListOf(Paths.get(rDirectory, "R.java").toFile().path)
         val buildDir = Paths.get(project.buildDirectory, "generated", "classes").toFile()
@@ -127,6 +148,13 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
                 sourceFiles, buildDir)
         return buildDir
     }
+
+    val classpathEntries = HashMultimap.create<String, IClasspathDependency>()
+
+    override fun entriesFor(project: Project): Collection<IClasspathDependency> {
+        return classpathEntries.get(project.name!!) ?: listOf()
+    }
+
 }
 
 

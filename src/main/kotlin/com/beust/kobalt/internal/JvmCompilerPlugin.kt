@@ -1,6 +1,7 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.api.BasePlugin
+import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
@@ -37,6 +38,15 @@ abstract class JvmCompilerPlugin @Inject constructor(
             }
         }
 
+
+        private fun runClasspathContributors(context: KobaltContext?, project: Project) :
+                Collection<IClasspathDependency> {
+            val result = arrayListOf<IClasspathDependency>()
+            context!!.classpathContributors.forEach {
+                result.addAll(it.entriesFor(project))
+            }
+            return result
+        }
     }
 
     /**
@@ -46,11 +56,25 @@ abstract class JvmCompilerPlugin @Inject constructor(
         log(2, "${project.name}: $s")
     }
 
-    fun calculateClasspath(vararg allDependencies : List<IClasspathDependency>): List<IClasspathDependency> {
+    var context: KobaltContext? = null
+
+    override fun apply(project: Project, context: KobaltContext) {
+        this.context = context
+    }
+
+    /**
+     * @return the classpath for this project, including the IClasspathContributors.
+     */
+    fun calculateClasspath(project: Project?, vararg allDependencies: List<IClasspathDependency>):
+            List<IClasspathDependency> {
         var result = arrayListOf<IClasspathDependency>()
         allDependencies.forEach { dependencies ->
             result.addAll(dependencyManager.transitiveClosure(dependencies))
         }
+        if (project != null) {
+            result.addAll(runClasspathContributors(context, project))
+        }
+
         return result
     }
 
@@ -61,7 +85,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         with(project) {
             arrayListOf(compileDependencies, compileProvidedDependencies, testDependencies,
                     testProvidedDependencies).forEach {
-                result.addAll(calculateClasspath(it))
+                result.addAll(calculateClasspath(project, it))
             }
         }
         return dependencyManager.reorderDependencies(result)
