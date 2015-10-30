@@ -43,7 +43,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
      * Log with a project.
      */
     protected fun lp(project: Project, s: String) {
-        log(2, "${project.name}: ${s}")
+        log(2, "${project.name}: $s")
     }
 
     fun calculateClasspath(vararg allDependencies : List<IClasspathDependency>): List<IClasspathDependency> {
@@ -105,18 +105,18 @@ abstract class JvmCompilerPlugin @Inject constructor(
             sourceDirs.addAll(project.sourceDirectoriesTest.filter { it.contains("resources") })
             outputDir = KFiles.TEST_CLASSES_DIR
         } else {
-            throw IllegalArgumentException("Custom source sets not supported yet: ${sourceSet}")
+            throw IllegalArgumentException("Custom source sets not supported yet: $sourceSet")
         }
 
         if (sourceDirs.size > 0) {
-            lp(project, "Copying ${sourceSet} resources")
+            lp(project, "Copying $sourceSet resources")
             val absOutputDir = File(KFiles.joinDir(project.directory, project.buildDirectory!!, outputDir))
             sourceDirs.map { File(it) }.filter { it.exists() } .forEach {
-                log(2, "Copying from ${sourceDirs} to ${absOutputDir}")
+                log(2, "Copying from $sourceDirs to $absOutputDir")
                 KFiles.copyRecursively(it, absOutputDir)
             }
         } else {
-            lp(project, "No resources to copy for ${sourceSet}")
+            lp(project, "No resources to copy for $sourceSet")
         }
     }
 }
