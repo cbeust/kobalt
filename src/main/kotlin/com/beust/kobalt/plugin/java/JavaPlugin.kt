@@ -11,7 +11,6 @@ import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -45,13 +44,6 @@ public class JavaPlugin @Inject constructor(
     override val name = "java"
 
     override fun accept(project: Project) = project is JavaProject
-
-    private fun compilePrivate(project: Project, cpList: List<IClasspathDependency>, sourceFiles: List<String>,
-            outputDirectory: File): TaskResult {
-        val result = javaCompiler.compile(project, context, cpList, sourceFiles, outputDirectory.absolutePath,
-                compilerArgs)
-        return result
-    }
 
     /**
      * Replace all the .java files with their directories + *.java in order to limit the
@@ -105,7 +97,7 @@ public class JavaPlugin @Inject constructor(
             { it: String -> it.endsWith(".java") }
                 .map { File(projectDir, it).absolutePath }
         val classpath = jvmCompiler.calculateDependencies(project, context!!, project.compileDependencies)
-        return compilePrivate(project, classpath, sourceFiles, buildDir)
+        return javaCompiler.compile(project, context, classpath, sourceFiles, buildDir.absolutePath, compilerArgs)
     }
 
     @Task(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf("compile"))
@@ -113,16 +105,14 @@ public class JavaPlugin @Inject constructor(
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
         val projectDir = File(project.directory)
 
-        val absoluteSourceFiles = files.findRecursively(projectDir, project.sourceDirectoriesTest.map { File(it) })
+        val sourceFiles = files.findRecursively(projectDir, project.sourceDirectoriesTest.map { File(it) })
                 { it: String -> it.endsWith(".java") }
                 .map { File(projectDir, it).absolutePath }
 
         val result =
-            if (absoluteSourceFiles.size > 0) {
-                compilePrivate(project,
-                        testDependencies(project),
-                        absoluteSourceFiles,
-                        makeOutputTestDir(project))
+            if (sourceFiles.size > 0) {
+                javaCompiler.compile(project, context, testDependencies(project), sourceFiles,
+                        makeOutputTestDir(project).absolutePath, compilerArgs)
             } else {
                 // No files to compile
                 TaskResult()

@@ -1,8 +1,12 @@
 package com.beust.kobalt.plugin.kotlin;
 
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.internal.*
+import com.beust.kobalt.internal.CompilerActionInfo
+import com.beust.kobalt.internal.ICompilerAction
+import com.beust.kobalt.internal.JvmCompiler
+import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
@@ -18,16 +22,27 @@ import kotlin.properties.Delegates
  * @since 08 03, 2015
  */
 @Singleton
-class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
-        override val files: com.beust.kobalt.misc.KFiles,
-        override val depFactory: DepFactory,
-        override val dependencyManager: DependencyManager,
-        override val executors: KobaltExecutors,
-        override val jvmCompiler: JvmCompiler)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler) {
+class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
+        val files: com.beust.kobalt.misc.KFiles,
+        val depFactory: DepFactory,
+        val executors: KobaltExecutors,
+        val jvmCompiler: JvmCompiler) {
     private val KOTLIN_VERSION = "1.0.0-beta-1038"
 
-    override val name = "kotlin"
+    val compilerAction = object: ICompilerAction {
+        override fun compile(info: CompilerActionInfo): TaskResult {
+            log(1, "Compiling ${info.sourceFiles.size} files")
+            val allArgs : Array<String> = arrayOf(
+                    "-d", info.outputDir,
+                    "-classpath", info.dependencies.map {it.jarFile.get()}.joinToString(File.pathSeparator),
+                    *(info.compilerArgs.toTypedArray()),
+                    info.sourceFiles.joinToString(" ")
+            )
+            log(2, "Calling kotlinc " + allArgs.joinToString(" "))
+            CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs)
+            return TaskResult()
+        }
+    }
 
     private fun getKotlinCompilerJar(name: String) : String {
         val id = "org.jetbrains.kotlin:$name:$KOTLIN_VERSION"
@@ -40,8 +55,8 @@ class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
      * Create an ICompilerAction and a CompilerActionInfo suitable to be passed to doCompiler() to perform the
      * actual compilation.
      */
-    fun compile(project: Project?, compileDependencies: List<IClasspathDependency>, otherClasspath: List<String>,
-            source: List<String>, outputDir: String, args: List<String>) : TaskResult {
+    fun compile(project: Project?, context: KobaltContext?, compileDependencies: List<IClasspathDependency>,
+            otherClasspath: List<String>, source: List<String>, outputDir: String, args: List<String>) : TaskResult {
 
         val executor = executors.newExecutor("KotlinCompiler", 10)
         val compilerDep = depFactory.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION", executor)
@@ -62,20 +77,6 @@ class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
             .plus(classpathList)
             .plus(otherClasspath.map { FileDependency(it)})
         val info = CompilerActionInfo(dependencies, source, outputDir, args)
-        val compilerAction = object: ICompilerAction {
-            override fun compile(info: CompilerActionInfo): TaskResult {
-                log(1, "Compiling ${source.size} files")
-                val allArgs : Array<String> = arrayOf(
-                        "-d", info.outputDir,
-                        "-classpath", info.dependencies.map {it.jarFile.get()}.joinToString(File.pathSeparator),
-                        *(info.compilerArgs.toTypedArray()),
-                        info.sourceFiles.joinToString(" ")
-                )
-                log(2, "Calling kotlinc " + allArgs.joinToString(" "))
-                CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs)
-                return TaskResult()
-            }
-        }
         return jvmCompiler.doCompile(project, context, compilerAction, info)
     }
 }
@@ -97,8 +98,8 @@ class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
 
     fun compilerArgs(s: List<String>) = args.addAll(s)
 
-    fun compile(project: Project?) : TaskResult {
-        return compiler.compile(project, dependencies, classpath, source, output, args)
+    fun compile(project: Project? = null, context: KobaltContext? = null) : TaskResult {
+        return compiler.compile(project, context, dependencies, classpath, source, output, args)
     }
 }
 

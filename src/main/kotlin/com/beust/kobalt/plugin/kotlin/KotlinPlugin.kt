@@ -96,7 +96,7 @@ class KotlinPlugin @Inject constructor(
             sourceFiles(sources)
             compilerArgs(compilerArgs)
             output = outputDirectory
-        }.compile(project)
+        }.compile(project, context)
     }
 }
 

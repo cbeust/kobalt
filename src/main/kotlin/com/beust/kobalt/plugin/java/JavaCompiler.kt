@@ -16,6 +16,36 @@ import java.io.File
 
 @Singleton
 class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
+    val compilerAction = object : ICompilerAction {
+        override fun compile(info: CompilerActionInfo): TaskResult {
+
+            val jvm = JavaInfo.create(File(SystemProperties.javaBase))
+            val javac = jvm.javacExecutable
+
+            val allArgs = arrayListOf(
+                    javac!!.absolutePath,
+                    "-d", info.outputDir)
+            if (info.dependencies.size > 0) {
+                allArgs.add("-classpath")
+                allArgs.add(info.dependencies.map {it.jarFile.get()}.joinToString(File.pathSeparator))
+            }
+            allArgs.addAll(info.compilerArgs)
+            allArgs.addAll(info.sourceFiles)
+
+            val pb = ProcessBuilder(allArgs)
+            pb.directory(File(info.outputDir))
+            pb.inheritIO()
+            val line = allArgs.joinToString(" ")
+            log(1, "  Compiling ${info.sourceFiles.size} files with classpath size " + info.dependencies.size)
+            log(2, "  Compiling $line")
+            val process = pb.start()
+            val errorCode = process.waitFor()
+
+            return if (errorCode == 0) TaskResult(true, "Compilation succeeded")
+            else TaskResult(false, "There were errors")
+        }
+    }
+
     /**
      * Create an ICompilerAction and a CompilerActionInfo suitable to be passed to doCompiler() to perform the
      * actual compilation.
@@ -24,35 +54,6 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
             sourceFiles: List<String>, outputDir: String, args: List<String>) : TaskResult {
 
         val info = CompilerActionInfo(dependencies, sourceFiles, outputDir, args)
-        val compilerAction = object : ICompilerAction {
-            override fun compile(info: CompilerActionInfo): TaskResult {
-
-                val jvm = JavaInfo.create(File(SystemProperties.javaBase))
-                val javac = jvm.javacExecutable
-
-                val allArgs = arrayListOf(
-                        javac!!.absolutePath,
-                        "-d", info.outputDir)
-                if (info.dependencies.size > 0) {
-                    allArgs.add("-classpath")
-                    allArgs.add(info.dependencies.map {it.jarFile.get()}.joinToString(File.pathSeparator))
-                }
-                allArgs.addAll(info.compilerArgs)
-                allArgs.addAll(info.sourceFiles)
-
-                val pb = ProcessBuilder(allArgs)
-                pb.directory(File(info.outputDir))
-                pb.inheritIO()
-                val line = allArgs.joinToString(" ")
-                log(1, "  Compiling ${info.sourceFiles.size} files with classpath size " + info.dependencies.size)
-                log(2, "  Compiling ${project?.name}:\n$line")
-                val process = pb.start()
-                val errorCode = process.waitFor()
-
-                return if (errorCode == 0) TaskResult(true, "Compilation succeeded")
-                else TaskResult(false, "There were errors")
-            }
-        }
         return jvmCompiler.doCompile(project, context, compilerAction, info)
     }
 }
