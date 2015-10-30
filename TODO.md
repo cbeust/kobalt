@@ -1,6 +1,5 @@
 To do:
 
-- [ ] getDependencies() should return the transitive dependencies
 - [ ] Add a "Auto complete Build.kt" menu in the plug-in
 - [ ] "All artifacts successfully uploaded" is shown before the upload is actually done
 - [ ] use groupId/artifactId
@@ -22,6 +21,7 @@ To do:
 - [ ] generateArchive() should use Path instead of File
 - [ ] archetypes, e.g. --initWith kotlin
 - [ ] --init: import dependencies from build.gradle
+- [ ] --init: also extract kobalt.bat (or generate it along with kobaltw)
 - [ ] Bug: --tasks displays multiple tasks when there are multiple projects
 - [ ] Bug: ./kobaltw --dryRun kobalt:uploadJcenter runs "kobalt-wrapper:clean" twice
 - [ ] Replace File with java.nio.Files and Path
@@ -32,6 +32,7 @@ To do:
 
 Done:
 
+- [x] getDependencies() should return the transitive dependencies
 - [x] Project ordering: kotlinProject(wrapper) {}
 - [x] Make files appear in download list automatically on bintray (undocumented API)
 - [x] Link kobalt to JCenter
