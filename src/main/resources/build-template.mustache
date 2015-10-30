@@ -41,9 +41,9 @@ val p = {{directive}} {
         {{/testDependencies}}
 
     }
-}
 
-val packProject = assemble(p) {
-    jar {
+    assemble {
+        jar {
+        }
     }
 }
