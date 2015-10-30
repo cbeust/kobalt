@@ -4,9 +4,13 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.TaskResult
-import com.beust.kobalt.maven.*
+import com.beust.kobalt.maven.DepFactory
+import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.IClasspathDependency
+import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
@@ -20,8 +24,9 @@ class KotlinPlugin @Inject constructor(
         override val files: KFiles,
         override val depFactory: DepFactory,
         override val dependencyManager: DependencyManager,
-        override val executors: KobaltExecutors)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors) {
+        override val executors: KobaltExecutors,
+        override val jvmCompiler: JvmCompiler)
+        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler) {
 
     init {
         Kobalt.registerCompiler(KotlinCompilerInfo())
@@ -41,7 +46,8 @@ class KotlinPlugin @Inject constructor(
     @Task(name = TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project): TaskResult {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
-        val classpath = calculateClasspath(project, project.compileDependencies, project.compileProvidedDependencies)
+        val classpath = jvmCompiler.calculateDependencies(project, context!!, project.compileDependencies,
+                project.compileProvidedDependencies)
 
         val projectDirectory = java.io.File(project.directory)
         val buildDirectory = File(projectDirectory, project.buildDirectory + File.separator + "classes")
@@ -53,7 +59,7 @@ class KotlinPlugin @Inject constructor(
             File(projectDirectory, it).absolutePath
         }
 
-        compilePrivate(classpath, absoluteSourceFiles, buildDirectory.absolutePath)
+        compilePrivate(project, classpath, absoluteSourceFiles, buildDirectory.absolutePath)
         lp(project, "Compilation succeeded")
         return TaskResult()
     }
@@ -71,7 +77,7 @@ class KotlinPlugin @Inject constructor(
             { it: String -> it.endsWith(".kt") }
                     .map { File(projectDir, it).absolutePath }
 
-        compilePrivate(testDependencies(project),
+        compilePrivate(project, testDependencies(project),
                 absoluteSourceFiles,
                 makeOutputTestDir(project).absolutePath)
 
@@ -79,7 +85,7 @@ class KotlinPlugin @Inject constructor(
         return TaskResult()
     }
 
-    private fun compilePrivate(cpList: List<IClasspathDependency>, sources: List<String>,
+    private fun compilePrivate(project: Project, cpList: List<IClasspathDependency>, sources: List<String>,
             outputDirectory: String): TaskResult {
         File(outputDirectory).mkdirs()
 
@@ -90,7 +96,7 @@ class KotlinPlugin @Inject constructor(
             sourceFiles(sources)
             compilerArgs(compilerArgs)
             output = outputDirectory
-        }.compile()
+        }.compile(project)
     }
 }
 

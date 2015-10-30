@@ -1,8 +1,8 @@
 package com.beust.kobalt.plugin.kotlin;
 
 import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.internal.JvmCompilerPlugin
-import com.beust.kobalt.internal.TaskResult
+import com.beust.kobalt.api.Project
+import com.beust.kobalt.internal.*
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
@@ -22,8 +22,9 @@ class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
         override val files: com.beust.kobalt.misc.KFiles,
         override val depFactory: DepFactory,
         override val dependencyManager: DependencyManager,
-        override val executors: KobaltExecutors)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors) {
+        override val executors: KobaltExecutors,
+        override val jvmCompiler: JvmCompiler)
+        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler) {
     private val KOTLIN_VERSION = "1.0.0-beta-1038"
 
     override val name = "kotlin"
@@ -35,30 +36,43 @@ class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
         return result
     }
 
-    fun compile(compileDependencies: List<IClasspathDependency>, otherClasspath: List<String>,
+    fun compile(project: Project?, compileDependencies: List<IClasspathDependency>, otherClasspath: List<String>,
             source: List<String>, output: String, args: List<String>) : TaskResult {
+
         val executor = executors.newExecutor("KotlinCompiler", 10)
-        val compilerDep = depFactory.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:${KOTLIN_VERSION}",
-                executor)
+        val compilerDep = depFactory.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION", executor)
         val deps = compilerDep.transitiveDependencies(executor)
+
+        // Force a download of the compiler dependencies
         deps.forEach { it.jarFile.get() }
+
+        executor.shutdown()
 
         val classpathList = arrayListOf(
                 getKotlinCompilerJar("kotlin-stdlib"),
                 getKotlinCompilerJar("kotlin-compiler-embeddable"))
+            .map { FileDependency(it) }
 
-        classpathList.addAll(otherClasspath)
-        classpathList.addAll(calculateClasspath(null, compileDependencies).map { it.id })
-
-        validateClasspath(classpathList)
-
-        log(2, "Compiling ${source.size} files with classpath:\n  " + classpathList.joinToString("\n  "))
-        CLICompiler.doMainNoExit(K2JVMCompiler(), arrayOf(
-                "-d", output,
-                "-classpath", classpathList.joinToString(File.pathSeparator), *source.toTypedArray(),
-                *args.toTypedArray()))
-        executor.shutdown()
-        return TaskResult()
+        val dependencies = arrayListOf<IClasspathDependency>()
+            .plus(compileDependencies)
+            .plus(classpathList)
+            .plus(otherClasspath.map { FileDependency(it)})
+        val info = CompilerActionInfo(dependencies, source, output, args)
+        val compilerAction = object: ICompilerAction {
+            override fun compile(info: CompilerActionInfo): TaskResult {
+                log(1, "Compiling ${source.size} files")
+                val allArgs : Array<String> = arrayOf(
+                        "-d", info.outputDir,
+                        "-classpath", info.dependencies.map {it.jarFile.get()}.joinToString(File.pathSeparator),
+                        *(info.compilerArgs.toTypedArray()),
+                        info.sourceFiles.joinToString(" ")
+                )
+                log(2, "Calling kotlinc " + allArgs.joinToString(" "))
+                CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs)
+                return TaskResult()
+            }
+        }
+        return jvmCompiler.doCompile(project, context, compilerAction, info)
     }
 }
 
@@ -79,8 +93,8 @@ class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
 
     fun compilerArgs(s: List<String>) = args.addAll(s)
 
-    public fun compile() : TaskResult {
-        return compiler.compile(dependencies, classpath, source, output, args)
+    fun compile(project: Project?) : TaskResult {
+        return compiler.compile(project, dependencies, classpath, source, output, args)
     }
 }
 

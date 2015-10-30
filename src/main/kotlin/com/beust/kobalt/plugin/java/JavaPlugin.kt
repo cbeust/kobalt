@@ -6,6 +6,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.DepFactory
@@ -14,9 +15,6 @@ import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.log
-import com.beust.kobalt.plugin.kotlin.KotlinCompilerConfig
-import com.beust.kobalt.plugin.kotlin.KotlinPlugin
 import java.io.File
 import java.nio.file.Paths
 import java.util.*
@@ -30,8 +28,9 @@ public class JavaPlugin @Inject constructor(
         override val depFactory: DepFactory,
         override val dependencyManager: DependencyManager,
         override val executors: KobaltExecutors,
-        val javaCompiler: JavaCompiler)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors) {
+        val javaCompiler: JavaCompiler,
+        override val jvmCompiler: JvmCompiler)
+        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler) {
 
     init {
         Kobalt.registerCompiler(JavaCompilerInfo())
@@ -77,7 +76,7 @@ public class JavaPlugin @Inject constructor(
         val sourceFiles = files.findRecursively(projectDir, project.sourceDirectories.map { File(it) })
                 { it: String -> it.endsWith(".java") }
                         .map { File(projectDir, it).absolutePath }
-        val classpath = calculateClasspath(project, project.compileDependencies)
+        val classpath = jvmCompiler.calculateDependencies(project, context!!, project.compileDependencies)
         val args = arrayListOf(
                 javadoc!!.absolutePath,
                 "-classpath", classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator),
@@ -105,7 +104,7 @@ public class JavaPlugin @Inject constructor(
         val sourceFiles = files.findRecursively(projectDir, project.sourceDirectories.map { File(it) })
             { it: String -> it.endsWith(".java") }
                 .map { File(projectDir, it).absolutePath }
-        val classpath = calculateClasspath(project, project.compileDependencies)
+        val classpath = jvmCompiler.calculateDependencies(project, context!!, project.compileDependencies)
         return compilePrivate(project, classpath, sourceFiles, buildDir)
     }
 

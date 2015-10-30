@@ -7,9 +7,10 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Plugin
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.internal.remote.KobaltServer
 import com.beust.kobalt.maven.KobaltException
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.countChar
+import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import com.google.inject.assistedinject.Assisted
 import rx.subjects.PublishSubject
@@ -73,7 +74,8 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         return result
     }
 
-    private fun maybeCompileBuildFile(buildFile: BuildFile, buildScriptJarFile: File, pluginUrls: List<URL>) {
+    private fun maybeCompileBuildFile(buildFile: BuildFile, buildScriptJarFile: File,
+            pluginUrls: List<URL>) {
         log(2, "Running build file ${buildFile.name} jar: $buildScriptJarFile")
 
         if (buildFile.exists() && buildScriptJarFile.exists()
@@ -87,7 +89,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
                 classpath(pluginUrls.map { it.file })
                 sourceFiles(listOf(buildFile.path.toFile().absolutePath))
                 output = buildScriptJarFile.absolutePath
-            }.compile()
+            }.compile(null /* no projects yet */)
         }
     }
 
@@ -153,7 +155,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
             classpath(files.kobaltJar)
             sourceFiles(buildFile.path.toFile().absolutePath)
             output = buildScriptJarFile.absolutePath
-        }.compile()
+        }.compile(null)
     }
 
     class BuildScriptInfo(val projects: List<Project>, val classLoader: ClassLoader)

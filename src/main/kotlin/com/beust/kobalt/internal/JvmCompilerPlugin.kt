@@ -10,7 +10,7 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import java.io.File
-import java.util.ArrayList
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,7 +20,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
         open val files: KFiles,
         open val depFactory: DepFactory,
         open val dependencyManager: DependencyManager,
-        open val executors: KobaltExecutors) : BasePlugin() {
+        open val executors: KobaltExecutors,
+        open val jvmCompiler: JvmCompiler) : BasePlugin() {
 
     companion object {
         const val TASK_CLEAN = "clean"
@@ -36,16 +37,6 @@ abstract class JvmCompilerPlugin @Inject constructor(
                     throw KobaltException("Couldn't find $it")
                 }
             }
-        }
-
-
-        private fun runClasspathContributors(context: KobaltContext?, project: Project) :
-                Collection<IClasspathDependency> {
-            val result = arrayListOf<IClasspathDependency>()
-            context!!.classpathContributors.forEach {
-                result.addAll(it.entriesFor(project))
-            }
-            return result
         }
     }
 
@@ -63,21 +54,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
     }
 
     /**
-     * @return the classpath for this project, including the IClasspathContributors.
+     * @return the test dependencies for this project, including the contributors.
      */
-    fun calculateClasspath(project: Project?, vararg allDependencies: List<IClasspathDependency>):
-            List<IClasspathDependency> {
-        var result = arrayListOf<IClasspathDependency>()
-        allDependencies.forEach { dependencies ->
-            result.addAll(dependencyManager.transitiveClosure(dependencies))
-        }
-        if (project != null) {
-            result.addAll(runClasspathContributors(context, project))
-        }
-
-        return result
-    }
-
     protected fun testDependencies(project: Project) : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         result.add(FileDependency(makeOutputDir(project).absolutePath))
@@ -85,7 +63,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         with(project) {
             arrayListOf(compileDependencies, compileProvidedDependencies, testDependencies,
                     testProvidedDependencies).forEach {
-                result.addAll(calculateClasspath(project, it))
+                result.addAll(jvmCompiler.calculateDependencies(project, context!!, it))
             }
         }
         return dependencyManager.reorderDependencies(result)
@@ -144,7 +122,6 @@ abstract class JvmCompilerPlugin @Inject constructor(
         }
     }
 }
-
 
 class TestConfig(val project: Project) {
     fun args(vararg arg: String) {
