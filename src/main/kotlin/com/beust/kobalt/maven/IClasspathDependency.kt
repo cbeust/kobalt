@@ -62,7 +62,7 @@ open public class FileDependency(open val fileName: String) : IClasspathDependen
 
     override fun toMavenDependencies(): org.apache.maven.model.Dependency {
         with(org.apache.maven.model.Dependency()) {
-            setSystemPath(jarFile.get().getAbsolutePath())
+            systemPath = jarFile.get().absolutePath
             return this
         }
     }
