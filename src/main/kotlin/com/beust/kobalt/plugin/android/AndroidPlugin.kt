@@ -8,8 +8,11 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.FileDependency
+import com.beust.kobalt.maven.IClasspathDependency
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.plugin.java.JavaCompiler
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
@@ -17,7 +20,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 class AndroidConfiguration(var compileSdkVersion : String = "23",
-        var buildToolsVersion : String = "23.0.1")
+       var buildToolsVersion : String = "23.0.1",
+       var applicationId: String? = null)
 
 @Directive
 fun Project.android(init: AndroidConfiguration.() -> Unit) : AndroidConfiguration {
@@ -28,7 +32,7 @@ fun Project.android(init: AndroidConfiguration.() -> Unit) : AndroidConfiguratio
 }
 
 @Singleton
-public class AndroidPlugin @Inject constructor() : BasePlugin() {
+public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) : BasePlugin() {
     val ANDROID_HOME = "/Users/beust/android/adt-bundle-mac-x86_64-20140702/sdk"
     override val name = "android"
 
@@ -69,7 +73,7 @@ public class AndroidPlugin @Inject constructor() : BasePlugin() {
         val compileSdkVersion = compileSdkVersion(project)
         val buildToolsVersion = buildToolsVersion(project)
         val androidJar = Paths.get(ANDROID_HOME, "platforms", "android-$compileSdkVersion", "android.jar")
-        val applicationId = "com.beust.example"
+        val applicationId = configurations[project.name!!]?.applicationId!!
         val intermediates = Paths.get(project.directory, "app", "build", "intermediates")
         val manifestDir = Paths.get(project.directory, "app", "src", "main").toString()
         val manifestIntermediateDir = dirGet(intermediates, "manifests", "full", flavor)
@@ -107,9 +111,22 @@ public class AndroidPlugin @Inject constructor() : BasePlugin() {
                 "--custom-package", applicationId,
                 "--output-text-symbols", dirGet(intermediates, "symbol", flavor))
         )
+
+        val rDirectory = KFiles.joinDir(generated.toFile().path, "sources", "r", flavor,
+                applicationId.replace(".", File.separator))
+        val generatedBuildDir = compile(project, rDirectory)
+        project.compileDependencies.add(FileDependency(generatedBuildDir.path))
         return TaskResult()
     }
 
+    private fun compile(project: Project, rDirectory: String) : File {
+        val sourceFiles = arrayListOf(Paths.get(rDirectory, "R.java").toFile().path)
+        val buildDir = Paths.get(project.buildDirectory, "generated", "classes").toFile()
+
+        javaCompiler.compile("Compiling R.java", null, listOf<String>(), listOf<IClasspathDependency>(),
+                sourceFiles, buildDir)
+        return buildDir
+    }
 }
 
 

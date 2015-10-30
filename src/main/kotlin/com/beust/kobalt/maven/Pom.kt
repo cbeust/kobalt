@@ -91,7 +91,7 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
                     when (e.tagName) {
                         "groupId" -> groupId = e.textContent
                         "artifactId" -> artifactId = e.textContent
-                        "packaging" -> packaging = e.textContent
+                        "type" -> packaging = e.textContent
                         "version" -> version = e.textContent
                         "optional" -> optional = "true".equals(e.textContent, true)
                         "scope" -> scope = e.textContent

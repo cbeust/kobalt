@@ -29,7 +29,8 @@ public class JavaPlugin @Inject constructor(
         override val files: KFiles,
         override val depFactory: DepFactory,
         override val dependencyManager: DependencyManager,
-        override val executors: KobaltExecutors)
+        override val executors: KobaltExecutors,
+        val javaCompiler: JavaCompiler)
         : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors) {
 
     init {
@@ -48,37 +49,9 @@ public class JavaPlugin @Inject constructor(
 
     private fun compilePrivate(project: Project, cpList: List<IClasspathDependency>, sourceFiles: List<String>,
             outputDirectory: File): TaskResult {
-        outputDirectory.mkdirs()
-        val jvm = JavaInfo.create(File(SystemProperties.javaBase))
-        val javac = jvm.javacExecutable
-
-        val args = arrayListOf(
-                javac!!.absolutePath,
-                "-d", outputDirectory.absolutePath)
-        if (cpList.size > 0) {
-            val fullClasspath = dependencyManager.transitiveClosure(cpList)
-            val stringClasspath = fullClasspath.map { it.jarFile.get().absolutePath }
-            validateClasspath(stringClasspath)
-            args.add("-classpath")
-            args.add(stringClasspath.joinToString(File.pathSeparator))
-        }
-        args.addAll(compilerArgs)
-        args.addAll(sourceFiles)
-
-        val pb = ProcessBuilder(args)
-        pb.directory(File(project.directory))
-        pb.inheritIO()
-        //        pb.redirectErrorStream(true)
-        //        pb.redirectError(File("/tmp/kobalt-err"))
-        //        pb.redirectOutput(File("/tmp/kobalt-out"))
-        val line = args.joinToString(" ")
-        log(1, "  Compiling ${sourceFiles.size} files")
-        log(2, "  Compiling $project:\n$line")
-        val process = pb.start()
-        val errorCode = process.waitFor()
-
-        return if (errorCode == 0) TaskResult(true, "Compilation succeeded")
-            else TaskResult(false, "There were errors")
+        val result = javaCompiler.compile(project.name!!, project.directory, compilerArgs, cpList, sourceFiles,
+                outputDirectory)
+        return result
     }
 
     /**
