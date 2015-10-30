@@ -30,14 +30,6 @@ abstract class JvmCompilerPlugin @Inject constructor(
         const val SOURCE_SET_MAIN = "main"
         const val SOURCE_SET_TEST = "test"
         const val DOCS_DIRECTORY = "docs/javadoc"
-
-        fun validateClasspath(cp: List<String>) {
-            cp.forEach {
-                if (! File(it).exists()) {
-                    throw KobaltException("Couldn't find $it")
-                }
-            }
-        }
     }
 
     /**

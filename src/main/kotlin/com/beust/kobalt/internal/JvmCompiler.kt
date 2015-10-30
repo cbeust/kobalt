@@ -4,6 +4,7 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.IClasspathDependency
+import com.beust.kobalt.maven.KobaltException
 import com.google.inject.Inject
 import java.io.File
 
@@ -19,8 +20,16 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
         val allDependencies = arrayListOf<IClasspathDependency>()
         allDependencies.addAll(info.dependencies)
         allDependencies.addAll(calculateDependencies(project, context, info.dependencies))
-        JvmCompilerPlugin.validateClasspath(allDependencies.map { it.jarFile.get().absolutePath })
+        validateClasspath(allDependencies.map { it.jarFile.get().absolutePath })
         return action.compile(info.copy(dependencies = allDependencies))
+    }
+
+    private fun validateClasspath(cp: List<String>) {
+        cp.forEach {
+            if (! File(it).exists()) {
+                throw KobaltException("Couldn't find $it")
+            }
+        }
     }
 
     /**
