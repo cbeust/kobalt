@@ -48,7 +48,7 @@ class KotlinCompiler @Inject constructor(override val localRepo : LocalRepo,
                 getKotlinCompilerJar("kotlin-compiler-embeddable"))
 
         classpathList.addAll(otherClasspath)
-        classpathList.addAll(calculateClasspath(compileDependencies).map { it.id })
+        classpathList.addAll(calculateClasspath(null, compileDependencies).map { it.id })
 
         validateClasspath(classpathList)
 

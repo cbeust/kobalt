@@ -77,7 +77,7 @@ public class JavaPlugin @Inject constructor(
         val sourceFiles = files.findRecursively(projectDir, project.sourceDirectories.map { File(it) })
                 { it: String -> it.endsWith(".java") }
                         .map { File(projectDir, it).absolutePath }
-        val classpath = calculateClasspath(project.compileDependencies)
+        val classpath = calculateClasspath(project, project.compileDependencies)
         val args = arrayListOf(
                 javadoc!!.absolutePath,
                 "-classpath", classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator),
@@ -105,7 +105,7 @@ public class JavaPlugin @Inject constructor(
         val sourceFiles = files.findRecursively(projectDir, project.sourceDirectories.map { File(it) })
             { it: String -> it.endsWith(".java") }
                 .map { File(projectDir, it).absolutePath }
-        val classpath = calculateClasspath(project.compileDependencies)
+        val classpath = calculateClasspath(project, project.compileDependencies)
         return compilePrivate(project, classpath, sourceFiles, buildDir)
     }
 

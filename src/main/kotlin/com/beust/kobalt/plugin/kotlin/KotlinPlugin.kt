@@ -41,7 +41,7 @@ class KotlinPlugin @Inject constructor(
     @Task(name = TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project): TaskResult {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
-        val classpath = calculateClasspath(project.compileDependencies, project.compileProvidedDependencies)
+        val classpath = calculateClasspath(project, project.compileDependencies, project.compileProvidedDependencies)
 
         val projectDirectory = java.io.File(project.directory)
         val buildDirectory = File(projectDirectory, project.buildDirectory + File.separator + "classes")
