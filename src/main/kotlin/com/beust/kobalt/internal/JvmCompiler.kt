@@ -13,6 +13,11 @@ import java.io.File
  * Also validates the classpath and run all the contributors.
  */
 class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) {
+
+    /**
+     * Create a final, enriched CompilerActionInfo from the contributors and the transitive dependencies and
+     * then pass it to the ICompilerAction.
+     */
     fun doCompile(project: Project?, context: KobaltContext?, action: ICompilerAction, info: CompilerActionInfo)
             : TaskResult {
         File(info.outputDir).mkdirs()
