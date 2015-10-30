@@ -10,7 +10,7 @@ import java.io.File
 
 /**
  * Abstract the compilation process by running an ICompilerAction parameterized  by a CompilerActionInfo.
- * Also validates the classpath and run all the classpath contributors.
+ * Also validates the classpath and run all the contributors.
  */
 class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) {
     fun doCompile(project: Project?, context: KobaltContext?, action: ICompilerAction, info: CompilerActionInfo)
