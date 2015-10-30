@@ -71,7 +71,7 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
 //        return http.post(username, password, url, jsonString)
 //    }
 
-    fun uploadMaven(project: Project, files: List<File>, configuration : JCenterConfiguration?) : TaskResult {
+    fun uploadMaven(project: Project, files: List<File>, config: JCenterConfig?) : TaskResult {
         if (! packageExists(project.name!!)) {
             throw KobaltException("Couldn't find a package called ${project.name} on bintray, please create one first" +
                     " as explained at https://bintray.com/docs/usermanual/uploads/uploads_creatinganewpackage.html")
@@ -91,16 +91,16 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
                     .joinToString("/")
         }
 
-        return upload(files, configuration, fileToPath, generateMd5 = true, generateAsc = true)
+        return upload(files, config, fileToPath, generateMd5 = true, generateAsc = true)
     }
 
-    fun uploadFile(file: File, url: String, configuration: JCenterConfiguration, generateMd5: Boolean = false,
+    fun uploadFile(file: File, url: String, config: JCenterConfig, generateMd5: Boolean = false,
             generateAsc: Boolean = false) =
-        upload(arrayListOf(file), configuration, {
+        upload(arrayListOf(file), config, {
                 f: File -> "${UnauthenticatedJCenterApi.BINTRAY_URL_API_CONTENT}/$username/generic/$url"},
                 generateMd5, generateAsc)
 
-    private fun upload(files: List<File>, configuration : JCenterConfiguration?, fileToPath: (File) -> String,
+    private fun upload(files: List<File>, config: JCenterConfig?, fileToPath: (File) -> String,
             generateMd5: Boolean = false, generateAsc: Boolean) : TaskResult {
         val filesToUpload = arrayListOf<File>()
 
@@ -125,7 +125,7 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
         // If any configuration was given, apply them so the URL reflects them, e.g. ?publish=1
         //
         val options = arrayListOf<String>()
-        if (configuration?.publish == true) options.add("publish=1")
+        if (config?.publish == true) options.add("publish=1")
 
         val optionPath = StringBuffer()
         if (options.size > 0) {

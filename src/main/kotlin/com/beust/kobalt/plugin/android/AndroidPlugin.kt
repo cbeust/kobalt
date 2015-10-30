@@ -19,13 +19,13 @@ import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 
-class AndroidConfiguration(var compileSdkVersion : String = "23",
+class AndroidConfig(var compileSdkVersion : String = "23",
        var buildToolsVersion : String = "23.0.1",
        var applicationId: String? = null)
 
 @Directive
-fun Project.android(init: AndroidConfiguration.() -> Unit) : AndroidConfiguration {
-    val pd = AndroidConfiguration()
+fun Project.android(init: AndroidConfig.() -> Unit) : AndroidConfig {
+    val pd = AndroidConfig()
     pd.init()
     (Kobalt.findPlugin("android") as AndroidPlugin).setConfiguration(this, pd)
     return pd
@@ -47,10 +47,10 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         context.classpathContributors.add(this)
     }
 
-    val configurations = hashMapOf<String, AndroidConfiguration>()
+    val configurations = hashMapOf<String, AndroidConfig>()
 
-    fun setConfiguration(p: Project, configuration: AndroidConfiguration) {
-        configurations.put(p.name!!, configuration)
+    fun setConfiguration(p: Project, config: AndroidConfig) {
+        configurations.put(p.name!!, config)
     }
 
     override fun accept(project: Project) = configurations.containsKey(project.name!!)

@@ -81,7 +81,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         //
         // Upload individual files, if applicable
         //
-        configuration?.let { conf : JCenterConfiguration ->
+        configuration?.let { conf : JCenterConfig ->
             conf.files.forEach {
                 val taskResult = jcenter.uploadFile(File(project.directory, it.first), it.second /* url */, conf)
                 success = success and taskResult.success
@@ -96,14 +96,14 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
     /**
      * Map of project name -> JCenterConfiguration
      */
-    private val configurations = hashMapOf<String, JCenterConfiguration>()
-    fun addConfiguration(projectName: String, config: JCenterConfiguration) {
+    private val configurations = hashMapOf<String, JCenterConfig>()
+    fun addConfiguration(projectName: String, config: JCenterConfig) {
         configurations.put(projectName, config)
     }
 
 }
 
-data class JCenterConfiguration(val project: Project) {
+data class JCenterConfig(val project: Project) {
     var publish: Boolean = false
     val files = arrayListOf<Pair<String, String>>()
 
@@ -114,8 +114,8 @@ data class JCenterConfiguration(val project: Project) {
 }
 
 @Directive
-public fun Project.jcenter(ini: JCenterConfiguration.() -> Unit) : JCenterConfiguration {
-    val pd = JCenterConfiguration(this)
+public fun Project.jcenter(ini: JCenterConfig.() -> Unit) : JCenterConfig {
+    val pd = JCenterConfig(this)
     pd.ini()
     (Kobalt.findPlugin("publish") as PublishPlugin).addConfiguration(name!!, pd)
     return pd
