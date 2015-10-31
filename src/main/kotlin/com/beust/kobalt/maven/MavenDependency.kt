@@ -51,10 +51,6 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
         fun create(id: String, ex: ExecutorService = executor) : IClasspathDependency {
             return depFactory.create(id, ex)
         }
-
-        fun _toId(g: String, a: String, packaging: String?, v: String) =
-                if (packaging.isNullOrBlank()) "$g:$a:$v"
-                else "$g:$a:$packaging:$v"
     }
 
 
@@ -63,11 +59,10 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
     override val id = mavenId.toId
 
     override fun toMavenDependencies(): org.apache.maven.model.Dependency {
-        with(org.apache.maven.model.Dependency()) {
+        return org.apache.maven.model.Dependency().apply {
             setGroupId(groupId)
             setArtifactId(artifactId)
             setVersion(version)
-            return this
         }
     }
 
@@ -75,7 +70,7 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
         return Versions.toLongVersion(version).compareTo(Versions.toLongVersion(other.version))
     }
 
-    override val shortId = groupId + ":" + artifactId + ":"
+    override val shortId = "$groupId:$artifactId:"
 
     override fun directDependencies() : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
