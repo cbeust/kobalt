@@ -83,7 +83,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
     protected fun makeOutputTestDir(project: Project) : File = makeDir(project, KFiles.TEST_CLASSES_DIR)
 
     private fun makeDir(project: Project, suffix: String) : File {
-        return File(project.directory, project.buildDirectory + File.separator + suffix)
+        return File(project.directory, project.buildDirectory + File.separator + suffix).apply { mkdirs() }
     }
 
     /**
