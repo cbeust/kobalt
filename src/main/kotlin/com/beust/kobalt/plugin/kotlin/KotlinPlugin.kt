@@ -59,7 +59,7 @@ class KotlinPlugin @Inject constructor(
             File(projectDirectory, it).absolutePath
         }
 
-        compilePrivate(project, classpath, absoluteSourceFiles, buildDirectory.absolutePath)
+        compilePrivate(project, classpath, absoluteSourceFiles, buildDirectory)
         lp(project, "Compilation succeeded")
         return TaskResult()
     }
@@ -79,16 +79,14 @@ class KotlinPlugin @Inject constructor(
 
         compilePrivate(project, testDependencies(project),
                 absoluteSourceFiles,
-                makeOutputTestDir(project).absolutePath)
+                makeOutputTestDir(project))
 
         lp(project, "Compilation of tests succeeded")
         return TaskResult()
     }
 
     private fun compilePrivate(project: Project, cpList: List<IClasspathDependency>, sources: List<String>,
-            outputDirectory: String): TaskResult {
-        File(outputDirectory).mkdirs()
-
+            outputDirectory: File): TaskResult {
         log(1, "  Compiling ${sources.size} files with classpath size ${cpList.size}")
 
         return kotlinCompilePrivate {

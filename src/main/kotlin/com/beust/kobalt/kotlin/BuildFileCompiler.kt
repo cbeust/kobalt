@@ -88,8 +88,8 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
                 classpath(files.kobaltJar)
                 classpath(pluginUrls.map { it.file })
                 sourceFiles(listOf(buildFile.path.toFile().absolutePath))
-                output = buildScriptJarFile.absolutePath
-            }.compile(null /* no projects yet */)
+                output = buildScriptJarFile
+            }.compile()
         }
     }
 
@@ -154,7 +154,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         kotlinCompilePrivate {
             classpath(files.kobaltJar)
             sourceFiles(buildFile.path.toFile().absolutePath)
-            output = buildScriptJarFile.absolutePath
+            output = File(buildScriptJarFile.absolutePath)
         }.compile()
     }
 

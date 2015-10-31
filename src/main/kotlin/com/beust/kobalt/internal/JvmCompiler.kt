@@ -20,7 +20,6 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
      */
     fun doCompile(project: Project?, context: KobaltContext?, action: ICompilerAction, info: CompilerActionInfo)
             : TaskResult {
-        File(info.outputDir).mkdirs()
 
         val allDependencies = info.dependencies + calculateDependencies(project, context, info.dependencies)
 
@@ -64,7 +63,7 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
 }
 
 data class CompilerActionInfo(val dependencies: List<IClasspathDependency>,
-        val sourceFiles: List<String>, val outputDir: String, val compilerArgs: List<String>)
+        val sourceFiles: List<String>, val outputDir: File, val compilerArgs: List<String>)
 
 interface ICompilerAction {
     fun compile(info: CompilerActionInfo): TaskResult

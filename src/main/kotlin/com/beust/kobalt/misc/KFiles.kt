@@ -1,9 +1,9 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.kotlin.BuildFile
-import com.beust.kobalt.SystemProperties
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -57,11 +57,8 @@ public class KFiles {
 
         public fun joinDir(vararg ts: String): String = ts.toArrayList().joinToString(File.separator)
 
-        public fun makeDir(dir: String, s: String) : File {
-            val result = File(dir, s)
-            result.mkdirs()
-            return result
-        }
+        fun makeDir(dir: String, s: String? = null) =
+                (if (s != null) File(dir, s) else File(dir)).apply { mkdirs() }
 
         public fun findRecursively(rootDir: File) : List<String> =
                 findRecursively(rootDir, arrayListOf(), { s -> true })
@@ -192,5 +189,4 @@ public class KFiles {
             os.close()
         }
     }
-
 }

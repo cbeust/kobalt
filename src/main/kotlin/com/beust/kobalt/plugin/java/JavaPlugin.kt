@@ -1,7 +1,5 @@
 package com.beust.kobalt.plugin.java
 
-import com.beust.kobalt.JavaInfo
-import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
@@ -59,65 +57,44 @@ public class JavaPlugin @Inject constructor(
     @Task(name = TASK_JAVADOC, description = "Run Javadoc")
     fun taskJavadoc(project: Project) : TaskResult {
         val projectDir = File(project.directory)
-        val outputDir = File(projectDir,
-                project.buildDirectory + File.separator + JvmCompilerPlugin.DOCS_DIRECTORY)
-        outputDir.mkdirs()
-        val jvm = JavaInfo.create(File(SystemProperties.javaBase))
-        val javadoc = jvm.javadocExecutable
-
-        val sourceFiles = files.findRecursively(projectDir, project.sourceDirectories.map { File(it) })
-                { it: String -> it.endsWith(".java") }
-                        .map { File(projectDir, it).absolutePath }
-        val classpath = jvmCompiler.calculateDependencies(project, context!!, project.compileDependencies)
-        val args = arrayListOf(
-                javadoc!!.absolutePath,
-                "-classpath", classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator),
-                "-d", outputDir.absolutePath)
-        val compressed = sourcesToDirectories(sourceFiles, project.sourceSuffix)
-        args.addAll(compressed)
-
-        val pb = ProcessBuilder(args)
-        pb.directory(File(project.directory))
-        pb.inheritIO()
-        val process = pb.start()
-        val errorCode = process.waitFor()
-
-        return if (errorCode == 0) TaskResult(true, "Compilation succeeded")
-        else TaskResult(false, "There were errors")
-
+        val sourceFiles = findSourceFiles(project.directory, project.sourceDirectories)
+        val buildDir = File(projectDir,
+                project.buildDirectory + File.separator + JvmCompilerPlugin.DOCS_DIRECTORY).apply { mkdirs() }
+        return javaCompiler.javadoc(project, context, project.compileDependencies, sourceFiles,
+                buildDir, compilerArgs)
     }
 
     @Task(name = TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project) : TaskResult {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
         val projectDir = File(project.directory)
-        val buildDir = File(projectDir,
-                project.buildDirectory + File.separator + "classes")
-        val sourceFiles = files.findRecursively(projectDir, project.sourceDirectories.map { File(it) })
-            { it: String -> it.endsWith(".java") }
-                .map { File(projectDir, it).absolutePath }
-        val classpath = jvmCompiler.calculateDependencies(project, context!!, project.compileDependencies)
-        return javaCompiler.compile(project, context, classpath, sourceFiles, buildDir.absolutePath, compilerArgs)
+        val sourceFiles = findSourceFiles(project.directory, project.sourceDirectories)
+        val buildDir = File(projectDir, project.buildDirectory + File.separator + "classes")
+        return javaCompiler.compile(project, context, project.compileDependencies, sourceFiles,
+                buildDir, compilerArgs)
     }
 
     @Task(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf("compile"))
     fun taskCompileTest(project: Project): TaskResult {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
-        val projectDir = File(project.directory)
-
-        val sourceFiles = files.findRecursively(projectDir, project.sourceDirectoriesTest.map { File(it) })
-                { it: String -> it.endsWith(".java") }
-                .map { File(projectDir, it).absolutePath }
+        val sourceFiles = findSourceFiles(project.directory, project.sourceDirectoriesTest)
 
         val result =
             if (sourceFiles.size > 0) {
                 javaCompiler.compile(project, context, testDependencies(project), sourceFiles,
-                        makeOutputTestDir(project).absolutePath, compilerArgs)
+                        makeOutputTestDir(project), compilerArgs)
             } else {
                 // No files to compile
                 TaskResult()
             }
         return result
+    }
+
+    private fun findSourceFiles(dir: String, sourceDirectories: List<String>): List<String> {
+        val projectDir = File(dir)
+        return files.findRecursively(projectDir,
+                sourceDirectories.map { File(it) }) { it: String -> it.endsWith(".java") }
+                .map { File(projectDir, it).absolutePath }
     }
 
     private val compilerArgs = arrayListOf<String>()

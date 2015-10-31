@@ -33,10 +33,10 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
         override fun compile(info: CompilerActionInfo): TaskResult {
             log(1, "Compiling ${info.sourceFiles.size} files")
             val allArgs : Array<String> = arrayOf(
-                    "-d", info.outputDir,
+                    "-d", info.outputDir.path,
                     "-classpath", info.dependencies.map {it.jarFile.get()}.joinToString(File.pathSeparator),
                     *(info.compilerArgs.toTypedArray()),
-                    info.sourceFiles.joinToString(" ")
+                    *(info.sourceFiles.toTypedArray())
             )
             log(2, "Calling kotlinc " + allArgs.joinToString(" "))
             CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs)
@@ -55,7 +55,7 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
      * Create an ICompilerAction based on the parameters and send it to JvmCompiler.doCompile().
      */
     fun compile(project: Project?, context: KobaltContext?, compileDependencies: List<IClasspathDependency>,
-            otherClasspath: List<String>, source: List<String>, outputDir: String, args: List<String>) : TaskResult {
+            otherClasspath: List<String>, sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult {
 
         val executor = executors.newExecutor("KotlinCompiler", 10)
         val compilerDep = depFactory.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION", executor)
@@ -72,7 +72,7 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
             .map { FileDependency(it) }
 
         val dependencies = compileDependencies + classpathList + otherClasspath.map { FileDependency(it)}
-        val info = CompilerActionInfo(dependencies, source, outputDir, args)
+        val info = CompilerActionInfo(dependencies, sourceFiles, outputDir, args)
         return jvmCompiler.doCompile(project, context, compilerAction, info)
     }
 }
@@ -81,7 +81,7 @@ class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
     val classpath = arrayListOf<String>()
     val dependencies = arrayListOf<IClasspathDependency>()
     var source = arrayListOf<String>()
-    var output: String by Delegates.notNull()
+    var output: File by Delegates.notNull()
     val args = arrayListOf<String>()
 
     fun sourceFiles(s: String) = source.add(s)
