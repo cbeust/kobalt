@@ -68,17 +68,13 @@ class Kurl @Inject constructor(@Assisted val url: String) {
     val string: String
         get() {
             val sb = StringBuilder()
-            connection.inputStream.let { inputStream ->
+            connection.inputStream.use { inputStream ->
                 val reader = BufferedReader(InputStreamReader(inputStream))
 
                 var line: String? = reader.readLine()
-                try {
-                    while (line != null) {
-                        sb.append(line).append('\n')
-                        line = reader.readLine()
-                    }
-                } finally {
-                    inputStream.close()
+                while (line != null) {
+                    sb.append(line).append('\n')
+                    line = reader.readLine()
                 }
             }
 

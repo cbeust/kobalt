@@ -13,7 +13,6 @@ import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.log
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -87,8 +86,6 @@ class KotlinPlugin @Inject constructor(
 
     private fun compilePrivate(project: Project, cpList: List<IClasspathDependency>, sources: List<String>,
             outputDirectory: File): TaskResult {
-        log(1, "  Compiling ${sources.size} files with classpath size ${cpList.size}")
-
         return kotlinCompilePrivate {
             classpath(cpList.map { it.jarFile.get().absolutePath })
             sourceFiles(sources)

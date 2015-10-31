@@ -179,14 +179,4 @@ public class KFiles {
             function: Function1<String, Boolean>): List<String> {
         return KFiles.findRecursively(rootDir, directories, function)
     }
-
-    public fun saveFile(file: File, bytes: ByteArray) {
-        file.parentFile.mkdirs()
-        val os = file.outputStream()
-        try {
-            os.write(bytes)
-        } finally {
-            os.close()
-        }
-    }
 }

@@ -1,13 +1,11 @@
 package com.beust.kobalt.plugin.packaging
 
 import com.beust.kobalt.IFileSpec
-import com.beust.kobalt.file
 import com.beust.kobalt.misc.log
 import java.io.*
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarInputStream
-import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -137,46 +135,42 @@ public class JarUtils {
             }
         }
 
-        fun removeDuplicateEntries(fromJarFile: File, toFile: File) {
-            val fromFile = JarFile(fromJarFile)
-            var entries = fromFile.entries()
-            val os = JarOutputStream(FileOutputStream(toFile))
-            val seen = hashSetOf<String>()
-            while (entries.hasMoreElements()) {
-                val entry = entries.nextElement()
-                if (! seen.contains(entry.name)) {
-                    val ins = fromFile.getInputStream(entry)
-                    addEntry(ins, JarEntry(entry), os)
-                }
-                seen.add(entry.name)
-            }
-            os.close()
-
-            log(1, "Deduplicated $fromFile.name")
-        }
+//        fun removeDuplicateEntries(fromJarFile: File, toFile: File) {
+//            val fromFile = JarFile(fromJarFile)
+//            var entries = fromFile.entries()
+//            val os = JarOutputStream(FileOutputStream(toFile))
+//            val seen = hashSetOf<String>()
+//            while (entries.hasMoreElements()) {
+//                val entry = entries.nextElement()
+//                if (! seen.contains(entry.name)) {
+//                    val ins = fromFile.getInputStream(entry)
+//                    addEntry(ins, JarEntry(entry), os)
+//                }
+//                seen.add(entry.name)
+//            }
+//            os.close()
+//
+//            log(1, "Deduplicated $fromFile.name")
+//        }
 
         fun extractJarFile(jarFile: File, destDir: File) {
             val jar = java.util.jar.JarFile(jarFile)
             val enumEntries = jar.entries()
             while (enumEntries.hasMoreElements()) {
-                val file = enumEntries.nextElement() as JarEntry
+                val file = enumEntries.nextElement()
                 val f = File(destDir.path + java.io.File.separator + file.name)
                 if (file.isDirectory) {
                     f.mkdir()
                     continue
                 }
-                var ins: InputStream? = null
-                var fos: OutputStream? = null
-                try {
-                    ins = jar.getInputStream(file)
+
+                jar.getInputStream(file).use { ins ->
                     f.parentFile.mkdirs()
-                    fos = FileOutputStream(f)
-                    while (ins.available() > 0) {
-                        fos.write(ins.read())
+                    FileOutputStream(f).use { fos ->
+                        while (ins.available() > 0) {
+                            fos.write(ins.read())
+                        }
                     }
-                } finally {
-                    fos?.close()
-                    ins?.close()
                 }
             }
         }

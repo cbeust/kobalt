@@ -205,24 +205,19 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
             //
             // Inspect the jar, open the manifest, instantiate the main class and add it to the plugin repo
             //
-            var fis: FileInputStream? = null
-            var jis: JarInputStream? = null
-            try {
-                fis = FileInputStream(it.jarFile.get())
-                jis = JarInputStream(fis)
-                val manifest = jis.manifest
-                val mainClass = manifest.mainAttributes.getValue(Plugins.MANIFEST_PLUGIN_CLASS) ?:
-                        throw KobaltException("Couldn't find \"${Plugins.MANIFEST_PLUGIN_CLASS}\" in the " +
-                                "manifest of $it")
+            FileInputStream(it.jarFile.get()).use { fis ->
+                JarInputStream(fis).use { jis ->
+                    val manifest = jis.manifest
+                    val mainClass = manifest.mainAttributes.getValue(Plugins.MANIFEST_PLUGIN_CLASS) ?:
+                            throw KobaltException("Couldn't find \"${Plugins.MANIFEST_PLUGIN_CLASS}\" in the " +
+                                    "manifest of $it")
 
-                val pluginClassName = mainClass.removeSuffix(" ")
-                val c = instantiateClassName(classLoader, pluginClassName)
-                @Suppress("UNCHECKED_CAST")
-                Plugins.addPlugin(c as Class<BasePlugin>)
-                log(1, "Added plugin $c")
-            } finally {
-                jis?.close()
-                fis?.close()
+                    val pluginClassName = mainClass.removeSuffix(" ")
+                    val c = instantiateClassName(classLoader, pluginClassName)
+                    @Suppress("UNCHECKED_CAST")
+                    Plugins.addPlugin(c as Class<BasePlugin>)
+                    log(1, "Added plugin $c")
+                }
             }
         }
         executor.shutdown()
