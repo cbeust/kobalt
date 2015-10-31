@@ -199,10 +199,14 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
                 cls.methods.forEach { method ->
                     // Invoke vals and see if they return a Project
                     if (method.name.startsWith("get") && Modifier.isStatic(method.modifiers)) {
-                        val r = method.invoke(null)
-                        if (r is Project) {
-                            log(2, "Found project $r in class $cls")
-                            projects.add(r)
+                        try {
+                            val r = method.invoke(null)
+                            if (r is Project) {
+                                log(2, "Found project $r in class $cls")
+                                projects.add(r)
+                            }
+                        } catch(ex: Throwable) {
+                            throw ex.cause ?: KobaltException(ex)
                         }
                     } else {
                         val taskAnnotation = method.getAnnotation(Task::class.java)

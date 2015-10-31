@@ -6,13 +6,13 @@ import com.beust.kobalt.misc.log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import javax.inject.Inject
 import com.google.inject.Singleton
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.ServerSocket
 import java.net.SocketException
+import javax.inject.Inject
 
 /**
  * All commands implement this interface.
@@ -51,7 +51,7 @@ interface ICommandSender {
  * it into a Kotlin *Data class. The downside of this approach is a double parsing,
  * but since the data part is parsed as a string first, this is probably not a huge deal.
  */
-class CommandData(val name: String, val data: String)
+class CommandData(val name: String, val data: String?, val error: String? = null)
 
 @Singleton
 public class KobaltServer @Inject constructor(val args: Args) : Runnable, ICommandSender {
@@ -69,7 +69,7 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
         log(1, "Listening to port $portNumber")
         var quit = false
         val serverSocket = ServerSocket(portNumber)
-        val clientSocket = serverSocket.accept()
+        var clientSocket = serverSocket.accept()
         while (!quit) {
             outgoing = PrintWriter(clientSocket.outputStream, true)
             if (pending.size > 0) {
@@ -80,12 +80,14 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
                 }
             }
             val ins = BufferedReader(InputStreamReader(clientSocket.inputStream))
+            var commandName: String? = null
             try {
                 var line = ins.readLine()
                 while (!quit && line != null) {
                     log(1, "Received from client $line")
                     val jo = JsonParser().parse(line) as JsonObject
-                    if ("quit" == jo.get("name").asString) {
+                    commandName = jo.get("name").asString
+                    if ("quit" == commandName) {
                         log(1, "Quitting")
                         quit = true
                     } else {
@@ -99,7 +101,10 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
                 }
             } catch(ex: SocketException) {
                 log(1, "Client disconnected, resetting")
-            } catch(ex: Exception) {
+                clientSocket = serverSocket.accept()
+            } catch(ex: Throwable) {
+                ex.printStackTrace()
+                sendData(CommandData(commandName!!, null, ex.message))
                 log(1, "Command failed: ${ex.message}")
             }
         }

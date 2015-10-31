@@ -120,13 +120,14 @@ private class Main @Inject constructor(
                 try {
                     allProjects = buildFileCompilerFactory.create(listOf(buildFile)).compileBuildFiles(args)
                 } catch(ex: Throwable) {
+                    error("Couldn't build", ex)
                     log(2, "Couldn't parse preBuildScript.jar: ${ex.message}")
-                    if (! File(".kobalt").deleteRecursively()) {
-                        warn("Couldn't delete .kobalt, please delete it manually")
-                    } else {
-                        log(1, "Deleted .kobalt")
-                        allProjects = buildFileCompilerFactory.create(listOf(buildFile)).compileBuildFiles(args)
-                    }
+//                    if (! File(".kobalt").deleteRecursively()) {
+//                        warn("Couldn't delete .kobalt, please delete it manually")
+//                    } else {
+//                        log(1, "Deleted .kobalt")
+//                        allProjects = buildFileCompilerFactory.create(listOf(buildFile)).compileBuildFiles(args)
+//                    }
                 }
 
                 if (args.tasks) {
