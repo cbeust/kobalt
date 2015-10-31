@@ -39,24 +39,27 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
             val errorCode = process.waitFor()
 
             return if (errorCode == 0) TaskResult(true, "Compilation succeeded")
-            else TaskResult(false, "There were errors")
+                else TaskResult(false, "There were errors")
         }
     }
 
     /**
-     * Create an ICompilerAction based on the parameters and send it to JvmCompiler.doCompile().
+     * Create an ICompilerAction based on the parameters and send it to JvmCompiler.doCompile() with
+     * the given executable.
      */
-    fun compile(project: Project?, context: KobaltContext?, dependencies: List<IClasspathDependency>,
-            sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult {
+    private fun run(project: Project?, context: KobaltContext?, dependencies: List<IClasspathDependency>,
+            sourceFiles: List<String>, outputDir: File, args: List<String>, executable: File) : TaskResult {
         val info = CompilerActionInfo(dependencies, sourceFiles, outputDir, args)
-        val jvm = JavaInfo.create(File(SystemProperties.javaBase))
-        return jvmCompiler.doCompile(project, context, compilerAction(jvm.javacExecutable!!), info)
+        return jvmCompiler.doCompile(project, context, compilerAction(executable), info)
     }
 
+    fun compile(project: Project?, context: KobaltContext?, dependencies: List<IClasspathDependency>,
+            sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult
+        = run(project, context, dependencies, sourceFiles, outputDir, args,
+            JavaInfo.create(File(SystemProperties.javaBase)).javacExecutable!!)
+
     fun javadoc(project: Project?, context: KobaltContext?, dependencies: List<IClasspathDependency>,
-            sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult {
-        val info = CompilerActionInfo(dependencies, sourceFiles, outputDir, args)
-        val jvm = JavaInfo.create(File(SystemProperties.javaBase))
-        return jvmCompiler.doCompile(project, context, compilerAction(jvm.javadocExecutable!!), info)
-    }
+            sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult
+        = run(project, context, dependencies, sourceFiles, outputDir, args,
+            JavaInfo.create(File(SystemProperties.javaBase)).javadocExecutable!!)
 }
