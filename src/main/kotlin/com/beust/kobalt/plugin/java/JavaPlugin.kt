@@ -107,10 +107,11 @@ public class JavaPlugin @Inject constructor(
 }
 
 @Directive
-public fun javaProject(init: JavaProject.() -> Unit): JavaProject {
-    val pd = JavaProject()
-    pd.init()
-    return pd
+public fun javaProject(vararg project: Project, init: JavaProject.() -> Unit): JavaProject {
+    return JavaProject().apply {
+        init()
+        Kobalt.declareProjectDependencies(this, project)
+    }
 }
 
 class JavaCompilerConfig {
