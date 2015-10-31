@@ -100,10 +100,9 @@ class KotlinPlugin @Inject constructor(
  */
 @Directive
 fun kotlinProject(vararg project: Project, init: KotlinProject.() -> Unit): KotlinProject {
-    with(KotlinProject()) {
+    return KotlinProject().apply {
         init()
         Kobalt.declareProjectDependencies(this, project)
-        return this
     }
 }
 
