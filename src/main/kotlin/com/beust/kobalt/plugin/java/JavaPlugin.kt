@@ -70,19 +70,20 @@ public class JavaPlugin @Inject constructor(
         val projectDir = File(project.directory)
         val sourceFiles = findSourceFiles(project.directory, project.sourceDirectories)
         val buildDir = File(projectDir, project.buildDirectory + File.separator + "classes")
+                .apply { mkdirs() }
         return javaCompiler.compile(project, context, project.compileDependencies, sourceFiles,
                 buildDir, compilerArgs)
     }
 
     @Task(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf("compile"))
     fun taskCompileTest(project: Project): TaskResult {
-        copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
         val sourceFiles = findSourceFiles(project.directory, project.sourceDirectoriesTest)
-
         val result =
             if (sourceFiles.size > 0) {
+                copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
+                val buildDir = makeOutputTestDir(project)
                 javaCompiler.compile(project, context, testDependencies(project), sourceFiles,
-                        makeOutputTestDir(project), compilerArgs)
+                        buildDir, compilerArgs)
             } else {
                 // No files to compile
                 TaskResult()
