@@ -11,50 +11,7 @@ import java.util.zip.ZipOutputStream
 
 public class JarUtils {
     companion object {
-//        private fun isExcluded(entryName: String) : Boolean {
-//            val isAuth = entryName.startsWith("META-INF") and (
-//                    entryName.endsWith(".SF") or entryName.endsWith(".DSA") or entryName.endsWith("RSA"))
-//            val isSource = entryName.endsWith(".java")
-//            return isAuth or isSource
-//        }
-
-        /**
-         * Add the content of a jar file to another jar file.
-         */
-//        private fun addJarFile(inFile: File, outStream: ZipOutputStream, seen: HashSet<String>) {
-//            val inJarFile = JarFile(inFile)
-//            val stream = JarInputStream(FileInputStream(inFile))
-//            var entry = stream.getNextEntry()
-//            // Quick and dirty benchmarks to assess the impact of the byte array size (milliseconds):
-//            // 10000: 7883 7873
-//            // 50000: 7947
-//            // 20000: 7858 7737 7730
-//            // 10000: 7939 7924
-//            // Probably need to do this more formally but it doesn't seem to matter that much
-//            val buf = ByteArray(20000)
-//
-//            while (entry != null) {
-//                if (! entry.isDirectory()) {
-//                    val entryName = entry.getName()
-//                    if (! seen.contains(entryName) && ! isExcluded(entryName)) {
-//                        seen.add(entryName)
-//                        outStream.putNextEntry(entry)
-//                        val zis = inJarFile.getInputStream(entry)
-//
-//                        var len = zis.read(buf)
-//                        while (len >= 0) {
-//                            outStream.write(buf, 0, len)
-//                            len = zis.read(buf)
-//                        }
-//                    }
-//                }
-//                entry = stream.getNextJarEntry()
-//            }
-//
-//            stream.close()
-//        }
-
-        val defaultHandler: (Exception) -> Unit = { ex: Exception ->
+        val DEFAULT_HANDLER: (Exception) -> Unit = { ex: Exception ->
             // Ignore duplicate entry exceptions
             if (! ex.message?.contains("duplicate")!!) {
                 throw ex
@@ -63,14 +20,14 @@ public class JarUtils {
 
         public fun addFiles(directory: String, files: List<IncludedFile>, target: ZipOutputStream,
                 expandJarFiles: Boolean,
-                onError: (Exception) -> Unit = defaultHandler) {
+                onError: (Exception) -> Unit = DEFAULT_HANDLER) {
             files.forEach {
                 addSingleFile(directory, it, target, expandJarFiles, onError)
             }
         }
 
         public fun addSingleFile(directory: String, file: IncludedFile, outputStream: ZipOutputStream,
-                expandJarFiles: Boolean, onError: (Exception) -> Unit = defaultHandler) {
+                expandJarFiles: Boolean, onError: (Exception) -> Unit = DEFAULT_HANDLER) {
             file.specs.forEach { spec ->
                 val path = spec.toString()
                 spec.toFiles(directory + "/" + file.from).forEach { source ->
@@ -115,7 +72,7 @@ public class JarUtils {
         }
 
         private fun addEntry(inputStream: InputStream, entry: ZipEntry, outputStream: ZipOutputStream,
-                onError: (Exception) -> Unit = defaultHandler) {
+                onError: (Exception) -> Unit = DEFAULT_HANDLER) {
             var bis: BufferedInputStream? = null
             try {
                 outputStream.putNextEntry(entry)
@@ -134,24 +91,6 @@ public class JarUtils {
                 bis?.close()
             }
         }
-
-//        fun removeDuplicateEntries(fromJarFile: File, toFile: File) {
-//            val fromFile = JarFile(fromJarFile)
-//            var entries = fromFile.entries()
-//            val os = JarOutputStream(FileOutputStream(toFile))
-//            val seen = hashSetOf<String>()
-//            while (entries.hasMoreElements()) {
-//                val entry = entries.nextElement()
-//                if (! seen.contains(entry.name)) {
-//                    val ins = fromFile.getInputStream(entry)
-//                    addEntry(ins, JarEntry(entry), os)
-//                }
-//                seen.add(entry.name)
-//            }
-//            os.close()
-//
-//            log(1, "Deduplicated $fromFile.name")
-//        }
 
         fun extractJarFile(jarFile: File, destDir: File) {
             val jar = java.util.jar.JarFile(jarFile)
