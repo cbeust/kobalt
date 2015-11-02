@@ -121,10 +121,5 @@ class JavaCompilerConfig {
 }
 
 @Directive
-fun Project.javaCompiler(init: JavaCompilerConfig.() -> Unit) : JavaCompilerConfig {
-    with (JavaCompilerConfig()) {
-        init()
-        return this
-    }
-}
+fun Project.javaCompiler(init: JavaCompilerConfig.() -> Unit) = JavaCompilerConfig().run { init() }
 
