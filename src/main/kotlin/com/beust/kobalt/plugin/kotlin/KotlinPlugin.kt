@@ -118,9 +118,4 @@ class KotlinCompilerConfig {
 }
 
 @Directive
-fun Project.kotlinCompiler(init: KotlinCompilerConfig.() -> Unit) : KotlinCompilerConfig {
-    with (KotlinCompilerConfig()) {
-        init()
-        return this
-    }
-}
+fun Project.kotlinCompiler(init: KotlinCompilerConfig.() -> Unit) = KotlinCompilerConfig().init()
