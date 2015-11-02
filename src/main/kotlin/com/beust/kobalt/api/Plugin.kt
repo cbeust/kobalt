@@ -6,7 +6,7 @@ import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.internal.TaskResult2
 import java.lang.reflect.Method
-import java.util.ArrayList
+import java.util.*
 
 public interface Plugin {
     val name: String

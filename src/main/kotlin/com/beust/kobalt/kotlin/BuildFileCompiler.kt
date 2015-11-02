@@ -2,13 +2,11 @@ package com.beust.kobalt.kotlin
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.Plugins
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.Plugin
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.Topological
 import com.beust.kobalt.misc.countChar
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
@@ -22,11 +20,12 @@ import java.net.URL
 import java.net.URLClassLoader
 import java.nio.charset.Charset
 import java.nio.file.Paths
+import java.util.*
 import java.util.jar.JarInputStream
 import javax.inject.Inject
 
 public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFiles: List<BuildFile>,
-        val files: KFiles, val plugins: Plugins) {
+        val files: KFiles, val plugins: Plugins, val kobaltPluginFile: KobaltPluginFile) {
 
     interface IFactory {
         fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>) : BuildFileCompiler
@@ -220,9 +219,27 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
             stream?.close()
         }
 
-        // Now that we all the projects, sort them topologically
-        val result = BuildScriptInfo(Kobalt.sortProjects(projects), classLoader)
-        observable.onNext(result)
-        return result
+        //
+        // Now that the build file has run, fetch all the project contributors, grab the projects from them and sort
+        // them topologically
+        //
+        Topological<Project>().let { topologicalProjects ->
+            val all = hashSetOf<Project>()
+            kobaltPluginFile.projectContributors.forEach { cls ->
+                val ip: IProjectContributor = kobaltPluginFile.instanceOf(cls)
+                val descriptions = ip.projects()
+                descriptions.forEach { pd ->
+                    all.add(pd.project)
+                    pd.dependsOn.forEach { dependsOn ->
+                        topologicalProjects.addEdge(pd.project, dependsOn)
+                        all.add(dependsOn)
+                    }
+                }
+            }
+            val result = BuildScriptInfo(topologicalProjects.sort(ArrayList(all)), classLoader)
+
+            observable.onNext(result)
+            return result
+        }
     }
 }

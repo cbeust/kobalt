@@ -1,5 +1,7 @@
 package com.beust.kobalt.plugin.kotlin
 
+import com.beust.kobalt.api.BasePlugin
+import com.beust.kobalt.api.IProjectContributor
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
@@ -25,7 +27,8 @@ class KotlinPlugin @Inject constructor(
         override val dependencyManager: DependencyManager,
         override val executors: KobaltExecutors,
         override val jvmCompiler: JvmCompiler)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler) {
+        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler),
+            IProjectContributor {
 
     init {
         Kobalt.registerCompiler(KotlinCompilerInfo())
@@ -93,6 +96,8 @@ class KotlinPlugin @Inject constructor(
             output = outputDirectory
         }.compile(project, context)
     }
+
+    override fun projects() = projects
 }
 
 /**
@@ -102,7 +107,7 @@ class KotlinPlugin @Inject constructor(
 fun kotlinProject(vararg project: Project, init: KotlinProject.() -> Unit): KotlinProject {
     return KotlinProject().apply {
         init()
-        Kobalt.declareProjectDependencies(this, project)
+        (Kobalt.findPlugin("kotlin") as BasePlugin).addProject(this, project)
     }
 }
 

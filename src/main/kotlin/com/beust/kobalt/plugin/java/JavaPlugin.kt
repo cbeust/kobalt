@@ -1,5 +1,7 @@
 package com.beust.kobalt.plugin.java
 
+import com.beust.kobalt.api.BasePlugin
+import com.beust.kobalt.api.IProjectContributor
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
@@ -27,7 +29,8 @@ public class JavaPlugin @Inject constructor(
         override val executors: KobaltExecutors,
         val javaCompiler: JavaCompiler,
         override val jvmCompiler: JvmCompiler)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler) {
+        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler),
+            IProjectContributor {
 
     init {
         Kobalt.registerCompiler(JavaCompilerInfo())
@@ -104,13 +107,14 @@ public class JavaPlugin @Inject constructor(
         compilerArgs.addAll(args)
     }
 
+    override fun projects() = projects
 }
 
 @Directive
 public fun javaProject(vararg project: Project, init: JavaProject.() -> Unit): JavaProject {
     return JavaProject().apply {
         init()
-        Kobalt.declareProjectDependencies(this, project)
+        (Kobalt.findPlugin("kotlin") as BasePlugin).addProject(this, project)
     }
 }
 

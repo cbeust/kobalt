@@ -1,7 +1,6 @@
 package com.beust.kobalt.api
 
 import com.beust.kobalt.Plugins
-import com.beust.kobalt.misc.Topological
 import com.google.inject.Injector
 import java.io.File
 import java.io.InputStream
@@ -82,21 +81,6 @@ public class Kobalt {
         }
 
         val version = properties.getProperty(PROPERTY_KOBALT_VERSION)
-
-        val topologicalProjects = Topological<Project>()
-
-        /**
-         * Used by projects to specify that they depend on other projects, e.g.
-         * val p = javaProject(project1, project2) { ... }
-         */
-        fun declareProjectDependencies(project: Project, projects: Array<out Project>) {
-            topologicalProjects.addEdge(project, projects)
-        }
-
-        /**
-         * @return the projects sorted topologically.
-         */
-        fun sortProjects(allProjects: ArrayList<Project>) = topologicalProjects.sort(allProjects)
 
         fun findPlugin(name: String) = Plugins.findPlugin(name)
     }
