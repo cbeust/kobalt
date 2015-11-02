@@ -150,7 +150,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         return buildDir
     }
 
-    val classpathEntries = HashMultimap.create<String, IClasspathDependency>()
+    private val classpathEntries = HashMultimap.create<String, IClasspathDependency>()
 
     override fun entriesFor(project: Project): Collection<IClasspathDependency> {
         return classpathEntries.get(project.name!!) ?: listOf()
