@@ -1,10 +1,10 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.JavaInfo
+import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.JavaInfo
-import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.misc.log
 import java.io.File
 
@@ -17,7 +17,7 @@ abstract class GenericTestRunner(open val project: Project, open val classpath: 
         val result = KFiles.findRecursively(File(path),
                 arrayListOf(File("."))) { file -> file.endsWith("Test.class")
         }.map {
-            it.replace("/", ".").replace(".class", "").substring(2)
+            it.replace("/", ".").replace("\\", ".").replace(".class", "").substring(2)
         }
         return result
     }
@@ -36,6 +36,7 @@ abstract class GenericTestRunner(open val project: Project, open val classpath: 
         pb.directory(File(project.directory))
         pb.inheritIO()
         log(1, "Running tests with classpath size ${classpath.size}")
+        log(2, "Launching " + allArgs.join(" "))
         val process = pb.start()
         val errorCode = process.waitFor()
         if (errorCode == 0) {
