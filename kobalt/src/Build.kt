@@ -8,6 +8,7 @@ import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.kotlin.kotlinProject
 import com.beust.kobalt.plugin.packaging.assemble
 import com.beust.kobalt.plugin.publish.jcenter
+import java.io.File
 
 //import com.beust.kobalt.plugin.linecount.lineCount
 //val plugins = plugins(
@@ -21,7 +22,11 @@ import com.beust.kobalt.plugin.publish.jcenter
 
 fun readVersion() : String {
     val p = java.util.Properties()
-    p.load(java.io.FileReader(java.io.File("src/main/resources/kobalt.properties")))
+    var localFile = java.io.File("src/main/resources/kobalt.properties")
+    if (! localFile.exists()) {
+        localFile = File(homeDir("kotlin", "kobalt", "src/main/resources/kobalt.properties"))
+    }
+    p.load(java.io.FileReader(localFile))
     return p.getProperty("kobalt.version")
 }
 
