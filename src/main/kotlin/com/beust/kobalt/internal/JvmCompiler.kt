@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.api.IClasspathContributor
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.DependencyManager
@@ -54,8 +55,14 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
     private fun runClasspathContributors(context: KobaltContext?, project: Project) :
             Collection<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
-        context?.classpathContributors?.forEach {
-            result.addAll(it.entriesFor(project))
+        val classes : List<Class<out IClasspathContributor>>? = context?.pluginFile?.classpathContributors
+        if (classes != null) {
+            val contributors: List<IClasspathContributor> = classes.map {
+                context?.pluginFile?.instanceOf(it)!!
+            }
+            contributors.forEach { it: IClasspathContributor ->
+                result.addAll(it.entriesFor(project))
+            }
         }
         return result
     }

@@ -1,18 +1,12 @@
 package com.beust.kobalt.plugin.kotlin
 
-import com.beust.kobalt.api.BasePlugin
-import com.beust.kobalt.api.IProjectContributor
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.TaskResult
-import com.beust.kobalt.maven.DepFactory
-import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.IClasspathDependency
-import com.beust.kobalt.maven.LocalRepo
+import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import java.io.File
@@ -28,7 +22,7 @@ class KotlinPlugin @Inject constructor(
         override val executors: KobaltExecutors,
         override val jvmCompiler: JvmCompiler)
         : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler),
-            IProjectContributor {
+            IProjectContributor, IClasspathContributor {
 
     init {
         Kobalt.registerCompiler(KotlinCompilerInfo())
@@ -91,7 +85,26 @@ class KotlinPlugin @Inject constructor(
         }.compile(project, context)
     }
 
+    // interface IProjectContributor
     override fun projects() = projects
+
+    private fun getKotlinCompilerJar(name: String) : String {
+        val id = "org.jetbrains.kotlin:$name:${KotlinCompiler.KOTLIN_VERSION}"
+        val dep = MavenDependency.create(id, executors.miscExecutor)
+        val result = dep.jarFile.get().absolutePath
+        return result
+    }
+
+
+    // interface IClasspathContributor
+    override fun entriesFor(project: Project) : List<IClasspathDependency> =
+        if (project is KotlinProject) {
+            // All Kotlin projects automatically get the Kotlin runtime added to their class path
+            arrayListOf(getKotlinCompilerJar("kotlin-stdlib"), getKotlinCompilerJar("kotlin-compiler-embeddable"))
+                .map { FileDependency(it) }
+        } else {
+            arrayListOf()
+        }
 }
 
 /**

@@ -37,6 +37,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
 
     fun compileBuildFiles(args: Args): List<Project> {
         val context = KobaltContext(args)
+        context.pluginFile = kobaltPluginFile
         Kobalt.context = context
 
         val allProjects = findProjects()

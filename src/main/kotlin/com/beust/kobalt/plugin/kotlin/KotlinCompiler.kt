@@ -7,7 +7,10 @@ import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.TaskResult
-import com.beust.kobalt.maven.*
+import com.beust.kobalt.maven.DepFactory
+import com.beust.kobalt.maven.FileDependency
+import com.beust.kobalt.maven.IClasspathDependency
+import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import org.jetbrains.kotlin.cli.common.CLICompiler
@@ -27,7 +30,9 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
         val depFactory: DepFactory,
         val executors: KobaltExecutors,
         val jvmCompiler: JvmCompiler) {
-    private val KOTLIN_VERSION = "1.0.0-beta-1038"
+    companion object {
+        val KOTLIN_VERSION = "1.0.0-beta-1038"
+    }
 
     val compilerAction = object: ICompilerAction {
         override fun compile(info: CompilerActionInfo): TaskResult {
@@ -42,13 +47,6 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
             CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs)
             return TaskResult()
         }
-    }
-
-    private fun getKotlinCompilerJar(name: String) : String {
-        val id = "org.jetbrains.kotlin:$name:$KOTLIN_VERSION"
-        val dep = MavenDependency.create(id, executors.miscExecutor)
-        val result = dep.jarFile.get().absolutePath
-        return result
     }
 
     /**
@@ -66,12 +64,12 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
 
         executor.shutdown()
 
-        val classpathList = arrayListOf(
-                getKotlinCompilerJar("kotlin-stdlib"),
-                getKotlinCompilerJar("kotlin-compiler-embeddable"))
-            .map { FileDependency(it) }
+//        val classpathList = arrayListOf(
+//                getKotlinCompilerJar("kotlin-stdlib"),
+//                getKotlinCompilerJar("kotlin-compiler-embeddable"))
+//            .map { FileDependency(it) }
 
-        val dependencies = compileDependencies + classpathList + otherClasspath.map { FileDependency(it)}
+        val dependencies = compileDependencies + otherClasspath.map { FileDependency(it)}
         val info = CompilerActionInfo(project?.directory, dependencies, sourceFiles, outputDir, args)
         return jvmCompiler.doCompile(project, context, compilerAction, info)
     }
