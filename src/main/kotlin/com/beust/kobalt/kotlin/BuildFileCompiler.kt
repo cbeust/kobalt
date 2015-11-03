@@ -25,7 +25,8 @@ import java.util.jar.JarInputStream
 import javax.inject.Inject
 
 public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFiles: List<BuildFile>,
-        @Assisted val pluginInfo: PluginInfo, val files: KFiles, val plugins: Plugins) {
+        @Assisted val pluginInfo: PluginInfo, val files: KFiles, val plugins: Plugins,
+        val pluginProperties: PluginProperties) {
 
     interface IFactory {
         fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>, pluginInfo: PluginInfo) : BuildFileCompiler
@@ -38,6 +39,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
     fun compileBuildFiles(args: Args): List<Project> {
         val context = KobaltContext(args)
         context.pluginInfo = pluginInfo
+        context.pluginProperties = pluginProperties
         Kobalt.context = context
 
         val allProjects = findProjects()

@@ -5,6 +5,7 @@ import com.beust.kobalt.Plugins
 
 public class KobaltContext(val args: Args) {
     fun findPlugin(name: String) = Plugins.findPlugin(name)
-    var pluginInfo: PluginInfo? = null
+    lateinit var pluginInfo: PluginInfo
+    lateinit var pluginProperties: PluginProperties
 }
 

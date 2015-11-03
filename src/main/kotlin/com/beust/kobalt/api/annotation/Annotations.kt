@@ -1,7 +1,9 @@
 package com.beust.kobalt.api.annotation
 
-import kotlin.annotation.Retention
-
+/**
+ * Plugins that export directives should annotated those with this annotation so they can be documented and also
+ * receive special treatment for auto completion in the plug-in.
+ */
 annotation class Directive
 
 @Retention(AnnotationRetention.RUNTIME)
@@ -17,3 +19,9 @@ annotation class Task(val name: String,
         /** Tasks that this task will always run after */
         val alwaysRunAfter: Array<String> = arrayOf()
 )
+
+/**
+ * Plugins that export properties should annotated those with this annotation so they can be documented.
+ */
+@Retention(AnnotationRetention.RUNTIME)
+annotation class ExportedProperty

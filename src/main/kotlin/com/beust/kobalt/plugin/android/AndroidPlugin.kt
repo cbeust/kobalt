@@ -14,6 +14,7 @@ import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.java.JavaCompiler
 import com.beust.kobalt.plugin.packaging.JarUtils
+import com.beust.kobalt.plugin.packaging.PackagingPlugin
 import com.google.common.collect.HashMultimap
 import com.google.inject.Inject
 import com.google.inject.Singleton
@@ -38,7 +39,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
     val ANDROID_HOME = "/Users/beust/android/adt-bundle-mac-x86_64-20140702/sdk"
     override val name = "android"
 
-    var context: KobaltContext? = null
+    lateinit var context: KobaltContext
 
     override fun apply(project: Project, context: KobaltContext) {
         log(1, "Applying plug-in Android on project $project")
@@ -46,7 +47,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         if (accept(project)) {
             project.compileDependencies.add(FileDependency(androidJar(project).toString()))
         }
-        context.pluginInfo?.classpathContributors?.add(this)
+        context.pluginInfo.classpathContributors.add(this)
 
         // TODO: Find a more flexible way of enabling this, e.g. creating a contributor for it
         (Kobalt.findPlugin("java") as JvmCompilerPlugin).addCompilerArgs("-target", "1.6", "-source", "1.6")
@@ -93,8 +94,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         val generated = generated(project)
         val buildToolsDir = buildToolsVersion(project)
         val dx = "$ANDROID_HOME/build-tools/$buildToolsDir/dx"
-        val buildDir = (Plugins.findPlugin("java") as BasePlugin).pluginProperties[BUILD_DIR]
-        val libsDir = (Plugins.findPlugin("packaging") as BasePlugin).pluginProperties[LIBS_DIR]
+        val buildDir = context.pluginProperties.get("java", JvmCompilerPlugin.BUILD_DIR)
+        val libsDir = context.pluginProperties.get("packaging", PackagingPlugin.LIBS_DIR)
         File(libsDir!!.toString()).mkdirs()
         RunCommand(dx).run(listOf("--dex", "--output", KFiles.joinDir(libsDir!!.toString(), "classes.dex"),
                 buildDir!!.toString()))

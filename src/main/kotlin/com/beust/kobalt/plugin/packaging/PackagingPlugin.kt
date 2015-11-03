@@ -8,6 +8,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
+import com.beust.kobalt.api.annotation.ExportedProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
@@ -40,7 +41,10 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val executors: KobaltExecutors, val localRepo: LocalRepo) : BasePlugin() {
 
     companion object {
-        public const val TASK_ASSEMBLE : String = "assemble"
+        @ExportedProperty
+        const val LIBS_DIR = "libsDir"
+
+        const val TASK_ASSEMBLE : String = "assemble"
     }
 
     override val name = "packaging"
@@ -49,7 +53,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        pluginProperties.put(LIBS_DIR, libsDir(project))
+        context.pluginProperties.put(name, LIBS_DIR, libsDir(project))
     }
 
     private fun libsDir(project: Project) = KFiles.makeDir(buildDir(project).path, "libs")

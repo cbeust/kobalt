@@ -17,15 +17,4 @@ abstract public class BasePlugin : Plugin {
     fun addProject(project: Project, dependsOn: Array<out Project>) {
         projects.add(ProjectDescription(project, dependsOn.toList()))
     }
-
-    /**
-     * Plugins can expose properties to other plugins through this map.
-     * TODO: move this to its own class, it shouldn't be polluting BasePlugin
-     */
-    val pluginProperties = hashMapOf<String, Any>()
-
-    companion object {
-        val BUILD_DIR = "buildDir"
-        val LIBS_DIR = "libsDir"
-    }
 }
