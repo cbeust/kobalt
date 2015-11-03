@@ -25,18 +25,19 @@ abstract class GenericTestRunner(open val project: Project, open val classpath: 
     fun runTests() {
         val jvm = JavaInfo.create(File(SystemProperties.javaBase))
         val java = jvm.javaExecutable
-        val allArgs = arrayListOf<String>()
-        allArgs.add(java!!.absolutePath)
-        allArgs.add("-classpath")
-        allArgs.add(classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator))
-        allArgs.add(mainClass)
-        allArgs.addAll(args)
+        val allArgs = arrayListOf<String>().apply {
+            add(java!!.absolutePath)
+            add("-classpath")
+            add(classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator))
+            add(mainClass)
+            addAll(args)
+        }
 
         val pb = ProcessBuilder(allArgs)
         pb.directory(File(project.directory))
         pb.inheritIO()
         log(1, "Running tests with classpath size ${classpath.size}")
-        log(2, "Launching " + allArgs.join(" "))
+        log(2, "Launching " + allArgs.joinToString(" "))
         val process = pb.start()
         val errorCode = process.waitFor()
         if (errorCode == 0) {
