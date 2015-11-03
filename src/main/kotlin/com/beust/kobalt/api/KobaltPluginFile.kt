@@ -14,5 +14,9 @@ class KobaltPluginFile {
     val projectContributors : List<Class<out IProjectContributor>> =
             arrayListOf(JavaPlugin::class.java, KotlinPlugin::class.java)
 
-    // Future: compilerArgs contributor
+    // Future contributors:
+    // compilerArgs
+    // source files
+    // compilers
+    // --init
 }
