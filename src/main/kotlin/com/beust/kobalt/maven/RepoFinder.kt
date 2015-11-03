@@ -73,7 +73,6 @@ public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val e
             val mavenId = MavenId(id)
             val groupId = mavenId.groupId
             val artifactId = mavenId.artifactId
-            var packaging = mavenId.packaging
             val version = mavenId.version
             if (! mavenId.hasVersion) {
                 val ud = UnversionedDep(groupId, artifactId)
@@ -101,7 +100,7 @@ public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val e
                     val found =
                         if (! hasJar) {
                             // No jar, try to find the directory
-                            val url = repoUrl + File(dep.toJarFile(dep.version)).parentFile.path
+                            val url = repoUrl + File(dep.toJarFile(dep.version)).parentFile.path.replace("\\", "/")
                             urlFactory.create(url).exists
                         } else {
                             true
