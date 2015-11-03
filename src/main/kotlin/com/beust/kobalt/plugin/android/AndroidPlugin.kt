@@ -70,7 +70,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
     fun androidJar(project: Project) : Path =
             Paths.get(ANDROID_HOME, "platforms", "android-${compileSdkVersion(project)}", "android.jar")
 
-    @Task(name = "generateR", description = "Generate the R.java file", runBefore = arrayOf("compile"))
+    @Task(name = "generateR", description = "Generate the R.java file",
+            runBefore = arrayOf("compile"), runAfter = arrayOf("clean"))
     fun taskGenerateRFile(project: Project) : TaskResult {
 
         val flavor = "debug"
