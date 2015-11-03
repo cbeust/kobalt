@@ -18,6 +18,7 @@ import java.io.File
 class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
     fun compilerAction(executable: File) = object : ICompilerAction {
         override fun compile(info: CompilerActionInfo): TaskResult {
+            info.outputDir.mkdirs()
 
             val allArgs = arrayListOf(
                     executable.absolutePath,
@@ -30,7 +31,9 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
             allArgs.addAll(info.sourceFiles)
 
             val pb = ProcessBuilder(allArgs)
-            pb.directory(info.outputDir)
+            info.directory?.let {
+                pb.directory(File(it))
+            }
             pb.inheritIO()
             val line = allArgs.joinToString(" ")
             log(2, "  Compiling $line")
@@ -46,19 +49,20 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
      * Create an ICompilerAction based on the parameters and send it to JvmCompiler.doCompile() with
      * the given executable.
      */
-    private fun run(project: Project?, context: KobaltContext?, dependencies: List<IClasspathDependency>,
-            sourceFiles: List<String>, outputDir: File, args: List<String>, executable: File) : TaskResult {
-        val info = CompilerActionInfo(dependencies, sourceFiles, outputDir, args)
+    private fun run(project: Project?, context: KobaltContext?, directory: String?,
+            dependencies: List<IClasspathDependency>, sourceFiles: List<String>, outputDir: File,
+            args: List<String>, executable: File): TaskResult {
+        val info = CompilerActionInfo(directory, dependencies, sourceFiles, outputDir, args)
         return jvmCompiler.doCompile(project, context, compilerAction(executable), info)
     }
 
     fun compile(project: Project?, context: KobaltContext?, dependencies: List<IClasspathDependency>,
             sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult
-        = run(project, context, dependencies, sourceFiles, outputDir, args,
+        = run(project, context, project?.directory, dependencies, sourceFiles, outputDir, args,
             JavaInfo.create(File(SystemProperties.javaBase)).javacExecutable!!)
 
     fun javadoc(project: Project?, context: KobaltContext?, dependencies: List<IClasspathDependency>,
             sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult
-        = run(project, context, dependencies, sourceFiles, outputDir, args,
+        = run(project, context, project?.directory, dependencies, sourceFiles, outputDir, args,
             JavaInfo.create(File(SystemProperties.javaBase)).javadocExecutable!!)
 }

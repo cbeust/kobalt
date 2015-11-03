@@ -62,7 +62,7 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
 
 }
 
-data class CompilerActionInfo(val dependencies: List<IClasspathDependency>,
+data class CompilerActionInfo(val directory: String?, val dependencies: List<IClasspathDependency>,
         val sourceFiles: List<String>, val outputDir: File, val compilerArgs: List<String>)
 
 interface ICompilerAction {
