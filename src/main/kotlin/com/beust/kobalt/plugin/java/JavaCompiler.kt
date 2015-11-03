@@ -33,7 +33,6 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
             pb.directory(info.outputDir)
             pb.inheritIO()
             val line = allArgs.joinToString(" ")
-            log(1, "  Compiling ${info.sourceFiles.size} files with classpath size " + info.dependencies.size)
             log(2, "  Compiling $line")
             val process = pb.start()
             val errorCode = process.waitFor()

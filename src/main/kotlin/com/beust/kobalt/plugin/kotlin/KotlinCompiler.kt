@@ -31,7 +31,7 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
 
     val compilerAction = object: ICompilerAction {
         override fun compile(info: CompilerActionInfo): TaskResult {
-            log(1, "Compiling ${info.sourceFiles.size} files")
+            log(1, "  Compiling ${info.sourceFiles.size} files")
             val allArgs : Array<String> = arrayOf(
                     "-d", info.outputDir.path,
                     "-classpath", info.dependencies.map {it.jarFile.get()}.joinToString(File.pathSeparator),
