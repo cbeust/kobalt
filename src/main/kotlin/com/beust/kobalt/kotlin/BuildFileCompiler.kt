@@ -25,10 +25,10 @@ import java.util.jar.JarInputStream
 import javax.inject.Inject
 
 public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFiles: List<BuildFile>,
-        val files: KFiles, val plugins: Plugins, val kobaltPluginFile: KobaltPluginFile) {
+        @Assisted val pluginInfo: PluginInfo, val files: KFiles, val plugins: Plugins) {
 
     interface IFactory {
-        fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>) : BuildFileCompiler
+        fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>, pluginInfo: PluginInfo) : BuildFileCompiler
     }
 
     val observable = PublishSubject.create<BuildScriptInfo>()
@@ -37,7 +37,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
 
     fun compileBuildFiles(args: Args): List<Project> {
         val context = KobaltContext(args)
-        context.pluginFile = kobaltPluginFile
+        context.pluginInfo = pluginInfo
         Kobalt.context = context
 
         val allProjects = findProjects()
@@ -226,9 +226,8 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         //
         Topological<Project>().let { topologicalProjects ->
             val all = hashSetOf<Project>()
-            kobaltPluginFile.projectContributors.forEach { cls ->
-                val ip: IProjectContributor = kobaltPluginFile.instanceOf(cls)
-                val descriptions = ip.projects()
+            pluginInfo.projectContributors.forEach { contributor ->
+                val descriptions = contributor.projects()
                 descriptions.forEach { pd ->
                     all.add(pd.project)
                     pd.dependsOn.forEach { dependsOn ->

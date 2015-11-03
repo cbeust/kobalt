@@ -5,9 +5,6 @@ import com.beust.kobalt.Plugins
 
 public class KobaltContext(val args: Args) {
     fun findPlugin(name: String) = Plugins.findPlugin(name)
-    var pluginFile: KobaltPluginFile? = null
-    // sourceContributors
-    // projectContributors
-    // compilerContributors
+    var pluginInfo: PluginInfo? = null
 }
 

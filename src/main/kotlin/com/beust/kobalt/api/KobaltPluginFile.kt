@@ -19,7 +19,10 @@ interface IClasspathContributor {
     fun entriesFor(project: Project) : Collection<IClasspathDependency>
 }
 
-class KobaltPluginFile {
+/**
+ * All the information gathered from the various plugin.xml that were collected.
+ */
+class PluginInfoDescription {
     fun <T> instanceOf(c: Class<T>) : T = Kobalt.INJECTOR.getInstance(c)
 
     val projectContributors : ArrayList<Class<out IProjectContributor>> =
@@ -33,4 +36,17 @@ class KobaltPluginFile {
     // source files
     // compilers
     // --init
+}
+
+/**
+ * Turn the classes found in PluginInfoDescription into concrete objects that plugins can then use.
+ */
+class PluginInfo(val description: PluginInfoDescription) {
+    val projectContributors = arrayListOf<IProjectContributor>()
+    val classpathContributors = arrayListOf<IClasspathContributor>()
+
+    init {
+        classpathContributors.addAll(description.classpathContributors.map { description.instanceOf(it) })
+        projectContributors.addAll(description.projectContributors.map { description.instanceOf(it) })
+    }
 }

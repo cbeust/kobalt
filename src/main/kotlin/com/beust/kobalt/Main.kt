@@ -2,6 +2,8 @@ package com.beust.kobalt
 
 import com.beust.jcommander.JCommander
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.PluginInfo
+import com.beust.kobalt.api.PluginInfoDescription
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.remote.KobaltClient
@@ -54,7 +56,8 @@ private class Main @Inject constructor(
         val github: GithubApi,
         val updateKobalt: UpdateKobalt,
         val client: KobaltClient,
-        val server: KobaltServer) {
+        val server: KobaltServer,
+        val pluginInfoDescription: PluginInfoDescription) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
@@ -117,8 +120,9 @@ private class Main @Inject constructor(
                 error(buildFile.path.toFile().path + " does not exist")
             } else {
                 var allProjects = listOf<Project>()
+                val pluginInfo = PluginInfo(pluginInfoDescription)
                 try {
-                    allProjects = buildFileCompilerFactory.create(listOf(buildFile)).compileBuildFiles(args)
+                    allProjects = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo).compileBuildFiles(args)
                 } catch(ex: Throwable) {
                     // This can happen if the ABI for the build script file changed. Try to wipe .kobalt.
                     log(2, "Couldn't parse preBuildScript.jar: ${ex.message}")
@@ -127,7 +131,8 @@ private class Main @Inject constructor(
                         return 1
                     } else {
                         log(1, "Deleted .kobalt")
-                        allProjects = buildFileCompilerFactory.create(listOf(buildFile)).compileBuildFiles(args)
+                        allProjects = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
+                                .compileBuildFiles(args)
                     }
                 }
 

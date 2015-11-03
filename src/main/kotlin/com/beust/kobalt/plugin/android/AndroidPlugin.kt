@@ -46,7 +46,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         if (accept(project)) {
             project.compileDependencies.add(FileDependency(androidJar(project).toString()))
         }
-        context.pluginFile?.classpathContributors?.add(this.javaClass)
+        context.pluginInfo?.classpathContributors?.add(this)
 
         // TODO: Find a more flexible way of enabling this, e.g. creating a contributor for it
         (Kobalt.findPlugin("java") as JvmCompilerPlugin).addCompilerArgs("-target", "1.6", "-source", "1.6")

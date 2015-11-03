@@ -1,6 +1,8 @@
 package com.beust.kobalt.internal.remote
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.api.PluginInfo
+import com.beust.kobalt.api.PluginInfoDescription
 import com.beust.kobalt.kotlin.BuildFile
 import com.beust.kobalt.kotlin.BuildFileCompiler
 import com.beust.kobalt.maven.DependencyManager
@@ -10,8 +12,8 @@ import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import javax.inject.Inject
 import java.nio.file.Paths
+import javax.inject.Inject
 
 /**
  * This command returns the list of dependencies for the given buildFile.
@@ -24,11 +26,11 @@ import java.nio.file.Paths
  */
 class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
         val buildFileCompilerFactory: BuildFileCompiler.IFactory, val args: Args,
-        val dependencyManager: DependencyManager) : ICommand {
+        val dependencyManager: DependencyManager, val pluginInfoDescription: PluginInfoDescription) : ICommand {
     override val name = "getDependencies"
     override fun run(sender: ICommandSender, received: JsonObject) {
         val buildFile = BuildFile(Paths.get(received.get("buildFile").asString), "GetDependenciesCommand")
-        val scriptCompiler = buildFileCompilerFactory.create(listOf(buildFile))
+        val scriptCompiler = buildFileCompilerFactory.create(listOf(buildFile), PluginInfo(pluginInfoDescription))
         scriptCompiler.observable.subscribe {
             buildScriptInfo -> if (buildScriptInfo.projects.size > 0) {
                 sender.sendData(toData(buildScriptInfo))
