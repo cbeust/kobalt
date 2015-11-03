@@ -238,6 +238,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
             }
             val result = BuildScriptInfo(topologicalProjects.sort(ArrayList(all)), classLoader)
 
+            // Notify possible listeners (e.g. KobaltServer) we now have all the projects
             observable.onNext(result)
             return result
         }
