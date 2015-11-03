@@ -13,4 +13,6 @@ class KobaltPluginFile {
     fun <T> instanceOf(c: Class<T>) = Kobalt.INJECTOR.getInstance(c)
     val projectContributors : List<Class<out IProjectContributor>> =
             arrayListOf(JavaPlugin::class.java, KotlinPlugin::class.java)
+
+    // Future: compilerArgs contributor
 }
