@@ -42,7 +42,9 @@ abstract class JvmCompilerPlugin @Inject constructor(
     var context: KobaltContext? = null
 
     override fun apply(project: Project, context: KobaltContext) {
+        super.apply(project, context)
         this.context = context
+        pluginProperties.put(BUILD_DIR, project.buildDirectory + File.separator + "classes")
     }
 
     /**
@@ -112,6 +114,12 @@ abstract class JvmCompilerPlugin @Inject constructor(
         } else {
             lp(project, "No resources to copy for $sourceSet")
         }
+    }
+
+    protected val compilerArgs = arrayListOf<String>()
+
+    fun addCompilerArgs(vararg args: String) {
+        compilerArgs.addAll(args)
     }
 }
 

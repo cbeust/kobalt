@@ -1,8 +1,10 @@
 package com.beust.kobalt.plugin.android
 
+import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.FileDependency
 import com.beust.kobalt.maven.IClasspathDependency
@@ -45,6 +47,9 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
             project.compileDependencies.add(FileDependency(androidJar(project).toString()))
         }
         context.classpathContributors.add(this)
+
+        // TODO: Find a more flexible way of enabling this, e.g. creating a contributor for it
+        (Kobalt.findPlugin("java") as JvmCompilerPlugin).addCompilerArgs("-target", "1.6", "-source", "1.6")
     }
 
     val configurations = hashMapOf<String, AndroidConfig>()
@@ -70,24 +75,44 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
     fun androidJar(project: Project) : Path =
             Paths.get(ANDROID_HOME, "platforms", "android-${compileSdkVersion(project)}", "android.jar")
 
+    fun generated(project: Project) = Paths.get(project.directory, "app", "build", "generated")
+
     @Task(name = "generateR", description = "Generate the R.java file",
             runBefore = arrayOf("compile"), runAfter = arrayOf("clean"))
     fun taskGenerateRFile(project: Project) : TaskResult {
+        val buildToolsDir = buildToolsVersion(project)
 
+        val generated = generated(project)
+        explodeAarFiles(project, generated)
+        generateR(project, generated, buildToolsDir)
+        return TaskResult()
+    }
+
+    @Task(name = "generateDex", description = "Generate the dex file", alwaysRunAfter = arrayOf("compile"))
+    fun taskGenerateDex(project: Project) : TaskResult {
+        val generated = generated(project)
+        val buildToolsDir = buildToolsVersion(project)
+        val dx = "$ANDROID_HOME/build-tools/$buildToolsDir/dx"
+        val buildDir = (Plugins.findPlugin("java") as BasePlugin).pluginProperties[BUILD_DIR]
+        val libsDir = (Plugins.findPlugin("packaging") as BasePlugin).pluginProperties[LIBS_DIR]
+        File(libsDir!!.toString()).mkdirs()
+        RunCommand(dx).run(listOf("--dex", "--output", KFiles.joinDir(libsDir!!.toString(), "classes.dex"),
+                buildDir!!.toString()))
+        return TaskResult()
+    }
+
+    private fun generateR(project: Project, generated: Path, buildToolsDir: String?) {
         val flavor = "debug"
         val compileSdkVersion = compileSdkVersion(project)
-        val buildToolsVersion = buildToolsVersion(project)
         val androidJar = Paths.get(ANDROID_HOME, "platforms", "android-$compileSdkVersion", "android.jar")
         val applicationId = configurations[project.name!!]?.applicationId!!
         val intermediates = Paths.get(project.directory, "app", "build", "intermediates")
         val manifestDir = Paths.get(project.directory, "app", "src", "main").toString()
-//        val manifestIntermediateDir = dirGet(intermediates, "manifests", "full", flavor)
+        //        val manifestIntermediateDir = dirGet(intermediates, "manifests", "full", flavor)
         val manifest = Paths.get(manifestDir, "AndroidManifest.xml")
-        val generated = Paths.get(project.directory, "app", "build", "generated")
-        val aapt = "$ANDROID_HOME/build-tools/$buildToolsVersion/aapt"
+        val aapt = "$ANDROID_HOME/build-tools/$buildToolsDir/aapt"
         val outputDir = dirGet(intermediates, "resources", "resources-$flavor")
 
-        explodeAarFiles(project, generated)
 
         val crunchedPngDir = dirGet(intermediates, "res", flavor)
         RunCommand(aapt).apply {
@@ -123,7 +148,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
                 applicationId.replace(".", File.separator))
         val generatedBuildDir = compile(project, rDirectory)
         project.compileDependencies.add(FileDependency(generatedBuildDir.path))
-        return TaskResult()
     }
 
     /**

@@ -5,6 +5,7 @@ import com.beust.kobalt.IFileSpec.FileSpec
 import com.beust.kobalt.IFileSpec.Glob
 import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
@@ -45,6 +46,13 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     override val name = "packaging"
 
     private val packages = arrayListOf<Package>()
+
+    override fun apply(project: Project, context: KobaltContext) {
+        super.apply(project, context)
+        pluginProperties.put(LIBS_DIR, libsDir(project))
+    }
+
+    private fun libsDir(project: Project) = KFiles.makeDir(buildDir(project).path, "libs")
 
     @Task(name = TASK_ASSEMBLE, description = "Package the artifacts", runAfter = arrayOf(JavaPlugin.TASK_COMPILE))
     fun taskAssemble(project: Project) : TaskResult {
@@ -112,7 +120,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         //
         // Add all the applicable files for the current project
         //
-        val buildDir = KFiles.makeDir(project.directory, project.buildDirectory!!)
+        val buildDir = buildDir(project)
         val allFiles = arrayListOf<IncludedFile>()
         val classesDir = KFiles.makeDir(buildDir.path, "classes")
 
@@ -164,6 +172,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 true /* expandJarFiles */, jarFactory)
     }
 
+    private fun buildDir(project: Project) = KFiles.makeDir(project.directory, project.buildDirectory!!)
+
     private fun findIncludedFiles(directory: String, files: List<IncludedFile>, excludes: List<IFileSpec.Glob>)
             : List<IncludedFile> {
         val result = arrayListOf<IncludedFile>()
@@ -208,8 +218,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             expandJarFiles : Boolean = false,
             outputStreamFactory: (OutputStream) -> ZipOutputStream = DEFAULT_STREAM_FACTORY) : File {
         val buildDir = KFiles.makeDir(project.directory, project.buildDirectory!!)
-        val archiveDir = KFiles.makeDir(buildDir.path, "libs")
         val fullArchiveName = archiveName ?: arrayListOf(project.name!!, project.version!!).joinToString("-") + suffix
+        val archiveDir = libsDir(project)
         val result = File(archiveDir.path, fullArchiveName)
         val outStream = outputStreamFactory(FileOutputStream(result))
         log(2, "Creating $result")

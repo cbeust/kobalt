@@ -43,8 +43,6 @@ class KotlinPlugin @Inject constructor(
 
     override fun accept(project: Project) = project is KotlinProject
 
-    private val compilerArgs = arrayListOf<String>()
-
     @Task(name = TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project): TaskResult {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
@@ -64,10 +62,6 @@ class KotlinPlugin @Inject constructor(
         compilePrivate(project, classpath, absoluteSourceFiles, buildDirectory)
         lp(project, "Compilation succeeded")
         return TaskResult()
-    }
-
-    fun addCompilerArgs(vararg args: String) {
-        compilerArgs.addAll(args)
     }
 
     @Task(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf(TASK_COMPILE))
@@ -113,7 +107,7 @@ fun kotlinProject(vararg project: Project, init: KotlinProject.() -> Unit): Kotl
 
 class KotlinCompilerConfig {
     fun args(vararg options: String) {
-        (Kobalt.findPlugin("kotlin") as KotlinPlugin).addCompilerArgs(*options)
+        (Kobalt.findPlugin("kotlin") as JvmCompilerPlugin).addCompilerArgs(*options)
     }
 }
 

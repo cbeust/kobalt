@@ -101,12 +101,6 @@ public class JavaPlugin @Inject constructor(
                 .map { File(projectDir, it).absolutePath }
     }
 
-    private val compilerArgs = arrayListOf<String>()
-
-    fun addCompilerArgs(vararg args: String) {
-        compilerArgs.addAll(args)
-    }
-
     override fun projects() = projects
 }
 
@@ -114,13 +108,13 @@ public class JavaPlugin @Inject constructor(
 public fun javaProject(vararg project: Project, init: JavaProject.() -> Unit): JavaProject {
     return JavaProject().apply {
         init()
-        (Kobalt.findPlugin("kotlin") as BasePlugin).addProject(this, project)
+        (Kobalt.findPlugin("java") as BasePlugin).addProject(this, project)
     }
 }
 
 class JavaCompilerConfig {
     fun args(vararg options: String) {
-        (Kobalt.findPlugin("java") as JavaPlugin).addCompilerArgs(*options)
+        (Kobalt.findPlugin("java") as JvmCompilerPlugin).addCompilerArgs(*options)
     }
 }
 
