@@ -20,6 +20,7 @@ abstract public class BasePlugin : Plugin {
 
     /**
      * Plugins can expose properties to other plugins through this map.
+     * TODO: move this to its own class, it shouldn't be polluting BasePlugin
      */
     val pluginProperties = hashMapOf<String, Any>()
 
