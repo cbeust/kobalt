@@ -74,12 +74,15 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         return result
     }
 
+    private fun isUpToDate(buildFile: BuildFile, jarFile: File) =
+        buildFile.exists() && jarFile.exists()
+                && buildFile.lastModified < jarFile.lastModified()
+
     private fun maybeCompileBuildFile(buildFile: BuildFile, buildScriptJarFile: File,
             pluginUrls: List<URL>) {
         log(2, "Running build file ${buildFile.name} jar: $buildScriptJarFile")
 
-        if (buildFile.exists() && buildScriptJarFile.exists()
-                && buildFile.lastModified < buildScriptJarFile.lastModified()) {
+        if (isUpToDate(buildFile, buildScriptJarFile)) {
             log(2, "Build file is up to date")
         } else {
             log(2, "Need to recompile ${buildFile.name}")
@@ -132,8 +135,10 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         //
         val buildScriptJar = KFiles.findBuildScriptLocation(buildFile, "preBuildScript.jar")
         val buildScriptJarFile = File(buildScriptJar)
-        buildScriptJarFile.parentFile.mkdirs()
-        generateJarFile(BuildFile(Paths.get(pluginSourceFile.path), "Plugins"), buildScriptJarFile)
+        if (! isUpToDate(buildFile, File(buildScriptJar))) {
+            buildScriptJarFile.parentFile.mkdirs()
+            generateJarFile(BuildFile(Paths.get(pluginSourceFile.path), "Plugins"), buildScriptJarFile)
+        }
 
         //
         // Run preBuildScript.jar to initialize plugins and repos
