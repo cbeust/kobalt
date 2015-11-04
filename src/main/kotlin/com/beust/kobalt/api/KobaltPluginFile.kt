@@ -4,6 +4,8 @@ import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.plugin.java.JavaPlugin
 import com.beust.kobalt.plugin.kotlin.KotlinPlugin
 import java.util.*
+import javax.xml.bind.annotation.XmlElement
+import javax.xml.bind.annotation.XmlRootElement
 
 class ProjectDescription(val project: Project, val dependsOn: List<Project>)
 
@@ -17,6 +19,14 @@ interface IProjectContributor {
  */
 interface IClasspathContributor {
     fun entriesFor(project: Project) : Collection<IClasspathDependency>
+}
+
+interface IFactory {
+    fun <T> instanceOf(c: Class<T>) : T
+}
+
+class ContributorFactory : IFactory {
+    override fun <T> instanceOf(c: Class<T>) : T = Kobalt.INJECTOR.getInstance(c)
 }
 
 /**
@@ -41,12 +51,54 @@ class PluginInfoDescription {
 /**
  * Turn the classes found in PluginInfoDescription into concrete objects that plugins can then use.
  */
-class PluginInfo(val description: PluginInfoDescription) {
+class PluginInfo(val description: PluginInfoDescription?) {
     val projectContributors = arrayListOf<IProjectContributor>()
     val classpathContributors = arrayListOf<IClasspathContributor>()
 
+    companion object {
+        fun create(xml: KobaltPluginXml) : PluginInfo {
+            val factory = Class.forName(xml.factoryClassName).newInstance() as IFactory
+            val result = PluginInfo(null)
+            xml.classpathContributors?.className?.forEach {
+                result.classpathContributors.add(factory.instanceOf(Class.forName(it)) as IClasspathContributor)
+            }
+            xml.projectContributors?.className?.forEach {
+                result.projectContributors.add(factory.instanceOf(Class.forName(it)) as IProjectContributor)
+            }
+            return result
+        }
+    }
+
     init {
-        classpathContributors.addAll(description.classpathContributors.map { description.instanceOf(it) })
-        projectContributors.addAll(description.projectContributors.map { description.instanceOf(it) })
+        if (description != null) {
+            classpathContributors.addAll(description.classpathContributors.map { description.instanceOf(it) })
+            projectContributors.addAll(description.projectContributors.map { description.instanceOf(it) })
+        }
     }
 }
+
+class ContributorXml {
+    @XmlElement @JvmField
+    val name: String? = null
+}
+
+class ContributorsXml {
+    @XmlElement(name = "class-name") @JvmField
+    var className: List<String> = arrayListOf<String>()
+}
+
+@XmlRootElement(name = "kobalt-plugin")
+class KobaltPluginXml {
+    @XmlElement @JvmField
+    var name: String? = null
+
+    @XmlElement(name = "factory-class-name") @JvmField
+    var factoryClassName: String? = null
+
+    @XmlElement(name = "classpath-contributors") @JvmField
+    var classpathContributors : ContributorsXml? = null
+
+    @XmlElement(name = "project-contributors") @JvmField
+    var projectContributors : ContributorsXml? = null
+}
+

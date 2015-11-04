@@ -1,10 +1,7 @@
 package com.beust.kobalt
 
 import com.beust.jcommander.JCommander
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.PluginInfo
-import com.beust.kobalt.api.PluginInfoDescription
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.remote.KobaltClient
 import com.beust.kobalt.internal.remote.KobaltServer
@@ -13,7 +10,6 @@ import com.beust.kobalt.kotlin.BuildFileCompiler
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.LocalRepo
-import com.beust.kobalt.maven.MavenDependency
 import com.beust.kobalt.misc.*
 import com.beust.kobalt.wrapper.Wrapper
 import com.google.inject.Guice
@@ -21,6 +17,7 @@ import java.io.File
 import java.nio.file.Paths
 import java.util.*
 import javax.inject.Inject
+import javax.xml.bind.JAXBContext
 
 public fun main(argv: Array<String>) {
     val result = mainNoExit(argv)
@@ -72,7 +69,7 @@ private class Main @Inject constructor(
         val latestVersionFuture = github.latestKobaltVersion
         benchmark("Build", {
             println(AsciiArt.banner + Kobalt.version + "\n")
-//            runTest()
+            runTest()
             result = runWithArgs(jc, args)
             executors.shutdown()
         })
@@ -94,9 +91,14 @@ private class Main @Inject constructor(
         return result
     }
 
+
     public fun runTest() {
-        val dep = MavenDependency.create("com.google.inject:guice:4.0:no_aop")
-        println("Name: " + dep)
+        val file = File("src\\main\\resources\\META-INF\\plugin.xml")
+        val jaxbContext = JAXBContext.newInstance(KobaltPluginXml::class.java)
+
+        val kotlinPlugin : KobaltPluginXml = jaxbContext.createUnmarshaller().unmarshal(file) as KobaltPluginXml
+        val pluginInfo = PluginInfo.create(kotlinPlugin)
+        System.out.println(kotlinPlugin.name)
     }
 
     private fun runWithArgs(jc: JCommander, args: Args) : Int {

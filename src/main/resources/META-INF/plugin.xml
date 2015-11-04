@@ -1,0 +1,12 @@
+<kobalt-plugin>
+	<name>kobalt</name>
+	<factory-class-name>com.beust.kobalt.api.ContributorFactory</factory-class-name>
+	<classpath-contributors>
+		<class-name>com.beust.kobalt.plugin.android.AndroidPlugin</class-name>
+		<class-name>com.beust.kobalt.plugin.kotlin.KotlinPlugin</class-name>
+	</classpath-contributors>
+	<project-contributors>
+		<class-name>com.beust.kobalt.plugin.java.JavaPlugin</class-name>
+		<class-name>com.beust.kobalt.plugin.kotlin.KotlinPlugin</class-name>
+	</project-contributors>
+</kobalt-plugin>
