@@ -68,8 +68,7 @@ private class Main @Inject constructor(
         var result = 0
         val latestVersionFuture = github.latestKobaltVersion
         benchmark("Build", {
-            println(AsciiArt.banner + Kobalt.version + "\n")
-            runTest()
+//            runTest()
             result = runWithArgs(jc, args)
             executors.shutdown()
         })
@@ -106,6 +105,10 @@ private class Main @Inject constructor(
         val p = if (args.buildFile != null) File(args.buildFile) else findBuildFile()
         args.buildFile = p.absolutePath
         val buildFile = BuildFile(Paths.get(p.absolutePath), p.name)
+
+        if (! args.update) {
+            println(AsciiArt.banner + Kobalt.version + "\n")
+        }
 
         if (args.init) {
             //
