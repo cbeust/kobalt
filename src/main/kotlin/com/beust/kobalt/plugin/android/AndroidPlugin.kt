@@ -1,9 +1,9 @@
 package com.beust.kobalt.plugin.android
 
-import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.FileDependency
@@ -64,11 +64,12 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
     fun dirGet(dir: Path, vararg others: String) : String {
         val result = Paths.get(dir.toString(), *others)
         with(result.toFile()) {
-            deleteRecursively()
             mkdirs()
         }
         return result.toString()
     }
+
+    val flavor = "debug"
 
     fun compileSdkVersion(project: Project) = configurations[project.name!!]?.compileSdkVersion
     fun buildToolsVersion(project: Project) = configurations[project.name!!]?.buildToolsVersion
@@ -78,71 +79,65 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
 
     fun generated(project: Project) = Paths.get(project.directory, "app", "build", "generated")
 
+    private fun aapt(project: Project) = "$ANDROID_HOME/build-tools/${buildToolsVersion(project)}/aapt"
+
+    private fun temporaryApk(project: Project, flavor: String) = apk(project, flavor, "ap_")
+
+    private fun apk(project: Project, flavor: String, suffix: String) : String {
+        val outputDir = dirGet(intermediates(project), "resources", "resources-$flavor")
+        return Paths.get(outputDir, "resources-$flavor.$suffix").toString()
+    }
+
+    private fun intermediates(project: Project) = Paths.get(project.directory, "app", "build", "intermediates")
+
     @Task(name = "generateR", description = "Generate the R.java file",
             runBefore = arrayOf("compile"), runAfter = arrayOf("clean"))
     fun taskGenerateRFile(project: Project) : TaskResult {
-        val buildToolsDir = buildToolsVersion(project)
 
         val generated = generated(project)
         explodeAarFiles(project, generated)
-        generateR(project, generated, buildToolsDir)
+        generateR(project, generated, aapt(project))
         return TaskResult()
     }
 
-    @Task(name = "generateDex", description = "Generate the dex file", alwaysRunAfter = arrayOf("compile"))
-    fun taskGenerateDex(project: Project) : TaskResult {
-        val generated = generated(project)
-        val buildToolsDir = buildToolsVersion(project)
-        val dx = "$ANDROID_HOME/build-tools/$buildToolsDir/dx"
-        val buildDir = context.pluginProperties.get("java", JvmCompilerPlugin.BUILD_DIR)
-        val libsDir = context.pluginProperties.get("packaging", PackagingPlugin.LIBS_DIR)
-        File(libsDir!!.toString()).mkdirs()
-        RunCommand(dx).run(listOf("--dex", "--output", KFiles.joinDir(libsDir!!.toString(), "classes.dex"),
-                buildDir!!.toString()))
-        return TaskResult()
+    class AaptCommand(project: Project, aapt: String, val aaptCommand: String,
+            cwd: File = File(project.directory)) : RunCommand(aapt) {
+        init {
+            directory = cwd
+        }
+        fun call(args: List<String>) = run(arrayListOf(aaptCommand) + args)
     }
 
-    private fun generateR(project: Project, generated: Path, buildToolsDir: String?) {
-        val flavor = "debug"
+    private fun generateR(project: Project, generated: Path, aapt: String) {
         val compileSdkVersion = compileSdkVersion(project)
         val androidJar = Paths.get(ANDROID_HOME, "platforms", "android-$compileSdkVersion", "android.jar")
         val applicationId = configurations[project.name!!]?.applicationId!!
-        val intermediates = Paths.get(project.directory, "app", "build", "intermediates")
         val manifestDir = Paths.get(project.directory, "app", "src", "main").toString()
-        //        val manifestIntermediateDir = dirGet(intermediates, "manifests", "full", flavor)
         val manifest = Paths.get(manifestDir, "AndroidManifest.xml")
-        val aapt = "$ANDROID_HOME/build-tools/$buildToolsDir/aapt"
-        val outputDir = dirGet(intermediates, "resources", "resources-$flavor")
 
+        val crunchedPngDir = dirGet(intermediates(project), "res", flavor)
 
-        val crunchedPngDir = dirGet(intermediates, "res", flavor)
-        RunCommand(aapt).apply {
-            directory = File(project.directory)
-        }.run(arrayListOf(
-                "crunch",
+        AaptCommand(project, aapt, "crunch").call(listOf(
                 "-v",
                 "-S", "app/src/main/res",
                 "-C", crunchedPngDir
         ))
 
-        RunCommand(aapt).apply {
-            directory = File(project.directory)
-        }.run(arrayListOf(
-                "package",
+        AaptCommand(project, aapt, "package").call(listOf(
                 "-f",
                 "--no-crunch",
                 "-I", androidJar.toString(),
                 "-M", manifest.toString(),
                 "-S", crunchedPngDir,
                 "-S", "app/src/main/res",
-                "-A", dirGet(intermediates, "assets", flavor), // where to find more assets
+                "-A", dirGet(intermediates(project), "assets", flavor), // where to find more assets
                 "-m",  // create directory
                 "-J", dirGet(generated, "sources", "r", flavor).toString(), // where all gets generated
-                "-F", Paths.get(outputDir, "resources-$flavor.ap_").toString(),
+                "-F", temporaryApk(project, flavor),
                 "--debug-mode",
                 "-0", "apk",
                 "--custom-package", applicationId,
-                "--output-text-symbols", dirGet(intermediates, "symbol", flavor))
+                "--output-text-symbols", dirGet(intermediates(project), "symbol", flavor))
         )
 
         val rDirectory = KFiles.joinDir(generated.toFile().path, "sources", "r", flavor,
@@ -174,6 +169,50 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
 
         javaCompiler.compile(project, context, listOf(), sourceFiles, buildDir, listOf())
         return buildDir
+    }
+
+    @Task(name = "generateDex", description = "Generate the dex file", alwaysRunAfter = arrayOf("compile"))
+    fun taskGenerateDex(project: Project) : TaskResult {
+        val generated = generated(project)
+
+        //
+        // Call dx to generate classes.dex
+        //
+        val buildToolsDir = buildToolsVersion(project)
+        val dx = "$ANDROID_HOME/build-tools/$buildToolsDir/dx"
+        val buildDir = context.pluginProperties.get("java", JvmCompilerPlugin.BUILD_DIR)
+        val libsDir = context.pluginProperties.get("packaging", PackagingPlugin.LIBS_DIR)
+        File(libsDir!!.toString()).mkdirs()
+        val classesDex = "classes.dex"
+        val outClassesDex = KFiles.joinDir(libsDir.toString(), classesDex)
+        val relClassesDex = File(outClassesDex).parentFile
+        RunCommand(dx).run(listOf("--dex", "--output", outClassesDex,
+                buildDir!!.toString()))
+
+
+        //
+        // Add classes.dex to existing .ap_
+        //
+        val temporaryApk = temporaryApk(project, flavor)
+        AaptCommand(project, aapt(project), "add", relClassesDex).call(listOf(
+                "-v", temporaryApk, classesDex
+        ))
+
+        //
+        // Sign it
+        // Mac:
+        // jarsigner -keystore ~/.android/debug.keystore -storepass android -keypass android -signedjar a.apk a.ap_
+        // androiddebugkey
+        //
+        RunCommand("jarsigner").run(listOf(
+                "-keystore", homeDir(".android", "debug.keystore"),
+                "-storepass", "android",
+                "-keypass", "android",
+                "-signedjar", apk(project, flavor, "apk"),
+                temporaryApk,
+                "androiddebugkey"
+        ))
+        return TaskResult()
     }
 
     private val classpathEntries = HashMultimap.create<String, IClasspathDependency>()

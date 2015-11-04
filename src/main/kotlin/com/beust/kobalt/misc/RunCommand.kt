@@ -5,7 +5,7 @@ import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
 
-public class RunCommand(val command: String) {
+open class RunCommand(val command: String) {
     val defaultSuccess = { output: List<String> -> log(1, "Success:\n " + output.joinToString("\n"))}
     val defaultError = { output: List<String> -> log(1, "Error:\n " + output.joinToString("\n"))}
 
