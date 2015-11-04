@@ -137,7 +137,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
                 "-A", dirGet(intermediates, "assets", flavor), // where to find more assets
                 "-m",  // create directory
                 "-J", dirGet(generated, "sources", "r", flavor).toString(), // where all gets generated
-                "-F", Paths.get(outputDir, "resources-debug.ap_").toString(),
+                "-F", Paths.get(outputDir, "resources-$flavor.ap_").toString(),
                 "--debug-mode",
                 "-0", "apk",
                 "--custom-package", applicationId,
