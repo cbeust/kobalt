@@ -1,5 +1,6 @@
 package com.beust.kobalt.plugin.android
 
+import com.beust.kobalt.OperatingSystem
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
@@ -23,8 +24,9 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 class AndroidConfig(var compileSdkVersion : String = "23",
-       var buildToolsVersion : String = "23.0.1",
-       var applicationId: String? = null)
+        var buildToolsVersion : String = "23.0.1",
+        var applicationId: String? = null,
+        val androidHome: String? = null)
 
 @Directive
 fun Project.android(init: AndroidConfig.() -> Unit) : AndroidConfig {
@@ -36,7 +38,6 @@ fun Project.android(init: AndroidConfig.() -> Unit) : AndroidConfig {
 
 @Singleton
 public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) : BasePlugin(), IClasspathContributor {
-    val ANDROID_HOME = "/Users/beust/android/adt-bundle-mac-x86_64-20140702/sdk"
     override val name = "android"
 
     lateinit var context: KobaltContext
@@ -72,14 +73,32 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
     val flavor = "debug"
 
     fun compileSdkVersion(project: Project) = configurations[project.name!!]?.compileSdkVersion
-    fun buildToolsVersion(project: Project) = configurations[project.name!!]?.buildToolsVersion
+    fun buildToolsVersion(project: Project) : String {
+        val version = configurations[project.name!!]?.buildToolsVersion
+        if (OperatingSystem.current().isWindows()) {
+            return "build-tools-$version"
+        } else {
+            return version as String
+        }
+    }
+
+    fun androidHome(project: Project) : String {
+        var result = configurations[project.name!!]?.androidHome
+        if (result == null) {
+            result = System.getenv("ANDROID_HOME")
+            if (result == null) {
+                throw IllegalArgumentException("Neither androidHome nor \$ANDROID_HOME were defined")
+            }
+        }
+        return result
+    }
 
     fun androidJar(project: Project) : Path =
-            Paths.get(ANDROID_HOME, "platforms", "android-${compileSdkVersion(project)}", "android.jar")
+            Paths.get(androidHome(project), "platforms", "android-${compileSdkVersion(project)}", "android.jar")
 
     fun generated(project: Project) = Paths.get(project.directory, "app", "build", "generated")
 
-    private fun aapt(project: Project) = "$ANDROID_HOME/build-tools/${buildToolsVersion(project)}/aapt"
+    private fun aapt(project: Project) = "${androidHome(project)}/build-tools/${buildToolsVersion(project)}/aapt"
 
     private fun temporaryApk(project: Project, flavor: String) = apk(project, flavor, "ap_")
 
@@ -110,7 +129,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
 
     private fun generateR(project: Project, generated: Path, aapt: String) {
         val compileSdkVersion = compileSdkVersion(project)
-        val androidJar = Paths.get(ANDROID_HOME, "platforms", "android-$compileSdkVersion", "android.jar")
+        val androidJar = Paths.get(androidHome(project), "platforms", "android-$compileSdkVersion", "android.jar")
         val applicationId = configurations[project.name!!]?.applicationId!!
         val manifestDir = Paths.get(project.directory, "app", "src", "main").toString()
         val manifest = Paths.get(manifestDir, "AndroidManifest.xml")
@@ -181,7 +200,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         // Call dx to generate classes.dex
         //
         val buildToolsDir = buildToolsVersion(project)
-        val dx = "$ANDROID_HOME/build-tools/$buildToolsDir/dx"
+        val dx = "${androidHome(project)}/build-tools/$buildToolsDir/dx"
         val buildDir = context.pluginProperties.get("java", JvmCompilerPlugin.BUILD_DIR)
         val libsDir = context.pluginProperties.get("packaging", PackagingPlugin.LIBS_DIR)
         File(libsDir!!.toString()).mkdirs()
