@@ -1,5 +1,6 @@
 To do:
 
+- [ ] Get rid of the $JAVA_HOME requirement
 - [ ] Add a "Auto complete Build.kt" menu in the plug-in
 - [ ] "All artifacts successfully uploaded" is shown before the upload is actually done
 - [ ] use groupId/artifactId
