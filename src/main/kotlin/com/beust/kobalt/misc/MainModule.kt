@@ -1,6 +1,7 @@
 package com.beust.kobalt.misc
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.api.PluginInfo
 import com.beust.kobalt.kotlin.BuildFileCompiler
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.plugin.publish.JCenterApi
@@ -9,7 +10,6 @@ import com.google.inject.BindingAnnotation
 import com.google.inject.Provider
 import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
-import java.lang.annotation.RetentionPolicy
 import java.util.concurrent.ExecutorService
 
 //@Singleton
@@ -49,8 +49,11 @@ public open class MainModule(val args: Args) : AbstractModule() {
         bind(object: TypeLiteral<KobaltExecutors>() {}).toInstance(executors)
         bind(object: TypeLiteral<ExecutorService>() {}).annotatedWith(DependencyExecutor::class.java)
                 .toInstance(executors.dependencyExecutor)
-        bind(Args::class.java).toProvider(object : Provider<Args> {
+        bind(Args::class.java).toProvider(object: Provider<Args> {
             override fun get(): Args? = args
+        })
+        bind(PluginInfo::class.java).toProvider(object: Provider<PluginInfo> {
+            override fun get(): PluginInfo? = PluginInfo.readKobaltPluginXml()
         })
 
 

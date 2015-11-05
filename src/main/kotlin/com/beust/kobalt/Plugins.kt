@@ -37,6 +37,9 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
     companion object {
         public val MANIFEST_PLUGIN_CLASS : String = "Kobalt-Plugin-Class"
 
+        /** The name of the XML file describing a plug-in */
+        val PLUGIN_XML = "plugin.xml"
+
         private var pluginMap = hashMapOf<String, Plugin>()
 //        private var storageMap = HashMap<String, HashMap<String, Any>>()
 //        fun storeValue(pluginName: String, key: String, value: Any) {
