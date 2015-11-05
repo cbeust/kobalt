@@ -44,21 +44,6 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
 
         val allProjects = findProjects()
 
-        //
-        // Force each project.directory to be an absolute path, if it's not already
-        //
-        allProjects.forEach {
-            val fd = File(it.directory)
-            if (! fd.isAbsolute) {
-                it.directory =
-                        if (args.buildFile != null) {
-                            KFiles.findDotDir(File(args.buildFile)).parentFile.absolutePath
-                        } else {
-                            fd.absolutePath
-                        }
-            }
-        }
-
         plugins.applyPlugins(context, allProjects)
         return allProjects
     }

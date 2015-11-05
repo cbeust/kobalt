@@ -132,7 +132,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             // If no includes were specified, assume the user wants a simple jar file made of the
             // classes of the project, so we specify a From("build/classes/"), To("") and
             // a list of files containing everything under it
-            val relClassesDir = Paths.get(project.directory).relativize(Paths.get(classesDir.absolutePath + "/"))
+            val relClassesDir = Paths.get(project.directory).relativize(Paths.get(classesDir.path))
             val prefixPath = Paths.get(project.directory).relativize(Paths.get(classesDir.path + "/"))
 
             // Class files

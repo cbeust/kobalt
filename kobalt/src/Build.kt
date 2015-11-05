@@ -1,6 +1,7 @@
-import com.beust.kobalt.*
+
 import com.beust.kobalt.api.License
 import com.beust.kobalt.api.Scm
+import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.test
 import com.beust.kobalt.plugin.java.javaCompiler
 import com.beust.kobalt.plugin.java.javaProject
@@ -33,7 +34,7 @@ fun readVersion() : String {
 val wrapper = javaProject {
     name = "kobalt-wrapper"
     version = readVersion()
-    directory = homeDir("kotlin/kobalt/modules/wrapper")
+    directory = "modules/wrapper"
 
     javaCompiler {
         args("-source", "1.7", "-target", "1.7")
