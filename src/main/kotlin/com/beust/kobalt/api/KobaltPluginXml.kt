@@ -2,26 +2,32 @@ package com.beust.kobalt.api
 
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
+import java.io.File
 import java.io.InputStream
+import java.io.OutputStream
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
+
+//
+// Operations related to the parsing of plugin.xml: contributors, XML mapping, etc...
+//
 
 /////
 // Contributors
 //
 
-class ProjectDescription(val project: Project, val dependsOn: List<Project>)
-
 /**
- * Implement this interface in order to add your own projects.
+ * Plugins that create project need to implement this interface.
  */
 interface IProjectContributor {
     fun projects() : List<ProjectDescription>
 }
 
+class ProjectDescription(val project: Project, val dependsOn: List<Project>)
+
 /**
- * Implement this interface to add your own entries to the classpath.
+ * Plugins that export classpath entries need to implement this interface.
  */
 interface IClasspathContributor {
     fun entriesFor(project: Project) : Collection<IClasspathDependency>
@@ -37,6 +43,23 @@ interface IFactory {
 
 class ContributorFactory : IFactory {
     override fun <T> instanceOf(c: Class<T>) : T = Kobalt.INJECTOR.getInstance(c)
+}
+
+/**
+ * Plugins that want to participate in the --init process (they can generate files to initialize
+ * a new project).
+ */
+interface IInitContributor {
+    /**
+     * How many files your plug-in understands in the given directory. The contributor with the
+     * highest number will be asked to generate the build file.
+     */
+    fun filesManaged(dir: File): Int
+
+    /**
+     * Generate the Build.kt file into the given OutputStream.
+     */
+    fun generateBuildFile(os: OutputStream)
 }
 
 /////
@@ -60,6 +83,9 @@ class KobaltPluginXml {
 
     @XmlElement(name = "project-contributors") @JvmField
     var projectContributors : ContributorsXml? = null
+
+    @XmlElement(name = "init-contributors") @JvmField
+    var initContributors : ContributorsXml? = null
 }
 
 class ContributorXml {
@@ -69,21 +95,23 @@ class ContributorXml {
 
 class ContributorsXml {
     @XmlElement(name = "class-name") @JvmField
-    var className: List<String> = arrayListOf<String>()
+    var className: List<String> = arrayListOf()
 }
 
 /**
- * Turn a KobaltPluginXml (the raw content of plugin.xml) into a PluginInfo object, which contains
- * all the contributors instantiated and other information that Kobalt can actually use.
+ * Turn a KobaltPluginXml (the raw content of plugin.xml mapped to POJO's) into a PluginInfo object, which contains
+ * all the contributors instantiated and other information that Kobalt can actually use. Kobalt code that
+ * needs to access plug-in info can then just inject a PluginInfo object.
  */
 class PluginInfo(val xml: KobaltPluginXml) {
     val projectContributors = arrayListOf<IProjectContributor>()
     val classpathContributors = arrayListOf<IClasspathContributor>()
+    val initContributors = arrayListOf<IInitContributor>()
+
     // Future contributors:
     // compilerArgs
     // source files
     // compilers
-    // --init
     // repos
 
     companion object {
@@ -118,6 +146,9 @@ class PluginInfo(val xml: KobaltPluginXml) {
         }
         xml.projectContributors?.className?.forEach {
             projectContributors.add(factory.instanceOf(Class.forName(it)) as IProjectContributor)
+        }
+        xml.initContributors?.className?.forEach {
+            initContributors.add(factory.instanceOf(Class.forName(it)) as IInitContributor)
         }
     }
 }

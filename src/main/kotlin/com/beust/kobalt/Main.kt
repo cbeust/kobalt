@@ -56,7 +56,8 @@ private class Main @Inject constructor(
         val updateKobalt: UpdateKobalt,
         val client: KobaltClient,
         val server: KobaltServer,
-        val pluginInfo: PluginInfo) {
+        val pluginInfo: PluginInfo,
+        val projectGenerator: ProjectGenerator) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
@@ -117,7 +118,7 @@ private class Main @Inject constructor(
             // --init: create a new build project and install the wrapper
             //
             Wrapper().install()
-            ProjectGenerator().run(args)
+            projectGenerator.run(args)
         } else if (args.usage) {
             jc.usage()
         } else if (args.serverMode) {

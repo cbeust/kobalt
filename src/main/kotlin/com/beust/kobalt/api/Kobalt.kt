@@ -2,37 +2,16 @@ package com.beust.kobalt.api
 
 import com.beust.kobalt.Plugins
 import com.google.inject.Injector
-import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 
-public interface ICompilerInfo {
-    /** Used to detect what kind of language this project is */
-    fun findManagedFiles(dir: File) : List<File>
-
-    /** Used to generate the imports */
-    val name: String
-
-    /** Used to generate the imports */
-    val directive: String
-
-    val defaultSourceDirectories : ArrayList<String>
-    val defaultTestDirectories : ArrayList<String>
-}
-
 public class Kobalt {
     companion object {
         lateinit var INJECTOR : Injector
 
-        public val compilers : ArrayList<ICompilerInfo> = arrayListOf()
-
         var context: KobaltContext? = null
-
-        fun registerCompiler(c: ICompilerInfo) {
-            compilers.add(c)
-        }
 
         private val DEFAULT_REPOS = arrayListOf(
             "http://repo1.maven.org/maven2/",

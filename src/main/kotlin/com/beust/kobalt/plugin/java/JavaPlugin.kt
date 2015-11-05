@@ -31,11 +31,6 @@ public class JavaPlugin @Inject constructor(
         override val jvmCompiler: JvmCompiler)
         : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler),
             IProjectContributor {
-
-    init {
-        Kobalt.registerCompiler(JavaCompilerInfo())
-    }
-
     companion object {
         public const val TASK_COMPILE : String = "compile"
         public const val TASK_JAVADOC : String = "javadoc"

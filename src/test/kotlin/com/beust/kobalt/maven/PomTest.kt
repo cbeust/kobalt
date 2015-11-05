@@ -2,11 +2,13 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.ProjectGenerator
+import com.beust.kobalt.api.PluginInfo
+import com.google.inject.Inject
 import org.testng.Assert
 import org.testng.annotations.Test
 import java.io.File
 
-class PomTest {
+class PomTest @Inject constructor(val pluginInfo: PluginInfo){
     @Test
     fun importPom() {
         val pomSrc = File("src/test/resources/pom.xml")
@@ -52,13 +54,13 @@ class PomTest {
             val args = Args()
             args.buildFile = file.absolutePath
             args.init = true
-            ProjectGenerator().run(args)
+            ProjectGenerator(pluginInfo).run(args)
             var contents = file.readText()
             Assert.assertTrue(contents.contains("group = \"${pom.groupId}\""), "Should find the group defined")
             Assert.assertTrue(contents.contains("name = \"${pom.name}\""), "Should find the name defined")
             Assert.assertTrue(contents.contains("version = \"${pom.version}\""), "Should find the version defined")
             pom.properties.forEach {
-                Assert.assertTrue(contents.contains("val ${ProjectGenerator.translate(it.key)} = \"${it.value}\""), "Should find the " +
+                Assert.assertTrue(contents.contains("val ${ProjectGenerator.toIdentifier(it.key)} = \"${it.value}\""), "Should find the " +
                       "property defined")
             }
             pom.repositories.forEach {

@@ -1,6 +1,7 @@
 package com.beust.kobalt.api
 
 import com.beust.kobalt.api.annotation.Directive
+import com.beust.kobalt.internal.IProjectInfo
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.MavenDependency
 import com.beust.kobalt.misc.KFiles
@@ -16,11 +17,11 @@ open public class Project(
         @Directive open var packaging: String? = null,
         @Directive open var dependencies: Dependencies? = null,
         @Directive open var sourceSuffix : String = "",
-        @Directive open var compilerInfo : ICompilerInfo,
         @Directive open var description : String = "",
         @Directive open var scm : Scm? = null,
         @Directive open var url: String? = null,
-        @Directive open var licenses: List<License> = arrayListOf<License>()) {
+        @Directive open var licenses: List<License> = arrayListOf<License>(),
+        val projectInfo: IProjectInfo) {
 
     var testArgs: ArrayList<String> = arrayListOf()
 
@@ -44,7 +45,7 @@ open public class Project(
     }
 
     var sourceDirectories : ArrayList<String> = arrayListOf()
-        get() = if (field.isEmpty()) compilerInfo.defaultSourceDirectories else field
+        get() = if (field.isEmpty()) projectInfo.defaultSourceDirectories else field
         set(value) {
             field = value
         }
@@ -57,7 +58,7 @@ open public class Project(
     }
 
     var sourceDirectoriesTest : ArrayList<String> = arrayListOf()
-        get() = if (field.isEmpty()) compilerInfo.defaultTestDirectories
+        get() = if (field.isEmpty()) projectInfo.defaultTestDirectories
                 else field
         set(value) {
             field = value

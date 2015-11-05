@@ -9,4 +9,8 @@
 		<class-name>com.beust.kobalt.plugin.java.JavaPlugin</class-name>
 		<class-name>com.beust.kobalt.plugin.kotlin.KotlinPlugin</class-name>
 	</project-contributors>
+	<init-contributors>
+		<class-name>com.beust.kobalt.plugin.java.JavaBuildGenerator</class-name>
+		<class-name>com.beust.kobalt.plugin.kotlin.KotlinBuildGenerator</class-name>
+	</init-contributors>
 </kobalt-plugin>
