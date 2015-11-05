@@ -19,7 +19,7 @@ open class RunCommand(val command: String) {
 
         val pb = ProcessBuilder(allArgs)
         pb.directory(directory)
-        log(1, "Running command: " + allArgs.joinToString(" "))
+        log(2, "Running command: " + allArgs.joinToString(" "))
         val process = pb.start()
         pb.environment().put("ANDROID_HOME", "/Users/beust/android/adt-bundle-mac-x86_64-20140702/sdk")
         val errorCode = process.waitFor()
