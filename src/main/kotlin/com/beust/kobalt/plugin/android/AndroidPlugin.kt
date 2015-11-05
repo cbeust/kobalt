@@ -173,8 +173,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
 
     @Task(name = "generateDex", description = "Generate the dex file", alwaysRunAfter = arrayOf("compile"))
     fun taskGenerateDex(project: Project) : TaskResult {
-        val generated = generated(project)
-
         //
         // Call dx to generate classes.dex
         //
@@ -193,25 +191,33 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         //
         // Add classes.dex to existing .ap_
         //
-        val temporaryApk = temporaryApk(project, flavor)
         AaptCommand(project, aapt(project), "add", relClassesDex).call(listOf(
-                "-v", temporaryApk, classesDex
+                "-v", temporaryApk(project, flavor), classesDex
         ))
+        return TaskResult()
+    }
 
-        //
-        // Sign it
-        // Mac:
-        // jarsigner -keystore ~/.android/debug.keystore -storepass android -keypass android -signedjar a.apk a.ap_
-        // androiddebugkey
-        //
+
+    /**
+     * Sign the apk
+     * Mac:
+     * jarsigner -keystore ~/.android/debug.keystore -storepass android -keypass android -signedjar a.apk a.ap_
+     * androiddebugkey
+     */
+    @Task(name = "signApk", description = "Generate the dex file", runAfter = arrayOf("generateDex"),
+            runBefore = arrayOf("assemble"))
+    fun signApk(project: Project) : TaskResult {
+        val apk = apk(project, flavor, "apk")
+        val temporaryApk = temporaryApk(project, flavor)
         RunCommand("jarsigner").run(listOf(
                 "-keystore", homeDir(".android", "debug.keystore"),
                 "-storepass", "android",
                 "-keypass", "android",
-                "-signedjar", apk(project, flavor, "apk"),
+                "-signedjar", apk,
                 temporaryApk,
                 "androiddebugkey"
         ))
+        log(1, "Created $apk")
         return TaskResult()
     }
 
@@ -222,19 +228,3 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
     }
 
 }
-
-
-/*
-/Users/beust/android/adt-bundle-mac-x86_64-20140702/sdk/build-tools/21.1.2/aapt package
--f
---no-crunch
--I /Users/beust/android/adt-bundle-mac-x86_64-20140702/sdk/platforms/android-22/android.jar
--M /Users/beust/kotlin/kotlin-android-example/app/build/intermediates/manifests/full/debug/AndroidManifest.xml
--S /Users/beust/kotlin/kotlin-android-example/app/build/intermediates/res/debug
--A /Users/beust/kotlin/kotlin-android-example/app/build/intermediates/assets/debug
--m
--J /Users/beust/kotlin/kotlin-android-example/app/build/generated/source/r/debug
--F /Users/beust/kotlin/kotlin-android-example/app/build/intermediates/resources/resources-debug.ap_ --debug-mode --custom-package com.beust.example
--0 apk
---output-text-symbols /Users/beust/kotlin/kotlin-android-example/app/build/intermediates/symbols/debug
-*/
