@@ -186,13 +186,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
     }
 
     val allTasks : List<PluginTask>
-        get() {
-            val result = arrayListOf<PluginTask>()
-            Plugins.plugins.forEach { plugin ->
-                result.addAll(plugin.tasks)
-            }
-            return result
-    }
+        get() = Plugins.plugins.flatMap { it.tasks }
 
     fun installPlugins(dependencies: List<IClasspathDependency>, classLoader: ClassLoader) {
         val executor = executors.newExecutor("Plugins", 5)

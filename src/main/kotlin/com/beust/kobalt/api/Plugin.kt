@@ -23,9 +23,9 @@ public interface Plugin {
     }
 
     fun addTask(project: Project, name: String, description: String = "",
-            runBefore: List<String> = arrayListOf<String>(),
-            runAfter: List<String> = arrayListOf<String>(),
-            alwaysRunAfter: List<String> = arrayListOf<String>(),
+            runBefore: List<String> = listOf<String>(),
+            runAfter: List<String> = listOf<String>(),
+            alwaysRunAfter: List<String> = listOf<String>(),
             task: (Project) -> TaskResult) {
         tasks.add(
             object : BasePluginTask(this, name, description, project) {

@@ -48,8 +48,7 @@ public class Kobalt {
         private val KOBALT_PROPERTIES = "kobalt.properties"
         private val LOCAL_PROPERTIES = "local.properties"
 
-        private val properties : Properties
-            get() = readProperties()
+        private val properties : Properties by lazy { readProperties() }
 
         private fun readProperties() : Properties {
             val result = Properties()
@@ -59,13 +58,13 @@ public class Kobalt {
             if (url != null) {
                 readProperties(result, url.openConnection().inputStream)
             } else {
-                throw IllegalArgumentException("Couldn't find ${KOBALT_PROPERTIES}")
+                throw AssertionError("Couldn't find $KOBALT_PROPERTIES")
             }
 
             // local.properties can be used by external users
             Paths.get(LOCAL_PROPERTIES).let { path ->
                 if (Files.exists(path)) {
-                    Files.newInputStream(path).let {
+                    Files.newInputStream(path).use {
                         readProperties(result, it)
                     }
                 }

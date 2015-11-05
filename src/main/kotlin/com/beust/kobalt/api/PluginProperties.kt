@@ -10,14 +10,8 @@ import java.util.*
 class PluginProperties @Inject constructor() {
     private val pluginProperties = hashMapOf<String, HashMap<String, Any>>()
 
-    fun put(pluginName: String, key: String, value: Any) {
-        var map = pluginProperties[pluginName]
-        if (map == null) {
-            map = hashMapOf<String, Any>()
-            pluginProperties.put(pluginName, map)
-        }
-        map.put(key, value)
-    }
+    fun put(pluginName: String, key: String, value: Any) =
+        pluginProperties.getOrPut(pluginName) { hashMapOf<String, Any>() }.put(key, value)
 
     fun get(pluginName: String, key: String) = pluginProperties[pluginName]?.get(key)
 }
