@@ -1,6 +1,7 @@
 .gradle
 annotations
-.idea
+.idea/*
+!.idea/modules.xml
 build
 buildScript
 kobaltBuild
