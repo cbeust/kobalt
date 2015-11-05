@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/kobalt.iml" filepath="$PROJECT_DIR$/kobalt.iml" />
-      <module fileurl="file://$PROJECT_DIR$/modules/wrapper/src/main/main.iml" filepath="$PROJECT_DIR$/modules/wrapper/src/main/main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/modules/wrapper/wrapper.iml" filepath="$PROJECT_DIR$/modules/wrapper/wrapper.iml" />
     </modules>
   </component>
 </project>
