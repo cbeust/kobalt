@@ -1,10 +1,10 @@
 package com.beust.kobalt.api
 
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.maven.MavenDependency
 import com.beust.kobalt.maven.IClasspathDependency
+import com.beust.kobalt.maven.MavenDependency
 import com.beust.kobalt.misc.KFiles
-import java.util.ArrayList
+import java.util.*
 
 open public class Project(
         @Directive open var name: String? = null,
@@ -35,6 +35,7 @@ open public class Project(
     //
     // Directories
     //
+
     @Directive
     public fun sourceDirectories(init: Sources.() -> Unit) : Sources {
         val sources = Sources(this, sourceDirectories)
