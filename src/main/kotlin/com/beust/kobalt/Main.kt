@@ -9,6 +9,7 @@ import com.beust.kobalt.kotlin.BuildFile
 import com.beust.kobalt.kotlin.BuildFileCompiler
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.Http
+import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.*
 import com.beust.kobalt.wrapper.Wrapper
@@ -69,8 +70,11 @@ private class Main @Inject constructor(
         val latestVersionFuture = github.latestKobaltVersion
         benchmark("Build", {
 //            runTest()
-            result = runWithArgs(jc, args)
-            executors.shutdown()
+            try {
+                result = runWithArgs(jc, args)
+            } finally {
+                executors.shutdown()
+            }
         })
 
         log(1, if (result != 0) "BUILD FAILED: $result" else "BUILD SUCCESSFUL")
@@ -128,6 +132,8 @@ private class Main @Inject constructor(
                 val pluginInfo = PluginInfo(pluginInfoDescription)
                 try {
                     allProjects = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo).compileBuildFiles(args)
+                } catch(ex: KobaltException) {
+                    throw ex
                 } catch(ex: Throwable) {
                     // This can happen if the ABI for the build script file changed. Try to wipe .kobalt.
                     log(2, "Couldn't parse preBuildScript.jar: ${ex.message}")
