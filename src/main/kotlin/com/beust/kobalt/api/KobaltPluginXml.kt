@@ -84,6 +84,7 @@ class PluginInfo(val xml: KobaltPluginXml) {
     // source files
     // compilers
     // --init
+    // repos
 
     companion object {
         /**
