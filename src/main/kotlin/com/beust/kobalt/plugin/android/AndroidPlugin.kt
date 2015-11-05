@@ -171,7 +171,11 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         return buildDir
     }
 
-    @Task(name = "generateDex", description = "Generate the dex file", alwaysRunAfter = arrayOf("compile"))
+    companion object {
+        const val TASK_GENERATE = "generateDex"
+    }
+
+    @Task(name = TASK_GENERATE, description = "Generate the dex file", alwaysRunAfter = arrayOf("compile"))
     fun taskGenerateDex(project: Project) : TaskResult {
         //
         // Call dx to generate classes.dex
@@ -204,7 +208,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
      * jarsigner -keystore ~/.android/debug.keystore -storepass android -keypass android -signedjar a.apk a.ap_
      * androiddebugkey
      */
-    @Task(name = "signApk", description = "Generate the dex file", runAfter = arrayOf("generateDex"),
+    @Task(name = "signApk", description = "Sign the apk file", runAfter = arrayOf(TASK_GENERATE),
             runBefore = arrayOf("assemble"))
     fun signApk(project: Project) : TaskResult {
         val apk = apk(project, flavor, "apk")
