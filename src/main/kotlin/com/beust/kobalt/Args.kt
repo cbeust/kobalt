@@ -33,7 +33,7 @@ class Args {
     var log: Int = 1
 
     companion object {
-        const val DEFAULT_SERVER_PORT = 3867
+        const val DEFAULT_SERVER_PORT = 1234
     }
 
     @Parameter(names = arrayOf("--port"), description = "Port, if --server was specified")
