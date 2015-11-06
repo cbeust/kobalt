@@ -34,6 +34,6 @@ open public class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.
     val suffix : String
         get() {
             val packaging = mavenId.packaging
-            return if (packaging != null && ! packaging.isNullOrBlank()) ".${packaging}" else ".jar"
+            return if (packaging != null && ! packaging.isNullOrBlank()) ".$packaging" else ".jar"
         }
 }
