@@ -100,11 +100,6 @@ private class Main @Inject constructor(
 
     public fun runTest() {
         val file = File("src\\main\\resources\\META-INF\\plugin.xml")
-//        val jaxbContext = JAXBContext.newInstance(KobaltPluginXml::class.java)
-//
-//        val kotlinPlugin : KobaltPluginXml = jaxbContext.createUnmarshaller().unmarshal(file) as KobaltPluginXml
-//        val pluginInfo = PluginInfo.create(kotlinPlugin)
-//        System.out.println(kotlinPlugin.name)
     }
 
     private fun runWithArgs(jc: JCommander, args: Args) : Int {
