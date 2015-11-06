@@ -17,11 +17,12 @@ val p = javaProject {
 
     dependencies {
         compile(file("app/libs/android-async-http-1.4.3.jar"),
-            "com.android.support:support-v4:aar:23.0.1")
+            "com.android.support:support-v4:aar:21.0.3")
     }
 
     android {
-        applicationId = name
-        buildToolsVersion = "21.1.3"
+        compileSdkVersion = "21"
+        applicationId = "codepath.apps.demointroandroid"
+        buildToolsVersion = "21.1.2"
     }
 }
