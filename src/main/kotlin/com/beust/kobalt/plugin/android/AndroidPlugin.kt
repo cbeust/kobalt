@@ -68,7 +68,11 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
     fun buildToolsVersion(project: Project) : String {
         val version = configurations[project.name!!]?.buildToolsVersion
         if (OperatingSystem.current().isWindows()) {
-            return "build-tools-$version"
+            if (version == "22.0.1" || version == "23.0.1") {
+                return version as String
+            } else {
+                return "build-tools-$version"
+            }
         } else {
             return version as String
         }
