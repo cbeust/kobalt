@@ -198,7 +198,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         // Call dx to generate classes.dex
         //
         val buildToolsDir = buildToolsVersion(project)
-        val dx = "${androidHome(project)}/build-tools/$buildToolsDir/dx"
+        val dx = "${androidHome(project)}/build-tools/$buildToolsDir/dx" +
+            if (OperatingSystem.current().isWindows()) ".bat" else ""
         val buildDir = context.pluginProperties.get("java", JvmCompilerPlugin.BUILD_DIR)
         val libsDir = (context.pluginProperties.get("packaging", PackagingPlugin.LIBS_DIR) as File).path
         File(libsDir.toString()).mkdirs()
