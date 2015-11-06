@@ -62,14 +62,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
 
     override fun accept(project: Project) = configurations.containsKey(project.name!!)
 
-    fun dirGet(dir: Path, vararg others: String) : String {
-        val result = Paths.get(dir.toString(), *others)
-        with(result.toFile()) {
-            mkdirs()
-        }
-        return result.toString()
-    }
-
     val flavor = "debug"
 
     fun compileSdkVersion(project: Project) = configurations[project.name!!]?.compileSdkVersion
@@ -96,18 +88,16 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
     fun androidJar(project: Project) : Path =
             Paths.get(androidHome(project), "platforms", "android-${compileSdkVersion(project)}", "android.jar")
 
-    fun generated(project: Project) = Paths.get(project.directory, "app", "build", "generated")
+    private fun generated(project: Project) = Paths.get(project.buildDirectory, "app", "build", "generated")
+    private fun intermediates(project: Project) = Paths.get(project.buildDirectory, "app", "build", "intermediates")
 
     private fun aapt(project: Project) = "${androidHome(project)}/build-tools/${buildToolsVersion(project)}/aapt"
 
-    private fun temporaryApk(project: Project, flavor: String) = apk(project, flavor, "ap_")
+    private fun temporaryApk(project: Project, flavor: String)
+            = KFiles.joinFileAndMakeDir(project.buildDirectory!!, "intermediates", "res", "resources-$flavor.ap_")
 
-    private fun apk(project: Project, flavor: String, suffix: String) : String {
-        val outputDir = dirGet(intermediates(project), "resources", "resources-$flavor")
-        return Paths.get(outputDir, "resources-$flavor.$suffix").toString()
-    }
-
-    private fun intermediates(project: Project) = Paths.get(project.directory, "app", "build", "intermediates")
+    private fun apk(project: Project, flavor: String)
+            = KFiles.joinFileAndMakeDir(project.buildDirectory!!, "outputs", "apk" ,"app-$flavor.apk")
 
     @Task(name = "generateR", description = "Generate the R.java file",
             runBefore = arrayOf("compile"), runAfter = arrayOf("clean"))
@@ -119,8 +109,14 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         return TaskResult()
     }
 
-    class AaptCommand(project: Project, aapt: String, val aaptCommand: String,
-            cwd: File = File(project.directory)) : RunCommand(aapt) {
+    open class AndroidCommand(androidHome: String, command: String) : RunCommand(command) {
+        init {
+            env.put("ANDROID_HOME", androidHome)
+        }
+    }
+
+    inner class AaptCommand(project: Project, aapt: String, val aaptCommand: String,
+            cwd: File = File(project.directory)) : AndroidCommand(androidHome(project), aapt) {
         init {
             directory = cwd
         }
@@ -134,7 +130,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         val manifestDir = Paths.get(project.directory, "app", "src", "main").toString()
         val manifest = Paths.get(manifestDir, "AndroidManifest.xml")
 
-        val crunchedPngDir = dirGet(intermediates(project), "res", flavor)
+        val crunchedPngDir = KFiles.joinAndMakeDir(intermediates(project).toString(), "res", flavor)
 
         AaptCommand(project, aapt, "crunch").call(listOf(
                 "-v",
@@ -149,14 +145,16 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
                 "-M", manifest.toString(),
                 "-S", crunchedPngDir,
                 "-S", "app/src/main/res",
-                "-A", dirGet(intermediates(project), "assets", flavor), // where to find more assets
+                // where to find more assets
+                "-A", KFiles.joinAndMakeDir(intermediates(project).toString(), "assets", flavor),
                 "-m",  // create directory
-                "-J", dirGet(generated, "sources", "r", flavor).toString(), // where all gets generated
+                // where all gets generated
+                "-J", KFiles.joinAndMakeDir(generated.toString(), "sources", "r", flavor).toString(),
                 "-F", temporaryApk(project, flavor),
                 "--debug-mode",
                 "-0", "apk",
                 "--custom-package", applicationId,
-                "--output-text-symbols", dirGet(intermediates(project), "symbol", flavor))
+                "--output-text-symbols", KFiles.joinAndMakeDir(intermediates(project).toString(), "symbol", flavor))
         )
 
         val rDirectory = KFiles.joinDir(generated.toFile().path, "sources", "r", flavor,
@@ -202,21 +200,21 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         val buildToolsDir = buildToolsVersion(project)
         val dx = "${androidHome(project)}/build-tools/$buildToolsDir/dx"
         val buildDir = context.pluginProperties.get("java", JvmCompilerPlugin.BUILD_DIR)
-        val libsDir = context.pluginProperties.get("packaging", PackagingPlugin.LIBS_DIR)
-        File(libsDir!!.toString()).mkdirs()
+        val libsDir = (context.pluginProperties.get("packaging", PackagingPlugin.LIBS_DIR) as File).path
+        File(libsDir.toString()).mkdirs()
         val classesDex = "classes.dex"
-        val outClassesDex = KFiles.joinDir(libsDir.toString(), classesDex)
-        val relClassesDex = File(outClassesDex).parentFile
-        RunCommand(dx).run(listOf("--dex", "--output", outClassesDex,
-                buildDir!!.toString()))
+        val classesDexDir = KFiles.joinAndMakeDir(libsDir, "intermediates", "dex", flavor)
+        val outClassesDex = KFiles.joinDir(classesDexDir, classesDex)
 
+        RunCommand(dx).run(listOf("--dex", "--output", outClassesDex, buildDir!!.toString()))
 
         //
         // Add classes.dex to existing .ap_
         //
-        AaptCommand(project, aapt(project), "add", relClassesDex).call(listOf(
-                "-v", temporaryApk(project, flavor), classesDex
-        ))
+        AaptCommand(project, aapt(project), "add").apply {
+            directory = File(outClassesDex).parentFile
+        }.call(listOf("-v", KFiles.joinDir("../../../../..", temporaryApk(project, flavor)), classesDex))
+
         return TaskResult()
     }
 
@@ -230,7 +228,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
     @Task(name = "signApk", description = "Sign the apk file", runAfter = arrayOf(TASK_GENERATE),
             runBefore = arrayOf("assemble"))
     fun signApk(project: Project) : TaskResult {
-        val apk = apk(project, flavor, "apk")
+        val apk = apk(project, flavor)
         val temporaryApk = temporaryApk(project, flavor)
         RunCommand("jarsigner").run(listOf(
                 "-keystore", homeDir(".android", "debug.keystore"),

@@ -6,10 +6,13 @@ import java.io.InputStream
 import java.io.InputStreamReader
 
 open class RunCommand(val command: String) {
-    val defaultSuccess = { output: List<String> -> log(1, "Success:\n " + output.joinToString("\n"))}
-    val defaultError = { output: List<String> -> log(1, "Error:\n " + output.joinToString("\n"))}
+    val defaultSuccess = { output: List<String> -> log(2, "Success:\n " + output.joinToString("\n"))}
+    val defaultError = {
+        output: List<String> -> error("Error:\n " + output.joinToString("\n"))
+    }
 
     var directory = File(".")
+    var env = hashMapOf<String, String>()
 
     fun run(args: List<String>, error: Function1<List<String>, Unit>? = defaultError,
             success: Function1<List<String>, Unit>? = defaultSuccess) : Int {
@@ -19,9 +22,13 @@ open class RunCommand(val command: String) {
 
         val pb = ProcessBuilder(allArgs)
         pb.directory(directory)
-        log(2, "Running command: " + allArgs.joinToString(" "))
+        log(2, "Running command: " + allArgs.joinToString(" ") + "\n      Current directory: $directory")
         val process = pb.start()
-        pb.environment().put("ANDROID_HOME", "/Users/beust/android/adt-bundle-mac-x86_64-20140702/sdk")
+        pb.environment().let { pbEnv ->
+            env.forEach {
+                pbEnv.put(it.key, it.value)
+            }
+        }
         val errorCode = process.waitFor()
         if (errorCode != 0 && error != null) {
             error(fromStream(process.errorStream))

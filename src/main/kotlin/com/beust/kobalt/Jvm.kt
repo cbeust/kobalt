@@ -95,10 +95,13 @@ public open class Jvm constructor(
 //    }
 
     override public fun findExecutable(command: String): File {
-        val exec = File(javaHome, "bin/" + command)
-        val executable = java.io.File(os.getExecutableName(exec.getAbsolutePath()))
-        if (executable.isFile()) {
-            return executable
+        if (javaHome != null) {
+            val jdkHome = if (javaHome!!.endsWith("jre")) javaHome!!.parentFile else javaHome
+            val exec = File(jdkHome, "bin/" + command)
+            var executable = File(os.getExecutableName(exec.absolutePath))
+            if (executable.isFile) {
+                return executable
+            }
         }
 
 //        if (userSupplied) {
@@ -108,12 +111,12 @@ public open class Jvm constructor(
 
         val pathExecutable = os.findInPath(command)
         if (pathExecutable != null) {
-            log(1, "Unable to find the ${command} executable using home: " +
-                    "%{javaHome}. We found it on the PATH: ${pathExecutable}.")
+            log(1, "Unable to find the $command executable using home: " +
+                    "%{javaHome}. We found it on the PATH: $pathExecutable.")
             return pathExecutable
         }
 
-        warn("Unable to find the ${command} executable. Tried the java home: ${javaHome}" +
+        warn("Unable to find the $command executable. Tried the java home: $javaHome" +
                 " and the PATH. We will assume the executable can be ran in the current " +
                 "working folder.")
         return java.io.File(os.getExecutableName(command))

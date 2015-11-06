@@ -25,7 +25,7 @@ public class JavaProject(
         @Directive
         override var packaging: String? = null)
     : Project(name, version, directory, buildDirectory, group, artifactId, packaging, dependencies,
-        ".java", JavaCompilerInfo()) {
+        ".java", projectInfo = JavaProjectInfo()) {
 
     override public fun toString() = toString("JavaProject", "name", name!!)
 }

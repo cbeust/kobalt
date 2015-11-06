@@ -2,7 +2,6 @@ package com.beust.kobalt.internal.remote
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.PluginInfo
-import com.beust.kobalt.api.PluginInfoDescription
 import com.beust.kobalt.kotlin.BuildFile
 import com.beust.kobalt.kotlin.BuildFileCompiler
 import com.beust.kobalt.maven.DependencyManager
@@ -26,11 +25,11 @@ import javax.inject.Inject
  */
 class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
         val buildFileCompilerFactory: BuildFileCompiler.IFactory, val args: Args,
-        val dependencyManager: DependencyManager, val pluginInfoDescription: PluginInfoDescription) : ICommand {
+        val dependencyManager: DependencyManager, val pluginInfo: PluginInfo) : ICommand {
     override val name = "getDependencies"
     override fun run(sender: ICommandSender, received: JsonObject) {
         val buildFile = BuildFile(Paths.get(received.get("buildFile").asString), "GetDependenciesCommand")
-        val scriptCompiler = buildFileCompilerFactory.create(listOf(buildFile), PluginInfo(pluginInfoDescription))
+        val scriptCompiler = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
         scriptCompiler.observable.subscribe {
             buildScriptInfo -> if (buildScriptInfo.projects.size > 0) {
                 sender.sendData(toData(buildScriptInfo))

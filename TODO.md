@@ -32,6 +32,7 @@ To do:
 
 Done:
 
+- [x] Get rid of the $JAVA_HOME requirement
 - [x] getDependencies() should return the transitive dependencies
 - [x] Project ordering: kotlinProject(wrapper) {}
 - [x] Make files appear in download list automatically on bintray (undocumented API)

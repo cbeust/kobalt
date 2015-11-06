@@ -24,10 +24,6 @@ class KotlinPlugin @Inject constructor(
         : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler),
             IProjectContributor, IClasspathContributor {
 
-    init {
-        Kobalt.registerCompiler(KotlinCompilerInfo())
-    }
-
     companion object {
         public const val TASK_COMPILE: String = "compile"
         public const val TASK_COMPILE_TEST: String = "compileTest"

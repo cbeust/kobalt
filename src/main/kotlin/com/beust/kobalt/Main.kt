@@ -1,7 +1,9 @@
 package com.beust.kobalt
 
 import com.beust.jcommander.JCommander
-import com.beust.kobalt.api.*
+import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.PluginInfo
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.remote.KobaltClient
 import com.beust.kobalt.internal.remote.KobaltServer
@@ -18,7 +20,6 @@ import java.io.File
 import java.nio.file.Paths
 import java.util.*
 import javax.inject.Inject
-import javax.xml.bind.JAXBContext
 
 public fun main(argv: Array<String>) {
     val result = mainNoExit(argv)
@@ -34,6 +35,7 @@ private fun parseArgs(argv: Array<String>): Main.RunInfo {
     KobaltLogger.LOG_LEVEL = args.log
     return Main.RunInfo(result, args)
 }
+
 
 public fun mainNoExit(argv: Array<String>) : Int {
     val (jc, args) = parseArgs(argv)
@@ -55,7 +57,8 @@ private class Main @Inject constructor(
         val updateKobalt: UpdateKobalt,
         val client: KobaltClient,
         val server: KobaltServer,
-        val pluginInfoDescription: PluginInfoDescription) {
+        val pluginInfo: PluginInfo,
+        val projectGenerator: ProjectGenerator) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
@@ -97,11 +100,11 @@ private class Main @Inject constructor(
 
     public fun runTest() {
         val file = File("src\\main\\resources\\META-INF\\plugin.xml")
-        val jaxbContext = JAXBContext.newInstance(KobaltPluginXml::class.java)
-
-        val kotlinPlugin : KobaltPluginXml = jaxbContext.createUnmarshaller().unmarshal(file) as KobaltPluginXml
-        val pluginInfo = PluginInfo.create(kotlinPlugin)
-        System.out.println(kotlinPlugin.name)
+//        val jaxbContext = JAXBContext.newInstance(KobaltPluginXml::class.java)
+//
+//        val kotlinPlugin : KobaltPluginXml = jaxbContext.createUnmarshaller().unmarshal(file) as KobaltPluginXml
+//        val pluginInfo = PluginInfo.create(kotlinPlugin)
+//        System.out.println(kotlinPlugin.name)
     }
 
     private fun runWithArgs(jc: JCommander, args: Args) : Int {
@@ -119,7 +122,7 @@ private class Main @Inject constructor(
             // --init: create a new build project and install the wrapper
             //
             Wrapper().install()
-            ProjectGenerator().run(args)
+            projectGenerator.run(args)
         } else if (args.usage) {
             jc.usage()
         } else if (args.serverMode) {
@@ -128,8 +131,7 @@ private class Main @Inject constructor(
             if (! buildFile.exists()) {
                 error(buildFile.path.toFile().path + " does not exist")
             } else {
-                var allProjects = listOf<Project>()
-                val pluginInfo = PluginInfo(pluginInfoDescription)
+                var allProjects = arrayListOf<Project>()
                 try {
                     allProjects = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo).compileBuildFiles(args)
                 } catch(ex: KobaltException) {
@@ -142,8 +144,8 @@ private class Main @Inject constructor(
                         return 1
                     } else {
                         log(1, "Deleted .kobalt")
-                        allProjects = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
-                                .compileBuildFiles(args)
+                        allProjects.addAll(buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
+                                .compileBuildFiles(args))
                     }
                 }
 
@@ -178,7 +180,6 @@ private class Main @Inject constructor(
         }
         return result
     }
-
     private fun findBuildFile(): File {
         val files = arrayListOf("Build.kt", "build.kobalt", KFiles.src("build.kobalt"),
                 KFiles.src("Build.kt"))
