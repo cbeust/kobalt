@@ -1,7 +1,6 @@
 package com.beust.kobalt.api
 
 import com.beust.kobalt.maven.IClasspathDependency
-import com.beust.kobalt.misc.KFiles
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -119,7 +118,8 @@ class PluginInfo(val xml: KobaltPluginXml) {
          * Read Kobalt's own plugin.xml.
          */
         fun readKobaltPluginXml() : PluginInfo {
-            val pluginXml = KFiles.joinDir("META-INF", "plugin.xml") // Plugins.PLUGIN_XML)
+            // Note: use forward slash here since we're looking up this file in a .jar file
+            val pluginXml = "META-INF/plugin.xml" // Plugins.PLUGIN_XML)
             val url = Kobalt::class.java.classLoader.getResource(pluginXml)
             if (url != null) {
                 return readPluginXml(url.openConnection().inputStream)
