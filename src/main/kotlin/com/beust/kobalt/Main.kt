@@ -133,7 +133,8 @@ private class Main @Inject constructor(
             } else {
                 var allProjects = arrayListOf<Project>()
                 try {
-                    allProjects = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo).compileBuildFiles(args)
+                    allProjects.addAll(buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
+                            .compileBuildFiles(args))
                 } catch(ex: KobaltException) {
                     throw ex
                 } catch(ex: Throwable) {
