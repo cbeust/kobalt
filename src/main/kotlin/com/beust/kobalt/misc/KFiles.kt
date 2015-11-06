@@ -55,7 +55,33 @@ public class KFiles {
 
         public val TEST_CLASSES_DIR : String = "test-classes"
 
-        public fun joinDir(vararg ts: String): String = ts.toArrayList().joinToString(File.separator)
+        /**
+         * Join the paths elements with the file separator.
+         */
+        fun joinDir(paths: List<String>): String = paths.joinToString(File.separator)
+
+        /**
+         * Join the paths elements with the file separator.
+         */
+        fun joinDir(vararg ts: String): String = ts.toArrayList().joinToString(File.separator)
+
+        /**
+         * The paths elements are expected to be a directory. Make that directory and join the
+         * elements with the file separator.
+         */
+        fun joinAndMakeDir(paths: List<String>) = joinDir(paths).apply { File(this).mkdirs() }
+
+        /**
+         * The paths elements are expected to be a directory. Make that directory and join the
+         * elements with the file separator.
+         */
+        fun joinAndMakeDir(vararg ts: String) = joinAndMakeDir(ts.toList())
+
+        /**
+         * The paths elements are expected to be a file. Make that parent directory of that file and join the
+         * elements with the file separator.
+         */
+        fun joinFileAndMakeDir(vararg ts: String) = joinDir(joinAndMakeDir(ts.slice(0..ts.size - 2)), ts[ts.size - 1])
 
         fun makeDir(dir: String, s: String? = null) =
                 (if (s != null) File(dir, s) else File(dir)).apply { mkdirs() }
@@ -147,20 +173,6 @@ public class KFiles {
                 }
             }
         }
-
-//        public fun copy(from: InputStream, to: OutputStream, bufSize: Int): Long {
-//            val buf = ByteArray(bufSize)
-//            var total: Long = 0
-//            while (true) {
-//                val r = from.read(buf, 0, buf.size())
-//                if (r == -1) {
-//                    break
-//                }
-//                to.write(buf, 0, r)
-//                total += r.toLong()
-//            }
-//            return total
-//        }
 
         public fun createTempFile(suffix : String = "", deleteOnExit: Boolean = false) : File =
             File.createTempFile("kobalt", suffix, File(SystemProperties.tmpDir)).let {
