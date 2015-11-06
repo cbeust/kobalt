@@ -6,7 +6,8 @@ import java.io.InputStream
 import java.io.InputStreamReader
 
 open class RunCommand(val command: String) {
-    val defaultSuccess = { output: List<String> -> log(2, "Success:\n " + output.joinToString("\n"))}
+    val defaultSuccess = { output: List<String> -> }
+//    val defaultSuccessVerbose = { output: List<String> -> log(2, "Success:\n " + output.joinToString("\n"))}
     val defaultError = {
         output: List<String> -> error("Error:\n " + output.joinToString("\n"))
     }
