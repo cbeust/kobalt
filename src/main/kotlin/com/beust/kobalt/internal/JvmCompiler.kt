@@ -45,14 +45,12 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
         allDependencies.forEach { dependencies ->
             result.addAll(dependencyManager.transitiveClosure(dependencies))
         }
-        if (project != null) {
-            result.addAll(runClasspathContributors(context, project))
-        }
+        result.addAll(runClasspathContributors(project, context))
 
         return result
     }
 
-    private fun runClasspathContributors(context: KobaltContext?, project: Project) :
+    private fun runClasspathContributors(project: Project?, context: KobaltContext?) :
             Collection<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         context!!.pluginInfo.classpathContributors.forEach { it: IClasspathContributor ->

@@ -93,13 +93,13 @@ class KotlinPlugin @Inject constructor(
 
 
     // interface IClasspathContributor
-    override fun entriesFor(project: Project) : List<IClasspathDependency> =
-        if (project is KotlinProject) {
+    override fun entriesFor(project: Project?) : List<IClasspathDependency> =
+        if (project == null || project is KotlinProject) {
             // All Kotlin projects automatically get the Kotlin runtime added to their class path
-            arrayListOf(getKotlinCompilerJar("kotlin-stdlib"), getKotlinCompilerJar("kotlin-compiler-embeddable"))
+            listOf(getKotlinCompilerJar("kotlin-stdlib"), getKotlinCompilerJar("kotlin-compiler-embeddable"))
                 .map { FileDependency(it) }
         } else {
-            arrayListOf()
+            listOf()
         }
 }
 

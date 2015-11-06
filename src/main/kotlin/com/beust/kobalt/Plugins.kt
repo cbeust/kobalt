@@ -13,6 +13,7 @@ import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.DefaultPlugin
 import com.beust.kobalt.plugin.android.AndroidPlugin
+import com.beust.kobalt.plugin.application.ApplicationPlugin
 import com.beust.kobalt.plugin.java.JavaPlugin
 import com.beust.kobalt.plugin.kotlin.KotlinPlugin
 import com.beust.kobalt.plugin.packaging.PackagingPlugin
@@ -70,7 +71,8 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
                     KotlinPlugin::class.java,
                     PackagingPlugin::class.java,
                     PublishPlugin::class.java,
-                    AndroidPlugin::class.java
+                    AndroidPlugin::class.java,
+                    ApplicationPlugin::class.java
 //                    AptPlugin::class.java
             ).map {
                 addPluginInstance(Kobalt.INJECTOR.getInstance(it))

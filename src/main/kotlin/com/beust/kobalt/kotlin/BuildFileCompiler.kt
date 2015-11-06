@@ -4,6 +4,8 @@ import com.beust.kobalt.Args
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.internal.JvmCompiler
+import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Topological
@@ -26,7 +28,7 @@ import javax.inject.Inject
 
 public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFiles: List<BuildFile>,
         @Assisted val pluginInfo: PluginInfo, val files: KFiles, val plugins: Plugins,
-        val pluginProperties: PluginProperties) {
+        val jvmCompiler: JvmCompiler, val pluginProperties: PluginProperties) {
 
     interface IFactory {
         fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>, pluginInfo: PluginInfo) : BuildFileCompiler
@@ -42,19 +44,19 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         context.pluginProperties = pluginProperties
         Kobalt.context = context
 
-        val allProjects = findProjects()
+        val allProjects = findProjects(context)
 
         plugins.applyPlugins(context, allProjects)
         return allProjects
     }
 
-    private fun findProjects(): List<Project> {
+    private fun findProjects(context: KobaltContext): List<Project> {
         val result = arrayListOf<Project>()
         buildFiles.forEach { buildFile ->
-            val pluginUrls = findPlugInUrls(buildFile)
+            val pluginUrls = findPlugInUrls(context, buildFile)
             val buildScriptJarFile = File(KFiles.findBuildScriptLocation(buildFile, SCRIPT_JAR))
 
-            maybeCompileBuildFile(buildFile, buildScriptJarFile, pluginUrls)
+            maybeCompileBuildFile(context, buildFile, buildScriptJarFile, pluginUrls)
             val buildScriptInfo = parseBuildScriptJarFile(buildScriptJarFile, pluginUrls)
             result.addAll(buildScriptInfo.projects)
         }
@@ -65,7 +67,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         buildFile.exists() && jarFile.exists()
                 && buildFile.lastModified < jarFile.lastModified()
 
-    private fun maybeCompileBuildFile(buildFile: BuildFile, buildScriptJarFile: File,
+    private fun maybeCompileBuildFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File,
             pluginUrls: List<URL>) {
         log(2, "Running build file ${buildFile.name} jar: $buildScriptJarFile")
 
@@ -79,7 +81,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
                 classpath(pluginUrls.map { it.file })
                 sourceFiles(listOf(buildFile.path.toFile().absolutePath))
                 output = buildScriptJarFile
-            }.compile()
+            }.compile(context = context)
         }
     }
 
@@ -87,7 +89,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
      * Generate the script file with only the plugins()/repos() directives and run it. Then return
      * the URL's of all the plug-ins that were found.
      */
-    private fun findPlugInUrls(buildFile: BuildFile): List<URL> {
+    private fun findPlugInUrls(context: KobaltContext, buildFile: BuildFile): List<URL> {
         val result = arrayListOf<URL>()
         val pluginCode = arrayListOf(
                 "import com.beust.kobalt.*",
@@ -124,7 +126,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         val buildScriptJarFile = File(buildScriptJar)
         if (! isUpToDate(buildFile, File(buildScriptJar))) {
             buildScriptJarFile.parentFile.mkdirs()
-            generateJarFile(BuildFile(Paths.get(pluginSourceFile.path), "Plugins"), buildScriptJarFile)
+            generateJarFile(context, BuildFile(Paths.get(pluginSourceFile.path), "Plugins"), buildScriptJarFile)
         }
 
         //
@@ -142,12 +144,15 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         return result
     }
 
-    private fun generateJarFile(buildFile: BuildFile, buildScriptJarFile: File) {
+    private fun generateJarFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File) {
+        val kotlintDeps = jvmCompiler.calculateDependencies(null, context, listOf<IClasspathDependency>())
+        val deps: List<String> = kotlintDeps.map { it.jarFile.get().absolutePath }
         kotlinCompilePrivate {
             classpath(files.kobaltJar)
+            classpath(deps)
             sourceFiles(buildFile.path.toFile().absolutePath)
             output = File(buildScriptJarFile.absolutePath)
-        }.compile()
+        }.compile(context = context)
     }
 
     class BuildScriptInfo(val projects: List<Project>, val classLoader: ClassLoader)

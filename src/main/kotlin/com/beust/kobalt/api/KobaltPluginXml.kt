@@ -29,7 +29,7 @@ class ProjectDescription(val project: Project, val dependsOn: List<Project>)
  * Plugins that export classpath entries need to implement this interface.
  */
 interface IClasspathContributor {
-    fun entriesFor(project: Project) : Collection<IClasspathDependency>
+    fun entriesFor(project: Project?) : Collection<IClasspathDependency>
 }
 
 /**
