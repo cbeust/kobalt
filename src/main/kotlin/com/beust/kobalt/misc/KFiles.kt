@@ -10,7 +10,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 
-public class KFiles {
+class KFiles {
     val kobaltJar : String
         get() {
             val envJar = System.getenv("KOBALT_JAR")
@@ -41,19 +41,19 @@ public class KFiles {
         const val KOBALT_BUILD_DIR = "kobaltBuild"
 
         // Directories under ~/.kobalt
-        public val localRepo = homeDir(KOBALT_DOT_DIR, "repository")
+        val localRepo = homeDir(KOBALT_DOT_DIR, "repository")
 
         /** Where all the .zip files are extracted */
-        public val distributionsDir = homeDir(KOBALT_DOT_DIR, "wrapper", "dist")
+        val distributionsDir = homeDir(KOBALT_DOT_DIR, "wrapper", "dist")
 
         // Directories under ./.kobalt
-        public val SCRIPT_BUILD_DIR : String = "build"
-        public val CLASSES_DIR : String = "classes"
+        val SCRIPT_BUILD_DIR : String = "build"
+        val CLASSES_DIR : String = "classes"
 
         /** Where build file and support source files go, under KOBALT_DIR */
         private val SRC = "src"
 
-        public val TEST_CLASSES_DIR : String = "test-classes"
+        val TEST_CLASSES_DIR : String = "test-classes"
 
         /**
          * Join the paths elements with the file separator.
@@ -86,10 +86,10 @@ public class KFiles {
         fun makeDir(dir: String, s: String? = null) =
                 (if (s != null) File(dir, s) else File(dir)).apply { mkdirs() }
 
-        public fun findRecursively(rootDir: File) : List<String> =
+        fun findRecursively(rootDir: File) : List<String> =
                 findRecursively(rootDir, arrayListOf(), { s -> true })
 
-        public fun findRecursively(rootDir: File, directories: List<File>,
+        fun findRecursively(rootDir: File, directories: List<File>,
                 function: Function1<String, Boolean>): List<String> {
             var result = arrayListOf<String>()
 
@@ -112,7 +112,7 @@ public class KFiles {
             return r
         }
 
-        public fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {
+        fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {
             var result = arrayListOf<String>()
             directory.listFiles().forEach {
                 if (it.isFile && function(it.absolutePath)) {
@@ -152,7 +152,7 @@ public class KFiles {
             return result
         }
 
-        public fun saveFile(file: File, text: String) {
+        fun saveFile(file: File, text: String) {
             file.absoluteFile.parentFile.mkdirs()
             file.writeText(text)
             log(2, "Wrote $file")
@@ -160,7 +160,7 @@ public class KFiles {
 
         private fun isWindows() = System.getProperty("os.name").contains("Windows");
 
-        public fun copy(from: Path?, to: Path?, option: StandardCopyOption) {
+        fun copy(from: Path?, to: Path?, option: StandardCopyOption) {
             if (isWindows() && to!!.toFile().exists()) {
                 log(2, "Windows detected, not overwriting ${to!!}")
             } else {
@@ -174,7 +174,7 @@ public class KFiles {
             }
         }
 
-        public fun createTempFile(suffix : String = "", deleteOnExit: Boolean = false) : File =
+        fun createTempFile(suffix : String = "", deleteOnExit: Boolean = false) : File =
             File.createTempFile("kobalt", suffix, File(SystemProperties.tmpDir)).let {
                 if (deleteOnExit) it.deleteOnExit()
                 return it
@@ -183,11 +183,11 @@ public class KFiles {
         fun src(filePath: String): String = KFiles.joinDir(KOBALT_DIR, SRC, filePath)
     }
 
-    public fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {
+    fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {
         return KFiles.findRecursively(directory, function)
     }
 
-    public fun findRecursively(rootDir: File, directories: List<File>,
+    fun findRecursively(rootDir: File, directories: List<File>,
             function: Function1<String, Boolean>): List<String> {
         return KFiles.findRecursively(rootDir, directories, function)
     }
