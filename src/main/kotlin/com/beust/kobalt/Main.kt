@@ -11,7 +11,6 @@ import com.beust.kobalt.kotlin.BuildFile
 import com.beust.kobalt.kotlin.BuildFileCompiler
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.Http
-import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.*
 import com.beust.kobalt.wrapper.Wrapper
@@ -145,25 +144,8 @@ private class Main @Inject constructor(
             if (! buildFile.exists()) {
                 error(buildFile.path.toFile().path + " does not exist")
             } else {
-                var allProjects = arrayListOf<Project>()
-                try {
-                    allProjects.addAll(buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
-                            .compileBuildFiles(args))
-                } catch(ex: KobaltException) {
-                    throw ex
-                } catch(ex: Throwable) {
-                    ex.printStackTrace()
-                    // This can happen if the ABI for the build script file changed. Try to wipe .kobalt.
-                    log(2, "Couldn't parse preBuildScript.jar: ${ex.message}")
-                    if (! File(".kobalt").deleteRecursively()) {
-                        warn("Couldn't delete the .kobalt directory, please delete it manually and try again")
-                        return 1
-                    } else {
-                        log(1, "Deleted .kobalt")
-                        allProjects.addAll(buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
-                                .compileBuildFiles(args))
-                    }
-                }
+                val allProjects = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
+                        .compileBuildFiles(args)
 
                 //
                 // Now that we have projects, add all the repos from repo contributors that need a Project
@@ -171,6 +153,7 @@ private class Main @Inject constructor(
                 allProjects.forEach { addReposFromContributors(it) }
 
                 log(2, "Final list of repos:\n  " + Kobalt.repos.joinToString("\n  "))
+
                 if (args.tasks) {
                     //
                     // List of tasks
