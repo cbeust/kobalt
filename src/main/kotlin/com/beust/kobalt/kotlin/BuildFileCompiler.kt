@@ -155,7 +155,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         }.compile(context = context)
     }
 
-    class BuildScriptInfo(val projects: List<Project>, val classLoader: ClassLoader)
+    class BuildScriptInfo(val projects: List<Project>)
 
     private fun parseBuildScriptJarFile(buildScriptJarFile: File, urls: List<URL>) : BuildScriptInfo {
         val projects = arrayListOf<Project>()
@@ -233,7 +233,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
                     }
                 }
             }
-            val result = BuildScriptInfo(topologicalProjects.sort(ArrayList(all)), classLoader)
+            val result = BuildScriptInfo(topologicalProjects.sort(ArrayList(all)))
 
             // Notify possible listeners (e.g. KobaltServer) we now have all the projects
             observable.onNext(result)
