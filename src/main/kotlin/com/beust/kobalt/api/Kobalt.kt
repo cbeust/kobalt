@@ -19,7 +19,7 @@ public class Kobalt {
             "https://jcenter.bintray.com/"
         )
 
-        val repos = ArrayList<String>(DEFAULT_REPOS)
+        val repos = HashSet<String>(DEFAULT_REPOS)
 
         fun addRepo(repo: String) = repos.add(if (repo.endsWith("/")) repo else repo + "/")
 

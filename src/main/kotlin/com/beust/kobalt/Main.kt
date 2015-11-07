@@ -62,7 +62,19 @@ private class Main @Inject constructor(
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
+    private fun addReposFromContributors(project: Project?) =
+        pluginInfo.repoContributors.forEach {
+            it.reposFor(project).forEach {
+                Kobalt.addRepo(it.toString())
+            }
+        }
+
     public fun run(jc: JCommander, args: Args) : Int {
+
+        //
+        // Add all the repos from repo contributors (at least those that return values without a Project)
+        //
+        addReposFromContributors(null)
 
         //
         // Add all the plugins read in plugin.xml to the Plugins singleton, so that code
@@ -153,6 +165,12 @@ private class Main @Inject constructor(
                     }
                 }
 
+                //
+                // Now that we have projects, add all the repos from repo contributors that need a Project
+                //
+                allProjects.forEach { addReposFromContributors(it) }
+
+                log(2, "Final list of repos:\n  " + Kobalt.repos.joinToString("\n  "))
                 if (args.tasks) {
                     //
                     // List of tasks

@@ -1,10 +1,10 @@
 package com.beust.kobalt.api
 
-import com.beust.kobalt.Plugins
 import com.beust.kobalt.maven.IClasspathDependency
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.net.URI
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
@@ -62,6 +62,13 @@ interface IInitContributor {
     fun generateBuildFile(os: OutputStream)
 }
 
+/**
+ * Plugins that add their own repos.
+ */
+interface IRepoContributor {
+    fun reposFor(project: Project?) : List<URI>
+}
+
 /////
 // XML parsing
 //
@@ -89,6 +96,9 @@ class KobaltPluginXml {
 
     @XmlElement(name = "init-contributors") @JvmField
     var initClassName: ClassNameXml? = null
+
+    @XmlElement(name = "repo-contributors") @JvmField
+    var repoClassName: ClassNameXml? = null
 }
 
 class ContributorXml {
@@ -111,6 +121,7 @@ class PluginInfo(val xml: KobaltPluginXml) {
     val projectContributors = arrayListOf<IProjectContributor>()
     val classpathContributors = arrayListOf<IClasspathContributor>()
     val initContributors = arrayListOf<IInitContributor>()
+    val repoContributors = arrayListOf<IRepoContributor>()
 
     // Future contributors:
     // compilerArgs
@@ -157,6 +168,9 @@ class PluginInfo(val xml: KobaltPluginXml) {
         }
         xml.initClassName?.className?.forEach {
             initContributors.add(factory.instanceOf(Class.forName(it)) as IInitContributor)
+        }
+        xml.repoClassName?.className?.forEach {
+            repoContributors.add(factory.instanceOf(Class.forName(it)) as IRepoContributor)
         }
     }
 }

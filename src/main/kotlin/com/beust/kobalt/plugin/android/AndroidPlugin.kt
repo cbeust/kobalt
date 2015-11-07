@@ -36,9 +36,15 @@ fun Project.android(init: AndroidConfig.() -> Unit) : AndroidConfig {
     return pd
 }
 
+val Project.isAndroid : Boolean
+        get() = (Kobalt.findPlugin("android") as AndroidPlugin).isAndroid(this)
+
 @Singleton
-public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) : BasePlugin(), IClasspathContributor {
+public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
+        : BasePlugin(), IClasspathContributor, IRepoContributor {
     override val name = "android"
+
+    fun isAndroid(project: Project) = configurations[project.name] != null
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
@@ -71,14 +77,18 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
             return version as String
     }
 
-    fun androidHome(project: Project) : String {
-        var result = configurations[project.name]?.androidHome
-        if (result == null) {
-            result = System.getenv("ANDROID_HOME")
-            if (result == null) {
-                throw IllegalArgumentException("Neither androidHome nor \$ANDROID_HOME were defined")
+    fun androidHome(project: Project?) : String {
+        var result = System.getenv("ANDROID_HOME")
+        if (project != null) {
+            configurations[project.name]?.androidHome?.let {
+                result = it
             }
         }
+
+        if (result == null) {
+            throw IllegalArgumentException("Neither androidHome nor \$ANDROID_HOME were defined")
+        }
+
         return result
     }
 
@@ -242,6 +252,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
 
     private val classpathEntries = HashMultimap.create<String, IClasspathDependency>()
 
+    // IClasspathContributor
     override fun entriesFor(project: Project?): Collection<IClasspathDependency> {
         if (project != null) {
             return classpathEntries.get(project.name) ?: listOf()
@@ -250,4 +261,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
         }
     }
 
+    // IRepoContributor
+    override fun reposFor(project: Project?) =
+        listOf(Paths.get(KFiles.joinDir(androidHome(project), "extras", "android", "m2repository")).toUri())
 }
