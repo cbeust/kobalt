@@ -1,66 +1,64 @@
 package com.beust.kobalt
 
 import java.io.File
-import java.util.*
-import java.util.regex.Pattern
 
-public abstract class OperatingSystem {
+abstract class OperatingSystem {
 
     override fun toString(): String {
         return getName() + " " + getVersion() + " " + System.getProperty("os.arch")
     }
 
-    public fun getName(): String {
+    fun getName(): String {
         return System.getProperty("os.name")
     }
 
-    public fun getVersion(): String {
+    fun getVersion(): String {
         return System.getProperty("os.version")
     }
 
-    public open fun isWindows(): Boolean {
+    open fun isWindows(): Boolean {
         return false
     }
 
-    public open fun isUnix(): Boolean {
+    open fun isUnix(): Boolean {
         return false
     }
 
-    public open fun isMacOsX(): Boolean {
+    open fun isMacOsX(): Boolean {
         return false
     }
 
-    public open fun isLinux(): Boolean {
+    open fun isLinux(): Boolean {
         return false
     }
 
-    public abstract fun getNativePrefix(): String
+    abstract fun getNativePrefix(): String
 
-    public abstract fun getScriptName(scriptPath: String): String
+    abstract fun getScriptName(scriptPath: String): String
 
-    public abstract fun getExecutableName(executablePath: String): String
+    abstract fun getExecutableName(executablePath: String): String
 
-    public abstract fun getSharedLibraryName(libraryName: String): String
+    abstract fun getSharedLibraryName(libraryName: String): String
 
-    public abstract fun getStaticLibraryName(libraryName: String): String
+    abstract fun getStaticLibraryName(libraryName: String): String
 
-    public abstract fun getFamilyName(): String
+    abstract fun getFamilyName(): String
 
     /**
      * Locates the given executable in the system path. Returns null if not found.
      */
-    public fun findInPath(name: String): File? {
+    fun findInPath(name: String): File? {
         val exeName = getExecutableName(name)
         if (exeName.contains(File.separator)) {
             val candidate = File(exeName)
-            if (candidate.isFile()) {
+            if (candidate.isFile) {
                 return candidate
             }
             return null
         }
-        for (dir in getPath()) {
+        for (dir in path) {
             val candidate = File(dir, exeName)
-            if (candidate.isFile()) {
+            if (candidate.isFile) {
                 return candidate
             }
         }
@@ -68,29 +66,25 @@ public abstract class OperatingSystem {
         return null
     }
 
-    public fun findAllInPath(name: String): List<File> {
-        val all = LinkedList<File>()
+//    fun findAllInPath(name: String): List<File> {
+//        val all = LinkedList<File>()
+//
+//        for (dir in getPath()) {
+//            val candidate = File(dir, name)
+//            if (candidate.isFile) {
+//                all.add(candidate)
+//            }
+//        }
+//
+//        return all
+//    }
 
-        for (dir in getPath()) {
-            val candidate = File(dir, name)
-            if (candidate.isFile()) {
-                all.add(candidate)
-            }
+    val path: List<File>
+        get() {
+            return (System.getenv(getPathVar()) ?: return emptyList()).split(File.pathSeparator).map { File(it) }
         }
 
-        return all
-    }
-
-    public fun getPath(): List<File> {
-        val path = System.getenv(getPathVar()) ?: return emptyList<File>()
-        val entries = ArrayList<File>()
-        for (entry in path.split(Pattern.quote(File.pathSeparator))) {
-            entries.add(File(entry))
-        }
-        return entries
-    }
-
-    public open fun getPathVar(): String {
+    open fun getPathVar(): String {
         return "PATH"
     }
 
@@ -271,18 +265,18 @@ public abstract class OperatingSystem {
     }
 
     companion object {
-        public val WINDOWS: Windows = Windows()
-        public val MAC_OS: MacOs = MacOs()
-        public val SOLARIS: Solaris = Solaris()
-        public val LINUX: Linux = Linux()
-        public val FREE_BSD: FreeBSD = FreeBSD()
-        public val UNIX: Unix = Unix()
+        val WINDOWS: Windows = Windows()
+        val MAC_OS: MacOs = MacOs()
+        val SOLARIS: Solaris = Solaris()
+        val LINUX: Linux = Linux()
+        val FREE_BSD: FreeBSD = FreeBSD()
+        val UNIX: Unix = Unix()
 
-        public fun current(): OperatingSystem {
+        fun current(): OperatingSystem {
             return forName(System.getProperty("os.name"))
         }
 
-        public fun forName(os: String): OperatingSystem {
+        fun forName(os: String): OperatingSystem {
             val osName = os.toLowerCase()
             if (osName.contains("windows")) {
                 return WINDOWS
