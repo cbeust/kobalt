@@ -43,12 +43,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
         log(2, "${project.name}: $s")
     }
 
-    var context: KobaltContext? = null
-
-
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        this.context = context
         context.pluginProperties.put(name, BUILD_DIR, project.buildDirectory + File.separator + "classes")
     }
 

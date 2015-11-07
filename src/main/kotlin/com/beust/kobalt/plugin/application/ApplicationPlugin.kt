@@ -1,14 +1,20 @@
 package com.beust.kobalt.plugin.application
 
+import com.beust.kobalt.JavaInfo
 import com.beust.kobalt.Plugins
+import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.LocalRepo
+import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.internal.TaskResult
+import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.RunCommand
+import com.beust.kobalt.plugin.packaging.PackagingPlugin
 import com.google.inject.Inject
 import com.google.inject.Singleton
+import java.io.File
 
 @Directive
 class ApplicationConfig {
@@ -27,8 +33,7 @@ fun Project.application(init: ApplicationConfig.() -> Unit) {
 }
 
 @Singleton
-class ApplicationPlugin @Inject constructor(val dependencyManager : DependencyManager,
-        val executors: KobaltExecutors, val localRepo: LocalRepo) : BasePlugin() {
+class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors) : BasePlugin() {
 
     companion object {
         const val NAME = "application"
@@ -36,8 +41,25 @@ class ApplicationPlugin @Inject constructor(val dependencyManager : DependencyMa
 
     override val name = NAME
 
+    val configs = hashMapOf<String, ApplicationConfig>()
+
     fun addConfig(project: Project, config: ApplicationConfig) {
-        println("Adding config $config")
+        configs.put(project.name, config)
+    }
+
+    @Task(name = "run", description = "Run the main class", runAfter = arrayOf("assemble"))
+    fun taskRun(project: Project): TaskResult {
+        configs[project.name].let { config ->
+            val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
+            if (config != null && config.mainClass != null) {
+                val jarName = context.pluginProperties.get("packaging", PackagingPlugin.JAR_NAME) as String
+                val args = listOf("-classpath", jarName) + config.jvmArgs + config.mainClass!!
+                RunCommand(java.absolutePath).run(args)
+            } else {
+                throw KobaltException("No \"mainClass\" specified in the application{} part of project ${project.name}")
+            }
+        }
+        return TaskResult()
     }
 }
 

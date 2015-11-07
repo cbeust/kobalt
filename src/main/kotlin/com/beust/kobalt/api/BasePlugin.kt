@@ -12,6 +12,12 @@ abstract public class BasePlugin : Plugin {
     override fun accept(project: Project) = true
     var plugins: Plugins by Delegates.notNull()
 
+    var context: KobaltContext by Delegates.notNull()
+
+    override fun apply(project: Project, context: KobaltContext) {
+        this.context = context
+    }
+
     protected val projects = arrayListOf<ProjectDescription>()
 
     fun addProject(project: Project, dependsOn: Array<out Project>) {

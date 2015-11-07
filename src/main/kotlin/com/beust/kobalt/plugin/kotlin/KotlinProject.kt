@@ -7,7 +7,7 @@ import com.beust.kobalt.misc.toString
 
 public class KotlinProject(
         @Directive
-        override var name: String? = null,
+        override var name: String = "",
         @Directive
         override var version: String? = null,
         /** The absolute directory location of this project */
@@ -27,5 +27,5 @@ public class KotlinProject(
         : Project(name, version, directory, buildDirectory, group, artifactId, packaging, dependencies, ".kt",
                 projectInfo = KotlinProjectInfo()) {
 
-    override public fun toString() = toString("KotlinProject", "name", name!!)
+    override public fun toString() = toString("KotlinProject", "name", name)
 }

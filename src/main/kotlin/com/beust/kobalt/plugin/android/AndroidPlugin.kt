@@ -40,11 +40,9 @@ fun Project.android(init: AndroidConfig.() -> Unit) : AndroidConfig {
 public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) : BasePlugin(), IClasspathContributor {
     override val name = "android"
 
-    lateinit var context: KobaltContext
-
     override fun apply(project: Project, context: KobaltContext) {
+        super.apply(project, context)
         log(1, "Applying plug-in Android on project $project")
-        this.context = context
         if (accept(project)) {
             project.compileDependencies.add(FileDependency(androidJar(project).toString()))
         }

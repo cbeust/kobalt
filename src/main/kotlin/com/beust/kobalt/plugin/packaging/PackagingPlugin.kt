@@ -44,6 +44,9 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         @ExportedProperty
         const val LIBS_DIR = "libsDir"
 
+        @ExportedProperty
+        const val JAR_NAME = "jarName"
+
         const val TASK_ASSEMBLE : String = "assemble"
     }
 
@@ -231,6 +234,9 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         outStream.flush()
         outStream.close()
         log(1, "  Created $result")
+
+        context.pluginProperties.put(name, JAR_NAME, result.absolutePath)
+
         return result
     }
 

@@ -8,7 +8,7 @@ import com.beust.kobalt.misc.KFiles
 import java.util.*
 
 open public class Project(
-        @Directive open var name: String? = null,
+        @Directive open var name: String,
         @Directive open var version: String? = null,
         @Directive open var directory: String = ".",
         @Directive open var buildDirectory: String? = KFiles.KOBALT_BUILD_DIR,
@@ -30,7 +30,7 @@ open public class Project(
     }
 
     override fun hashCode(): Int {
-        return name!!.hashCode()
+        return name.hashCode()
     }
 
     //
@@ -91,7 +91,7 @@ open public class Project(
 
     /** Used to disambiguate various name properties */
     @Directive
-    val projectName: String get() = name!!
+    val projectName: String get() = name
 }
 
 public class Sources(val project: Project, val sources: ArrayList<String>) {

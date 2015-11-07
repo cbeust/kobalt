@@ -7,7 +7,7 @@ import com.beust.kobalt.misc.toString
 
 public class JavaProject(
         @Directive
-        override var name: String? = null,
+        override var name: String = "",
         @Directive
         override var version: String? = null,
         /** The absolute directory location of this project */
