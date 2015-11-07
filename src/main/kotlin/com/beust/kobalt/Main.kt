@@ -105,9 +105,9 @@ private class Main @Inject constructor(
     }
 
 
-    public fun runTest() {
-        val file = File("src\\main\\resources\\META-INF\\plugin.xml")
-    }
+//    public fun runTest() {
+//        val file = File("src\\main\\resources\\META-INF\\plugin.xml")
+//    }
 
     private fun runWithArgs(jc: JCommander, args: Args) : Int {
         var result = 0
