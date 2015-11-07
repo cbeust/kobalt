@@ -20,6 +20,7 @@ import com.google.common.collect.HashMultimap
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
+import java.net.URI
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -69,7 +70,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     val flavor = "debug"
 
     fun compileSdkVersion(project: Project) = configurations[project.name]?.compileSdkVersion
-    fun buildToolsVersion(project: Project) : String {
+    fun buildToolsVersion(project: Project): String {
         val version = configurations[project.name]?.buildToolsVersion
         if (OperatingSystem.current().isWindows() && version == "21.1.2")
             return "build-tools-$version"
@@ -77,7 +78,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
             return version as String
     }
 
-    fun androidHome(project: Project?) : String {
+    fun androidHomeNoThrows(project: Project?): String? {
         var result = System.getenv("ANDROID_HOME")
         if (project != null) {
             configurations[project.name]?.androidHome?.let {
@@ -85,14 +86,13 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
             }
         }
 
-        if (result == null) {
-            throw IllegalArgumentException("Neither androidHome nor \$ANDROID_HOME were defined")
-        }
-
         return result
     }
 
-    fun androidJar(project: Project) : Path =
+    fun androidHome(project: Project?) = androidHomeNoThrows(project) ?:
+            throw IllegalArgumentException("Neither androidHome nor \$ANDROID_HOME were defined")
+
+    fun androidJar(project: Project): Path =
             Paths.get(androidHome(project), "platforms", "android-${compileSdkVersion(project)}", "android.jar")
 
     private fun generated(project: Project) = Paths.get(project.buildDirectory, "app", "build", "generated")
@@ -104,11 +104,11 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
             = KFiles.joinFileAndMakeDir(project.buildDirectory!!, "intermediates", "res", "resources-$flavor.ap_")
 
     private fun apk(project: Project, flavor: String)
-            = KFiles.joinFileAndMakeDir(project.buildDirectory!!, "outputs", "apk" ,"app-$flavor.apk")
+            = KFiles.joinFileAndMakeDir(project.buildDirectory!!, "outputs", "apk", "app-$flavor.apk")
 
     @Task(name = "generateR", description = "Generate the R.java file",
             runBefore = arrayOf("compile"), runAfter = arrayOf("clean"))
-    fun taskGenerateRFile(project: Project) : TaskResult {
+    fun taskGenerateRFile(project: Project): TaskResult {
 
         val generated = generated(project)
         explodeAarFiles(project, generated)
@@ -127,6 +127,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
         init {
             directory = cwd
         }
+
         fun call(args: List<String>) = run(arrayListOf(aaptCommand) + args)
     }
 
@@ -154,7 +155,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
                 "-S", "app/src/main/res",
                 // where to find more assets
                 "-A", KFiles.joinAndMakeDir(intermediates(project).toString(), "assets", flavor),
-                "-m",  // create directory
+                "-m", // create directory
                 // where all gets generated
                 "-J", KFiles.joinAndMakeDir(generated.toString(), "sources", "r", flavor).toString(),
                 "-F", temporaryApk(project, flavor),
@@ -187,7 +188,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
         }
     }
 
-    private fun compile(project: Project, rDirectory: String) : File {
+    private fun compile(project: Project, rDirectory: String): File {
         val sourceFiles = arrayListOf(Paths.get(rDirectory, "R.java").toFile().path)
         val buildDir = Paths.get(project.buildDirectory, "generated", "classes").toFile()
 
@@ -200,13 +201,13 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     }
 
     @Task(name = TASK_GENERATE, description = "Generate the dex file", alwaysRunAfter = arrayOf("compile"))
-    fun taskGenerateDex(project: Project) : TaskResult {
+    fun taskGenerateDex(project: Project): TaskResult {
         //
         // Call dx to generate classes.dex
         //
         val buildToolsDir = buildToolsVersion(project)
         val dx = "${androidHome(project)}/build-tools/$buildToolsDir/dx" +
-            if (OperatingSystem.current().isWindows()) ".bat" else ""
+                if (OperatingSystem.current().isWindows()) ".bat" else ""
         val buildDir = context.pluginProperties.get("java", JvmCompilerPlugin.BUILD_DIR)
         val libsDir = (context.pluginProperties.get("packaging", PackagingPlugin.LIBS_DIR) as File).path
         File(libsDir.toString()).mkdirs()
@@ -235,7 +236,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
      */
     @Task(name = "signApk", description = "Sign the apk file", runAfter = arrayOf(TASK_GENERATE),
             runBefore = arrayOf("assemble"))
-    fun signApk(project: Project) : TaskResult {
+    fun signApk(project: Project): TaskResult {
         val apk = apk(project, flavor)
         val temporaryApk = temporaryApk(project, flavor)
         RunCommand("jarsigner").run(listOf(
@@ -254,14 +255,20 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
 
     // IClasspathContributor
     override fun entriesFor(project: Project?): Collection<IClasspathDependency> {
-        if (project != null) {
-            return classpathEntries.get(project.name) ?: listOf()
+        return if (project != null) {
+            classpathEntries.get(project.name) ?: listOf()
         } else {
-            return listOf()
+            listOf()
         }
     }
 
     // IRepoContributor
-    override fun reposFor(project: Project?) =
-        listOf(Paths.get(KFiles.joinDir(androidHome(project), "extras", "android", "m2repository")).toUri())
+    override fun reposFor(project: Project?): List<URI> {
+        val home = androidHomeNoThrows(project)
+        return if (home != null) {
+            listOf(Paths.get(KFiles.joinDir(home, "extras", "android", "m2repository")).toUri())
+        } else {
+            emptyList()
+        }
+    }
 }
