@@ -38,9 +38,9 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
         constructor(project: String, task: String) : this(project + ":" + task)
 
         val project: String?
-            get() = if (id.contains(":")) id.split(":").get(0) else null
+            get() = if (id.contains(":")) id.split(":")[0] else null
         val task: String
-            get() = if (id.contains(":")) id.split(":").get(1) else id
+            get() = if (id.contains(":")) id.split(":")[1] else id
         fun matches(projectName: String) = project == null || project == projectName
     }
 
@@ -88,7 +88,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                         //
                         // Add the transitive closure of the current task as edges to the graph
                         //
-                        val transitiveClosure = calculateTransitiveClosure(project, tasksByNames, ti, task)
+                        val transitiveClosure = calculateTransitiveClosure(project, tasksByNames, ti)
                         transitiveClosure.forEach { pluginTask ->
                             val rb = runBefore.get(pluginTask.name)
                             rb.forEach {
@@ -161,8 +161,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
     /**
      * Find the transitive closure for the given TaskInfo
      */
-    private fun calculateTransitiveClosure(project: Project, tasksByNames: Map<String, PluginTask>, ti: TaskInfo,
-            task: PluginTask): HashSet<PluginTask> {
+    private fun calculateTransitiveClosure(project: Project, tasksByNames: Map<String, PluginTask>, ti: TaskInfo): HashSet<PluginTask> {
         log(3, "Processing ${ti.task}")
 
         val transitiveClosure = hashSetOf<PluginTask>()
