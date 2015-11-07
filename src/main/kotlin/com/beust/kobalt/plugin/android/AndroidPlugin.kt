@@ -55,29 +55,24 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
     val configurations = hashMapOf<String, AndroidConfig>()
 
     fun setConfiguration(p: Project, config: AndroidConfig) {
-        configurations.put(p.name!!, config)
+        configurations.put(p.name, config)
     }
 
-    override fun accept(project: Project) = configurations.containsKey(project.name!!)
+    override fun accept(project: Project) = configurations.containsKey(project.name)
 
     val flavor = "debug"
 
-    fun compileSdkVersion(project: Project) = configurations[project.name!!]?.compileSdkVersion
+    fun compileSdkVersion(project: Project) = configurations[project.name]?.compileSdkVersion
     fun buildToolsVersion(project: Project) : String {
-        val version = configurations[project.name!!]?.buildToolsVersion
-        if (OperatingSystem.current().isWindows()) {
-            if (version == "22.0.1" || version == "23.0.1") {
-                return version
-            } else {
-                return "build-tools-$version"
-            }
-        } else {
+        val version = configurations[project.name]?.buildToolsVersion
+        if (OperatingSystem.current().isWindows() && version == "21.1.2")
+            return "build-tools-$version"
+        else
             return version as String
-        }
     }
 
     fun androidHome(project: Project) : String {
-        var result = configurations[project.name!!]?.androidHome
+        var result = configurations[project.name]?.androidHome
         if (result == null) {
             result = System.getenv("ANDROID_HOME")
             if (result == null) {
@@ -128,7 +123,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
     private fun generateR(project: Project, generated: Path, aapt: String) {
         val compileSdkVersion = compileSdkVersion(project)
         val androidJar = Paths.get(androidHome(project), "platforms", "android-$compileSdkVersion", "android.jar")
-        val applicationId = configurations[project.name!!]?.applicationId!!
+        val applicationId = configurations[project.name]?.applicationId!!
         val manifestDir = Paths.get(project.directory, "app", "src", "main").toString()
         val manifest = Paths.get(manifestDir, "AndroidManifest.xml")
 
@@ -249,7 +244,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler) :
 
     override fun entriesFor(project: Project?): Collection<IClasspathDependency> {
         if (project != null) {
-            return classpathEntries.get(project.name!!) ?: listOf()
+            return classpathEntries.get(project.name) ?: listOf()
         } else {
             return listOf()
         }
