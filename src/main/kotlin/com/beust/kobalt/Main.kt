@@ -140,6 +140,7 @@ private class Main @Inject constructor(
                 } catch(ex: KobaltException) {
                     throw ex
                 } catch(ex: Throwable) {
+                    ex.printStackTrace()
                     // This can happen if the ABI for the build script file changed. Try to wipe .kobalt.
                     log(2, "Couldn't parse preBuildScript.jar: ${ex.message}")
                     if (! File(".kobalt").deleteRecursively()) {
