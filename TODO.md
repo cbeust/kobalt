@@ -1,5 +1,6 @@
 To do:
 
+- [ ] Make what version preBuildScript.jar was compiled with and wipe on new version
 - [ ] Add a "Auto complete Build.kt" menu in the plug-in
 - [ ] "All artifacts successfully uploaded" is shown before the upload is actually done
 - [ ] use groupId/artifactId
