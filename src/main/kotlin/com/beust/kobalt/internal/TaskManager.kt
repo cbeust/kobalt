@@ -47,7 +47,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
     public fun runTargets(targets: List<String>, projects: List<Project>) : Int {
         var result = 0
         projects.forEach { project ->
-            val projectName = project.name!!
+            val projectName = project.name
             val tasksByNames = hashMapOf<String, PluginTask>()
             plugins.allTasks.filter {
                 it.project.name == project.name
@@ -62,7 +62,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
 
                 val ti = TaskInfo(target)
                 if (ti.matches(projectName)) {
-                    val task = tasksByNames.get(ti.task)
+                    val task = tasksByNames[ti.task]
                     if (task != null && task.plugin.accept(project)) {
                         val reverseAfter = hashMapOf<String, String>()
                         alwaysRunAfter.keys().forEach { from ->
@@ -80,7 +80,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                             TaskInfo(projectName, it.name).id == target
                         }
                         if (currentFreeTask.size == 1) {
-                            currentFreeTask.get(0).let {
+                            currentFreeTask[0].let {
                                 graph.addNode(it)
                             }
                         }
@@ -92,7 +92,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                         transitiveClosure.forEach { pluginTask ->
                             val rb = runBefore.get(pluginTask.name)
                             rb.forEach {
-                                val to = tasksByNames.get(it)
+                                val to = tasksByNames[it]
                                 if (to != null) {
                                     graph.addEdge(pluginTask, to)
                                 } else {
@@ -109,7 +109,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                         allNodes.forEach { node ->
                             val other = alwaysRunAfter.get(node.name)
                             other?.forEach { o ->
-                                tasksByNames.get(o)?.let {
+                                tasksByNames[o]?.let {
                                     graph.addEdge(it, node)
                                 }
                             }
@@ -151,7 +151,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
         val freeTaskMap = hashMapOf<String, PluginTask>()
         tasksByNames.keys.forEach {
             if (! runBefore.containsKey(it) && ! reverseAfter.containsKey(it)) {
-                freeTaskMap.put(it, tasksByNames.get(it)!!)
+                freeTaskMap.put(it, tasksByNames[it]!!)
             }
         }
 
@@ -173,9 +173,9 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             log(3, "toProcess size: " + toProcess.size)
             toProcess.forEach { target ->
 
-                val currentTask = TaskInfo(project.name!!, target.task)
-                transitiveClosure.add(tasksByNames.get(currentTask.task)!!)
-                val thisTask = tasksByNames.get(target.task)
+                val currentTask = TaskInfo(project.name, target.task)
+                transitiveClosure.add(tasksByNames[currentTask.task]!!)
+                val thisTask = tasksByNames[target.task]
                 if (thisTask == null) {
                     throw KobaltException("Unknown task: $target")
                 } else {
@@ -188,7 +188,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                     }
 
                     runBefore.get(thisTask.name).forEach {
-                        newToProcess.add(TaskInfo(project.name!!, it))
+                        newToProcess.add(TaskInfo(project.name, it))
                     }
                 }
             }
@@ -208,7 +208,7 @@ class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean) : IWorker<Plu
 
     override fun call() : TaskResult2<PluginTask> {
         if (tasks.size > 0) {
-            tasks.get(0).let {
+            tasks[0].let {
                 log(1, "========== ${it.project.name}:${it.name}")
             }
         }
@@ -217,7 +217,7 @@ class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean) : IWorker<Plu
             val tr = if (dryRun) TaskResult() else it.call()
             success = success and tr.success
         }
-        return TaskResult2(success, tasks.get(0))
+        return TaskResult2(success, tasks[0])
     }
 
 //    override val timeOut : Long = 10000
