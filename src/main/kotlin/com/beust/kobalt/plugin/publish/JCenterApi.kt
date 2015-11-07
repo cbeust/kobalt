@@ -6,16 +6,16 @@ import com.beust.kobalt.maven.Gpg
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.maven.Md5
-import com.beust.kobalt.misc.*
-import com.google.gson.Gson
+import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.error
+import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.warn
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.inject.assistedinject.Assisted
 import com.squareup.okhttp.Response
 import org.jetbrains.annotations.Nullable
-import java.io.ByteArrayInputStream
 import java.io.File
-import java.nio.charset.Charset
 import javax.inject.Inject
 
 data class JCenterPackage(val jo: JsonObject) {
@@ -34,15 +34,12 @@ open public class UnauthenticatedJCenterApi @Inject constructor(open val http: H
 //        return Parser().parse(ByteArrayInputStream(response.toByteArray(Charset.defaultCharset()))) as JsonObject
     }
 
-    fun getPackage(name: String) : JCenterPackage {
-        val url = arrayListOf(BINTRAY_URL_API, "packages", "cbeust", "maven", "kobalt").joinToString("/")
-        val response = http.get(url).getAsString()
-        val result = parseResponse(response)
-        return JCenterPackage(result)
-    }
-
-    val kobaltPackage : JCenterPackage
-        get() = getPackage("kobalt")
+//    fun getPackage() : JCenterPackage {
+//        val url = arrayListOf(BINTRAY_URL_API, "packages", "cbeust", "maven", "kobalt").joinToString("/")
+//        val response = http.get(url).getAsString()
+//        val result = parseResponse(response)
+//        return JCenterPackage(result)
+//    }
 }
 
 public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val username: String?,

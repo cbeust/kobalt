@@ -221,7 +221,6 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             includedFiles: List<IncludedFile>,
             expandJarFiles : Boolean = false,
             outputStreamFactory: (OutputStream) -> ZipOutputStream = DEFAULT_STREAM_FACTORY) : File {
-        val buildDir = KFiles.makeDir(project.directory, project.buildDirectory!!)
         val fullArchiveName = archiveName ?: arrayListOf(project.name!!, project.version!!).joinToString("-") + suffix
         val archiveDir = libsDir(project)
         val result = File(archiveDir.path, fullArchiveName)

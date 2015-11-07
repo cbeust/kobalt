@@ -55,7 +55,7 @@ class Logger(val dev: Boolean) {
 
 
     final fun warn(tag: String, message: String, e: Throwable? = null) =
-        println(getPattern("W", "***** WARNING ", tag, message))
+        println(getPattern("W", "***** WARNING ${e?.message}", tag, message))
 
     final fun log(tag: String, message: String, newLine: Boolean) =
         with(getPattern("L", "", tag, message)) {

@@ -1,22 +1,17 @@
 package com.beust.kobalt.internal.remote
 
-import com.beust.kobalt.Args
 import com.beust.kobalt.SystemProperties
-import com.beust.kobalt.kotlin.BuildFileCompiler
-import com.beust.kobalt.mainNoExit
 import com.beust.kobalt.misc.log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import javax.inject.Inject
 import java.io.BufferedReader
-import java.io.BufferedWriter
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.ConnectException
 import java.net.Socket
 import java.nio.file.Paths
-import java.util.concurrent.Executors
+import javax.inject.Inject
 
 public class KobaltClient @Inject constructor() : Runnable {
     var outgoing: PrintWriter? = null
@@ -32,8 +27,6 @@ public class KobaltClient @Inject constructor() : Runnable {
                 outgoing = PrintWriter(socket.outputStream, true)
                 val testBuildfile = Paths.get(SystemProperties.homeDir, "java", "testng", "Build.kt")
                     .toFile().absolutePath
-                val testBuildfile2 = Paths.get(SystemProperties.homeDir, "java", "jcommander", "Build.kt")
-                        .toFile().absolutePath
                 val c : String = "{ \"name\":\"GetDependencies\", \"buildFile\": \"$testBuildfile\"}"
                 outgoing!!.println(c)
                 val ins = BufferedReader(InputStreamReader(socket.inputStream))
