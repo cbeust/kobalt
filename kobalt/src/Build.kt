@@ -3,6 +3,7 @@ import com.beust.kobalt.api.License
 import com.beust.kobalt.api.Scm
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.test
+import com.beust.kobalt.plugin.application.application
 import com.beust.kobalt.plugin.java.javaCompiler
 import com.beust.kobalt.plugin.java.javaProject
 import com.beust.kobalt.plugin.kotlin.kotlinCompiler
@@ -10,26 +11,6 @@ import com.beust.kobalt.plugin.kotlin.kotlinProject
 import com.beust.kobalt.plugin.packaging.assemble
 import com.beust.kobalt.plugin.publish.jcenter
 import java.io.File
-
-//import com.beust.kobalt.plugin.linecount.lineCount
-//val plugins = plugins(
-//        "com.beust.kobalt:kobalt-line-count:0.15"
-////        file(homeDir("kotlin/kobalt-line-count/kobaltBuild/libs/kobalt-line-count-0.14.jar"))
-//)
-//
-//val lc = lineCount {
-//    suffix = "**.md"
-//}
-
-fun readVersion() : String {
-    val p = java.util.Properties()
-    var localFile = java.io.File("src/main/resources/kobalt.properties")
-    if (! localFile.exists()) {
-        localFile = File(homeDir("kotlin", "kobalt", "src/main/resources/kobalt.properties"))
-    }
-    p.load(java.io.FileReader(localFile))
-    return p.getProperty("kobalt.version")
-}
 
 val wrapper = javaProject {
     name = "kobalt-wrapper"
@@ -48,6 +29,11 @@ val wrapper = javaProject {
             }
         }
     }
+
+    application {
+        mainClass = "com.beust.kobalt.wrapper.Main"
+        jvmArgs("-Dtest=foo")
+    }
 }
 
 val kobalt = kotlinProject(wrapper) {
@@ -57,7 +43,7 @@ val kobalt = kotlinProject(wrapper) {
     version = readVersion()
     description = "A build system in Kotlin"
     url = "http://beust.com/kobalt"
-    licenses = listOf(License("Apache 2.0", "http://www.apache.org/licenses/LICENSE-2.0"))
+    licenses = arrayListOf(License("Apache 2.0", "http://www.apache.org/licenses/LICENSE-2.0"))
     scm = Scm(url = "http://github.com/cbeust/kobalt",
             connection = "https://github.com/cbeust/kobalt.git",
             developerConnection = "git@github.com:cbeust/kobalt.git")
@@ -115,4 +101,23 @@ val kobalt = kotlinProject(wrapper) {
     }
 }
 
+fun readVersion() : String {
+    val p = java.util.Properties()
+    var localFile = java.io.File("src/main/resources/kobalt.properties")
+    if (! localFile.exists()) {
+        localFile = File(homeDir("kotlin", "kobalt", "src/main/resources/kobalt.properties"))
+    }
+    p.load(java.io.FileReader(localFile))
+    return p.getProperty("kobalt.version")
+}
+
+//import com.beust.kobalt.plugin.linecount.lineCount
+//val plugins = plugins(
+//        "com.beust.kobalt:kobalt-line-count:0.15"
+////        file(homeDir("kotlin/kobalt-line-count/kobaltBuild/libs/kobalt-line-count-0.14.jar"))
+//)
+//
+//val lc = lineCount {
+//    suffix = "**.md"
+//}
 
