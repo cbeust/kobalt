@@ -38,23 +38,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
     companion object {
         public val MANIFEST_PLUGIN_CLASS : String = "Kobalt-Plugin-Class"
 
-        /** The name of the XML file describing a plug-in */
-        val PLUGIN_XML = "plugin.xml"
-
         private var pluginMap = hashMapOf<String, Plugin>()
-//        private var storageMap = HashMap<String, HashMap<String, Any>>()
-//        fun storeValue(pluginName: String, key: String, value: Any) {
-//            var values = storageMap.get(pluginName)
-//            if (values == null) {
-//                values = hashMapOf<String, Any>()
-//                storageMap.put(pluginName, values)
-//            }
-//            values.put(key, value)
-//        }
-//
-//        fun getValue(pluginName: String, key: String) : Any? {
-//            return storageMap.get(pluginName)?.get(key)
-//        }
 
         fun addPlugin(pluginClass : Class<out Plugin>) {
             addPluginInstance(Kobalt.INJECTOR.getInstance(pluginClass))
@@ -79,17 +63,17 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
             }
         }
 
-        public val plugins : List<Plugin>
+        val plugins : List<Plugin>
             get() = ArrayList(pluginMap.values)
 
         /**
          * The list of plugins found in the build file.
          */
-        public val dynamicPlugins : ArrayList<IClasspathDependency> = arrayListOf()
+        val dynamicPlugins : ArrayList<IClasspathDependency> = arrayListOf()
 
         val defaultPlugin : Plugin get() = findPlugin(DefaultPlugin.NAME)!!
 
-        public fun findPlugin(name: String) : Plugin? = pluginMap[name]
+        fun findPlugin(name: String) : Plugin? = pluginMap[name]
     }
 
     fun applyPlugins(context: KobaltContext, projects: List<Project>) {
