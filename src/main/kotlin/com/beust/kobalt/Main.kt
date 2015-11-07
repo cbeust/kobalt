@@ -64,6 +64,13 @@ private class Main @Inject constructor(
 
     public fun run(jc: JCommander, args: Args) : Int {
 
+        //
+        // Add all the plugins read in plugin.xml to the Plugins singleton, so that code
+        // in the build file that calls Plugins.findPlugin() can find them (code in the
+        // build file do not have access to the KobaltContext).
+        //
+        pluginInfo.plugins.forEach { Plugins.addPluginInstance(it) }
+
         if (args.client) {
             client.run()
             return 0

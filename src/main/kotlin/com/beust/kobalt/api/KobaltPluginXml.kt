@@ -1,5 +1,6 @@
 package com.beust.kobalt.api
 
+import com.beust.kobalt.Plugins
 import com.beust.kobalt.maven.IClasspathDependency
 import java.io.File
 import java.io.InputStream
@@ -74,17 +75,20 @@ class KobaltPluginXml {
     @XmlElement @JvmField
     var name: String? = null
 
+    @XmlElement(name = "plugins") @JvmField
+    var plugins : ClassNameXml? = null
+
     @XmlElement(name = "factory-class-name") @JvmField
     var factoryClassName: String? = null
 
     @XmlElement(name = "classpath-contributors") @JvmField
-    var classpathContributors : ContributorsXml? = null
+    var classpathClassName: ClassNameXml? = null
 
     @XmlElement(name = "project-contributors") @JvmField
-    var projectContributors : ContributorsXml? = null
+    var projectClassName: ClassNameXml? = null
 
     @XmlElement(name = "init-contributors") @JvmField
-    var initContributors : ContributorsXml? = null
+    var initClassName: ClassNameXml? = null
 }
 
 class ContributorXml {
@@ -92,7 +96,7 @@ class ContributorXml {
     val name: String? = null
 }
 
-class ContributorsXml {
+class ClassNameXml {
     @XmlElement(name = "class-name") @JvmField
     var className: List<String> = arrayListOf()
 }
@@ -103,6 +107,7 @@ class ContributorsXml {
  * needs to access plug-in info can then just inject a PluginInfo object.
  */
 class PluginInfo(val xml: KobaltPluginXml) {
+    val plugins = arrayListOf<Plugin>()
     val projectContributors = arrayListOf<IProjectContributor>()
     val classpathContributors = arrayListOf<IClasspathContributor>()
     val initContributors = arrayListOf<IInitContributor>()
@@ -141,13 +146,16 @@ class PluginInfo(val xml: KobaltPluginXml) {
 
     init {
         val factory = Class.forName(xml.factoryClassName).newInstance() as IFactory
-        xml.classpathContributors?.className?.forEach {
+        xml.plugins?.className?.forEach {
+            plugins.add(factory.instanceOf(Class.forName(it)) as Plugin)
+        }
+        xml.classpathClassName?.className?.forEach {
             classpathContributors.add(factory.instanceOf(Class.forName(it)) as IClasspathContributor)
         }
-        xml.projectContributors?.className?.forEach {
+        xml.projectClassName?.className?.forEach {
             projectContributors.add(factory.instanceOf(Class.forName(it)) as IProjectContributor)
         }
-        xml.initContributors?.className?.forEach {
+        xml.initClassName?.className?.forEach {
             initContributors.add(factory.instanceOf(Class.forName(it)) as IInitContributor)
         }
     }

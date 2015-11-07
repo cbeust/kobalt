@@ -11,13 +11,7 @@ import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.plugin.DefaultPlugin
-import com.beust.kobalt.plugin.android.AndroidPlugin
-import com.beust.kobalt.plugin.application.ApplicationPlugin
-import com.beust.kobalt.plugin.java.JavaPlugin
-import com.beust.kobalt.plugin.kotlin.KotlinPlugin
-import com.beust.kobalt.plugin.packaging.PackagingPlugin
-import com.beust.kobalt.plugin.publish.PublishPlugin
+import com.beust.kobalt.plugin.KobaltDefaultPlugin
 import com.google.inject.Provider
 import java.io.FileInputStream
 import java.lang.reflect.Method
@@ -44,23 +38,8 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
             addPluginInstance(Kobalt.INJECTOR.getInstance(pluginClass))
         }
 
-        private fun addPluginInstance(plugin: Plugin) {
+        fun addPluginInstance(plugin: Plugin) {
             pluginMap.put(plugin.name, plugin)
-        }
-
-        init {
-            arrayListOf<Class<out Plugin>>(
-                    DefaultPlugin::class.java,
-                    JavaPlugin::class.java,
-                    KotlinPlugin::class.java,
-                    PackagingPlugin::class.java,
-                    PublishPlugin::class.java,
-                    AndroidPlugin::class.java,
-                    ApplicationPlugin::class.java
-//                    AptPlugin::class.java
-            ).map {
-                addPluginInstance(Kobalt.INJECTOR.getInstance(it))
-            }
         }
 
         val plugins : List<Plugin>
@@ -71,7 +50,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
          */
         val dynamicPlugins : ArrayList<IClasspathDependency> = arrayListOf()
 
-        val defaultPlugin : Plugin get() = findPlugin(DefaultPlugin.NAME)!!
+        val defaultPlugin : Plugin get() = findPlugin(KobaltDefaultPlugin.NAME)!!
 
         fun findPlugin(name: String) : Plugin? = pluginMap[name]
     }

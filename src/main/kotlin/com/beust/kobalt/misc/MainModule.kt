@@ -5,10 +5,7 @@ import com.beust.kobalt.api.PluginInfo
 import com.beust.kobalt.kotlin.BuildFileCompiler
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.plugin.publish.JCenterApi
-import com.google.inject.AbstractModule
-import com.google.inject.BindingAnnotation
-import com.google.inject.Provider
-import com.google.inject.TypeLiteral
+import com.google.inject.*
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import java.util.concurrent.ExecutorService
 
@@ -54,7 +51,7 @@ public open class MainModule(val args: Args) : AbstractModule() {
         })
         bind(PluginInfo::class.java).toProvider(object: Provider<PluginInfo> {
             override fun get(): PluginInfo? = PluginInfo.readKobaltPluginXml()
-        })
+        }).`in`(Singleton::class.java)
 
 
 //        bindListener(Matchers.any(), object: TypeListener {
