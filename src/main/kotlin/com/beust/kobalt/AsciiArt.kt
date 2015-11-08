@@ -22,7 +22,9 @@ class AsciiArt {
 
         val banner : String get() = BANNERS.get(Random().nextInt(BANNERS.size))
 
-        fun box(s: String) : List<String> {
+        fun box(s: String) : List<String> = box(listOf(s))
+
+        fun box(strings: List<String>) : List<String> {
             val ul = "\u2554"
             val ur = "\u2557"
             val h = "\u2550"
@@ -37,17 +39,26 @@ class AsciiArt {
                 }
             }
 
-            return arrayListOf(
-                    ul + r(s.length + 2, h) + ur,
-                    "$v $s $v",
-                    bl + r(s.length + 2, h) + br)
+            val maxString: String = strings.maxBy { it.length } ?: ""
+            val max = maxString.length
+            val result = arrayListOf(ul + r(max + 2, h) + ur)
+            result.addAll(strings.map { "$v $it ${fill(max - it.length)}$v" })
+            result.add(bl + r(max + 2, h) + br)
+            return result
         }
 
+        private fun fill(n: Int) = StringBuffer().apply { repeat(n, { append(" ")})}.toString()
+
         val defaultLog : (s: String) -> Unit = { log(1, "          $it") }
-        fun logBox(s: String, print: (String) -> Unit = defaultLog) {
-            box(s).forEach {
+
+        fun logBox(strings: List<String>, print: (String) -> Unit = defaultLog) {
+            box(strings).forEach {
                 print(it)
             }
+        }
+
+        fun logBox(s: String, print: (String) -> Unit = defaultLog) {
+            logBox(listOf(s))
         }
     }
 }

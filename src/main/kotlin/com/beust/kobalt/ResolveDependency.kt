@@ -10,46 +10,44 @@ import java.util.*
  * Display information about a Maven id.
  */
 class ResolveDependency @Inject constructor(val repoFinder: RepoFinder) {
-    val increment = 4
+    val increment = 8
     val leftFirst = "\u2558"
     val leftMiddle = "\u255f"
     val leftLast = "\u2559"
     val vertical = "\u2551"
 
-    class Dep(val dep: IClasspathDependency, val indent: Int)
+    class Dep(val dep: IClasspathDependency, val level: Int)
 
     fun run(id: String) {
-        val indent = 0
+        val indent = -1
         val dep = MavenDependency.create(id)
         val root = Node(Dep(dep, indent))
         val seen = hashSetOf<String>(id)
         root.addChildren(findChildren(root, seen))
         val repoResult = repoFinder.findCorrectRepo(id)
-        AsciiArt.logBox(id, {s -> println(s) })
+
         val simpleDep = SimpleDep(MavenId(id))
+        val url = "Full URL: " + repoResult.repoUrl + simpleDep.toJarFile(repoResult)
+        AsciiArt.logBox(listOf(id, url), {s -> println(s) })
 
-        println("Full URL: " + repoResult.repoUrl + simpleDep.toJarFile(repoResult))
-        display(listOf(root))
+        display(root.children)
     }
-
-    private fun fill(n: Int) = StringBuffer().apply { repeat(n, { append(" ")})}.toString()
 
     private fun display(nodes: List<Node<Dep>>) {
         nodes.withIndex().forEach { indexNode ->
             val node = indexNode.value
-            println(fill(node.value.indent) + node.value.dep.id)
-            display(node.children)
-//            with(node.value) {
-//                val left =
-//                        if (indexNode.index == nodes.size - 1) leftLast
-//                        else leftMiddle
-//                for(i in 0..indent - increment) {
-//                    if (i % increment == 0) print(vertical)
-//                    else print(" ")
-//                }
-//                println(left + " " + dep.id)
-//                display(node.children)
-//            }
+            with(node.value) {
+                val left =
+                        if (indexNode.index == nodes.size - 1) leftLast
+                        else leftMiddle
+                val indent = level * increment
+                for(i in 0..indent - 2) {
+                    if (i % increment == 0) print(vertical)
+                    else print(" ")
+                }
+                println(left + " " + dep.id)
+                display(node.children)
+            }
         }
 
     }
@@ -58,9 +56,9 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder) {
         val result = arrayListOf<Node<Dep>>()
         root.value.dep.directDependencies().forEach {
             if (! seen.contains(it.id)) {
-                val dep = Dep(it, root.value.indent + increment)
+                val dep = Dep(it, root.value.level + 1)
                 val node = Node(dep)
-                log(2, "Found dependency ${dep.dep.id} indent: ${dep.indent}")
+                log(2, "Found dependency ${dep.dep.id} level: ${dep.level}")
                 result.add(node)
                 seen.add(it.id)
                 node.addChildren(findChildren(node, seen))
