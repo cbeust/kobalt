@@ -1,6 +1,8 @@
 package com.beust.kobalt.api
 
 import com.beust.kobalt.maven.IClasspathDependency
+import com.beust.kobalt.misc.log
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -41,7 +43,10 @@ interface IFactory {
     fun <T> instanceOf(c: Class<T>) : T
 }
 
-class ContributorFactory : IFactory {
+/**
+ * If a plug-in didn't specify a factory, we use our own injector to instantiate all its components.
+ */
+class GuiceFactory : IFactory {
     override fun <T> instanceOf(c: Class<T>) : T = Kobalt.INJECTOR.getInstance(c)
 }
 
@@ -116,7 +121,7 @@ class ClassNameXml {
  * all the contributors instantiated and other information that Kobalt can actually use. Kobalt code that
  * needs to access plug-in info can then just inject a PluginInfo object.
  */
-class PluginInfo(val xml: KobaltPluginXml) {
+class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val plugins = arrayListOf<Plugin>()
     val projectContributors = arrayListOf<IProjectContributor>()
     val classpathContributors = arrayListOf<IClasspathContributor>()
@@ -130,48 +135,71 @@ class PluginInfo(val xml: KobaltPluginXml) {
     // repos
 
     companion object {
+        val PLUGIN_XML = "META-INF/plugin.xml" // Plugins.PLUGIN_XML)
+
         /**
          * Read Kobalt's own plugin.xml.
          */
-        fun readKobaltPluginXml() : PluginInfo {
+        fun readKobaltPluginXml(): PluginInfo {
             // Note: use forward slash here since we're looking up this file in a .jar file
-            val pluginXml = "META-INF/plugin.xml" // Plugins.PLUGIN_XML)
-            val url = Kobalt::class.java.classLoader.getResource(pluginXml)
+            val url = Kobalt::class.java.classLoader.getResource(PLUGIN_XML)
             if (url != null) {
                 return readPluginXml(url.openConnection().inputStream)
             } else {
-                throw AssertionError("Couldn't find $pluginXml")
+                throw AssertionError("Couldn't find $PLUGIN_XML")
             }
         }
 
         /**
          * Read a general plugin.xml.
          */
-        private fun readPluginXml(ins: InputStream): PluginInfo {
+        fun readPluginXml(ins: InputStream, classLoader: ClassLoader? = null): PluginInfo {
             val jaxbContext = JAXBContext.newInstance(KobaltPluginXml::class.java)
             val kotlinPlugin: KobaltPluginXml = jaxbContext.createUnmarshaller().unmarshal(ins)
                     as KobaltPluginXml
-            return PluginInfo(kotlinPlugin)
+            return PluginInfo(kotlinPlugin, classLoader)
         }
+
+        fun readPluginXml(s: String, classLoader: ClassLoader? = null)
+                = readPluginXml(ByteArrayInputStream(s.toByteArray(Charsets.UTF_8)), classLoader)
     }
 
     init {
-        val factory = Class.forName(xml.factoryClassName).newInstance() as IFactory
+        val factory = if (xml.factoryClassName != null) {
+            Class.forName(xml.factoryClassName).newInstance() as IFactory
+        } else {
+            GuiceFactory()
+        }
+
+        fun forName(className: String) =
+            if (classLoader != null) classLoader.loadClass(className)
+            else Class.forName(className)
+
         xml.plugins?.className?.forEach {
-            plugins.add(factory.instanceOf(Class.forName(it)) as Plugin)
+            plugins.add(factory.instanceOf(forName(it)) as Plugin)
         }
         xml.classpathClassName?.className?.forEach {
-            classpathContributors.add(factory.instanceOf(Class.forName(it)) as IClasspathContributor)
+            classpathContributors.add(factory.instanceOf(forName(it)) as IClasspathContributor)
         }
         xml.projectClassName?.className?.forEach {
-            projectContributors.add(factory.instanceOf(Class.forName(it)) as IProjectContributor)
+            projectContributors.add(factory.instanceOf(forName(it)) as IProjectContributor)
         }
         xml.initClassName?.className?.forEach {
-            initContributors.add(factory.instanceOf(Class.forName(it)) as IInitContributor)
+            initContributors.add(factory.instanceOf(forName(it)) as IInitContributor)
         }
         xml.repoClassName?.className?.forEach {
-            repoContributors.add(factory.instanceOf(Class.forName(it)) as IRepoContributor)
+            repoContributors.add(factory.instanceOf(forName(it)) as IRepoContributor)
         }
+    }
+
+    fun addPluginInfo(pluginInfo: PluginInfo) {
+        log(2, "Found new plug-in, adding it to pluginInfo: $pluginInfo")
+
+        plugins.addAll(pluginInfo.plugins)
+        classpathContributors.addAll(pluginInfo.classpathContributors)
+        projectContributors.addAll(pluginInfo.projectContributors)
+        initContributors.addAll(pluginInfo.initContributors)
+        repoContributors.addAll(pluginInfo.repoContributors)
     }
 }
 

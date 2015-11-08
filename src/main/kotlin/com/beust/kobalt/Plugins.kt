@@ -12,13 +12,12 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.KobaltDefaultPlugin
+import com.beust.kobalt.plugin.packaging.JarUtils
 import com.google.inject.Provider
-import java.io.FileInputStream
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
-import java.net.URLClassLoader
 import java.util.*
-import java.util.jar.JarInputStream
+import java.util.jar.JarFile
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,16 +26,11 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
         val files: KFiles,
         val depFactory: DepFactory,
         val localRepo: LocalRepo,
-        val executors: KobaltExecutors) {
+        val executors: KobaltExecutors,
+        val pluginInfo: PluginInfo) {
 
     companion object {
-        public val MANIFEST_PLUGIN_CLASS : String = "Kobalt-Plugin-Class"
-
         private var pluginMap = hashMapOf<String, Plugin>()
-
-        fun addPlugin(pluginClass : Class<out Plugin>) {
-            addPluginInstance(Kobalt.INJECTOR.getInstance(pluginClass))
-        }
 
         fun addPluginInstance(plugin: Plugin) {
             pluginMap.put(plugin.name, plugin)
@@ -141,18 +135,6 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
 
     val dependencies = arrayListOf<IClasspathDependency>()
 
-    public fun instantiateClassName(classLoader: ClassLoader, className : String) : Class<*> {
-        try {
-            log(2, "Instantiating $className")
-            return classLoader.loadClass(className)
-        } catch(ex: Exception) {
-            val urls = Arrays.toString((classLoader as URLClassLoader).urLs)
-            val message = "Couldn't instantiate $className\n  with classLoader $urls: $ex"
-            println(message)
-            throw KobaltException(message)
-        }
-    }
-
     val allTasks : List<PluginTask>
         get() = Plugins.plugins.flatMap { it.tasks }
 
@@ -165,23 +147,19 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
             depFactory.create(it.id, executor)
 
             //
-            // Inspect the jar, open the manifest, instantiate the main class and add it to the plugin repo
+            // Open the jar, parse its plugin.xml and add the resulting PluginInfo to pluginInfo
             //
-            FileInputStream(it.jarFile.get()).use { fis ->
-                JarInputStream(fis).use { jis ->
-                    val manifest = jis.manifest
-                    val mainClass = manifest.mainAttributes.getValue(Plugins.MANIFEST_PLUGIN_CLASS) ?:
-                            throw KobaltException("Couldn't find \"${Plugins.MANIFEST_PLUGIN_CLASS}\" in the " +
-                                    "manifest of $it")
-
-                    val pluginClassName = mainClass.removeSuffix(" ")
-                    val c = instantiateClassName(classLoader, pluginClassName)
-                    @Suppress("UNCHECKED_CAST")
-                    Plugins.addPlugin(c as Class<BasePlugin>)
-                    log(1, "Added plugin $c")
+            val pluginXml = JarUtils.extractTextFile(JarFile(it.jarFile.get()), PluginInfo.PLUGIN_XML)
+            if (pluginXml != null) {
+                val thisPluginInfo = PluginInfo.readPluginXml(pluginXml, classLoader)
+                pluginInfo.addPluginInfo(thisPluginInfo)
+                thisPluginInfo.plugins.forEach {
+                    Plugins.addPluginInstance(it)
                 }
+            } else {
+                throw KobaltException("Plugin $it doesn't contain a ${PluginInfo.PLUGIN_XML} file")
             }
-        }
+       }
         executor.shutdown()
     }
 

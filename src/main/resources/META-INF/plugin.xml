@@ -1,6 +1,6 @@
 <kobalt-plugin>
     <name>kobalt</name>
-    <factory-class-name>com.beust.kobalt.api.ContributorFactory</factory-class-name>
+    <factory-class-name>com.beust.kobalt.api.GuiceFactory</factory-class-name>
     <plugins>
         <class-name>com.beust.kobalt.plugin.android.AndroidPlugin</class-name>
         <class-name>com.beust.kobalt.plugin.application.ApplicationPlugin</class-name>

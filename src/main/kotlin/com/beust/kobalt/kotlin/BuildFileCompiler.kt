@@ -172,7 +172,9 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
     }
 
     private fun isSameVersionFile(directory: File) =
-        File(directory, VERSION_FILE).readText() == Kobalt.version
+        with(File(directory, VERSION_FILE)) {
+            ! exists() || (exists() && readText() == Kobalt.version)
+        }
 
     private fun generateJarFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File) {
         val kotlintDeps = jvmCompiler.calculateDependencies(null, context, listOf<IClasspathDependency>())

@@ -2,11 +2,13 @@ package com.beust.kobalt.plugin.packaging
 
 import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.misc.log
+import com.google.common.io.CharStreams
 import java.io.*
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarInputStream
 import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 public class JarUtils {
@@ -90,6 +92,20 @@ public class JarUtils {
             } finally {
                 bis?.close()
             }
+        }
+
+        fun extractTextFile(zip : ZipFile, fileName: String) : String? {
+            val enumEntries = zip.entries()
+            while (enumEntries.hasMoreElements()) {
+                val file = enumEntries.nextElement()
+                if (file.name == fileName) {
+                    log(2, "Found $fileName in $zip")
+                    zip.getInputStream(file).use { ins ->
+                        return CharStreams.toString(InputStreamReader(ins, "UTF-8"))
+                    }
+                }
+            }
+            return null
         }
 
         fun extractJarFile(jarFile: File, destDir: File) {
