@@ -117,6 +117,6 @@ data class JCenterConfig(val project: Project) {
 public fun Project.jcenter(ini: JCenterConfig.() -> Unit) : JCenterConfig {
     val pd = JCenterConfig(this)
     pd.ini()
-    (Kobalt.findPlugin("publish") as PublishPlugin).addConfiguration(name!!, pd)
+    (Kobalt.findPlugin("publish") as PublishPlugin).addConfiguration(name, pd)
     return pd
 }

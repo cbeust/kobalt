@@ -1,12 +1,10 @@
 package com.beust.kobalt.internal
 
-import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.Topological
 import com.beust.kobalt.misc.log
 import org.testng.Assert
 import org.testng.annotations.Test
-import java.util.ArrayList
-import java.util.HashSet
+import java.util.*
 
 public class DynamicGraphTest {
 
@@ -47,7 +45,7 @@ public class DynamicGraphTest {
         val factory = createFactory(runNodes, { true })
 
         DynamicGraphExecutor(dg, factory).run()
-        Assert.assertEquals(runNodes.size(), 3)
+        Assert.assertEquals(runNodes.size, 3)
     }
 
 
