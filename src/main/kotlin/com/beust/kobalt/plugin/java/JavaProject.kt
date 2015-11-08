@@ -27,6 +27,6 @@ public class JavaProject(
     : Project(name, version, directory, buildDirectory, group, artifactId, packaging, dependencies,
         ".java", projectInfo = JavaProjectInfo()) {
 
-    override public fun toString() = toString("JavaProject", "name", name!!)
+    override public fun toString() = toString("JavaProject", "name", name)
 }
 

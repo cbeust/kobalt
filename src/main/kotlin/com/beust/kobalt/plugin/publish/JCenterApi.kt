@@ -69,7 +69,7 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
 //    }
 
     fun uploadMaven(project: Project, files: List<File>, config: JCenterConfig?) : TaskResult {
-        if (! packageExists(project.name!!)) {
+        if (! packageExists(project.name)) {
             throw KobaltException("Couldn't find a package called ${project.name} on bintray, please create one first" +
                     " as explained at https://bintray.com/docs/usermanual/uploads/uploads_creatinganewpackage.html")
         }
@@ -79,7 +79,7 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
                     UnauthenticatedJCenterApi.BINTRAY_URL_API_CONTENT,
                     username!!,
                     "maven",
-                    project.name!!,
+                    project.name,
                     project.version!!,
                     project.group!!.replace(".", "/"),
                     project.artifactId!!,

@@ -224,7 +224,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             includedFiles: List<IncludedFile>,
             expandJarFiles : Boolean = false,
             outputStreamFactory: (OutputStream) -> ZipOutputStream = DEFAULT_STREAM_FACTORY) : File {
-        val fullArchiveName = archiveName ?: arrayListOf(project.name!!, project.version!!).joinToString("-") + suffix
+        val fullArchiveName = archiveName ?: arrayListOf(project.name, project.version!!).joinToString("-") + suffix
         val archiveDir = libsDir(project)
         val result = File(archiveDir.path, fullArchiveName)
         val outStream = outputStreamFactory(FileOutputStream(result))

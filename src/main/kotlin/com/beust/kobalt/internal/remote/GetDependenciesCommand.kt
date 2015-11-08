@@ -57,7 +57,7 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
                 allDeps(project.testDependencies).map { toDependencyData(it, "testCompile") } +
                 allDeps(project.testProvidedDependencies).map { toDependencyData(it, "testProvided") }
 
-            projects.add(ProjectData(project.name!!, allDependencies))
+            projects.add(ProjectData(project.name, allDependencies))
         }
         log(1, "Returning BuildScriptInfo")
         val result = toCommandData(Gson().toJson(GetDependenciesData(projects)))
