@@ -57,7 +57,8 @@ private class Main @Inject constructor(
         val client: KobaltClient,
         val server: KobaltServer,
         val pluginInfo: PluginInfo,
-        val projectGenerator: ProjectGenerator) {
+        val projectGenerator: ProjectGenerator,
+        val resolveDependency: ResolveDependency) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
@@ -140,6 +141,9 @@ private class Main @Inject constructor(
             jc.usage()
         } else if (args.serverMode) {
             server.run()
+        } else if (args.dependency != null) {
+            // --resolve
+            resolveDependency.run(args.dependency as String)
         } else {
             if (! buildFile.exists()) {
                 error(buildFile.path.toFile().path + " does not exist")
@@ -199,4 +203,3 @@ private class Main @Inject constructor(
         }
     }
 }
-

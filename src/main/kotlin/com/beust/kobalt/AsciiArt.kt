@@ -43,9 +43,10 @@ class AsciiArt {
                     bl + r(s.length + 2, h) + br)
         }
 
-        fun logBox(s: String) {
+        val defaultLog : (s: String) -> Unit = { log(1, "          $it") }
+        fun logBox(s: String, print: (String) -> Unit = defaultLog) {
             box(s).forEach {
-                log(1, "          $it")
+                print(it)
             }
         }
     }
