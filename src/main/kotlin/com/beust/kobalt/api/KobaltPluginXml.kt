@@ -1,77 +1,21 @@
 package com.beust.kobalt.api
 
-import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.misc.log
 import java.io.ByteArrayInputStream
-import java.io.File
 import java.io.InputStream
-import java.io.OutputStream
-import java.net.URI
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
 
 //
-// Operations related to the parsing of plugin.xml: contributors, XML mapping, etc...
+// Operations related to the parsing of plugin.xml: XML parsing, PluginInfo, etc...
 //
-
-/////
-// Contributors
-//
-
-/**
- * Plugins that create project need to implement this interface.
- */
-interface IProjectContributor {
-    fun projects() : List<ProjectDescription>
-}
-
-class ProjectDescription(val project: Project, val dependsOn: List<Project>)
-
-/**
- * Plugins that export classpath entries need to implement this interface.
- */
-interface IClasspathContributor {
-    fun entriesFor(project: Project?) : Collection<IClasspathDependency>
-}
-
-/**
- * The factory function to use to instantiate all the contributors and other entities
- * found in plugin.xml.
- */
-interface IFactory {
-    fun <T> instanceOf(c: Class<T>) : T
-}
 
 /**
  * If a plug-in didn't specify a factory, we use our own injector to instantiate all its components.
  */
 class GuiceFactory : IFactory {
     override fun <T> instanceOf(c: Class<T>) : T = Kobalt.INJECTOR.getInstance(c)
-}
-
-/**
- * Plugins that want to participate in the --init process (they can generate files to initialize
- * a new project).
- */
-interface IInitContributor {
-    /**
-     * How many files your plug-in understands in the given directory. The contributor with the
-     * highest number will be asked to generate the build file.
-     */
-    fun filesManaged(dir: File): Int
-
-    /**
-     * Generate the Build.kt file into the given OutputStream.
-     */
-    fun generateBuildFile(os: OutputStream)
-}
-
-/**
- * Plugins that add their own repos.
- */
-interface IRepoContributor {
-    fun reposFor(project: Project?) : List<URI>
 }
 
 /////
