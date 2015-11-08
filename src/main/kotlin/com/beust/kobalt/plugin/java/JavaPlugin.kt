@@ -89,7 +89,7 @@ public class JavaPlugin @Inject constructor(
         return result
     }
 
-    private fun findSourceFiles(dir: String, sourceDirectories: List<String>): List<String> {
+    private fun findSourceFiles(dir: String, sourceDirectories: Collection<String>): List<String> {
         val projectDir = File(dir)
         return files.findRecursively(projectDir,
                 sourceDirectories.map { File(it) }) { it: String -> it.endsWith(".java") }

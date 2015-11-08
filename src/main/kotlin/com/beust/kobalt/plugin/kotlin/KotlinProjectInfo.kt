@@ -5,7 +5,7 @@ import com.google.inject.Singleton
 
 @Singleton
 class KotlinProjectInfo : IProjectInfo {
-    override val defaultSourceDirectories = arrayListOf("src/main/kotlin", "src/main/resources")
-    override val defaultTestDirectories = arrayListOf("src/test/kotlin", "src/test/resources")
+    override val defaultSourceDirectories = hashSetOf("src/main/kotlin", "src/main/resources")
+    override val defaultTestDirectories = hashSetOf("src/test/kotlin", "src/test/resources")
 }
 

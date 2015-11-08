@@ -44,7 +44,7 @@ open public class Project(
         return sources
     }
 
-    var sourceDirectories : ArrayList<String> = arrayListOf()
+    var sourceDirectories : HashSet<String> = hashSetOf()
         get() = if (field.isEmpty()) projectInfo.defaultSourceDirectories else field
         set(value) {
             field = value
@@ -57,7 +57,7 @@ open public class Project(
         return sources
     }
 
-    var sourceDirectoriesTest : ArrayList<String> = arrayListOf()
+    var sourceDirectoriesTest : HashSet<String> = hashSetOf()
         get() = if (field.isEmpty()) projectInfo.defaultTestDirectories
                 else field
         set(value) {
@@ -94,7 +94,7 @@ open public class Project(
     val projectName: String get() = name
 }
 
-public class Sources(val project: Project, val sources: ArrayList<String>) {
+public class Sources(val project: Project, val sources: HashSet<String>) {
     @Directive
     public fun path(vararg paths: String) {
         sources.addAll(paths)

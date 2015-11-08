@@ -12,8 +12,8 @@ import java.util.*
  * Abstract base class for the build generators that use build-template.mustache.
  */
 abstract class BuildGenerator : IInitContributor {
-    abstract val defaultSourceDirectories : ArrayList<String>
-    abstract val defaultTestDirectories : ArrayList<String>
+    abstract val defaultSourceDirectories : HashSet<String>
+    abstract val defaultTestDirectories : HashSet<String>
     abstract val directive : String
     abstract val name : String
     abstract val fileMatch : (String) -> Boolean
