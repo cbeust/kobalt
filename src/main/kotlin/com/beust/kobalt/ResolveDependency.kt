@@ -27,7 +27,7 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder) {
         val repoResult = repoFinder.findCorrectRepo(id)
 
         val simpleDep = SimpleDep(MavenId(id))
-        val url = "Full URL: " + repoResult.repoUrl + simpleDep.toJarFile(repoResult)
+        val url = repoResult.repoUrl + simpleDep.toJarFile(repoResult)
         AsciiArt.logBox(listOf(id, url), {s -> println(s) })
 
         display(root.children)

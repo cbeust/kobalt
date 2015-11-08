@@ -42,7 +42,7 @@ class AsciiArt {
             val maxString: String = strings.maxBy { it.length } ?: ""
             val max = maxString.length
             val result = arrayListOf(ul + r(max + 2, h) + ur)
-            result.addAll(strings.map { "$v $it ${fill(max - it.length)}$v" })
+            result.addAll(strings.map { "$v ${center(it, max - 2)} $v" })
             result.add(bl + r(max + 2, h) + br)
             return result
         }
@@ -58,7 +58,13 @@ class AsciiArt {
         }
 
         fun logBox(s: String, print: (String) -> Unit = defaultLog) {
-            logBox(listOf(s))
+            logBox(listOf(s), print)
+        }
+
+        fun center(s: String, width: Int) : String {
+            val diff = width - s.length
+            val spaces = diff / 2 + 1
+            return fill(spaces) + s + fill(spaces + if (diff % 2 == 1) 1 else 0)
         }
     }
 }
