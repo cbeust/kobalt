@@ -121,7 +121,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             //
             // Now that we have a full graph, run it
             //
-            log(2, "About to run graph:\n  ${graph.dump()}  ")
+            log(3, "About to run graph:\n  ${graph.dump()}  ")
 
             val factory = object : IThreadWorkerFactory<PluginTask> {
                 override public fun createWorkers(nodes: List<PluginTask>): List<IWorker<PluginTask>> {
