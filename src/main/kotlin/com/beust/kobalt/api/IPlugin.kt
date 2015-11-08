@@ -8,7 +8,7 @@ import com.beust.kobalt.internal.TaskResult2
 import java.lang.reflect.Method
 import java.util.*
 
-public interface Plugin {
+public interface IPlugin {
     val name: String
     val tasks : ArrayList<PluginTask>
     fun accept(project: Project) : Boolean

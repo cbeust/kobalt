@@ -30,13 +30,13 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
         val pluginInfo: PluginInfo) {
 
     companion object {
-        private var pluginMap = hashMapOf<String, Plugin>()
+        private var pluginMap = hashMapOf<String, IPlugin>()
 
-        fun addPluginInstance(plugin: Plugin) {
+        fun addPluginInstance(plugin: IPlugin) {
             pluginMap.put(plugin.name, plugin)
         }
 
-        val plugins : List<Plugin>
+        val plugins : List<IPlugin>
             get() = ArrayList(pluginMap.values)
 
         /**
@@ -44,9 +44,9 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
          */
         val dynamicPlugins : ArrayList<IClasspathDependency> = arrayListOf()
 
-        val defaultPlugin : Plugin get() = findPlugin(KobaltDefaultPlugin.NAME)!!
+        val defaultPlugin : IPlugin get() = findPlugin(KobaltDefaultPlugin.NAME)!!
 
-        fun findPlugin(name: String) : Plugin? = pluginMap[name]
+        fun findPlugin(name: String) : IPlugin? = pluginMap[name]
     }
 
     fun applyPlugins(context: KobaltContext, projects: List<Project>) {
@@ -86,7 +86,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
                     val annotation = it.second
 
                     log(3, "Adding MethodTask from @Task: ${it.first} $annotation")
-                    plugin.methodTasks.add(Plugin.MethodTask(it.first, annotation))
+                    plugin.methodTasks.add(IPlugin.MethodTask(it.first, annotation))
                 }
 
                 currentClass = currentClass.superclass
@@ -98,7 +98,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
                 val method = methodTask.method
                 val annotation = methodTask.taskAnnotation
 
-                fun toTask(m: Method, project: Project, plugin: Plugin): (Project) -> TaskResult {
+                fun toTask(m: Method, project: Project, plugin: IPlugin): (Project) -> TaskResult {
                     val result: (Project) -> TaskResult = {
                         m.invoke(plugin, project) as TaskResult
                     }

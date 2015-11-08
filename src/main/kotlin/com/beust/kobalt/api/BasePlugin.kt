@@ -5,10 +5,10 @@ import com.beust.kobalt.internal.TaskManager
 import java.util.*
 import kotlin.properties.Delegates
 
-abstract public class BasePlugin : Plugin {
+abstract public class BasePlugin : IPlugin {
     override val tasks: ArrayList<PluginTask> = arrayListOf()
     override var taskManager: TaskManager by Delegates.notNull()
-    override var methodTasks = arrayListOf<Plugin.MethodTask>()
+    override var methodTasks = arrayListOf<IPlugin.MethodTask>()
     override fun accept(project: Project) = true
     var plugins: Plugins by Delegates.notNull()
 

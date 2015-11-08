@@ -240,7 +240,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
                     } else {
                         val taskAnnotation = method.getAnnotation(Task::class.java)
                         if (taskAnnotation != null) {
-                            Plugins.defaultPlugin.methodTasks.add(Plugin.MethodTask(method, taskAnnotation))
+                            Plugins.defaultPlugin.methodTasks.add(IPlugin.MethodTask(method, taskAnnotation))
                         }
 
                     }}

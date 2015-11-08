@@ -5,7 +5,7 @@ import com.beust.kobalt.misc.toString
 import java.util.concurrent.Callable
 
 abstract public class PluginTask : Callable<TaskResult2<PluginTask>> {
-    abstract val plugin: Plugin
+    abstract val plugin: IPlugin
     open val name: String = ""
     open val doc: String = ""
     abstract val project: Project

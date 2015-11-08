@@ -66,7 +66,7 @@ class ClassNameXml {
  * needs to access plug-in info can then just inject a PluginInfo object.
  */
 class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
-    val plugins = arrayListOf<Plugin>()
+    val plugins = arrayListOf<IPlugin>()
     val projectContributors = arrayListOf<IProjectContributor>()
     val classpathContributors = arrayListOf<IClasspathContributor>()
     val initContributors = arrayListOf<IInitContributor>()
@@ -120,7 +120,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
             else Class.forName(className)
 
         xml.plugins?.className?.forEach {
-            plugins.add(factory.instanceOf(forName(it)) as Plugin)
+            plugins.add(factory.instanceOf(forName(it)) as IPlugin)
         }
         xml.classpathClassName?.className?.forEach {
             classpathContributors.add(factory.instanceOf(forName(it)) as IClasspathContributor)
