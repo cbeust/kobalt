@@ -7,7 +7,7 @@ import java.io.OutputStream
  * Plugins that want to participate in the --init process (they can generate files to initialize
  * a new project).
  */
-interface IInitContributor {
+interface IInitContributor : IContributor {
     /**
      * How many files your plug-in understands in the given directory. The contributor with the
      * highest number will be asked to generate the build file.
