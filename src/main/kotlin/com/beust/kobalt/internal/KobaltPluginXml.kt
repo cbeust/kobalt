@@ -1,5 +1,6 @@
-package com.beust.kobalt.api
+package com.beust.kobalt.internal
 
+import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.log
 import java.io.ByteArrayInputStream
 import java.io.InputStream

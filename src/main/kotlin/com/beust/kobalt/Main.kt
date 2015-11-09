@@ -2,8 +2,8 @@ package com.beust.kobalt
 
 import com.beust.jcommander.JCommander
 import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.PluginInfo
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.remote.KobaltClient
 import com.beust.kobalt.internal.remote.KobaltServer

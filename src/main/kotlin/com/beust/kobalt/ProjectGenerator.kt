@@ -1,7 +1,7 @@
 package com.beust.kobalt
 
 import com.beust.kobalt.api.IInitContributor
-import com.beust.kobalt.api.PluginInfo
+import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import java.io.File

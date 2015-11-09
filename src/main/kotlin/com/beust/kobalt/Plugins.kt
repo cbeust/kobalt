@@ -2,6 +2,7 @@ package com.beust.kobalt
 
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.DepFactory

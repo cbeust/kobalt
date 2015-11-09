@@ -1,7 +1,7 @@
 package com.beust.kobalt.internal.remote
 
 import com.beust.kobalt.Args
-import com.beust.kobalt.api.PluginInfo
+import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.kotlin.BuildFile
 import com.beust.kobalt.kotlin.BuildFileCompiler
 import com.beust.kobalt.maven.DependencyManager
