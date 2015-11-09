@@ -39,7 +39,7 @@ public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val e
      * Schedule an HTTP request to each repo in its own thread.
      */
     private fun loadCorrectRepo(id: String): RepoResult {
-        val executor = executors.newExecutor("RepoFinder-${id}", Kobalt.repos.size)
+        val executor = executors.newExecutor("RepoFinder-$id", Kobalt.repos.size)
         val cs = ExecutorCompletionService<RepoResult>(executor)
 
         try {
