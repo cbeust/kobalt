@@ -28,9 +28,10 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder) {
 
         val simpleDep = SimpleDep(MavenId(id))
         val url = repoResult.repoUrl + simpleDep.toJarFile(repoResult)
-        AsciiArt.logBox(listOf(id, url), {s -> println(s) })
+        AsciiArt.logBox(listOf(id, url).map { "          $it" }, {s -> println(s) })
 
         display(root.children)
+        println("")
     }
 
     private fun display(nodes: List<Node<Dep>>) {
