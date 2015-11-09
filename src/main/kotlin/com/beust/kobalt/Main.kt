@@ -11,6 +11,7 @@ import com.beust.kobalt.kotlin.BuildFile
 import com.beust.kobalt.kotlin.BuildFileCompiler
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.Http
+import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.*
 import com.beust.kobalt.wrapper.Wrapper
@@ -94,6 +95,9 @@ private class Main @Inject constructor(
 //            runTest()
             try {
                 result = runWithArgs(jc, args)
+            } catch(ex: KobaltException) {
+                error(ex.message ?: "", ex)
+                result = 1
             } finally {
                 executors.shutdown()
             }

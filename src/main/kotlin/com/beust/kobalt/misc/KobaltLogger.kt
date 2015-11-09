@@ -49,10 +49,11 @@ class Logger(val dev: Boolean) {
 
     final fun error(tag: String, message: String, e: Throwable? = null) {
         println(getPattern("***** E", "***** ERROR ", tag, message) +
-                if (e != null) " Exception: " + e.message else "")
-        e?.printStackTrace()
+                if (e != null && KobaltLogger.LOG_LEVEL > 1) " Exception: " + e.message else "")
+        if (KobaltLogger.LOG_LEVEL > 1) {
+            e?.printStackTrace()
+        }
     }
-
 
     final fun warn(tag: String, message: String, e: Throwable? = null) =
         println(getPattern("W", "***** WARNING ${e?.message}", tag, message))
