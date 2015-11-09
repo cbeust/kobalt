@@ -145,9 +145,6 @@ private class Main @Inject constructor(
             jc.usage()
         } else if (args.serverMode) {
             server.run()
-        } else if (args.dependency != null) {
-            // --resolve
-            resolveDependency.run(args.dependency as String)
         } else {
             if (! buildFile.exists()) {
                 error(buildFile.path.toFile().path + " does not exist")
@@ -162,7 +159,10 @@ private class Main @Inject constructor(
 
                 log(2, "Final list of repos:\n  " + Kobalt.repos.joinToString("\n  "))
 
-                if (args.tasks) {
+                if (args.dependency != null) {
+                    // --resolve
+                    resolveDependency.run(args.dependency as String)
+                } else if (args.tasks) {
                     //
                     // List of tasks
                     //
