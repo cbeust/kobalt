@@ -19,6 +19,6 @@ open public class UnversionedDep(open val groupId: String, open val artifactId: 
     public fun toDirectory(v: String, fileSystem: Boolean = true): String {
         val sep = if (fileSystem) File.separator else "/"
         val l = listOf(groupId.replace(".", sep), artifactId, v)
-        return Strings.Companion.join(sep, l) + "/"
+        return Strings.Companion.join(sep, l)
     }
 }
