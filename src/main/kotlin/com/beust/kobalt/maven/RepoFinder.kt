@@ -73,7 +73,7 @@ public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val e
             val mavenId = MavenId(id)
             val groupId = mavenId.groupId
             val artifactId = mavenId.artifactId
-            val version = mavenId.version
+
             if (! mavenId.hasVersion) {
                 val ud = UnversionedDep(groupId, artifactId)
                 val foundVersion = findCorrectVersionRelease(ud.toMetadataXmlPath(false), repoUrl)
@@ -83,6 +83,7 @@ public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val e
                     return RepoResult(repoUrl, false, "")
                 }
             } else {
+                val version = mavenId.version
                 if (version!!.contains("SNAPSHOT")) {
                     val dep = SimpleDep(mavenId)
                     val snapshotVersion = findSnapshotVersion(dep.toMetadataXmlPath(false), repoUrl)
