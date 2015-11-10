@@ -35,7 +35,7 @@ open class RunCommand(val command: String) {
         if (callSucceeded) {
             successCb(fromStream(process.inputStream))
         } else {
-            errorCb(listOf("Time out for command $command") + fromStream(process.errorStream))
+            errorCb(listOf("$command failed") + fromStream(process.errorStream))
         }
         return if (callSucceeded) 0 else 1
 
