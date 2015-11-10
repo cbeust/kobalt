@@ -31,9 +31,9 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
             allArgs.addAll(info.sourceFiles)
 
             val pb = ProcessBuilder(allArgs)
-            info.directory?.let {
-                pb.directory(File(it))
-            }
+//            info.directory?.let {
+//                pb.directory(File(it))
+//            }
             pb.inheritIO()
             val line = allArgs.joinToString(" ")
             log(2, "  Compiling $line")
