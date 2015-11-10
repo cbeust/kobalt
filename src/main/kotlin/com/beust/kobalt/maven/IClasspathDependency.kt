@@ -74,4 +74,17 @@ open public class FileDependency(open val fileName: String) : IClasspathDependen
     override fun compareTo(other: FileDependency) = fileName.compareTo(other.fileName)
 
     override fun toString() = fileName
+
+    override fun equals(other: Any?): Boolean{
+        if (this === other) return true
+        if (other?.javaClass != javaClass) return false
+
+        other as FileDependency
+
+        if (id != other.id) return false
+
+        return true
+    }
+
+    override fun hashCode() = id.hashCode()
 }
