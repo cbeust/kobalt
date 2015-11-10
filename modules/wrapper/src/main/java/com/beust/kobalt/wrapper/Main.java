@@ -73,7 +73,7 @@ public class Main {
     }
 
     private static final String downloadUrl(String version) {
-        return "https://github.com/cbeust/kobalt/releases/download/" + version + "/kobalt-" + version + ".zip";
+        return "http://beust.com/kobalt/kobalt-" + version + ".zip";
     }
 
     private void initWrapperFile(String version) throws IOException {
@@ -90,8 +90,12 @@ public class Main {
         return wrapperProperties.getProperty(PROPERTY_VERSION);
     }
 
-    private String getWrapperDownloadUrl() {
-        return wrapperProperties.getProperty(PROPERTY_DOWNLOAD_URL);
+    private String getWrapperDownloadUrl(String version) {
+        String result = wrapperProperties.getProperty(PROPERTY_DOWNLOAD_URL);
+        if (result == null) {
+            result = downloadUrl(version);
+        }
+        return result;
     }
 
     private boolean isWindows() {
@@ -112,7 +116,7 @@ public class Main {
         Path kobaltJarFile = Paths.get(zipOutputDir,
                 getWrapperDir().getPath() + "/" + FILE_NAME + "-" + getWrapperVersion() + ".jar");
         if (! Files.exists(localZipFile) || ! Files.exists(kobaltJarFile)) {
-            download(localZipFile.toFile());
+            download(localZipFile.toFile(), version);
         }
 
         //
@@ -144,7 +148,7 @@ public class Main {
                 error("Couldn't open zip file " + localZipFile + ": " + e.getMessage());
                 error("The file is probably corrupt, downloading it again");
                 Files.delete(localZipFile);
-                download(localZipFile.toFile());
+                download(localZipFile.toFile(), version);
             }
         }
 
@@ -173,12 +177,26 @@ public class Main {
 
     private static final String[] FILES = new String[] { KOBALTW, "kobalt/wrapper/" + FILE_NAME + "-wrapper.jar" };
 
-    private void download(File file) throws IOException {
-        String fileUrl = getWrapperDownloadUrl();
+    private void download(File file, String version) throws IOException {
+        String fileUrl = getWrapperDownloadUrl(version);
 
-        URL url = new URL(fileUrl);
-        HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
-        int responseCode = httpConn.getResponseCode();
+        log(2, "Downloading " + fileUrl);
+
+        boolean done = false;
+        HttpURLConnection httpConn = null;
+        int responseCode = 0;
+        URL url = null;
+        while (! done) {
+            url = new URL(fileUrl);
+            httpConn = (HttpURLConnection) url.openConnection();
+            responseCode = httpConn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
+                    responseCode == HttpURLConnection.HTTP_MOVED_PERM) {
+                fileUrl = httpConn.getHeaderField("Location");
+            } else {
+                done = true;
+            }
+        }
 
         // always check HTTP response code first
         if (responseCode == HttpURLConnection.HTTP_OK) {
@@ -191,7 +209,7 @@ public class Main {
                 // extracts file name from header field
                 int index = disposition.indexOf("filename=");
                 if (index > 0) {
-                    fileName = disposition.substring(index + 10, disposition.length() - 1);
+                    fileName = disposition.substring(index + 9, disposition.length());
                 }
             } else {
                 // extracts file name from URL
