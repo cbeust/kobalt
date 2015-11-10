@@ -24,7 +24,7 @@ public class Main {
     private static final String KOBALTW = "kobaltw";
     private static final String KOBALT_WRAPPER_PROPERTIES = "kobalt-wrapper.properties";
     private static final String PROPERTY_VERSION = "kobalt.version";
-    private static final String URL = "https://dl.bintray.com/cbeust/generic/";
+    private static final String PROPERTY_DOWNLOAD_URL = "kobalt.downloadUrl";
     private static final String FILE_NAME = "kobalt";
     private static final String DISTRIBUTIONS_DIR =
             System.getProperty("user.home") + "/.kobalt/wrapper/dist";
@@ -66,16 +66,26 @@ public class Main {
         return new File("kobalt", "wrapper");
     }
 
+    private static final String downloadUrl(String version) {
+        return "https://github.com/cbeust/kobalt/releases/download/" + version + "/kobalt-" + version + ".zip";
+    }
+
     private void initWrapperFile(String version) throws IOException {
         File config = new File(getWrapperDir(), KOBALT_WRAPPER_PROPERTIES);
         if (! config.exists()) {
-            saveFile(config, PROPERTY_VERSION + "=" + version);
+            saveFile(config,
+                    PROPERTY_VERSION + "=" + version + "\n"
+                    + PROPERTY_DOWNLOAD_URL + "=" + downloadUrl(version) + "\n");
         }
         wrapperProperties.load(new FileReader(config));
     }
 
     private String getWrapperVersion() {
         return wrapperProperties.getProperty(PROPERTY_VERSION);
+    }
+
+    private String getWrapperDownloadUrl() {
+        return wrapperProperties.getProperty(PROPERTY_DOWNLOAD_URL);
     }
 
     private boolean isWindows() {
@@ -97,7 +107,7 @@ public class Main {
                 getWrapperDir().getPath() + "/" + FILE_NAME + "-" + getWrapperVersion() + ".jar");
         if (! Files.exists(localZipFile) || ! Files.exists(kobaltJarFile)) {
             if (!Files.exists(localZipFile)) {
-                download(fileName, localZipFile.toFile());
+                download(localZipFile.toFile());
             }
 
             //
@@ -129,7 +139,7 @@ public class Main {
                     error("Couldn't open zip file " + localZipFile + ": " + e.getMessage());
                     error("The file is probably corrupt, downloading it again");
                     Files.delete(localZipFile);
-                    download(fileName, localZipFile.toFile());
+                    download(localZipFile.toFile());
                 }
             }
         }
@@ -161,8 +171,8 @@ public class Main {
 
     private static final String[] FILES = new String[] { KOBALTW, "kobalt/wrapper/" + FILE_NAME + "-wrapper.jar" };
 
-    private void download(String fn, File file) throws IOException {
-        String fileUrl = URL + fn;
+    private void download(File file) throws IOException {
+        String fileUrl = getWrapperDownloadUrl();
 
         URL url = new URL(fileUrl);
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
@@ -238,11 +248,11 @@ public class Main {
         Files.write(Paths.get(file.toURI()), text.getBytes());
     }
 
-    private static void log2(int level, String s) {
+    static void log2(int level, String s) {
         p(level, s, false);
     }
 
-    private static void log(int level, String s) {
+    static void log(int level, String s) {
         p(level, "[Wrapper] " + s, true);
     }
 

@@ -1,7 +1,9 @@
 
 import com.beust.kobalt.api.License
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.Scm
 import com.beust.kobalt.homeDir
+import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.internal.test
 import com.beust.kobalt.plugin.application.application
 import com.beust.kobalt.plugin.java.javaCompiler
@@ -9,8 +11,10 @@ import com.beust.kobalt.plugin.java.javaProject
 import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.kotlin.kotlinProject
 import com.beust.kobalt.plugin.packaging.assemble
-import com.beust.kobalt.plugin.publish.jcenter
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 
 val wrapper = javaProject {
     name = "kobalt-wrapper"
@@ -87,18 +91,22 @@ val kobalt = kotlinProject(wrapper) {
         }
     }
 
+//    install {
+//        libDir = "lib-test"
+//    }
+
     test {
-        args("-log", "2", "src/test/resources/testng.xml")
+        args("-log", "1", "src/test/resources/testng.xml")
     }
 
     kotlinCompiler {
         args("-nowarn")
     }
 
-    jcenter {
-        publish = true
-        file("$buildDirectory/libs/$name-$version.zip", "$name/$version/$name-$version.zip")
-    }
+//    jcenter {
+//        publish = true
+//        file("$buildDirectory/libs/$name-$version.zip", "$name/$version/$name-$version.zip")
+//    }
 }
 
 fun readVersion() : String {
@@ -111,6 +119,15 @@ fun readVersion() : String {
     return p.getProperty("kobalt.version")
 }
 
+@com.beust.kobalt.api.annotation.Task(name = "copyVersionForWrapper", runBefore = arrayOf("compile"), description = "")
+fun taskCopyVersionForWrapper(project: Project) : TaskResult {
+    if (project.name == "kobalt-wrapper") {
+        Files.copy(Paths.get("src/main/resources/kobalt.properties"),
+                Paths.get("modules/wrapper/kobaltBuild/classes/kobalt.properties"),
+                StandardCopyOption.REPLACE_EXISTING)
+    }
+    return TaskResult()
+}
 //import com.beust.kobalt.plugin.linecount.lineCount
 //val plugins = plugins(
 //        "com.beust.kobalt:kobalt-line-count:0.15"
