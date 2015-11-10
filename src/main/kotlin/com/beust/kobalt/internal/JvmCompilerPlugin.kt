@@ -95,10 +95,10 @@ abstract class JvmCompilerPlugin @Inject constructor(
     protected fun copyResources(project: Project, sourceSet: String) {
         val sourceDirs: ArrayList<String> = arrayListOf()
         var outputDir: String?
-        if (sourceSet == "main") {
+        if (sourceSet == JvmCompilerPlugin.SOURCE_SET_MAIN) {
             sourceDirs.addAll(project.sourceDirectories.filter { it.contains("resources") })
             outputDir = KFiles.CLASSES_DIR
-        } else if (sourceSet == "test") {
+        } else if (sourceSet == JvmCompilerPlugin.SOURCE_SET_TEST) {
             sourceDirs.addAll(project.sourceDirectoriesTest.filter { it.contains("resources") })
             outputDir = KFiles.TEST_CLASSES_DIR
         } else {
