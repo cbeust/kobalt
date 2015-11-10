@@ -50,7 +50,7 @@ class Logger(val dev: Boolean) {
     final fun error(tag: String, message: String, e: Throwable? = null) {
         println(getPattern("***** E", "***** ERROR ", tag, message) +
                 if (e != null && KobaltLogger.LOG_LEVEL > 1) " Exception: " + e.message else "")
-        if (KobaltLogger.LOG_LEVEL > 1) {
+        if (KobaltLogger.LOG_LEVEL > 0) {
             e?.printStackTrace()
         }
     }
