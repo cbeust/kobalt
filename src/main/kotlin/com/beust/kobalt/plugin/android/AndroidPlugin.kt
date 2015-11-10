@@ -209,7 +209,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
         val dx = "${androidHome(project)}/build-tools/$buildToolsDir/dx" +
                 if (OperatingSystem.current().isWindows()) ".bat" else ""
         val buildDir = context.pluginProperties.get("java", JvmCompilerPlugin.BUILD_DIR)
-        val libsDir = (context.pluginProperties.get("packaging", PackagingPlugin.LIBS_DIR) as File).path
+        val libsDir = context.pluginProperties.getString("packaging", PackagingPlugin.LIBS_DIR)
         File(libsDir.toString()).mkdirs()
         val classesDex = "classes.dex"
         val classesDexDir = KFiles.joinAndMakeDir(libsDir, "intermediates", "dex", flavor)

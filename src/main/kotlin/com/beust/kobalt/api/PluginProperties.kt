@@ -14,4 +14,6 @@ class PluginProperties @Inject constructor() {
         pluginProperties.getOrPut(pluginName) { hashMapOf<String, Any>() }.put(key, value)
 
     fun get(pluginName: String, key: String) = pluginProperties[pluginName]?.get(key)
+
+    fun getString(pluginName: String, key: String) = get(pluginName, key) as String
 }

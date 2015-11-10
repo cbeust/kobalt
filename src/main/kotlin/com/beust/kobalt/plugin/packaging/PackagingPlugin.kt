@@ -41,16 +41,19 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val executors: KobaltExecutors, val localRepo: LocalRepo) : BasePlugin() {
 
     companion object {
+        const val PLUGIN_NAME = "PackagingPlugin"
+
         @ExportedProperty
         const val LIBS_DIR = "libsDir"
 
         @ExportedProperty
         const val JAR_NAME = "jarName"
 
-        const val TASK_ASSEMBLE : String = "assemble"
+        const val TASK_ASSEMBLE: String = "assemble"
+        const val TASK_INSTALL: String = "install"
     }
 
-    override val name = "packaging"
+    override val name = PLUGIN_NAME
 
     private val packages = arrayListOf<Package>()
 
@@ -59,7 +62,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         context.pluginProperties.put(name, LIBS_DIR, libsDir(project))
     }
 
-    private fun libsDir(project: Project) = KFiles.makeDir(buildDir(project).path, "libs")
+    private fun libsDir(project: Project) = KFiles.makeDir(buildDir(project).path, "libs").path
 
     @Task(name = TASK_ASSEMBLE, description = "Package the artifacts", runAfter = arrayOf(JavaPlugin.TASK_COMPILE))
     fun taskAssemble(project: Project) : TaskResult {
@@ -225,7 +228,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             expandJarFiles : Boolean = false,
             outputStreamFactory: (OutputStream) -> ZipOutputStream = DEFAULT_STREAM_FACTORY) : File {
         val fullArchiveName = archiveName ?: arrayListOf(project.name, project.version!!).joinToString("-") + suffix
-        val archiveDir = libsDir(project)
+        val archiveDir = File(libsDir(project))
         val result = File(archiveDir.path, fullArchiveName)
         val outStream = outputStreamFactory(FileOutputStream(result))
         log(2, "Creating $result")
@@ -243,7 +246,40 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     fun addPackage(p: Package) {
         packages.add(p)
     }
+
+
+    @Task(name = PackagingPlugin.TASK_INSTALL, description = "Install the artifacts",
+            runAfter = arrayOf(PackagingPlugin.TASK_ASSEMBLE))
+    fun taskInstall(project: Project) : TaskResult {
+        val config = installConfigs[project.name]
+        if (config != null) {
+            val buildDir = context.pluginProperties.getString(PLUGIN_NAME, LIBS_DIR)
+            log(1, "Installing from $buildDir to ${config.libDir}")
+
+            val toDir = KFiles.makeDir(config.libDir)
+            KFiles.copyRecursively(File(buildDir), toDir)
+        } else {
+            log(1, "No install specified for ${project.name}, nothing to do")
+        }
+
+        return TaskResult()
+    }
+
+    private val installConfigs = hashMapOf<String, InstallConfig>()
+
+    fun addInstallConfig(project: Project, config: InstallConfig) =
+            installConfigs.put(project.name, config)
 }
+
+@Directive
+fun Project.install(init: InstallConfig.() -> Unit) {
+    InstallConfig().let {
+        it.init()
+        (Kobalt.findPlugin(PackagingPlugin.PLUGIN_NAME) as PackagingPlugin).addInstallConfig(this, it)
+    }
+}
+
+class InstallConfig(var libDir : String = "libs")
 
 class Package(val project: Project) : AttributeHolder {
     val jars = arrayListOf<Jar>()
@@ -251,7 +287,7 @@ class Package(val project: Project) : AttributeHolder {
     val zips = arrayListOf<Zip>()
 
     init {
-        (Kobalt.findPlugin("packaging") as PackagingPlugin).addPackage(this)
+        (Kobalt.findPlugin(PackagingPlugin.PLUGIN_NAME) as PackagingPlugin).addPackage(this)
     }
 
     @Directive
@@ -362,6 +398,7 @@ open class Zip(open var name: String? = null) {
      * file and the excludePrefix is "build/lib", then "a.jar" will be added at the root of the zip file.
      */
     val includedFiles = arrayListOf<IncludedFile>()
+
 }
 
 open class Direction(open val p: String) {
