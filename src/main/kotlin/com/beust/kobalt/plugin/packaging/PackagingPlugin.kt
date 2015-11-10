@@ -41,7 +41,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val executors: KobaltExecutors, val localRepo: LocalRepo) : BasePlugin() {
 
     companion object {
-        const val PLUGIN_NAME = "PackagingPlugin"
+        const val PLUGIN_NAME = "packaging"
 
         @ExportedProperty
         const val LIBS_DIR = "libsDir"
