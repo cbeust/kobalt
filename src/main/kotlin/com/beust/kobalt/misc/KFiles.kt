@@ -26,7 +26,7 @@ class KFiles {
                     // Will only happen when building kobalt itself: the jar file might not be in the dist/ directory
                     // yet since we're currently building it. Instead, use the classes directly
                     debug("Couldn't find ${jarFile.absolutePath}, using build/classes/main")
-                    return java.io.File(joinDir("build", "classes", "main")).absolutePath
+                    return File(homeDir("kotlin", "kobalt", "build", "classes", "main")).absolutePath
                 }
             }
         }
