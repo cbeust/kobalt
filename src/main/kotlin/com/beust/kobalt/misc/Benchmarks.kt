@@ -1,8 +1,8 @@
 package com.beust.kobalt.misc
 
-public fun benchmark(message: String, run: () -> Unit) {
+public fun benchmark(message: String, run: () -> Unit) : Long {
     val start = System.currentTimeMillis()
     run()
-    println("Time to $message: ${System.currentTimeMillis() - start} ms")
+    return (System.currentTimeMillis() - start) / 1000
 }
 
