@@ -2,6 +2,7 @@
 import com.beust.kobalt.api.License
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.Scm
+import com.beust.kobalt.file
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.internal.test
@@ -11,6 +12,7 @@ import com.beust.kobalt.plugin.java.javaProject
 import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.kotlin.kotlinProject
 import com.beust.kobalt.plugin.packaging.assemble
+import com.beust.kobalt.plugin.publish.jcenter
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -71,7 +73,8 @@ val kobalt = kotlinProject(wrapper) {
                 "org.apache.maven:maven-model:3.3.3",
                 "com.github.spullara.mustache.java:compiler:0.9.1",
                 "io.reactivex:rxjava:1.0.14",
-                "com.google.code.gson:gson:2.4"
+                "com.google.code.gson:gson:2.4",
+                file("modules/wrapper/kobaltBuild/libs/kobalt-wrapper.jar")
               )
     }
 
@@ -103,10 +106,10 @@ val kobalt = kotlinProject(wrapper) {
         args("-nowarn")
     }
 
-//    jcenter {
-//        publish = true
-//        file("$buildDirectory/libs/$name-$version.zip", "$name/$version/$name-$version.zip")
-//    }
+    jcenter {
+        publish = true
+        file("$buildDirectory/libs/$name-$version.zip", "$name/$version/$name-$version.zip")
+    }
 }
 
 fun readVersion() : String {

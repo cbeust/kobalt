@@ -34,8 +34,12 @@ public class Main {
     private static int logLevel = 1;
 
     private void installAndLaunchMain(String[] argv) throws IOException, InterruptedException {
+        boolean noLaunch = false;
         for (int i = 0; i < argv.length; i++) {
             switch(argv[i]) {
+                case "--no-launch":
+                    noLaunch = true;
+                    break;
                 case "--log":
                     logLevel = Integer.parseInt(argv[i + 1]);
                     i++;
@@ -43,7 +47,9 @@ public class Main {
             }
         }
         Path kobaltJarFile = installJarFile();
-        launchMain(kobaltJarFile, argv);
+        if (! noLaunch) {
+            launchMain(kobaltJarFile, argv);
+        }
     }
 
     private void readProperties(Properties properties, InputStream ins) throws IOException {
@@ -106,66 +112,62 @@ public class Main {
         Path kobaltJarFile = Paths.get(zipOutputDir,
                 getWrapperDir().getPath() + "/" + FILE_NAME + "-" + getWrapperVersion() + ".jar");
         if (! Files.exists(localZipFile) || ! Files.exists(kobaltJarFile)) {
-            if (!Files.exists(localZipFile)) {
-                download(localZipFile.toFile());
-            }
+            download(localZipFile.toFile());
+        }
 
-            //
-            // Extract all the zip files
-            //
-            boolean success = false;
-            int retries = 0;
-            while (! success && retries < 2) {
-                try {
-                    ZipFile zipFile = new ZipFile(localZipFile.toFile());
-                    Enumeration<? extends ZipEntry> entries = zipFile.entries();
-                    File outputDirectory = new File(DISTRIBUTIONS_DIR);
-                    outputDirectory.mkdirs();
-                    while (entries.hasMoreElements()) {
-                        ZipEntry entry = entries.nextElement();
-                        File entryFile = new File(entry.getName());
-                        if (entry.isDirectory()) {
-                            entryFile.mkdirs();
-                        } else {
-                            Path dest = Paths.get(zipOutputDir, entryFile.getPath());
-                            log(2, "  Writing " + entry.getName() + " to " + dest);
-                            Files.createDirectories(dest.getParent());
-                            Files.copy(zipFile.getInputStream(entry), dest, StandardCopyOption.REPLACE_EXISTING);
-                        }
+        //
+        // Extract all the zip files
+        //
+        boolean success = false;
+        int retries = 0;
+        while (! success && retries < 2) {
+            try {
+                ZipFile zipFile = new ZipFile(localZipFile.toFile());
+                Enumeration<? extends ZipEntry> entries = zipFile.entries();
+                File outputDirectory = new File(DISTRIBUTIONS_DIR);
+                outputDirectory.mkdirs();
+                while (entries.hasMoreElements()) {
+                    ZipEntry entry = entries.nextElement();
+                    File entryFile = new File(entry.getName());
+                    if (entry.isDirectory()) {
+                        entryFile.mkdirs();
+                    } else {
+                        Path dest = Paths.get(zipOutputDir, entryFile.getPath());
+                        log(2, "  Writing " + entry.getName() + " to " + dest);
+                        Files.createDirectories(dest.getParent());
+                        Files.copy(zipFile.getInputStream(entry), dest, StandardCopyOption.REPLACE_EXISTING);
                     }
-                    success = true;
-                } catch (ZipException e) {
-                    retries++;
-                    error("Couldn't open zip file " + localZipFile + ": " + e.getMessage());
-                    error("The file is probably corrupt, downloading it again");
-                    Files.delete(localZipFile);
-                    download(localZipFile.toFile());
                 }
+                success = true;
+            } catch (ZipException e) {
+                retries++;
+                error("Couldn't open zip file " + localZipFile + ": " + e.getMessage());
+                error("The file is probably corrupt, downloading it again");
+                Files.delete(localZipFile);
+                download(localZipFile.toFile());
             }
         }
 
         //
         // Copy the wrapper files in the current kobalt/wrapper directory
         //
-        if (! version.equals(getWrapperVersion())) {
-            log(2, "Copying the wrapper files");
-            for (String file : FILES) {
-                Path from = Paths.get(zipOutputDir, file);
-                Path to = Paths.get(new File(".").getAbsolutePath(), file);
-                try {
-                    if (isWindows() && to.toFile().exists()) {
-                        log(1, "Windows detected, not overwriting " + to);
-                    } else {
-                        Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
-                    }
-                } catch (IOException ex) {
-                    log(1, "Couldn't copy " + from + " to " + to + ": " + ex.getMessage());
+        boolean sameVersion = equals(getWrapperVersion());
+        log(2, "Copying the wrapper files");
+        for (String file : FILES) {
+            Path from = Paths.get(zipOutputDir, file);
+            Path to = Paths.get(new File(".").getAbsolutePath(), file);
+            try {
+                if (isWindows() && to.toFile().exists()) {
+                    log(1, "Windows detected, not overwriting " + to);
+                } else {
+                    Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
                 }
+            } catch (IOException ex) {
+                log(1, "Couldn't copy " + from + " to " + to + ": " + ex.getMessage());
             }
-            new File(KOBALTW).setExecutable(true);
-        } else {
-            log(2, "Wrapper and current versions are identical");
         }
+        new File(KOBALTW).setExecutable(true);
+
         return kobaltJarFile;
     }
 
@@ -266,8 +268,6 @@ public class Main {
     private void error(String s) {
         System.out.println("[Wrapper error] *** " + s);
     }
-
-    private static final String KOBALT_MAIN_CLASS = "com.beust.kobalt.KobaltPackage";
 
     private void launchMain(Path kobaltJarFile, String[] argv) throws IOException, InterruptedException {
         List<String> args = new ArrayList<>();

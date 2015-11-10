@@ -14,7 +14,6 @@ import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.*
-import com.beust.kobalt.wrapper.Wrapper
 import com.google.inject.Guice
 import java.io.File
 import java.nio.file.Paths
@@ -37,10 +36,10 @@ private fun parseArgs(argv: Array<String>): Main.RunInfo {
 }
 
 
-public fun mainNoExit(argv: Array<String>) : Int {
+public fun mainNoExit(argv: Array<String>): Int {
     val (jc, args) = parseArgs(argv)
     Kobalt.INJECTOR = Guice.createInjector(MainModule(args))
-    return Kobalt.INJECTOR.getInstance(Main::class.java).run(jc, args)
+    return Kobalt.INJECTOR.getInstance(Main::class.java).run(jc, args, argv)
 }
 
 private class Main @Inject constructor(
@@ -59,19 +58,18 @@ private class Main @Inject constructor(
         val server: KobaltServer,
         val pluginInfo: PluginInfo,
         val projectGenerator: ProjectGenerator,
-        val resolveDependency: ResolveDependency,
-        val wrapper: Wrapper) {
+        val resolveDependency: ResolveDependency) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
     private fun addReposFromContributors(project: Project?) =
-        pluginInfo.repoContributors.forEach {
-            it.reposFor(project).forEach {
-                Kobalt.addRepo(it.toString())
+            pluginInfo.repoContributors.forEach {
+                it.reposFor(project).forEach {
+                    Kobalt.addRepo(it.toString())
+                }
             }
-        }
 
-    public fun run(jc: JCommander, args: Args) : Int {
+    public fun run(jc: JCommander, args: Args, argv: Array<String>): Int {
 
         //
         // Add all the repos from repo contributors (at least those that return values without a Project)
@@ -93,9 +91,9 @@ private class Main @Inject constructor(
         var result = 0
         val latestVersionFuture = github.latestKobaltVersion
         val seconds = benchmark("build", {
-//            runTest()
+            //            runTest()
             try {
-                result = runWithArgs(jc, args)
+                result = runWithArgs(jc, args, argv)
             } catch(ex: KobaltException) {
                 error(ex.message ?: "", ex)
                 result = 1
@@ -120,32 +118,33 @@ private class Main @Inject constructor(
     }
 
 
-//    public fun runTest() {
-//        val file = File("src\\main\\resources\\META-INF\\plugin.ml")
-//    }
+    //    public fun runTest() {
+    //        val file = File("src\\main\\resources\\META-INF\\plugin.ml")
+    //    }
 
-    private fun runWithArgs(jc: JCommander, args: Args) : Int {
+    private fun runWithArgs(jc: JCommander, args: Args, argv: Array<String>): Int {
         var result = 0
         val p = if (args.buildFile != null) File(args.buildFile) else findBuildFile()
         args.buildFile = p.absolutePath
         val buildFile = BuildFile(Paths.get(p.absolutePath), p.name)
 
-        if (! args.update) {
+        if (!args.update) {
             println(AsciiArt.banner + Kobalt.version + "\n")
         }
 
         if (args.init) {
             //
             // --init: create a new build project and install the wrapper
+            // Make sure the wrapper won't call us back with --no-launch
             //
-            wrapper.install()
+            com.beust.kobalt.wrapper.Main.main(arrayOf("--no-launch") + argv)
             projectGenerator.run(args)
         } else if (args.usage) {
             jc.usage()
         } else if (args.serverMode) {
             server.run()
         } else {
-            if (! buildFile.exists()) {
+            if (!buildFile.exists()) {
                 error(buildFile.path.toFile().path + " does not exist")
             } else {
                 val allProjects = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
@@ -177,6 +176,8 @@ private class Main @Inject constructor(
                     println(sb.toString())
                 } else if (args.checkVersions) {
                     checkVersions.run(allProjects)
+                } else if (args.download) {
+                    updateKobalt.downloadKobalt()
                 } else if (args.update) {
                     updateKobalt.updateKobalt()
                 } else {
@@ -192,6 +193,7 @@ private class Main @Inject constructor(
         }
         return result
     }
+
     private fun findBuildFile(): File {
         val files = arrayListOf("Build.kt", "build.kobalt", KFiles.src("build.kobalt"),
                 KFiles.src("Build.kt"))

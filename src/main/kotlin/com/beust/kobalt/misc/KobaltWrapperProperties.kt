@@ -15,12 +15,6 @@ class KobaltWrapperProperties @Inject constructor() {
     private val PROPERTY_VERSION = "kobalt.version"
     private val PROPERTY_DOWNLOAD_URL = "kobalt.downloadUrl"
 
-    fun defaultUrlFor(version: String) =
-            "bogushttps://github.com/cbeust/kobalt/releases/download/$version/kobalt-$version.zip"
-
-    val file: File
-            get() = File("$WRAPPER_DIR/$KOBALT_WRAPPER_PROPERTIES")
-
     fun create(version: String) {
         log(2, "Creating $file with $version and ${defaultUrlFor(version)}")
         KFiles.saveFile(file, listOf(
@@ -29,7 +23,13 @@ class KobaltWrapperProperties @Inject constructor() {
         ).joinToString("\n"))
     }
 
-    val properties : Properties
+    private fun defaultUrlFor(version: String) =
+            "https://github.com/cbeust/kobalt/releases/download/$version/kobalt-$version.zip"
+
+    private val file: File
+            get() = File("$WRAPPER_DIR/$KOBALT_WRAPPER_PROPERTIES")
+
+    private val properties : Properties
         get() {
             val config = file
             if (!config.exists()) {
@@ -45,20 +45,5 @@ class KobaltWrapperProperties @Inject constructor() {
         get() = properties.getProperty(PROPERTY_VERSION)
 
     val downloadUrl : String
-        get() {
-            return properties.getProperty(PROPERTY_DOWNLOAD_URL)
-                ?: defaultUrlFor(version)
-        }
-
-    fun maybeCreate(version: String) {
-        if (! file.exists()) {
-            create(version)
-        }
-    }
-
-//    fun urlFor(version: String) : String {
-//        //        val URL = "https://dl.bintray.com/cbeust/generic/"
-//        //        return "https://dl.bintray.com/cbeust/generic/$fileName-$version.zip"
-//        return downloadUrl ?: defaultUrlFor(version)
-//    }
+        get() = properties.getProperty(PROPERTY_DOWNLOAD_URL)
 }
