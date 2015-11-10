@@ -72,4 +72,6 @@ open public class FileDependency(open val fileName: String) : IClasspathDependen
     override fun directDependencies() = arrayListOf<IClasspathDependency>()
 
     override fun compareTo(other: FileDependency) = fileName.compareTo(other.fileName)
+
+    override fun toString() = fileName
 }
