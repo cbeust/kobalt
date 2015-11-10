@@ -52,7 +52,7 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
 
     private fun runClasspathContributors(project: Project?, context: KobaltContext?) :
             Collection<IClasspathDependency> {
-        val result = arrayListOf<IClasspathDependency>()
+        val result = hashSetOf<IClasspathDependency>()
         context!!.pluginInfo.classpathContributors.forEach { it: IClasspathContributor ->
             result.addAll(it.entriesFor(project))
         }
