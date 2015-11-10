@@ -28,6 +28,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
         val result2 = reorderDependencies(result).filter {
             // Only keep existent files (nonexistent files are probably optional dependencies or parent poms
             // that point to other poms but don't have a jar file themselves)
+            log(2, "Remove nonexistent jar file from classpath: $it")
             it.jarFile.get().exists()
         }
 
