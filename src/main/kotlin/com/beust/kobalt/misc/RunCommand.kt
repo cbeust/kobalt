@@ -4,6 +4,7 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.util.concurrent.TimeUnit
 
 open class RunCommand(val command: String) {
     val defaultSuccess = { output: List<String> -> }
@@ -30,8 +31,8 @@ open class RunCommand(val command: String) {
                 pbEnv.put(it.key, it.value)
             }
         }
-        val passed = process.waitFor()//(2, TimeUnit.SECONDS)
-        val callSucceeded = if (passed == 0) true else false
+        val callSucceeded = process.waitFor(30, TimeUnit.SECONDS)
+//        val callSucceeded = if (passed == 0) true else false
         if (callSucceeded) {
             successCb(fromStream(process.inputStream))
         } else {
