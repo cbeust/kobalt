@@ -108,7 +108,9 @@ abstract class JvmCompilerPlugin @Inject constructor(
         if (sourceDirs.size > 0) {
             lp(project, "Copying $sourceSet resources")
             val absOutputDir = File(KFiles.joinDir(project.directory, project.buildDirectory!!, outputDir))
-            sourceDirs.map { File(it) }.filter { it.exists() } .forEach {
+            sourceDirs.map { File(project.directory, it) }.filter {
+                it.exists()
+            } .forEach {
                 log(2, "Copying from $sourceDirs to $absOutputDir")
                 KFiles.copyRecursively(it, absOutputDir)
             }
