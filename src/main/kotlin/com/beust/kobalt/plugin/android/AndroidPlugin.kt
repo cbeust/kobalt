@@ -233,7 +233,14 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
         val classesDex = "classes.dex"
         val outClassesDex = KFiles.joinDir(classesDexDir, classesDex)
 
-        RunCommand(dx).run(listOf("--dex", "--output", outClassesDex, buildDir!!.toString()))
+        val args = listOf("--dex", "--output", outClassesDex)
+        val otherArgs =
+            project.dependencies?.let {
+                it.dependencies.map {
+                    it.jarFile.get().path
+                }.filter { ! it.endsWith(".aar") && ! it.endsWith("android.jar") }
+            } ?: emptyList()
+        RunCommand(dx).run(args + otherArgs)
 
         //
         // Add classes.dex to existing .ap_
