@@ -1,8 +1,9 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
-import java.util.Collections
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,6 +16,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
         var result = hashSetOf<IClasspathDependency>()
 
         dependencies.forEach { projectDependency ->
+            result.add(projectDependency)
             projectDependency.id.let {
                 result.add(depFactory.create(it, executor))
                 val downloaded = projectDependency.transitiveDependencies(executor)
