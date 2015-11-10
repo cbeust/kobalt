@@ -211,7 +211,9 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
         val sourceFiles = arrayListOf(Paths.get(rDirectory, "R.java").toFile().path)
         val buildDir = Paths.get(project.buildDirectory, "generated", "classes").toFile()
 
-        javaCompiler.compile(project, context, listOf(), sourceFiles, buildDir, listOf())
+        javaCompiler.compile(project, context, listOf(), sourceFiles, buildDir, listOf(
+                "-source", "1.6", "-target", "1.6"
+        ))
         return buildDir
     }
 
