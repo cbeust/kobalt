@@ -124,10 +124,10 @@ class KFiles {
             return result
         }
 
-        fun copyRecursively(from: File, to: File) {
+        fun copyRecursively(from: File, to: File, deleteFirst: Boolean = true) {
             // Need to wait until copyRecursively supports an overwrite: Boolean = false parameter
             // Until then, wipe everything first
-            to.deleteRecursively()
+            if (deleteFirst) to.deleteRecursively()
             to.mkdirs()
             from.copyRecursively(to)
         }

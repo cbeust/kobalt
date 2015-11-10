@@ -30,13 +30,14 @@ open class RunCommand(val command: String) {
                 pbEnv.put(it.key, it.value)
             }
         }
-        val errorCode = process.waitFor()
-        if (errorCode != 0 && error != null) {
-            error(fromStream(process.errorStream))
-        } else if (errorCode == 0 && success != null){
-            success(fromStream(process.inputStream))
+        val passed = process.waitFor()//(2, TimeUnit.SECONDS)
+        val callSucceeded = if (passed == 0) true else false
+        if (callSucceeded) {
+            successCb(fromStream(process.inputStream))
+        } else {
+            errorCb(listOf("Time out for command $command") + fromStream(process.errorStream))
         }
-        return errorCode
+        return if (callSucceeded) 0 else 1
 
     }
 
