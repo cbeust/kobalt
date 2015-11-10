@@ -15,8 +15,8 @@ open class RunCommand(val command: String) {
     var directory = File(".")
     var env = hashMapOf<String, String>()
 
-    fun run(args: List<String>, error: Function1<List<String>, Unit>? = defaultError,
-            success: Function1<List<String>, Unit>? = defaultSuccess) : Int {
+    fun run(args: List<String>, errorCb: Function1<List<String>, Unit> = defaultError,
+            successCb: Function1<List<String>, Unit> = defaultSuccess) : Int {
         val allArgs = arrayListOf<String>()
         allArgs.add(command)
         allArgs.addAll(args)
