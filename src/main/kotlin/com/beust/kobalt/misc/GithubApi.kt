@@ -1,5 +1,6 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.maven.KobaltException
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -15,6 +16,9 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
 import java.net.URL
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
 import javax.inject.Inject
@@ -49,8 +53,6 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
                 var name: String? = null
                 var prerelease: Boolean? = null
             }
-
-            val ACCESS_TOKEN = "5368d5cc49727a3b3e5ea8b320be0149aab5283d"
 
             class UploadReleaseResponse(var id: String? = null)
 
@@ -102,6 +104,36 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
                 return retrofit.create(serviceClass)
             }
 
+            const val ACCESS_TOKEN_PROPERTY = "github.accessToken"
+            const val USERNAME_PROPERTY = "github.username"
+
+            val localProperties: Properties by lazy {
+                val result = Properties()
+                val filePath = Paths.get("local.properties")
+                if (! Files.exists(filePath)) {
+                    throw KobaltException("Couldn't find a local.properties file")
+                }
+
+                filePath.let { path ->
+                    if (Files.exists(path)) {
+                        Files.newInputStream(path).use {
+                            result.load(it)
+                        }
+                    }
+                }
+
+                result
+            }
+
+            private fun fromProperties(name: String) : String {
+                val result = localProperties.get(name)
+                        ?: throw KobaltException("Couldn't find $name in local.properties")
+                return result as String
+            }
+
+            val accessToken: String get() = fromProperties(ACCESS_TOKEN_PROPERTY)
+            val username: String get() = fromProperties(USERNAME_PROPERTY)
+
             fun uploadRelease() {
                 val id = createRelease()
 
@@ -122,9 +154,10 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
 //
 //                        })
             }
+
             fun createRelease() : Int {
                 println("createRelease()")
-                service.createRelease("cbeust", "kobalt", ACCESS_TOKEN,
+                service.createRelease(username, "kobalt", accessToken,
 //                        hashMapOf("tag_name" to "0.502tagName")
                         CreateRelease("0.503tagName")
 //                        CreateRelease().apply { tag_name = "0.500tagName"}
