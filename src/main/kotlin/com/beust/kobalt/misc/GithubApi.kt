@@ -1,5 +1,6 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.homeDir
 import com.beust.kobalt.maven.KobaltException
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
@@ -10,7 +11,6 @@ import retrofit.RestAdapter
 import retrofit.client.OkClient
 import retrofit.http.*
 import rx.Observable
-import rx.Observer
 import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
@@ -75,13 +75,16 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
                 fun releases(@Path("owner") owner: String, @Path("repo") repo: String): List<Release>
 
                 @POST("/repos/{owner}/{repo}/releases")
-                fun createRelease(@Path("owner") owner: String, @Path("repo") repo: String,
+                fun createRelease(@Path("owner") owner: String,
                         @Query("access_token") accessToken: String,
+                        @Path("repo") repo: String,
                         @Body createRelease: CreateRelease
                 ) : Observable<CreateReleaseResponse>
 
                 @POST("/repos/{owner}/{repo}/releases/{id}/assets")
-                fun uploadRelease(@Path("owner") owner: String, @Path("repo") repo: String,
+                fun uploadRelease(@Path("owner") owner: String,
+                        @Query("access_token") accessToken: String,
+                        @Path("repo") repo: String,
                         @Path("id") id: String,
                         @Query("name") name: String,
                         @Query("label") label: String,
@@ -134,30 +137,9 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
             val accessToken: String get() = fromProperties(ACCESS_TOKEN_PROPERTY)
             val username: String get() = fromProperties(USERNAME_PROPERTY)
 
-            fun uploadRelease() {
-                val id = createRelease()
-
-//                val typedFile = File("c:\\users\\cbeust\\t\\a.zip")
-//                s.uploadRelease("cbeust", "kobalt", "42", "kobalt-0.500", "0.500", typedFile)
-//                        .subscribe(object: Observer<UploadReleaseResponse> {
-//                            override fun onCompleted() {
-//                                println("Call completed")
-//                            }
-//
-//                            override fun onNext(response: UploadReleaseResponse?) {
-//                                println("Received response: $response")
-//                            }
-//
-//                            override fun onError(e: Throwable) {
-//                                println("Error: $e")
-//                            }
-//
-//                        })
-            }
-
-            fun createRelease() : Int {
+            fun uploadRelease() : Int {
                 println("createRelease()")
-                service.createRelease(username, "kobalt", accessToken,
+                service.createRelease(username, accessToken, "kobalt",
 //                        hashMapOf("tag_name" to "0.502tagName")
                         CreateRelease("0.503tagName")
 //                        CreateRelease().apply { tag_name = "0.500tagName"}
@@ -166,24 +148,24 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
 //                        "A test release",
 //                        draft = false, prerelease = true)
                 )
-                    .subscribe(object: Observer<CreateReleaseResponse> {
-                        override fun onCompleted() {
-                            println("Call completed")
-                        }
-
-                        override fun onNext(response: CreateReleaseResponse?) {
-                            println("Received response: $response")
-                        }
-
-                        override fun onError(e: Throwable) {
-                            println("Error: $e")
-                        }
-
-                    })
+                    .map { response: CreateReleaseResponse? ->
+                        uploadRelease(response?.id!!)
+                        println("Received id " + response?.id)
+                    }
+                .subscribe(
+                        { println("success") },
+                        { e: Throwable -> println("error" + e)},
+                        { println("complete")}
+                )
+//                    })
                 Thread.sleep(10000)
                 return 0
             }
 
+            fun uploadRelease(id: String) {
+                service.uploadRelease(username, accessToken, "kobalt", id, "The zip file", "The label",
+                        File(homeDir("kotlin", "kobalt", "src", "Build.kt")))
+            }
         }
     }
 
