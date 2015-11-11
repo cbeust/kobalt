@@ -165,7 +165,7 @@ class KFiles {
                 log(2, "Windows detected, not overwriting ${to!!}")
             } else {
                 try {
-                    log(2, "Copy from $from!! to ${to!!}")
+                    log(2, "Copy from $from to ${to!!}")
                     Files.copy(from, to, option)
                 } catch(ex: IOException) {
                     // Windows is anal about this
