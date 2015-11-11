@@ -3,10 +3,7 @@ package com.beust.kobalt.wrapper;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -138,8 +135,12 @@ public class Main {
                     } else {
                         Path dest = Paths.get(zipOutputDir, entryFile.getPath());
                         log(2, "  Writing " + entry.getName() + " to " + dest);
-                        Files.createDirectories(dest.getParent());
-                        Files.copy(zipFile.getInputStream(entry), dest, StandardCopyOption.REPLACE_EXISTING);
+                        try {
+                            Files.createDirectories(dest.getParent());
+                            Files.copy(zipFile.getInputStream(entry), dest, StandardCopyOption.REPLACE_EXISTING);
+                        } catch(FileSystemException ex) {
+                            log(2, "Couldn't copy to " + dest + ", skipping it");
+                        }
                     }
                 }
                 success = true;
