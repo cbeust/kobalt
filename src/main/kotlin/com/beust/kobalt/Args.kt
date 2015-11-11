@@ -29,7 +29,7 @@ class Args {
     @Parameter(names = arrayOf("--help", "--usage"), description = "Display the help")
     var usage: Boolean = false
 
-    @Parameter(names = arrayOf("-i", "--init"), description = "Create a new build file based on the current project")
+    @Parameter(names = arrayOf("-i", "--init"), description = "Create a build file based on the current project")
     var init: Boolean = false
 
     @Parameter(names = arrayOf("--log"), description = "Define the log level (1-3)")
