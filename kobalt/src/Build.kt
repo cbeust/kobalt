@@ -74,6 +74,9 @@ val kobalt = kotlinProject(wrapper) {
                 "com.github.spullara.mustache.java:compiler:0.9.1",
                 "io.reactivex:rxjava:1.0.14",
                 "com.google.code.gson:gson:2.4",
+                "com.squareup.retrofit:retrofit:1.9.0",
+//                "com.squareup.retrofit:retrofit:2.0.0-beta2",
+//                "com.squareup.retrofit:converter-gson:2.0.0-beta2",
                 file("modules/wrapper/kobaltBuild/libs/kobalt-wrapper.jar")
               )
     }
