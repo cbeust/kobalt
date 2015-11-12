@@ -4,10 +4,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -69,7 +66,7 @@ public class Main {
         return new File("kobalt", "wrapper");
     }
 
-    private static final String downloadUrl(String version) {
+    private static String downloadUrl(String version) {
         return "http://beust.com/kobalt/kobalt-" + version + ".zip";
     }
 
@@ -101,17 +98,18 @@ public class Main {
 
     private Path installJarFile() throws IOException {
         Properties properties = maybeCreateProperties();
-        String version = properties.getProperty(PROPERTY_VERSION);
-        initWrapperFile(version);
 
-        log(2, "Wrapper version: " + getWrapperVersion());
+        initWrapperFile(properties.getProperty(PROPERTY_VERSION));
+        String version = getWrapperVersion();
 
-        String fileName = FILE_NAME + "-" + getWrapperVersion() + ".zip";
-        new File(DISTRIBUTIONS_DIR).mkdirs();
+        log(2, "Wrapper version: " + properties.getProperty(PROPERTY_VERSION));
+
+        String fileName = FILE_NAME + "-" + version + ".zip";
+        Files.createDirectories(Paths.get(DISTRIBUTIONS_DIR));
         Path localZipFile = Paths.get(DISTRIBUTIONS_DIR, fileName);
-        String zipOutputDir = DISTRIBUTIONS_DIR + "/" + getWrapperVersion();
+        String zipOutputDir = DISTRIBUTIONS_DIR + "/" + version;
         Path kobaltJarFile = Paths.get(zipOutputDir,
-                getWrapperDir().getPath() + "/" + FILE_NAME + "-" + getWrapperVersion() + ".jar");
+                getWrapperDir().getPath() + "/" + FILE_NAME + "-" + version + ".jar");
         if (! Files.exists(localZipFile) || ! Files.exists(kobaltJarFile)) {
             download(localZipFile.toFile(), version);
         }
@@ -119,31 +117,11 @@ public class Main {
         //
         // Extract all the zip files
         //
-        boolean success = false;
         int retries = 0;
-        while (! success && retries < 2) {
+        while (retries < 2) {
             try {
-                ZipFile zipFile = new ZipFile(localZipFile.toFile());
-                Enumeration<? extends ZipEntry> entries = zipFile.entries();
-                File outputDirectory = new File(DISTRIBUTIONS_DIR);
-                outputDirectory.mkdirs();
-                while (entries.hasMoreElements()) {
-                    ZipEntry entry = entries.nextElement();
-                    File entryFile = new File(entry.getName());
-                    if (entry.isDirectory()) {
-                        entryFile.mkdirs();
-                    } else {
-                        Path dest = Paths.get(zipOutputDir, entryFile.getPath());
-                        log(2, "  Writing " + entry.getName() + " to " + dest);
-                        try {
-                            Files.createDirectories(dest.getParent());
-                            Files.copy(zipFile.getInputStream(entry), dest, StandardCopyOption.REPLACE_EXISTING);
-                        } catch(FileSystemException ex) {
-                            log(2, "Couldn't copy to " + dest + ", skipping it");
-                        }
-                    }
-                }
-                success = true;
+                extractZipFile(localZipFile, zipOutputDir);
+                break;
             } catch (ZipException e) {
                 retries++;
                 error("Couldn't open zip file " + localZipFile + ": " + e.getMessage());
@@ -156,7 +134,6 @@ public class Main {
         //
         // Copy the wrapper files in the current kobalt/wrapper directory
         //
-        boolean sameVersion = equals(getWrapperVersion());
         log(2, "Copying the wrapper files");
         for (String file : FILES) {
             Path from = Paths.get(zipOutputDir, file);
@@ -171,100 +148,147 @@ public class Main {
                 log(1, "Couldn't copy " + from + " to " + to + ": " + ex.getMessage());
             }
         }
-        new File(KOBALTW).setExecutable(true);
+
+        if (!new File(KOBALTW).setExecutable(true)) {
+            if (!isWindows()) {
+                log(1, "Couldn't make " + KOBALTW + " executable");
+            }
+        }
 
         return kobaltJarFile;
+    }
+
+    private void extractZipFile(Path localZipFile, String zipOutputDir) throws IOException {
+        try (ZipFile zipFile = new ZipFile(localZipFile.toFile())) {
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                Path entryPath = Paths.get(zipOutputDir, entry.getName());
+
+                if (entry.isDirectory()) {
+                    Files.createDirectories(entryPath);
+                } else {
+                    log(2, "  Writing " + entry.getName() + " to " + entryPath);
+                    try {
+                        Files.createDirectories(entryPath.getParent());
+                        Files.copy(zipFile.getInputStream(entry), entryPath, StandardCopyOption.REPLACE_EXISTING);
+                    } catch (FileSystemException ex) {
+                        log(2, "Couldn't copy to " + entryPath);
+                        throw new IOException(ex);
+                    }
+                }
+            }
+        }
     }
 
     private static final String[] FILES = new String[] { KOBALTW, "kobalt/wrapper/" + FILE_NAME + "-wrapper.jar" };
 
     private void download(File file, String version) throws IOException {
+        for (int attempt = 0; attempt < 3; ++attempt) {
+            try {
+                downloadImpl(file, version);
+            } catch (IOException e) {
+                error("Failed to download file " + file + " due to I/O issue: " + e.getMessage());
+                Files.deleteIfExists(file.toPath());
+
+                if (attempt == 2) {
+                    throw e;
+                }
+            }
+
+            if (file.exists()) {
+                break;
+            }
+        }
+    }
+
+    private void downloadImpl(File file, String version) throws IOException {
         String fileUrl = getWrapperDownloadUrl(version);
 
         log(2, "Downloading " + fileUrl);
 
         boolean done = false;
         HttpURLConnection httpConn = null;
-        int responseCode = 0;
-        URL url = null;
-        while (! done) {
-            url = new URL(fileUrl);
-            httpConn = (HttpURLConnection) url.openConnection();
-            responseCode = httpConn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
-                    responseCode == HttpURLConnection.HTTP_MOVED_PERM) {
-                fileUrl = httpConn.getHeaderField("Location");
-            } else {
-                done = true;
-            }
-        }
-
-        // always check HTTP response code first
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            String fileName = "";
-            String disposition = httpConn.getHeaderField("Content-Disposition");
-            String contentType = httpConn.getContentType();
-            int contentLength = httpConn.getContentLength();
-
-            if (disposition != null) {
-                // extracts file name from header field
-                int index = disposition.indexOf("filename=");
-                if (index > 0) {
-                    fileName = disposition.substring(index + 9, disposition.length());
+        try {
+            int responseCode = 0;
+            URL url = null;
+            while (!done) {
+                url = new URL(fileUrl);
+                httpConn = (HttpURLConnection) url.openConnection();
+                responseCode = httpConn.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
+                        responseCode == HttpURLConnection.HTTP_MOVED_PERM) {
+                    fileUrl = httpConn.getHeaderField("Location");
+                } else {
+                    done = true;
                 }
-            } else {
-                // extracts file name from URL
-                fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1,
-                        fileUrl.length());
             }
 
-            log(2, "Content-Type = " + contentType);
-            log(2, "Content-Disposition = " + disposition);
-            log(2, "Content-Length = " + contentLength);
-            log(2, "fileName = " + fileName);
+            // always check HTTP response code first
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                String fileName = "";
+                String disposition = httpConn.getHeaderField("Content-Disposition");
+                String contentType = httpConn.getContentType();
+                int contentLength = httpConn.getContentLength();
 
-            // opens input stream from the HTTP connection
-            InputStream inputStream = httpConn.getInputStream();
+                if (disposition != null) {
+                    // extracts file name from header field
+                    int index = disposition.indexOf("filename=");
+                    if (index > 0) {
+                        fileName = disposition.substring(index + 9, disposition.length());
+                    }
+                } else {
+                    // extracts file name from URL
+                    fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1,
+                            fileUrl.length());
+                }
 
-            // opens an output stream to save into file
-            FileOutputStream outputStream = new FileOutputStream(file);
+                log(2, "Content-Type = " + contentType);
+                log(2, "Content-Disposition = " + disposition);
+                log(2, "Content-Length = " + contentLength);
+                log(2, "fileName = " + fileName);
 
-            int bytesRead = -1;
-            long bytesSoFar = 0;
-            byte[] buffer = new byte[100_000];
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-                bytesSoFar += bytesRead;
-                if (bytesRead > 0) {
-                    if (contentLength > 0) {
-                        float percent = bytesSoFar * 100 / contentLength;
-                        log2(1, "\rDownloading " + url + " " + percent + "%");
-                    } else {
-                        log2(1, ".");
+                // opens input stream from the HTTP connection
+                try (InputStream inputStream = httpConn.getInputStream()) {
+                    // opens an output stream to save into file
+                    try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                        copyToStreamWithProgress(inputStream, outputStream, contentLength, url.toString());
                     }
                 }
+
+                log(1, "Downloaded " + fileUrl);
+            } else {
+                error("No file to download. Server replied HTTP code: " + responseCode);
             }
-            log2(1, "\n");
-
-            outputStream.close();
-            inputStream.close();
-
-            log(1, "Downloaded " + fileUrl);
-        } else {
-            error("No file to download. Server replied HTTP code: " + responseCode);
-        }
-        httpConn.disconnect();
-
-        if (! file.exists()) {
-            log(2, file + " downloaded, extracting it");
-        } else {
-            log(2, file + " already exists, extracting it");
+        } finally {
+            if (httpConn != null) {
+                httpConn.disconnect();
+            }
         }
     }
 
+    private void copyToStreamWithProgress(InputStream inputStream, OutputStream outputStream, long contentLength, String url) throws IOException {
+        int bytesRead;
+        long bytesSoFar = 0;
+        byte[] buffer = new byte[100_000];
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, bytesRead);
+            bytesSoFar += bytesRead;
+            if (bytesRead > 0) {
+                if (contentLength > 0) {
+                    float percent = bytesSoFar * 100 / contentLength;
+                    log2(1, "\rDownloading " + url + " " + percent + "%");
+                } else {
+                    log2(1, ".");
+                }
+            }
+        }
+        log2(1, "\n");
+    }
+
     private void saveFile(File file, String text) throws IOException {
-        file.getAbsoluteFile().getParentFile().mkdirs();
-        file.delete();
+        Files.createDirectories(file.getAbsoluteFile().toPath().getParent());
+        Files.deleteIfExists(file.toPath());
         log(2, "Wrote " + file);
         Files.write(Paths.get(file.toURI()), text.getBytes());
     }
@@ -293,9 +317,7 @@ public class Main {
         args.add("java");
         args.add("-jar");
         args.add(kobaltJarFile.toFile().getAbsolutePath());
-        for (String arg : argv) {
-            args.add(arg);
-        }
+        Collections.addAll(args, argv);
 
         ProcessBuilder pb = new ProcessBuilder(args);
         pb.inheritIO();
