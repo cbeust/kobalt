@@ -267,7 +267,8 @@ public class Main {
         }
     }
 
-    private void copyToStreamWithProgress(InputStream inputStream, OutputStream outputStream, long contentLength, String url) throws IOException {
+    private void copyToStreamWithProgress(InputStream inputStream, OutputStream outputStream, long contentLength,
+            String url) throws IOException {
         int bytesRead;
         long bytesSoFar = 0;
         byte[] buffer = new byte[100_000];
