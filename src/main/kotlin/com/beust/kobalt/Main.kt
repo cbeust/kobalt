@@ -70,6 +70,7 @@ private class Main @Inject constructor(
             }
 
     public fun run(jc: JCommander, args: Args, argv: Array<String>): Int {
+//        github.uploadRelease()
 
         //
         // Add all the repos from repo contributors (at least those that return values without a Project)
@@ -91,7 +92,6 @@ private class Main @Inject constructor(
         var result = 0
         val latestVersionFuture = github.latestKobaltVersion
         val seconds = benchmark("build", {
-            //            runTest()
             try {
                 result = runWithArgs(jc, args, argv)
             } catch(ex: KobaltException) {
