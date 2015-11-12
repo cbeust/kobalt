@@ -7,17 +7,23 @@ import java.security.MessageDigest
 
 public class Md5 {
     companion object {
-        fun toMd5(file: File) = toMd5(Files.readAllBytes(Paths.get(file.toURI())))
+        fun toMd5(file: File) =
+                MessageDigest.getInstance("MD5").let { md5 ->
+                    file.forEachBlock { bytes, size ->
+                        md5.update(bytes, 0, size)
+                    }
+                    md5.digest().toHex()
+                }
 
-        fun toMd5(bytes: ByteArray): String {
-            val result = StringBuilder()
-            val md5 = MessageDigest.getInstance("MD5").digest(bytes)
-            md5.forEach {
-                val byte = it.toInt() and 0xff
-                if (byte < 16) result.append("0")
-                result.append(Integer.toHexString(byte))
-            }
-            return result.toString()
-        }
+        fun toMd5(bytes: ByteArray): String =
+                MessageDigest.getInstance("MD5").digest(bytes).toHex()
+    }
+}
+
+private fun ByteArray.toHex() = buildString {
+    forEach {
+        val byte = it.toInt() and 0xff
+        if (byte < 16) append("0")
+        append(Integer.toHexString(byte))
     }
 }
