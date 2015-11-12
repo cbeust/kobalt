@@ -7,6 +7,9 @@ import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.beust.kobalt.homeDir
+import com.beust.kobalt.maven.KobaltException
+import com.google.gson.*
 import com.google.gson.annotations.SerializedName
 import com.squareup.okhttp.Headers
 import com.squareup.okhttp.OkHttpClient
@@ -115,26 +118,68 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
     val latestKobaltVersion: Future<String>
         get() {
             val callable = Callable<String> {
-                var result = "0"
                 try {
-                    val ins = URL(RELEASES_URL).openConnection().inputStream
-                    @Suppress("UNCHECKED_CAST")
-                    val reader = BufferedReader(InputStreamReader(ins))
-                    val jo = JsonParser().parse(reader) as JsonArray
-                    if (jo.size() > 0) {
-                        var versionName = (jo.get(0) as JsonObject).get("name").asString
-                        if (Strings.isEmpty(versionName)) {
-                            versionName = (jo.get(0) as JsonObject).get("tag_name").asString
-                        }
-                        if (versionName != null) {
-                            result = versionName
-                        }
+                    URL(RELEASES_URL).openConnection().inputStream.bufferedReader().use { reader ->
+                        val jo = JsonParser().parse(reader) as JsonArray
+
+                        jo.filterIsInstance<JsonObject>()
+                            .map { it.get("name")?.safeToString() ?: it.get("tag_name")?.safeToString() }
+                            .filterNotNull()
+                            .maxBy { Versions.toLongVersion(it) } ?: "0"
                     }
                 } catch(ex: IOException) {
                     warn("Couldn't load the release URL: $RELEASES_URL")
+                    "0"
                 }
-                result
             }
             return executors.miscExecutor.submit(callable)
         }
+}
+
+fun Response.bodyContent() : String {
+    val bodyBytes = (body as TypedByteArray).bytes
+    val bodyMime = body.mimeType()
+    val bodyCharset = MimeUtil.parseCharset(bodyMime, "utf-8")
+    val result = String(bodyBytes, bodyCharset)
+    return result
+    //            return new Gson().fromJson(data, type);
+}
+
+class Prop {
+    companion object {
+        const val ACCESS_TOKEN_PROPERTY = "github.accessToken"
+        const val USERNAME_PROPERTY = "github.username"
+
+        val localProperties: Properties by lazy {
+            val result = Properties()
+            val filePath = Paths.get("local.properties")
+            if (! Files.exists(filePath)) {
+                throw KobaltException("Couldn't find a local.properties file")
+            }
+
+            filePath.let { path ->
+                if (Files.exists(path)) {
+                    Files.newInputStream(path).use {
+                        result.load(it)
+                    }
+                }
+            }
+
+            result
+        }
+
+        private fun fromProperties(name: String) : String {
+            val result = localProperties.get(name)
+                    ?: throw KobaltException("Couldn't find $name in local.properties")
+            return result as String
+        }
+
+        val accessToken: String get() = fromProperties(ACCESS_TOKEN_PROPERTY)
+        val username: String get() = fromProperties(USERNAME_PROPERTY)
+    }
+}
+
+private fun JsonElement.safeToString() = when {
+    isJsonNull -> null
+    else -> asString
 }
