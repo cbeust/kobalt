@@ -1,7 +1,7 @@
 package com.beust.kobalt.misc
 
-import com.beust.kobalt.homeDir
 import com.beust.kobalt.maven.KobaltException
+import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -36,44 +36,33 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
         const val RELEASES_URL = "https://api.github.com/repos/cbeust/kobalt/releases"
     }
 
-    fun uploadRelease(): Int {
-        val releaseName = "0.100"
-        val release = service.getReleaseByTagName(Prop.username, "kobalt", releaseName)
+    class RetrofitErrorResponse(val code: String?, val field: String?)
+    class RetrofitErrorsResponse(val message: String?, val errors: List<RetrofitErrorResponse>)
 
-        uploadService.uploadRelease(Prop.username, Prop.accessToken, "kobalt", release.id!!, "zipFile", "label",
-                TypedFile("text/plain", File(homeDir("kotlin", "kobalt", "kobalt", "src", "Build.kt"))))
-                .subscribe(
-                        { println("success") },
-                        { e: Throwable ->
-                            println("error" + (e as RetrofitError).response.bodyContent())
-                            println("")
-                        },
-                        { println("complete") }
-                )
-        println("createRelease()")
-        //                service.createRelease(username, accessToken, "kobalt",
-        ////                        hashMapOf("tag_name" to "0.502tagName")
-        //                        CreateRelease(releaseName)
-        ////                        CreateRelease().apply { tag_name = "0.500tagName"}
-        ////                        CreateRelease("0.500tagName",
-        ////                        "master", "0.500name",
-        ////                        "A test release",
-        ////                        draft = false, prerelease = true)
-        //                )
-        //                    .map { response: CreateReleaseResponse? ->
-        //                        uploadRelease(response?.id!!)
-        //                        println("Received id " + response?.id)
-        //                    }
-        //                .subscribe(
-        //                        { println("success") },
-        //                        { e: Throwable ->
-        //                            println("error" + (e as RetrofitError).response.bodyContent())
-        //                        },
-        //                        { println("complete")}
-        //                )
-        ////                    })
-        Thread.sleep(10000)
-        return 0
+    private fun parseRetrofitError(e: Throwable) : RetrofitErrorsResponse {
+        val re = e as RetrofitError
+        val body = e.body
+        val json = String((re.response.body as TypedByteArray).bytes)
+        return Gson().fromJson(json, RetrofitErrorsResponse::class.java)
+    }
+
+    fun uploadRelease(packageName: String, tagName: String, zipFile: File) {
+        log(1, "Uploading release ${zipFile.name}")
+        try {
+            service.createRelease(Prop.username, Prop.accessToken, packageName, CreateRelease(tagName))
+                    .flatMap { response ->
+                        uploadService.uploadAsset(Prop.username, Prop.accessToken,
+                                packageName, response.id!!, zipFile.name, TypedFile("application/zip", zipFile))
+                    }
+                    .toBlocking()
+                    .forEach { action ->
+                        log(1, "Release successfully uploaded ${zipFile.name}")
+                    }
+        } catch(e: RetrofitError) {
+            val error = parseRetrofitError(e)
+            throw KobaltException("Couldn't upload release, ${error.message}: "
+                    + error.errors[0].code + " field: " + error.errors[0].field)
+        }
     }
 
     //
@@ -125,16 +114,15 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
             .build()
             .create(UploadApi::class.java)
 
-    class UploadReleaseResponse(var id: String? = null)
+    class UploadReleaseResponse(var id: String? = null, val name: String? = null)
 
     interface UploadApi {
         @POST("/repos/{owner}/{repo}/releases/{id}/assets")
-        fun uploadRelease(@Path("owner") owner: String,
+        fun uploadAsset(@Path("owner") owner: String,
                 @Query("access_token") accessToken: String,
                 @Path("repo") repo: String,
                 @Path("id") id: String,
                 @Query("name") name: String,
-                @Query("label") label: String,
                 @Body file: TypedFile)
                 //                        @Query("Content-Type") contentType: String = "text/plain")//"application/zip")
                 : Observable<UploadReleaseResponse>

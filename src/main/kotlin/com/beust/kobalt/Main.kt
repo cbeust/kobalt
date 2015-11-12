@@ -70,7 +70,7 @@ private class Main @Inject constructor(
             }
 
     public fun run(jc: JCommander, args: Args, argv: Array<String>): Int {
-//        github.uploadRelease()
+//        github.uploadRelease("kobalt", "0.101", File("/Users/beust/t/a.zip"))
 
         //
         // Add all the repos from repo contributors (at least those that return values without a Project)
