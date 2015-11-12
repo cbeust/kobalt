@@ -115,7 +115,6 @@ val kobalt = kotlinProject(wrapper) {
 
     jcenter {
         publish = true
-        file("$buildDirectory/libs/$name-$version.zip", "$name/$version/$name-$version.zip")
     }
 }
 
