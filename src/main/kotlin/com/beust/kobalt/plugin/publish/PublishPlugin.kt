@@ -9,6 +9,7 @@ import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.misc.GithubApi
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.LocalProperties
 import com.beust.kobalt.misc.log
 import com.google.common.base.Preconditions
 import java.io.File
@@ -17,7 +18,7 @@ import javax.inject.Singleton
 
 @Singleton
 public class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGenerator.IFactory,
-            val jcenterFactory: JCenterApi.IFactory, val github: GithubApi)
+            val jcenterFactory: JCenterApi.IFactory, val github: GithubApi, val localProperties: LocalProperties)
         : BasePlugin() {
 
     override val name = "publish"
@@ -54,37 +55,18 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         return result
     }
 
-    private fun checkAuthentication(value: String, key: String) {
-        Preconditions.checkNotNull(value, "Couldn't find user in property $key, make sure you specified" +
-                "your credentials in local.properties")
-    }
-
-    data class UserData(val user: String, val password: String)
-
-    private fun checkCredentials(project: Project) : UserData {
-        val user = System.getProperty(PROPERTY_BINTRAY_USER)
-        val password = System.getProperty(PROPERTY_BINTRAY_PASSWORD)
-        checkAuthentication(user, PROPERTY_BINTRAY_USER)
-        checkAuthentication(password, PROPERTY_BINTRAY_PASSWORD)
-
-        validateProject(project)
-        return UserData(user, password)
-    }
-
-    @Task(name = TASK_UPLOAD_JCENTER, description = "Upload the artifacts to JCenter",
+    @Task(name = TASK_UPLOAD_JCENTER, description = "Upload files to JCenter",
             runAfter = arrayOf(TASK_GENERATE_POM))
     fun taskUploadJcenter(project: Project): TaskResult {
-        checkCredentials(project).let {
-            return uploadJcenter(project, it.user, it.password)
-        }
+        validateProject(project)
+        return uploadJcenter(project)
     }
 
-    @Task(name = TASK_UPLOAD_GITHUB, description = "Upload the release to Github",
+    @Task(name = TASK_UPLOAD_GITHUB, description = "Upload files to Github",
             runAfter = arrayOf(TASK_GENERATE_POM))
     fun taskUploadGithub(project: Project): TaskResult {
-        checkCredentials(project).let {
-            return uploadGithub(project)
-        }
+        validateProject(project)
+        return uploadGithub(project)
     }
 
     private fun uploadGithub(project: Project) : TaskResult {
@@ -102,7 +84,10 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         return TaskResult()
     }
 
-    private fun uploadJcenter(project: Project, user: String?, password: String?) : TaskResult {
+    private fun uploadJcenter(project: Project) : TaskResult {
+        val user = localProperties.get(PROPERTY_BINTRAY_USER)
+        val password = localProperties.get(PROPERTY_BINTRAY_PASSWORD)
+
         val jcenter = jcenterFactory.create(user, password)
 
         val configuration = jcenterConfigurations.getRaw(project.name)

@@ -21,9 +21,6 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
 import java.net.URL
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
 import javax.inject.Inject
@@ -31,9 +28,12 @@ import javax.inject.Inject
 /**
  * Retrieve Kobalt's latest release version from github.
  */
-public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
+public class GithubApi @Inject constructor(val executors: KobaltExecutors,
+        val localProperties: LocalProperties) {
     companion object {
         const val RELEASES_URL = "https://api.github.com/repos/cbeust/kobalt/releases"
+        const val PROPERTY_ACCESS_TOKEN = "github.accessToken"
+        const val PROPERTY_USERNAME = "github.username"
     }
 
     class RetrofitErrorResponse(val code: String?, val field: String?)
@@ -48,10 +48,12 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
 
     fun uploadRelease(packageName: String, tagName: String, zipFile: File) {
         log(1, "Uploading release ${zipFile.name}")
+        val username = localProperties.get(PROPERTY_USERNAME)
+        val accessToken = localProperties.get(PROPERTY_ACCESS_TOKEN)
         try {
-            service.createRelease(Prop.username, Prop.accessToken, packageName, CreateRelease(tagName))
+            service.createRelease(username, accessToken, packageName, CreateRelease(tagName))
                     .flatMap { response ->
-                        uploadService.uploadAsset(Prop.username, Prop.accessToken,
+                        uploadService.uploadAsset(username, accessToken,
                                 packageName, response.id!!, zipFile.name, TypedFile("application/zip", zipFile))
                     }
                     .toBlocking()
@@ -164,38 +166,4 @@ fun Response.bodyContent() : String {
     val result = String(bodyBytes, bodyCharset)
     return result
     //            return new Gson().fromJson(data, type);
-}
-
-class Prop {
-    companion object {
-        const val ACCESS_TOKEN_PROPERTY = "github.accessToken"
-        const val USERNAME_PROPERTY = "github.username"
-
-        val localProperties: Properties by lazy {
-            val result = Properties()
-            val filePath = Paths.get("local.properties")
-            if (! Files.exists(filePath)) {
-                throw KobaltException("Couldn't find a local.properties file")
-            }
-
-            filePath.let { path ->
-                if (Files.exists(path)) {
-                    Files.newInputStream(path).use {
-                        result.load(it)
-                    }
-                }
-            }
-
-            result
-        }
-
-        private fun fromProperties(name: String) : String {
-            val result = localProperties.get(name)
-                    ?: throw KobaltException("Couldn't find $name in local.properties")
-            return result as String
-        }
-
-        val accessToken: String get() = fromProperties(ACCESS_TOKEN_PROPERTY)
-        val username: String get() = fromProperties(USERNAME_PROPERTY)
-    }
 }
