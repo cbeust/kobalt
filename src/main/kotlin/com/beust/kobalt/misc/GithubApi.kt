@@ -70,7 +70,7 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
     //
 
     private val service = RestAdapter.Builder()
-            .setLogLevel(RestAdapter.LogLevel.FULL)
+//            .setLogLevel(RestAdapter.LogLevel.FULL)
             .setClient(OkClient(OkHttpClient()))
             .setEndpoint("https://api.github.com")
             .build()
@@ -81,7 +81,8 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
         var prerelease: Boolean? = null
     }
 
-    class CreateRelease(@SerializedName("tag_name") var tag_name: String? = null)
+    class CreateRelease(@SerializedName("tag_name") var tagName: String? = null,
+            var name: String? = tagName)
     class CreateReleaseResponse(var id: String? = null)
     class GetReleaseResponse(var id: String? = null,
             @SerializedName("upload_url") var uploadUrl: String? = null)
@@ -109,7 +110,7 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
 
     val uploadService = RestAdapter.Builder()
             .setEndpoint("https://uploads.github.com/")
-            .setLogLevel(RestAdapter.LogLevel.FULL)
+//            .setLogLevel(RestAdapter.LogLevel.FULL)
             .setClient(OkClient(OkHttpClient()))
             .build()
             .create(UploadApi::class.java)
