@@ -7,10 +7,7 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.PomGenerator
-import com.beust.kobalt.misc.GithubApi
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.LocalProperties
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.*
 import com.google.common.base.Preconditions
 import java.io.File
 import javax.inject.Inject
@@ -75,12 +72,15 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         //
         // Upload individual files, if applicable
         //
-        configuration?.let { conf : GithubConfig ->
-            conf.files.forEach {
+        if (configuration != null) {
+            configuration.files.forEach {
                 log(2, "Uploading $it tag: ${project.version}")
                 github.uploadRelease(project.name, project.version!!, it)
             }
+        } else {
+            warn("Couldn't find any github{} configuration, not uploading anything")
         }
+
         return TaskResult()
     }
 
@@ -89,29 +89,33 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         val password = localProperties.get(PROPERTY_BINTRAY_PASSWORD)
 
         val jcenter = jcenterFactory.create(user, password)
-
+        var success = false
         val configuration = jcenterConfigurations.getRaw(project.name)
-
-        //
-        // Upload to Maven
-        //
-        val trMaven = jcenter.uploadMaven(project, findArtifactFiles(project), configuration)
-        var success = trMaven.success
         val messages = arrayListOf<String>()
-        if (! success) messages.add(trMaven.errorMessage!!)
 
-        //
-        // Upload individual files, if applicable
-        //
-        configuration?.let { conf : JCenterConfig ->
-            conf.files.forEach {
-                val taskResult = jcenter.uploadFile(File(project.directory, it.first), it.second /* url */, conf)
+        if (configuration != null) {
+            //
+            // Upload to Maven
+            //
+            val trMaven = jcenter.uploadMaven(project, findArtifactFiles(project), configuration)
+            var success = trMaven.success
+            if (! success) messages.add(trMaven.errorMessage!!)
+
+            //
+            // Upload individual files, if applicable
+            //
+            configuration.files.forEach {
+                val taskResult = jcenter.uploadFile(File(project.directory, it.first), it.second /* url */,
+                        configuration)
                 success = success and taskResult.success
                 if (!taskResult.success) {
                     messages.add(taskResult.errorMessage!!)
                 }
             }
+        } else {
+            warn("Couldn't find any jcenter{} configuration, not uploading anything")
         }
+
         return TaskResult(success, messages.joinToString("\n  "))
     }
 
