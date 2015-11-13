@@ -17,8 +17,7 @@ open public class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.
         val fv = if (v.contains("SNAPSHOT")) v.replace("SNAPSHOT", "") else v
         val classifierPart = if (classifier != null) "-$classifier" else ""
 
-        return listOf(toDirectory(v, false),
-                artifactId + "-" + fv + s + classifierPart + suffix).joinToString("/")
+        return toDirectory(v, false) + artifactId + "-" + fv + s + classifierPart + suffix
     }
 
     fun toPomFile(v: String) = toFile(v, "", null, ".pom")
