@@ -15,7 +15,10 @@ import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.TaskResult
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.toString
 import com.beust.kobalt.plugin.java.JavaPlugin
 import java.io.File
 import java.io.FileOutputStream
@@ -205,7 +208,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
                     }
                 } else {
-                    warn("Directory $fromPath doesn't exist, not including it in the jar")
+                    log(2, "Directory $fromPath doesn't exist, not including it in the jar")
                 }
             }
             if (includedSpecs.size > 0) {
