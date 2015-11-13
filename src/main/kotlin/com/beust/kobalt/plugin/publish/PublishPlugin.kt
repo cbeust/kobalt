@@ -8,11 +8,14 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.DocUrl
 import com.beust.kobalt.maven.PomGenerator
+import com.beust.kobalt.api.*
+import com.beust.kobalt.api.annotation.*
+import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.internal.*
+import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.*
-import com.google.common.base.Preconditions
-import java.io.File
-import javax.inject.Inject
-import javax.inject.Singleton
+import java.io.*
+import javax.inject.*
 
 @Singleton
 public class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGenerator.IFactory,
@@ -38,17 +41,17 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
     }
 
     private fun validateProject(project: Project) {
-        Preconditions.checkNotNull(project.name, "Project $project should have a name")
-        Preconditions.checkNotNull(project.version, "Project $project should have a version")
-        Preconditions.checkNotNull(project.group, "Project $project should have a group")
-        Preconditions.checkNotNull(project.artifactId, "Project $project should have a artifactId")
+        requireNotNull(project.name) { "Project $project should have a name" }
+        requireNotNull(project.version) { "Project $project should have a version"}
+        requireNotNull(project.group) { "Project $project should have a group" }
+        requireNotNull(project.artifactId) { "Project $project should have a artifactId" }
     }
 
-    private val VALID = arrayListOf(".jar", ".pom")
+    private val VALID = listOf(".jar", ".pom")
 
     private fun findArtifactFiles(project: Project) : List<File> {
         val result = files.findRecursively(File(project.directory, project.buildDirectory)) { file ->
-                VALID.any { file.endsWith(it)} and file.contains(project.version!!)
+                VALID.any { file.endsWith(it) } and file.contains(project.version!!)
             }.map { it -> File(it) }
         return result
     }

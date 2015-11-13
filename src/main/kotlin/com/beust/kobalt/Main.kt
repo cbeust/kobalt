@@ -1,23 +1,18 @@
 package com.beust.kobalt
 
-import com.beust.jcommander.JCommander
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.Project
-import com.beust.kobalt.internal.PluginInfo
-import com.beust.kobalt.internal.TaskManager
-import com.beust.kobalt.internal.remote.KobaltClient
-import com.beust.kobalt.internal.remote.KobaltServer
-import com.beust.kobalt.kotlin.BuildFile
-import com.beust.kobalt.kotlin.BuildFileCompiler
-import com.beust.kobalt.maven.DepFactory
-import com.beust.kobalt.maven.Http
-import com.beust.kobalt.maven.LocalRepo
+import com.beust.jcommander.*
+import com.beust.kobalt.api.*
+import com.beust.kobalt.internal.*
+import com.beust.kobalt.internal.remote.*
+import com.beust.kobalt.kotlin.*
+import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.*
-import com.google.inject.Guice
-import java.io.File
-import java.nio.file.Paths
+import com.google.inject.*
+import java.io.*
+import java.nio.file.*
 import java.util.*
 import javax.inject.Inject
+import kotlin.util.*
 
 public fun main(argv: Array<String>) {
     val result = mainNoExit(argv)
@@ -90,16 +85,17 @@ private class Main @Inject constructor(
 
         var result = 0
         val latestVersionFuture = github.latestKobaltVersion
-        val seconds = benchmark("build", {
-            try {
-                result = runWithArgs(jc, args, argv)
-            } catch(ex: KobaltException) {
-                error("", ex)
-                result = 1
-            } finally {
-                executors.shutdown()
+        val seconds = 
+            measureTimeMillis {
+                try {
+                    result = runWithArgs(jc, args, argv)
+                } catch(ex: KobaltException) {
+                    error(ex.message ?: "", ex)
+                    result = 1
+                } finally {
+                    executors.shutdown()
+                }
             }
-        })
 
         log(1, if (result != 0) "BUILD FAILED: $result" else "BUILD SUCCESSFUL ($seconds seconds)")
 

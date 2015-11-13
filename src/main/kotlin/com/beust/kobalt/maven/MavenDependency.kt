@@ -9,8 +9,13 @@ import com.google.inject.Key
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
+import com.beust.kobalt.api.*
+import com.beust.kobalt.misc.*
+import com.google.inject.*
+import java.io.*
+import java.util.concurrent.*
 import javax.inject.Inject
-import kotlin.properties.Delegates
+import kotlin.properties.*
 
 public class MavenDependency @Inject constructor(mavenId: MavenId,
         val executor: ExecutorService,
@@ -29,7 +34,7 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
             jarFile = CompletedFuture(jar)
             pomFile = CompletedFuture(pom)
         } else {
-            val repoResult = repoFinder.findCorrectRepo(mavenId.toId)
+            val repoResult = repoFinder.findCorrectRepo(mavenId.id)
             if (repoResult.found) {
                 jarFile =
                     if (repoResult.hasJar) {
@@ -40,7 +45,7 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
                 pomFile = downloadManager.download(repoResult.repoUrl + toPomFile(repoResult), pom.absolutePath,
                         executor)
             } else {
-                throw KobaltException("Couldn't resolve ${mavenId.toId}")
+                throw KobaltException("Couldn't resolve ${mavenId.id}")
             }
         }
     }
@@ -55,15 +60,16 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
     }
 
 
-    public override fun toString() = mavenId.toId
+    public override fun toString() = mavenId.id
 
-    override val id = mavenId.toId
+    override val id = mavenId.id
 
     override fun toMavenDependencies(): org.apache.maven.model.Dependency {
         return org.apache.maven.model.Dependency().apply {
             setGroupId(groupId)
             setArtifactId(artifactId)
             setVersion(version)
+            setClassifier(mavenId.classifier)
         }
     }
 
@@ -79,7 +85,7 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
             pomFactory.create(id, pomFile.get()).dependencies.filter {
                 it.mustDownload && it.isValid
             }.forEach {
-                result.add(create(MavenId.toId(it.groupId, it.artifactId, it.packaging, it.version)))
+                result.add(create(MavenId.toId(it.groupId, it.artifactId, it.packaging, it.version, it.classifier)))
             }
         } catch(ex: Exception) {
             warn("Exception when trying to resolve dependencies for $id: " + ex.message)

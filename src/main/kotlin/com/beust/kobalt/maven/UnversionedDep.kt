@@ -1,7 +1,6 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.misc.Strings
-import java.io.File
+import java.io.*
 
 /**
  * Represents a dependency that doesn't have a version: "org.testng:testng:". Such dependencies
@@ -18,8 +17,7 @@ open public class UnversionedDep(open val groupId: String, open val artifactId: 
      */
     public fun toDirectory(v: String, fileSystem: Boolean = true): String {
         val sep = if (fileSystem) File.separator else "/"
-        val l = listOf(groupId.replace(".", sep), artifactId, v)
-        val result = Strings.Companion.join(sep, l)
+        val result = listOf(groupId.replace(".", sep), artifactId, v).joinToString(sep)
         return if (result.endsWith("/")) result else result + "/"
     }
 }

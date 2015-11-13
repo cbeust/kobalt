@@ -1,13 +1,10 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.api.IClasspathContributor
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.Project
-import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.api.*
 import com.google.common.collect.ArrayListMultimap
 import java.util.*
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.beust.kobalt.misc.*
+import javax.inject.*
 
 @Singleton
 public class DependencyManager @Inject constructor(val executors: KobaltExecutors,
@@ -66,19 +63,13 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
      * Reorder dependencies so that if an artifact appears several times, only the one with the higest version
      * is included.
      */
+    // TODO it may cause problems if there are file dependencies in the list, we can't compare file dependencies with maven dependencies
     public fun reorderDependencies(dependencies: Collection<IClasspathDependency>): List<IClasspathDependency> {
-        val result = arrayListOf<IClasspathDependency>()
-        val map : ArrayListMultimap<String, IClasspathDependency> = ArrayListMultimap.create()
-        // The multilist maps each artifact to a list of all the versions found
-        // (e.g. {org.testng:testng -> (6.9.5, 6.9.4, 6.1.1)}), then we return just the first one
-        dependencies.forEach {
-            map.put(it.shortId, it)
-        }
-        for (k in map.keySet()) {
-            val l = map.get(k)
-            Collections.sort(l, Collections.reverseOrder())
-            result.add(l.get(0))
-        }
-        return result
+        return dependencies.groupBy { it.shortId + ":" + it.classifierIfAvailable() }
+                .map { it.value.filterIsInstance<MavenDependency>().max() as? IClasspathDependency
+                        ?: it.value.filterIsInstance<FileDependency>().max()
+                        ?: it.value.first() }
     }
+
+    private fun IClasspathDependency.classifierIfAvailable() = if (this is MavenDependency) mavenId.classifier else ""
 }

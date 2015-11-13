@@ -1,15 +1,12 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.misc.toString
-import com.beust.kobalt.misc.log
-import com.google.inject.assistedinject.Assisted
-import org.jetbrains.kotlin.codegen.intrinsics.ToString
-import org.w3c.dom.Element
-import org.w3c.dom.NodeList
-import org.xml.sax.InputSource
-import java.io.FileReader
-import javax.xml.xpath.XPathConstants
-import kotlin.dom.childElements
+import com.beust.kobalt.misc.*
+import com.google.inject.assistedinject.*
+import org.w3c.dom.*
+import org.xml.sax.*
+import java.io.*
+import javax.xml.xpath.*
+import kotlin.dom.*
 
 public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         @Assisted documentFile: java.io.File) {
@@ -28,7 +25,7 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
     }
 
     data public class Dependency(val groupId: String, val artifactId: String, val packaging: String?,
-        val version: String, val optional: Boolean = false, val scope: String? = null) {
+        val version: String, val optional: Boolean = false, val scope: String? = null, val classifier: String? = null) {
 
         /** When a variable is used in a maven file, e.g. ${version} */
         private val VAR = "$" + "{"
@@ -51,8 +48,8 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
                 return result
             }
 
-
-        val id: String = "$groupId:$artifactId:$version"
+        val id: String
+                get() = listOf(groupId, artifactId, packaging, version, classifier).filterNotNull().joinToString(":")
     }
 
     var dependencies = arrayListOf<Dependency>()
@@ -85,6 +82,8 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
             var version: String = ""
             var optional: Boolean? = false
             var scope: String? = null
+            var classifier: String? = null
+
             for (j in 0..d.length - 1) {
                 val e = d.item(j)
                 if (e is Element) {
@@ -95,11 +94,12 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
                         "version" -> version = e.textContent
                         "optional" -> optional = "true".equals(e.textContent, true)
                         "scope" -> scope = e.textContent
+                        "classifier" -> classifier = e.textContent
                     }
                 }
             }
-            log(3, "Done parsing: $groupId $artifactId $version")
-            val tmpDependency = Dependency(groupId!!, artifactId!!, packaging, version, optional!!, scope)
+            val tmpDependency = Dependency(groupId!!, artifactId!!, packaging, version, optional!!, scope, classifier)
+            log(3, "Done parsing: ${tmpDependency.id}")
             dependencies.add(tmpDependency)
         }
     }

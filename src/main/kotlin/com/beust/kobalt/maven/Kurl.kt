@@ -1,17 +1,15 @@
 package com.beust.kobalt.maven
 
-import com.google.inject.assistedinject.Assisted
+import com.google.inject.assistedinject.*
 import java.io.*
-import java.net.HttpURLConnection
-import java.net.URL
-import java.net.URLConnection
-import javax.inject.Inject
+import java.net.*
+import javax.inject.*
 
 /**
  * Abstracts a URL so that it works transparently on either http:// or file://
  */
 class Kurl @Inject constructor(@Assisted val url: String) {
-    val connection : URLConnection by lazy {
+    val connection : URLConnection by lazy { // TODO bug here: it is impossible to close connection
         URL(url).openConnection()
     }
 

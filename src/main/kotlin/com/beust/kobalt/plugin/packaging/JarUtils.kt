@@ -1,15 +1,10 @@
 package com.beust.kobalt.plugin.packaging
 
-import com.beust.kobalt.IFileSpec
-import com.beust.kobalt.misc.log
-import com.google.common.io.CharStreams
+import com.beust.kobalt.*
+import com.beust.kobalt.misc.*
 import java.io.*
-import java.util.jar.JarEntry
-import java.util.jar.JarFile
-import java.util.jar.JarInputStream
-import java.util.zip.ZipEntry
-import java.util.zip.ZipFile
-import java.util.zip.ZipOutputStream
+import java.util.jar.*
+import java.util.zip.*
 
 public class JarUtils {
     companion object {
@@ -100,8 +95,8 @@ public class JarUtils {
                 val file = enumEntries.nextElement()
                 if (file.name == fileName) {
                     log(2, "Found $fileName in $zip")
-                    zip.getInputStream(file).use { ins ->
-                        return CharStreams.toString(InputStreamReader(ins, "UTF-8"))
+                    zip.getInputStream(file).bufferedReader(Charsets.UTF_8).use {
+                        it.readText()
                     }
                 }
             }

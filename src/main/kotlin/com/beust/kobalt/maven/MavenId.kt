@@ -21,21 +21,15 @@ data class MavenId(val groupId: String, val artifactId: String, val version: Str
         fun create(groupId: String, artifactId: String, packaging: String?, version: String?) =
                 MavenId(groupId, artifactId, version, packaging)
 
-        fun toId(groupId: String, artifactId: String, packaging: String? = null, version: String?) =
-                "$groupId:$artifactId" +
-                        (if (packaging != null) ":$packaging" else "") +
-                        ":$version"
+        fun toId(groupId: String, artifactId: String, packaging: String? = null, version: String?, classifier: String? = null) =
+                listOf(groupId, artifactId, packaging, version, classifier).filterNotNull().joinToString(":")
     }
 
     val hasVersion: Boolean
         get() = version != null
 
-    @Deprecated("Use id instead", ReplaceWith("id"))
-    val toId: String
-        get() = id
-
     val id: String
-        get() = MavenId.toId(groupId, artifactId, packaging, version)
+        get() = MavenId.toId(groupId, artifactId, packaging, version, classifier)
 
 }
 
