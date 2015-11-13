@@ -131,6 +131,7 @@ fun readVersion() : String {
 @com.beust.kobalt.api.annotation.Task(name = "copyVersionForWrapper", runBefore = arrayOf("compile"), description = "")
 fun taskCopyVersionForWrapper(project: Project) : TaskResult {
     if (project.name == "kobalt-wrapper") {
+        Files.createDirectories(Paths.get("modules/wrapper/kobaltBuild/classes"))
         Files.copy(Paths.get("src/main/resources/kobalt.properties"),
                 Paths.get("modules/wrapper/kobaltBuild/classes/kobalt.properties"),
                 StandardCopyOption.REPLACE_EXISTING)
