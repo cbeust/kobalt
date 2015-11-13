@@ -1,8 +1,7 @@
 package com.beust.kobalt.maven
 
-import org.testng.Assert
-import org.testng.annotations.DataProvider
-import org.testng.annotations.Test
+import org.testng.*
+import org.testng.annotations.*
 
 @Test
 class MavenIdTest {
@@ -16,18 +15,20 @@ class MavenIdTest {
             arrayOf("com.google.inject:guice:4.0:no_aop",
                     "com.google.inject", "guice", "4.0", null, "no_aop"),
             arrayOf("com.android.support:appcompat-v7:aar:22.2.1",
-                    "com.android.support", "appcompat-v7", "22.2.1", "aar", null)
+                    "com.android.support", "appcompat-v7", "22.2.1", "aar", null),
+            arrayOf("com.github.jnr:jffi:1.2.7:native",
+                "com.github.jnr", "jffi", "1.2.7", null, "native")
         )
     }
 
     @Test(dataProvider = "dp")
     fun parseVersions(id: String, groupId: String, artifactId: String, version: String?,
-            packaging: String? /* , qualifier: String? */) {
+            packaging: String?, classifier: String?) {
         val mi = MavenId(id)
         Assert.assertEquals(mi.groupId, groupId)
         Assert.assertEquals(mi.artifactId, artifactId)
         Assert.assertEquals(mi.version, version)
         Assert.assertEquals(mi.packaging, packaging)
-//        Assert.assertEquals(mi.qualifier, qualifier)
+        Assert.assertEquals(mi.classifier, classifier)
     }
 }
