@@ -100,18 +100,18 @@ public class Main {
         Properties properties = maybeCreateProperties();
 
         initWrapperFile(properties.getProperty(PROPERTY_VERSION));
-        String version = getWrapperVersion();
+        String wrapperVersion = getWrapperVersion();
 
-        log(2, "Wrapper version: " + properties.getProperty(PROPERTY_VERSION));
+        log(2, "Wrapper version: " + wrapperVersion);
 
-        String fileName = FILE_NAME + "-" + version + ".zip";
+        String fileName = FILE_NAME + "-" + wrapperVersion + ".zip";
         Files.createDirectories(Paths.get(DISTRIBUTIONS_DIR));
         Path localZipFile = Paths.get(DISTRIBUTIONS_DIR, fileName);
-        String zipOutputDir = DISTRIBUTIONS_DIR + "/" + version;
+        String zipOutputDir = DISTRIBUTIONS_DIR + "/" + wrapperVersion;
         Path kobaltJarFile = Paths.get(zipOutputDir,
-                getWrapperDir().getPath() + "/" + FILE_NAME + "-" + version + ".jar");
+                getWrapperDir().getPath() + "/" + FILE_NAME + "-" + wrapperVersion + ".jar");
         if (! Files.exists(localZipFile) || ! Files.exists(kobaltJarFile)) {
-            download(localZipFile.toFile(), version);
+            download(localZipFile.toFile(), wrapperVersion);
         }
 
         //
@@ -127,7 +127,7 @@ public class Main {
                 error("Couldn't open zip file " + localZipFile + ": " + e.getMessage());
                 error("The file is probably corrupt, downloading it again");
                 Files.delete(localZipFile);
-                download(localZipFile.toFile(), version);
+                download(localZipFile.toFile(), wrapperVersion);
             }
         }
 
