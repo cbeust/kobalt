@@ -37,7 +37,7 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
     }
 
     fun uploadRelease(): Int {
-        val releaseName = "TestRelease"
+        val releaseName = "0.100"
         val release = service.getReleaseByTagName(Prop.username, "kobalt", releaseName)
 
         uploadService.uploadRelease(Prop.username, Prop.accessToken, "kobalt", release.id!!, "zipFile", "label",
@@ -152,7 +152,7 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors) {
                     //                    val jo = Parser().parse(ins) as JsonArray<JsonObject>
                     if (jo.size() > 0) {
                         var versionName = (jo.get(0) as JsonObject).get("name").asString
-                        if (versionName == null) {
+                        if (Strings.isEmpty(versionName)) {
                             versionName = (jo.get(0) as JsonObject).get("tag_name").asString
                         }
                         if (versionName != null) {
