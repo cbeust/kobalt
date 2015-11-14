@@ -12,7 +12,8 @@ import com.beust.kobalt.plugin.java.javaProject
 import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.kotlin.kotlinProject
 import com.beust.kobalt.plugin.packaging.assemble
-import com.beust.kobalt.plugin.publish.*
+import com.beust.kobalt.plugin.publish.github
+import com.beust.kobalt.plugin.publish.jcenter
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -26,6 +27,15 @@ val wrapper = javaProject {
     javaCompiler {
         args("-source", "1.7", "-target", "1.7")
     }
+
+    dependencies {
+        compile(file(homeDir("java/java-apt-example/processor/kobaltBuild/libs/processor-0.1.jar")))
+//        apt(file(homeDir("java/java-apt-example/processor/kobaltBuild/libs/processor-0.1.jar")))
+    }
+
+//    apt {
+//        outputDir = "generated/sources/apt"
+//    }
 
     assemble {
         jar {

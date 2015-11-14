@@ -8,6 +8,7 @@ import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.KobaltException
 import com.google.inject.Inject
 import java.io.File
+import java.util.*
 
 /**
  * Abstract the compilation process by running an ICompilerAction parameterized  by a CompilerActionInfo.
@@ -16,16 +17,27 @@ import java.io.File
 class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) {
 
     /**
-     * Create a final, enriched CompilerActionInfo from the contributors and the transitive dependencies and
+     * Take the given CompilerActionInfo and enrich it with all the applicable contributors and
      * then pass it to the ICompilerAction.
      */
     fun doCompile(project: Project?, context: KobaltContext?, action: ICompilerAction, info: CompilerActionInfo)
             : TaskResult {
 
-        val allDependencies = info.dependencies + calculateDependencies(project, context, info.dependencies)
+        // Dependencies
+        val allDependencies = info.dependencies + calculateDependencies(project, context!!, info.dependencies)
+
+        // Plugins that add flags to the compiler
+        val addedFlags = ArrayList(info.compilerArgs) +
+            if (project != null) {
+                context.pluginInfo.compilerFlagContributors.flatMap {
+                    it.flagsFor(project)
+                }
+            } else {
+                emptyList()
+            }
 
         validateClasspath(allDependencies.map { it.jarFile.get().absolutePath })
-        return action.compile(info.copy(dependencies = allDependencies))
+        return action.compile(info.copy(dependencies = allDependencies, compilerArgs = addedFlags))
     }
 
     private fun validateClasspath(cp: List<String>) {
@@ -39,7 +51,7 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
     /**
      * @return the classpath for this project, including the IClasspathContributors.
      */
-    fun calculateDependencies(project: Project?, context: KobaltContext?,
+    fun calculateDependencies(project: Project?, context: KobaltContext,
             vararg allDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
         var result = arrayListOf<IClasspathDependency>()
         allDependencies.forEach { dependencies ->
@@ -50,10 +62,10 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
         return result
     }
 
-    private fun runClasspathContributors(project: Project?, context: KobaltContext?) :
+    private fun runClasspathContributors(project: Project?, context: KobaltContext) :
             Collection<IClasspathDependency> {
         val result = hashSetOf<IClasspathDependency>()
-        context!!.pluginInfo.classpathContributors.forEach { it: IClasspathContributor ->
+        context.pluginInfo.classpathContributors.forEach { it: IClasspathContributor ->
             result.addAll(it.entriesFor(project))
         }
         return result

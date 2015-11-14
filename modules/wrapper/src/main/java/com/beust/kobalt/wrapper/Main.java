@@ -9,6 +9,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+//@com.beust.apt.processor.Version("1.3")
 public class Main {
     public static void main(String[] argv) throws IOException, InterruptedException {
         new Main().installAndLaunchMain(argv);

@@ -1,37 +1,73 @@
 package com.beust.kobalt.plugin.apt
 
-import com.beust.kobalt.api.BasePlugin
-import com.beust.kobalt.api.Dependencies
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.internal.TaskResult
+import com.beust.kobalt.maven.DepFactory
+import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
+import com.google.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * The AptPlugin has two components:
+ * 1) A new apt directive inside a dependency{} block (similar to compile()) that declares where
+ * the annotation process is found
+ * 2) An apt{} configuration on Project that lets the user configure how the annotation is performed
+ * (outputDir, etc...).
+ */
 @Singleton
-public class AptPlugin : BasePlugin() {
+public class AptPlugin @Inject constructor(val depFactory: DepFactory, val executors: KobaltExecutors)
+        : BasePlugin(), ICompilerFlagContributor {
     companion object {
-        public const val TASK_APT: String = "runApt"
+        const val TASK_APT: String = "runApt"
+        const val NAME = "apt"
     }
 
-    override val name = "apt"
+    override val name = NAME
 
-    @Task(name = TASK_APT, description = "Run apt", runBefore = arrayOf("compile"))
-    fun taskApt(project: Project) : TaskResult {
-        log(1, "apt called on ${project} with processors ${processors}")
-        return TaskResult()
+    private val configs = hashMapOf<String, AptConfig>()
+
+    fun addAptConfig(project: Project, config: AptConfig) {
+        configs.put(project.name, config)
     }
 
-    private val processors = arrayListOf<String>()
+    // ICompilerFlagContributor
+    override fun flagsFor(project: Project) : List<String> {
+        val result = arrayListOf<String>()
+        configs[project.name]?.let { config ->
+            aptDependencies.get(key = project.name)?.let { aptDependency ->
+                val dependency = depFactory.create(aptDependency, executors.miscExecutor)
+                result.add("-processorpath")
+                result.add(dependency.jarFile.get().absolutePath)
+                val generated = KFiles.joinAndMakeDir(project.directory, project.buildDirectory!!, config.outputDir)
+                result.add("-s")
+                result.add(generated)
+            }
+        }
+        log(2, "New flags from apt: " + result.joinToString(" "))
+        return result
+    }
 
-    fun addApt(dep: String) {
-        processors.add(dep)
+    private val aptDependencies = hashMapOf<String, String>()
+    fun addAptDependency(dependencies: Dependencies, it: String) {
+        aptDependencies.put(dependencies.project.name, it)
+    }
+}
+
+class AptConfig(var outputDir: String = "generated/sources/apt")
+
+@Directive
+public fun Project.apt(init: AptConfig.() -> Unit) {
+    AptConfig().let {
+        it.init()
+        (Kobalt.findPlugin(AptPlugin.NAME) as AptPlugin).addAptConfig(this, it)
     }
 }
 
 @Directive
-public fun Dependencies.apt(dep: String) {
-    (Kobalt.findPlugin("apt") as AptPlugin).addApt(dep)
+fun Dependencies.apt(vararg dep: String) {
+    dep.forEach {
+        (Kobalt.findPlugin(AptPlugin.NAME) as AptPlugin).addAptDependency(this, it)
+    }
 }

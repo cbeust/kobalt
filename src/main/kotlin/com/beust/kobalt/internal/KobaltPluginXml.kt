@@ -39,16 +39,19 @@ class KobaltPluginXml {
     var factoryClassName: String? = null
 
     @XmlElement(name = "classpath-contributors") @JvmField
-    var classpathClassName: ClassNameXml? = null
+    var classpathContributors: ClassNameXml? = null
 
     @XmlElement(name = "project-contributors") @JvmField
-    var projectClassName: ClassNameXml? = null
+    var projectContributors: ClassNameXml? = null
 
     @XmlElement(name = "init-contributors") @JvmField
-    var initClassName: ClassNameXml? = null
+    var initContributors: ClassNameXml? = null
 
     @XmlElement(name = "repo-contributors") @JvmField
-    var repoClassName: ClassNameXml? = null
+    var repoContributors: ClassNameXml? = null
+
+    @XmlElement(name = "compiler-flag-contributors") @JvmField
+    var compilerFlagContributors: ClassNameXml? = null
 }
 
 class ContributorXml {
@@ -72,12 +75,11 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val classpathContributors = arrayListOf<IClasspathContributor>()
     val initContributors = arrayListOf<IInitContributor>()
     val repoContributors = arrayListOf<IRepoContributor>()
+    val compilerFlagContributors = arrayListOf<ICompilerFlagContributor>()
 
     // Future contributors:
-    // compilerArgs
     // source files
     // compilers
-    // repos
 
     companion object {
         val PLUGIN_XML = "META-INF/plugin.xml" // Plugins.PLUGIN_XML)
@@ -123,17 +125,20 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         xml.plugins?.className?.forEach {
             plugins.add(factory.instanceOf(forName(it)) as IPlugin)
         }
-        xml.classpathClassName?.className?.forEach {
+        xml.classpathContributors?.className?.forEach {
             classpathContributors.add(factory.instanceOf(forName(it)) as IClasspathContributor)
         }
-        xml.projectClassName?.className?.forEach {
+        xml.projectContributors?.className?.forEach {
             projectContributors.add(factory.instanceOf(forName(it)) as IProjectContributor)
         }
-        xml.initClassName?.className?.forEach {
+        xml.initContributors?.className?.forEach {
             initContributors.add(factory.instanceOf(forName(it)) as IInitContributor)
         }
-        xml.repoClassName?.className?.forEach {
+        xml.repoContributors?.className?.forEach {
             repoContributors.add(factory.instanceOf(forName(it)) as IRepoContributor)
+        }
+        xml.compilerFlagContributors?.className?.forEach {
+            compilerFlagContributors.add(factory.instanceOf(forName(it)) as ICompilerFlagContributor)
         }
     }
 
