@@ -1,8 +1,8 @@
 package com.beust.kobalt.plugin.publish
 
 import com.beust.kobalt.KobaltException
-import com.beust.kobalt.api.Project
 import com.beust.kobalt.TaskResult
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.Gpg
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.Md5
@@ -31,8 +31,13 @@ open public class UnauthenticatedJCenterApi @Inject constructor(open val http: H
         const val BINTRAY_URL_API_CONTENT = BINTRAY_URL_API + "/content"
     }
 
-    fun parseResponse(response: String) : JsonObject {
-        return JsonParser().parse(response).asJsonObject
+    fun parseResponse(response: String, networkResponse: String?) : JsonObject {
+        if (networkResponse != null && ! networkResponse.isBlank()) {
+            val jo = JsonParser().parse(response).asJsonObject
+            return jo
+        } else {
+            return JsonParser().parse(response).asJsonObject
+        }
 //        return Parser().parse(ByteArrayInputStream(response.toByteArray(Charset.defaultCharset()))) as JsonObject
     }
 
@@ -57,8 +62,11 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
         val url = arrayListOf(UnauthenticatedJCenterApi.BINTRAY_URL_API, "packages", username!!, "maven", packageName)
                 .joinToString("/")
         val response = http.get(username, password, url).getAsString()
-        val jo = parseResponse(response)
+        val jo = parseResponse(response, null)
 
+        jo.get("message")?.let {
+            throw KobaltException("Error from JCenter: $it")
+        }
         return jo.get("name").asString == packageName
     }
 
@@ -151,10 +159,11 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
             filesToUpload.forEach { file ->
                 http.uploadFile(username, password, fileToPath(file) + optionPath,
                         TypedFile(MediaType.ANY_APPLICATION_TYPE.toString(), file),
+                        post = false, // JCenter requires PUT
                         success = { r: Response -> results.add(true) },
                         error = { r: Response ->
                             results.add(false)
-                            val jo = parseResponse(r.body().string())
+                            val jo = parseResponse(r.body().string(), r.networkResponse().body().string())
                             errorMessages.add(jo.get("message").asString ?: "No message found")
                         })
                 val end = if (i >= fileCount) "\n" else ""

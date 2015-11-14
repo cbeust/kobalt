@@ -79,7 +79,7 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
         val url = "$strippedUrl?name=$fileName&label=$fileName"
         val headers = Headers.of("Authorization", "token $token")
         val totalSize = typedFile.file().length()
-        http.uploadFile(url = url, file = typedFile, headers = headers,
+        http.uploadFile(url = url, file = typedFile, headers = headers, post = true, // Github requires POST
                 progressCallback = http.percentProgressCallback(totalSize))
 
         return Observable.just(UploadAssetResponse(tagName, tagName))

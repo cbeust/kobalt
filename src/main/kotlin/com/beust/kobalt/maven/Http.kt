@@ -41,14 +41,6 @@ public class Http {
         return get(null, null, url)
     }
 
-    private fun builder(user: String?, password: String?) : Request.Builder {
-        val result = Request.Builder()
-        user?.let {
-            result.header("Authorization", Credentials.basic(user, password))
-        }
-        return result
-    }
-
     fun percentProgressCallback(totalSize: Long) : (Long) -> Unit {
         return { num: Long ->
             val progress = num * 100 / totalSize
@@ -61,6 +53,7 @@ public class Http {
     }
 
     public fun uploadFile(user: String? = null, password: String? = null, url: String, file: TypedFile,
+            post: Boolean,
             progressCallback: (Long) -> Unit = {},
             headers: Headers = Headers.of(),
             success: (Response) -> Unit = {},
@@ -70,11 +63,19 @@ public class Http {
         fullHeaders.set("Content-Type", file.mimeType())
         headers.names().forEach { fullHeaders.set(it, headers.get(it)) }
 
-        val request = builder(user, password)
+        user?.let {
+            fullHeaders.set("Authorization", Credentials.basic(user, password))
+        }
+
+        val requestBuilder = Request.Builder()
                 .headers(fullHeaders.build())
                 .url(url)
-                .post(CountingFileRequestBody(file.file(), file.mimeType(), progressCallback))
-                .build()
+        val request =
+            (if (post)
+                requestBuilder.post(CountingFileRequestBody(file.file(), file.mimeType(), progressCallback))
+            else
+                requestBuilder.put(CountingFileRequestBody(file.file(), file.mimeType(), progressCallback)))
+            .build()
 
         log(2, "Uploading $file to $url")
         val response = OkHttpClient().newCall(request).execute()
