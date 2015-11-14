@@ -31,7 +31,7 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
         val executors: KobaltExecutors,
         val jvmCompiler: JvmCompiler) {
     companion object {
-        val KOTLIN_VERSION = "1.0.0-beta-1038"
+        val KOTLIN_VERSION = "1.0.0-beta-1103"
     }
 
     val compilerAction = object: ICompilerAction {
