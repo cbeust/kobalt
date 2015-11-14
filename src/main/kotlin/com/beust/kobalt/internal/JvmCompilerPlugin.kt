@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project

@@ -1,7 +1,7 @@
 package com.beust.kobalt.plugin.publish
 
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.internal.TaskResult
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.maven.Gpg
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.KobaltException

@@ -6,7 +6,7 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
-import com.beust.kobalt.internal.TaskResult
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.FileDependency
 import com.beust.kobalt.maven.IClasspathDependency

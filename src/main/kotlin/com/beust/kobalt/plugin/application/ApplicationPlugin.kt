@@ -7,7 +7,7 @@ import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.internal.TaskResult
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.RunCommand

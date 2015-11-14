@@ -5,7 +5,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.internal.TaskResult
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.misc.*
 import com.google.common.base.Preconditions

@@ -3,6 +3,7 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.Args
 import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.Plugins
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.KobaltException

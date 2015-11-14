@@ -12,7 +12,7 @@ import com.beust.kobalt.api.annotation.ExportedProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
-import com.beust.kobalt.internal.TaskResult
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles

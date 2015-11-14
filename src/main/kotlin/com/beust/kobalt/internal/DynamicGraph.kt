@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.misc.NamedThreadFactory
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.*
