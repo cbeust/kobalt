@@ -1,8 +1,9 @@
 package com.beust.kobalt.maven
 
+import com.beust.kobalt.misc.CountingFileRequestBody
 import com.beust.kobalt.misc.log
 import com.squareup.okhttp.*
-import java.io.File
+import retrofit.mime.TypedFile
 import java.io.IOException
 import java.io.InputStream
 import javax.inject.Singleton
@@ -47,15 +48,34 @@ public class Http {
         return result
     }
 
-    public fun uploadFile(user: String?, password: String?, url: String, file: File,
-            success: (Response) -> Unit,
-            error: (Response) -> Unit) {
-        val request = builder(user, password)
-            .url(url)
-            .put(RequestBody.create(MEDIA_TYPE_BINARY, file))
-            .build()
+    fun percentProgressCallback(totalSize: Long) : (Long) -> Unit {
+        return { num: Long ->
+            val progress = num * 100 / totalSize
+            log(1, "\rUploaded: $progress%", newLine = false)
+        }
+    }
 
-        log(2, "Uploading $file to $url")
+    val DEFAULT_ERROR_RESPONSE = { r: Response ->
+        error("Couldn't upload file: " + r.message())
+    }
+
+    public fun uploadFile(user: String? = null, password: String? = null, url: String, file: TypedFile,
+            progressCallback: (Long) -> Unit = {},
+            headers: Headers = Headers.of(),
+            success: (Response) -> Unit = {},
+            error: (Response) -> Unit = DEFAULT_ERROR_RESPONSE) {
+
+        val fullHeaders = Headers.Builder()
+        fullHeaders.set("Content-Type", file.mimeType())
+        headers.names().forEach { fullHeaders.set(it, headers.get(it)) }
+
+        val request = builder(user, password)
+                .headers(fullHeaders.build())
+                .url(url)
+                .post(CountingFileRequestBody(file.file(), file.mimeType(), progressCallback))
+                .build()
+
+        log(1, "Uploading $file to $url")
         val response = OkHttpClient().newCall(request).execute()
         if (! response.isSuccessful) {
             error(response)
@@ -63,17 +83,6 @@ public class Http {
             success(response)
         }
     }
-
-//    private val JSON = MediaType.parse("application/json; charset=utf-8")
-//
-//    fun post(user: String?, password: String?, url: String, payload: String) : String {
-//        val request = builder(user, password)
-//            .url(url)
-//            .post(RequestBody.create(JSON, payload))
-//            .build()
-//        val response = OkHttpClient().newCall(request).execute()
-//        return response.body().string()
-//    }
 }
 
 class KobaltException(s: String? = null, ex: Throwable? = null) : RuntimeException(s, ex) {

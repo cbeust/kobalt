@@ -10,11 +10,13 @@ import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.error
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
+import com.google.common.net.MediaType
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.inject.assistedinject.Assisted
 import com.squareup.okhttp.Response
 import org.jetbrains.annotations.Nullable
+import retrofit.mime.TypedFile
 import java.io.File
 import javax.inject.Inject
 
@@ -147,9 +149,10 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
 
             val results = arrayListOf<Boolean>()
             filesToUpload.forEach { file ->
-                http.uploadFile(username, password, fileToPath(file) + optionPath, file,
-                        { r: Response -> results.add(true)},
-                        { r: Response ->
+                http.uploadFile(username, password, fileToPath(file) + optionPath,
+                        TypedFile(MediaType.ANY_APPLICATION_TYPE.toString(), file),
+                        success = { r: Response -> results.add(true) },
+                        error = { r: Response ->
                             results.add(false)
                             val jo = parseResponse(r.body().string())
                             errorMessages.add(jo.get("message").asString ?: "No message found")
