@@ -16,6 +16,6 @@ public class UpdateKobalt @Inject constructor(val github: GithubApi, val wrapper
      * Download from the URL found in the kobalt-wrapper.properties regardless of what the latest version is
      */
     fun downloadKobalt() {
-        com.beust.kobalt.wrapper.Main.main(arrayOf("--download"))
+        com.beust.kobalt.wrapper.Main.main(arrayOf("--download", "--no-launch"))
     }
 }

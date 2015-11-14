@@ -86,7 +86,8 @@ public class Main {
         if (! config.exists()) {
             saveFile(config,
                     PROPERTY_VERSION + "=" + version + "\n"
-                    + PROPERTY_DOWNLOAD_URL + "=" + downloadUrl(version) + "\n");
+//                    + PROPERTY_DOWNLOAD_URL + "=" + downloadUrl(version) + "\n"
+            );
         }
         wrapperProperties.load(new FileReader(config));
     }
