@@ -73,7 +73,8 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
     private fun uploadAsset(token: String, uploadUrl: String, typedFile: TypedFile, tagName: String)
             : Observable<UploadAssetResponse> {
         val strippedUrl = uploadUrl.substring(0, uploadUrl.indexOf("{"))
-        val url = "$strippedUrl?name=$tagName&label=$tagName"
+        val fileName = typedFile.file().name
+        val url = "$strippedUrl?name=$fileName&label=$fileName"
         val headers = Headers.of("Authorization", "token $token")
         val totalSize = typedFile.file().length()
         http.uploadFile(url = url, file = typedFile, headers = headers,
