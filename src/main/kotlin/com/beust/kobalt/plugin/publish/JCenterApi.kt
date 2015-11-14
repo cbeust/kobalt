@@ -36,7 +36,9 @@ open public class UnauthenticatedJCenterApi @Inject constructor(open val http: H
     fun parseResponse(r: Response) : JCenterResponse {
         val networkResponse = r.networkResponse()
         if (networkResponse.code() != 200) {
-            return JCenterResponse(null, networkResponse.message())
+            val message = networkResponse.message()
+            val errorObject = JsonParser().parse(r.body().string()).asJsonObject
+            return JCenterResponse(null, message + ": " + errorObject.get("message").asString)
         } else {
             return JCenterResponse(JsonParser().parse(r.body().string()).asJsonObject, null)
         }
