@@ -4,7 +4,6 @@ import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.ExportedProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.*
@@ -126,17 +125,3 @@ abstract class JvmCompilerPlugin @Inject constructor(
         compilerArgs.addAll(args)
     }
 }
-
-class TestConfig(val project: Project) {
-    fun args(vararg arg: String) {
-        project.testArgs.addAll(arg)
-    }
-}
-
-@Directive
-fun Project.test(init: TestConfig.() -> Unit) : TestConfig {
-    val result = TestConfig(this)
-    result.init()
-    return result
-}
-

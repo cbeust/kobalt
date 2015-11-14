@@ -1,7 +1,6 @@
 
 import com.beust.kobalt.*
 import com.beust.kobalt.api.*
-import com.beust.kobalt.internal.*
 import com.beust.kobalt.plugin.application.application
 import com.beust.kobalt.plugin.java.javaCompiler
 import com.beust.kobalt.plugin.java.javaProject
