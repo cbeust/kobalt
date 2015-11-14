@@ -49,12 +49,14 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors) : Ba
 
     @Task(name = "run", description = "Run the main class", runAfter = arrayOf("assemble"))
     fun taskRun(project: Project): TaskResult {
-        configs[project.name].let { config ->
+        configs[project.name]?.let { config ->
             val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
-            if (config != null && config.mainClass != null) {
+            if (config.mainClass != null) {
                 val jarName = context.pluginProperties.get("packaging", PackagingPlugin.JAR_NAME) as String
                 val args = listOf("-classpath", jarName) + config.jvmArgs + config.mainClass!!
-                RunCommand(java.absolutePath).run(args)
+                RunCommand(java.absolutePath).run(args, successCallback = { output: List<String> ->
+                    println(output.joinToString("\n"))
+                })
             } else {
                 throw KobaltException("No \"mainClass\" specified in the application{} part of project ${project.name}")
             }
