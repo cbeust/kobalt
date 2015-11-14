@@ -4,7 +4,6 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
-import com.beust.kobalt.TaskResult
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.KobaltException
@@ -101,7 +100,11 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
 
                 fun toTask(m: Method, project: Project, plugin: IPlugin): (Project) -> TaskResult {
                     val result: (Project) -> TaskResult = {
-                        m.invoke(plugin, project) as TaskResult
+                        try {
+                            m.invoke(plugin, project) as TaskResult
+                        } catch(ex: Throwable) {
+                            throw KobaltException("Error while invoking task $m on plugin $plugin")
+                        }
                     }
                     return result
                 }
