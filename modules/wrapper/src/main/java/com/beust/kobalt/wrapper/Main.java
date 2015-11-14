@@ -57,7 +57,18 @@ public class Main {
         if (url != null) {
             readProperties(result, url.openConnection().getInputStream());
         } else {
-            throw new IllegalArgumentException("Couldn't find " + KOBALT_PROPERTIES);
+            File file = new File("src/main/resources/kobalt.properties");
+            if (file.exists()) {
+                FileInputStream fis = null;
+                try {
+                    fis = new FileInputStream(file);
+                    readProperties(result, fis);
+                } finally {
+                    if (fis != null) fis.close();
+                }
+            } else {
+                throw new IllegalArgumentException("Couldn't find " + KOBALT_PROPERTIES);
+            }
         }
         return result;
     }
