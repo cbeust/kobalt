@@ -31,14 +31,15 @@ open public class UnauthenticatedJCenterApi @Inject constructor(open val http: H
         const val BINTRAY_URL_API_CONTENT = BINTRAY_URL_API + "/content"
     }
 
-    fun parseResponse(response: String, networkResponse: String?) : JsonObject {
-        if (networkResponse != null && ! networkResponse.isBlank()) {
-            val jo = JsonParser().parse(response).asJsonObject
-            return jo
+    class JCenterResponse(val jo: JsonObject?, val errorMessage: String?)
+
+    fun parseResponse(r: Response) : JCenterResponse {
+        val networkResponse = r.networkResponse()
+        if (networkResponse.code() != 200) {
+            return JCenterResponse(null, networkResponse.message())
         } else {
-            return JsonParser().parse(response).asJsonObject
+            return JCenterResponse(JsonParser().parse(r.body().string()).asJsonObject, null)
         }
-//        return Parser().parse(ByteArrayInputStream(response.toByteArray(Charset.defaultCharset()))) as JsonObject
     }
 
 //    fun getPackage() : JCenterPackage {
@@ -61,13 +62,13 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
     fun packageExists(packageName: String) : Boolean {
         val url = arrayListOf(UnauthenticatedJCenterApi.BINTRAY_URL_API, "packages", username!!, "maven", packageName)
                 .joinToString("/")
-        val response = http.get(username, password, url).getAsString()
-        val jo = parseResponse(response, null)
+        val jcResponse = parseResponse(http.get(username, password, url))
 
-        jo.get("message")?.let {
-            throw KobaltException("Error from JCenter: $it")
+        if (jcResponse.errorMessage != null) {
+            throw KobaltException("Error from JCenter: ${jcResponse.errorMessage}")
         }
-        return jo.get("name").asString == packageName
+
+        return jcResponse.jo!!.get("name").asString == packageName
     }
 
 //    class ForPost(val name: String, val license: Array<String>)
@@ -163,8 +164,8 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
                         success = { r: Response -> results.add(true) },
                         error = { r: Response ->
                             results.add(false)
-                            val jo = parseResponse(r.body().string(), r.networkResponse().body().string())
-                            errorMessages.add(jo.get("message").asString ?: "No message found")
+                            val jcResponse = parseResponse(r)
+                            errorMessages.add(jcResponse.errorMessage!!)
                         })
                 val end = if (i >= fileCount) "\n" else ""
                 log(1, "    Uploading " + (i++) + " / $fileCount " + dots(fileCount, results) + end, false)
@@ -172,7 +173,7 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
             if (errorMessages.isEmpty()) {
                 return TaskResult()
             } else {
-                error("Errors while uploading:\n" + errorMessages.map { "    $it" }.joinToString("\n"))
+                error(" Errors while uploading:\n" + errorMessages.map { "    $it" }.joinToString("\n"))
                 return TaskResult(false, errorMessages.joinToString("\n"))
             }
         } else {

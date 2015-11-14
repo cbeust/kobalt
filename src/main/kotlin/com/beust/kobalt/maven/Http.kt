@@ -6,21 +6,11 @@ import com.beust.kobalt.misc.log
 import com.squareup.okhttp.*
 import retrofit.mime.TypedFile
 import java.io.IOException
-import java.io.InputStream
 import javax.inject.Singleton
 
 @Singleton
 public class Http {
-    class Body(val body: ResponseBody, val code: Int) {
-        public fun getAsString() : String {
-            return body.string()
-        }
-        public fun getAsStream() : InputStream {
-            return body.byteStream()
-        }
-    }
-
-    public fun get(user: String?, password: String?, url: String) : Body {
+    public fun get(user: String?, password: String?, url: String) : Response {
         val client = OkHttpClient();
         val request = Request.Builder().url(url)
         if (user != null) {
@@ -28,16 +18,13 @@ public class Http {
         }
 
         try {
-            val response = client.newCall(request.build()).execute()
-            return Body(response.body(), response.code())
+            return client.newCall(request.build()).execute()
         } catch(ex: IOException) {
             throw KobaltException("Could not load URL $url, error: " + ex.message, ex)
         }
     }
 
-    private val MEDIA_TYPE_BINARY = MediaType.parse("application/octet-stream")
-
-    public fun get(url: String) : Body {
+    public fun get(url: String) : Response {
         return get(null, null, url)
     }
 
