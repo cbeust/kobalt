@@ -7,8 +7,9 @@ import java.io.InputStreamReader
 import java.util.concurrent.TimeUnit
 
 open class RunCommand(val command: String) {
-    val defaultSuccess = { output: List<String> -> }
-//    val defaultSuccessVerbose = { output: List<String> -> log(2, "Success:\n " + output.joinToString("\n"))}
+    val DEFAULT_SUCCESS = { output: List<String> -> }
+//    val DEFAULT_SUCCESS_VERBOSE = { output: List<String> -> log(2, "Success:\n " + output.joinToString("\n"))}
+    val defaultSuccess = DEFAULT_SUCCESS
     val defaultError = {
         output: List<String> -> error("Error:\n " + output.joinToString("\n"))
     }
@@ -16,8 +17,9 @@ open class RunCommand(val command: String) {
     var directory = File(".")
     var env = hashMapOf<String, String>()
 
-    fun run(args: List<String>, errorCb: Function1<List<String>, Unit> = defaultError,
-            successCb: Function1<List<String>, Unit> = defaultSuccess) : Int {
+    fun run(args: List<String>,
+            errorCallback: Function1<List<String>, Unit> = defaultError,
+            successCallback: Function1<List<String>, Unit> = defaultSuccess) : Int {
         val allArgs = arrayListOf<String>()
         allArgs.add(command)
         allArgs.addAll(args)
@@ -34,9 +36,9 @@ open class RunCommand(val command: String) {
         val callSucceeded = process.waitFor(30, TimeUnit.SECONDS)
 //        val callSucceeded = if (passed == 0) true else false
         if (callSucceeded) {
-            successCb(fromStream(process.inputStream))
+            successCallback(fromStream(process.inputStream))
         } else {
-            errorCb(listOf("$command failed") + fromStream(process.errorStream))
+            errorCallback(listOf("$command failed") + fromStream(process.errorStream))
         }
         return if (callSucceeded) 0 else 1
 
