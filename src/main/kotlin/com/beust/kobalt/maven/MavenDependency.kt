@@ -1,5 +1,6 @@
 package com.beust.kobalt.maven
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.misc.DependencyExecutor
 import com.beust.kobalt.misc.Versions

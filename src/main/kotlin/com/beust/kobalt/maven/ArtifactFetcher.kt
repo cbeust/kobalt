@@ -1,12 +1,12 @@
 package com.beust.kobalt.maven
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.inject.assistedinject.Assisted
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService

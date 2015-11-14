@@ -1,13 +1,13 @@
 package com.beust.kobalt.kotlin
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.maven.IClasspathDependency
-import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Topological
 import com.beust.kobalt.misc.countChar

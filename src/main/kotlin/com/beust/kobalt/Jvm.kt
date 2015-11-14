@@ -1,6 +1,5 @@
 package com.beust.kobalt
 
-import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
 import java.io.File
@@ -31,7 +30,7 @@ public open class Jvm constructor(
         if (javaBase == null) {
             //discover based on what's in the sys. property
             try {
-                javaBase = File(System.getProperty("java.home")).getCanonicalFile()
+                javaBase = File(System.getProperty("java.home")).canonicalFile
             } catch (e: IOException) {
                 throw KobaltException(e)
             }
@@ -52,10 +51,10 @@ public open class Jvm constructor(
     private fun findJavaHome(javaBase: File): File {
         val toolsJar = findToolsJar(javaBase)
         if (toolsJar != null) {
-            return toolsJar.getParentFile().getParentFile()
-        } else if (javaBase.getName().equals("jre", true) && File(javaBase.getParentFile(),
+            return toolsJar.parentFile.parentFile
+        } else if (javaBase.name.equals("jre", true) && File(javaBase.parentFile,
                 "bin/java").exists()) {
-            return javaBase.getParentFile()
+            return javaBase.parentFile
         } else {
             return javaBase
         }

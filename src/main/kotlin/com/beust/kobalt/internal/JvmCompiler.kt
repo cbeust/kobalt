@@ -1,12 +1,12 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.IClasspathContributor
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.IClasspathDependency
-import com.beust.kobalt.maven.KobaltException
 import com.google.inject.Inject
 import java.io.File
 import java.util.*

@@ -1,7 +1,8 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.KobaltException
+import com.beust.kobalt.internal.DocUrl
 import com.beust.kobalt.maven.Http
-import com.beust.kobalt.maven.KobaltException
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
@@ -51,8 +52,9 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
     fun uploadRelease(packageName: String, tagName: String, zipFile: File) {
         log(1, "Uploading release ${zipFile.name}")
 
-        val username = localProperties.get(PROPERTY_USERNAME)
-        val accessToken = localProperties.get(PROPERTY_ACCESS_TOKEN)
+        val docUrl = DocUrl.PUBLISH_PLUGIN_URL
+        val username = localProperties.get(PROPERTY_USERNAME, docUrl)
+        val accessToken = localProperties.get(PROPERTY_ACCESS_TOKEN, docUrl)
         try {
             service.createRelease(username, accessToken, packageName, CreateRelease(tagName))
                     .flatMap { response ->

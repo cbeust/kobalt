@@ -1,14 +1,10 @@
 package com.beust.kobalt.plugin.application
 
-import com.beust.kobalt.JavaInfo
-import com.beust.kobalt.Plugins
-import com.beust.kobalt.SystemProperties
+import com.beust.kobalt.*
 import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.TaskResult
-import com.beust.kobalt.maven.KobaltException
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.plugin.packaging.PackagingPlugin

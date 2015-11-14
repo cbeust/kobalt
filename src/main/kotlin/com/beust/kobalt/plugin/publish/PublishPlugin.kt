@@ -1,11 +1,12 @@
 package com.beust.kobalt.plugin.publish
 
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.TaskResult
+import com.beust.kobalt.internal.DocUrl
 import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.misc.*
 import com.google.common.base.Preconditions
@@ -85,8 +86,9 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
     }
 
     private fun uploadJcenter(project: Project) : TaskResult {
-        val user = localProperties.get(PROPERTY_BINTRAY_USER)
-        val password = localProperties.get(PROPERTY_BINTRAY_PASSWORD)
+        val docUrl = DocUrl.PUBLISH_PLUGIN_URL
+        val user = localProperties.get(PROPERTY_BINTRAY_USER, docUrl)
+        val password = localProperties.get(PROPERTY_BINTRAY_PASSWORD, docUrl)
 
         val jcenter = jcenterFactory.create(user, password)
         var success = false

@@ -1,5 +1,6 @@
 package com.beust.kobalt.maven
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.misc.CountingFileRequestBody
 import com.beust.kobalt.misc.log
 import com.squareup.okhttp.*
@@ -83,8 +84,4 @@ public class Http {
             success(response)
         }
     }
-}
-
-class KobaltException(s: String? = null, ex: Throwable? = null) : RuntimeException(s, ex) {
-    constructor(ex: Throwable?) : this(null, ex)
 }

@@ -1,5 +1,6 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.Kobalt
 import java.text.SimpleDateFormat
 import java.util.*
@@ -48,9 +49,15 @@ class Logger(val dev: Boolean) {
         println(getPattern("D", "Debug ", tag, message))
 
     final fun error(tag: String, message: String, e: Throwable? = null) {
-        println(getPattern("***** E", "***** ERROR ", tag, message) +
-                if (e != null && KobaltLogger.LOG_LEVEL > 1) " Exception: " + e.message else "")
-        if (KobaltLogger.LOG_LEVEL > 0) {
+        val docUrl = if (e is KobaltException && e.docUrl != null) e.docUrl else null
+        val shortMessage = if (e != null) e.message else { "<unknown error>" }
+        val longMessage = "*****\n***** ERROR " + shortMessage + "\n" +
+            docUrl?.let { "***** Documentation: $docUrl" } +
+            "\n*****"
+
+        println(getPattern("***** E $shortMessage " + docUrl?.let { " Documentation: $docUrl" },
+                longMessage, tag, message))
+        if (KobaltLogger.LOG_LEVEL > 1) {
             e?.printStackTrace()
         }
     }

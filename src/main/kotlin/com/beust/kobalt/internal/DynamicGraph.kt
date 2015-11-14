@@ -1,10 +1,13 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.misc.NamedThreadFactory
+import com.beust.kobalt.misc.error
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.toString
 import com.google.common.collect.HashMultimap
+import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.*
 
 open class TaskResult2<T>(success: Boolean, val value: T) : TaskResult(success) {
@@ -73,8 +76,13 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
                     } catch(ex: TimeoutException) {
                         log(2, "Time out")
                     } catch(ex: Exception) {
-                        error("Error: ${ex.message}", ex)
-                        gotError = true
+                        if (ex.cause is InvocationTargetException
+                                && (ex.cause as InvocationTargetException).targetException is KobaltException) {
+                            throw (ex.cause as InvocationTargetException).targetException
+                        } else {
+                            error("Error: ${ex.message}", ex)
+                            gotError = true
+                        }
                     }
                 }
             }
