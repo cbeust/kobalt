@@ -51,9 +51,9 @@ class Logger(val dev: Boolean) {
     final fun error(tag: String, message: String, e: Throwable? = null) {
         val docUrl = if (e is KobaltException && e.docUrl != null) e.docUrl else null
         val shortMessage = if (e != null) e.message else { "<unknown error>" }
-        val longMessage = "*****\n***** ERROR " + shortMessage + "\n" +
-            docUrl?.let { "***** Documentation: $docUrl" } +
-            "\n*****"
+        val longMessage = "*****\n***** ERROR " + shortMessage +
+                (if (docUrl != null) { "\n***** Documentation: $docUrl" } else "") +
+                "\n*****"
 
         println(getPattern("***** E $shortMessage " + docUrl?.let { " Documentation: $docUrl" },
                 longMessage, tag, message))
