@@ -24,7 +24,7 @@ val wrapper = javaProject {
     }
 
     dependencies {
-        compile(file(homeDir("java/java-apt-example/processor/kobaltBuild/libs/processor-0.1.jar")))
+//        compile(file(homeDir("java/java-apt-example/processor/kobaltBuild/libs/processor-0.1.jar")))
 //        apt(file(homeDir("java/java-apt-example/processor/kobaltBuild/libs/processor-0.1.jar")))
     }
 
