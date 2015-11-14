@@ -61,7 +61,7 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
                     }
                     .toBlocking()
                     .forEach { action ->
-                        log(1, "\nRelease successfully uploaded ${zipFile.name}")
+                        log(1, "\n${zipFile.name} successfully uploaded")
                     }
         } catch(e: RetrofitError) {
             val error = parseRetrofitError(e)

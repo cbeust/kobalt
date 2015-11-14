@@ -75,7 +75,7 @@ public class Http {
                 .post(CountingFileRequestBody(file.file(), file.mimeType(), progressCallback))
                 .build()
 
-        log(1, "Uploading $file to $url")
+        log(2, "Uploading $file to $url")
         val response = OkHttpClient().newCall(request).execute()
         if (! response.isSuccessful) {
             error(response)
