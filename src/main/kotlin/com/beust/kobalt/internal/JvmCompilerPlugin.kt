@@ -26,7 +26,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         open val jvmCompiler: JvmCompiler) : BasePlugin() {
 
     companion object {
-        @ExportedProjectProperty
+        @ExportedProjectProperty(doc = "The location of the build directory", type = "String")
         const val BUILD_DIR = "buildDir"
 
         const val TASK_CLEAN = "clean"

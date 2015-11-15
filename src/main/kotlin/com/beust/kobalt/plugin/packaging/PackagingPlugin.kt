@@ -39,13 +39,14 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     companion object {
         const val PLUGIN_NAME = "packaging"
 
-        @ExportedProjectProperty
+        @ExportedProjectProperty(doc = "Where the libraries are saved", type = "String")
         const val LIBS_DIR = "libsDir"
 
-        @ExportedProjectProperty
+        @ExportedProjectProperty(doc = "The name of the jar file", type = "String")
         const val JAR_NAME = "jarName"
 
-        @ExportedProjectProperty
+        @ExportedProjectProperty(doc = "The list of packages produced for this project",
+                type = "List<PackageConfig>")
         const val PACKAGES = "packages"
 
         const val TASK_ASSEMBLE: String = "assemble"
