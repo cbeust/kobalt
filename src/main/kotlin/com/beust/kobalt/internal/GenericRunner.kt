@@ -24,8 +24,7 @@ abstract class GenericTestRunner(open val project: Project, open val classpath: 
                 // Only keep classes with a parameterless constructor
                 val urls = arrayOf(File(path).toURI().toURL()) +
                         classpath.map { it.jarFile.get().toURI().toURL() }
-                val classLoader = URLClassLoader(urls)
-                classLoader.loadClass(it).getConstructor()
+                URLClassLoader(urls).loadClass(it).getConstructor()
                 true
             } catch(ex: Exception) {
                 log(2, "Skipping non test class $it: ${ex.message}")
