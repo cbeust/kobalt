@@ -10,6 +10,7 @@ import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.warn
 import java.io.File
 import java.util.*
 import javax.inject.Inject
@@ -77,7 +78,11 @@ abstract class JvmCompilerPlugin @Inject constructor(
 
     @Task(name = TASK_CLEAN, description = "Clean the project", runBefore = arrayOf("compile"))
     fun taskClean(project : Project ) : TaskResult {
-        java.io.File(project.buildDirectory).deleteRecursively()
+        java.io.File(project.directory, project.buildDirectory).let { dir ->
+            if (! dir.deleteRecursively()) {
+                warn("Couldn't delete $dir")
+            }
+        }
         return TaskResult()
     }
 
