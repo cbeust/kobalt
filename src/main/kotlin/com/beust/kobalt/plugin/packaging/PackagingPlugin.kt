@@ -3,6 +3,7 @@ package com.beust.kobalt.plugin.packaging
 import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.IFileSpec.FileSpec
 import com.beust.kobalt.IFileSpec.Glob
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.KobaltContext
@@ -12,7 +13,6 @@ import com.beust.kobalt.api.annotation.ExportedProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
-import com.beust.kobalt.TaskResult
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
@@ -31,13 +31,6 @@ import java.util.jar.JarOutputStream
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
-
-@Directive
-fun Project.assemble(init: Package.(p: Project) -> Unit): Package {
-    val pd = Package(this)
-    pd.init(this)
-    return pd
-}
 
 @Singleton
 class PackagingPlugin @Inject constructor(val dependencyManager : DependencyManager,
@@ -58,7 +51,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
     override val name = PLUGIN_NAME
 
-    private val packages = arrayListOf<Package>()
+    private val packages = arrayListOf<PackageConfig>()
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
@@ -246,7 +239,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         return result
     }
 
-    fun addPackage(p: Package) {
+    fun addPackage(p: PackageConfig) {
         packages.add(p)
     }
 
@@ -284,7 +277,14 @@ fun Project.install(init: InstallConfig.() -> Unit) {
 
 class InstallConfig(var libDir : String = "libs")
 
-class Package(val project: Project) : AttributeHolder {
+@Directive
+fun Project.assemble(init: PackageConfig.(p: Project) -> Unit): PackageConfig {
+    val pd = PackageConfig(this)
+    pd.init(this)
+    return pd
+}
+
+class PackageConfig(val project: Project) : AttributeHolder {
     val jars = arrayListOf<Jar>()
     val wars = arrayListOf<War>()
     val zips = arrayListOf<Zip>()
