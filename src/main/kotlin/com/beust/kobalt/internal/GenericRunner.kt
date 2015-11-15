@@ -7,6 +7,7 @@ import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import java.io.File
+import java.net.URLClassLoader
 
 abstract class GenericTestRunner(open val project: Project, open val classpath: List<IClasspathDependency>) {
     abstract val mainClass: String
@@ -14,11 +15,25 @@ abstract class GenericTestRunner(open val project: Project, open val classpath: 
 
     protected fun findTestClasses(): List<String> {
         val path = KFiles.joinDir(project.directory, project.buildDirectory!!, KFiles.TEST_CLASSES_DIR)
-        val result = KFiles.findRecursively(File(path),
-                arrayListOf(File("."))) { file -> file.endsWith("Test.class")
-        }.map {
+        val result = KFiles.findRecursively(File(path), arrayListOf(File(".")), {
+            file -> file.endsWith(".class")
+        }).map {
             it.replace("/", ".").replace("\\", ".").replace(".class", "").substring(2)
+        }.filter {
+            try {
+                // Only keep classes with a parameterless constructor
+                val urls = arrayOf(File(path).toURI().toURL()) +
+                        classpath.map { it.jarFile.get().toURI().toURL() }
+                val classLoader = URLClassLoader(urls)
+                classLoader.loadClass(it).getConstructor()
+                true
+            } catch(ex: Exception) {
+                log(2, "Skipping non test class $it: ${ex.message}")
+                false
+            }
         }
+
+        log(2, "Found ${result.size} test classes")
         return result
     }
 
