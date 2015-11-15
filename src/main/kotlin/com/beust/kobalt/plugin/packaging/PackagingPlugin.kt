@@ -9,7 +9,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.api.annotation.ExportedProperty
+import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
@@ -39,13 +39,13 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     companion object {
         const val PLUGIN_NAME = "packaging"
 
-        @ExportedProperty
+        @ExportedProjectProperty
         const val LIBS_DIR = "libsDir"
 
-        @ExportedProperty
+        @ExportedProjectProperty
         const val JAR_NAME = "jarName"
 
-        @ExportedProperty
+        @ExportedProjectProperty
         const val PACKAGES = "packages"
 
         const val TASK_ASSEMBLE: String = "assemble"
@@ -58,14 +58,14 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        context.pluginProperties.put(name, LIBS_DIR, libsDir(project))
+        project.projectProperties.put(LIBS_DIR, libsDir(project))
     }
 
     private fun libsDir(project: Project) = KFiles.makeDir(buildDir(project).path, "libs").path
 
     @Task(name = TASK_ASSEMBLE, description = "Package the artifacts", runAfter = arrayOf(JavaPlugin.TASK_COMPILE))
     fun taskAssemble(project: Project) : TaskResult {
-    context.pluginProperties.put(PLUGIN_NAME, PACKAGES, packages)
+        project.projectProperties.put(PACKAGES, packages)
         packages.filter { it.project.name == project.name }.forEach { pkg ->
             pkg.jars.forEach { generateJar(pkg.project, it) }
             pkg.wars.forEach { generateWar(pkg.project, it) }
@@ -238,7 +238,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         outStream.close()
         log(1, "  Created $result")
 
-        context.pluginProperties.put(name, JAR_NAME, result.absolutePath)
+        project.projectProperties.put(JAR_NAME, result.absolutePath)
 
         return result
     }
@@ -253,7 +253,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     fun taskInstall(project: Project) : TaskResult {
         val config = installConfigs[project.name]
         if (config != null) {
-            val buildDir = context.pluginProperties.getString(PLUGIN_NAME, LIBS_DIR)
+            val buildDir = project.projectProperties.getString(LIBS_DIR)
             log(1, "Installing from $buildDir to ${config.libDir}")
 
             val toDir = KFiles.makeDir(config.libDir)

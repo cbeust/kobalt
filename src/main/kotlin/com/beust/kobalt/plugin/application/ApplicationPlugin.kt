@@ -51,9 +51,8 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
         configs[project.name]?.let { config ->
             val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
             if (config.mainClass != null) {
-                val jarName = context.pluginProperties.get("packaging", PackagingPlugin.JAR_NAME) as String
-                val packages = context.pluginProperties.get("packaging", PackagingPlugin.PACKAGES)
-                        as List<PackageConfig>
+                val jarName = project.projectProperties.get(PackagingPlugin.JAR_NAME) as String
+                val packages = project.projectProperties.get(PackagingPlugin.PACKAGES) as List<PackageConfig>
                 val allDeps = arrayListOf(jarName)
                 if (! isFatJar(packages, jarName)) {
                     // If the jar file is not fat, we need to add the transitive closure of all dependencies

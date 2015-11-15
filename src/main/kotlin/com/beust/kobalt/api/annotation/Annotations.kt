@@ -21,7 +21,14 @@ annotation class Task(val name: String,
 )
 
 /**
- * Plugins that export properties should annotated those with this annotation so they can be documented.
+ * Plugins that export properties should annotate those with this annotation so they can be documented.
  */
 @Retention(AnnotationRetention.RUNTIME)
-annotation class ExportedProperty
+annotation class ExportedPluginProperty
+
+/**
+ * Plugins that export properties on the Project instance should annotate those with this annotation so
+ * they can be documented.
+ */
+@Retention(AnnotationRetention.RUNTIME)
+annotation class ExportedProjectProperty

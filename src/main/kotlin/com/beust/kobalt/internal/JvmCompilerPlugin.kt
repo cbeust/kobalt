@@ -4,7 +4,7 @@ import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.annotation.ExportedProperty
+import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.KFiles
@@ -26,7 +26,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         open val jvmCompiler: JvmCompiler) : BasePlugin() {
 
     companion object {
-        @ExportedProperty
+        @ExportedProjectProperty
         const val BUILD_DIR = "buildDir"
 
         const val TASK_CLEAN = "clean"
@@ -46,7 +46,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        context.pluginProperties.put(name, BUILD_DIR, project.buildDirectory + File.separator + "classes")
+        project.projectProperties.put(BUILD_DIR, project.buildDirectory + File.separator + "classes")
     }
 
     /**

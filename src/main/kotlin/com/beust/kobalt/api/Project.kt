@@ -25,6 +25,8 @@ open public class Project(
 
     var testArgs: ArrayList<String> = arrayListOf()
 
+    val projectProperties = ProjectProperties()
+
     override fun equals(other: Any?): Boolean {
         return name == (other as Project).name
     }
