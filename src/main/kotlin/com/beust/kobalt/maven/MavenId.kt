@@ -17,6 +17,10 @@ public class MavenId(val id: String) {
     var version: String? = null
 
     companion object {
+        fun isMavenId(id: String) = with(id.split(":")) {
+            size == 3 || size == 4
+        }
+
         fun create(groupId: String, artifactId: String, packaging: String?, version: String?) =
                MavenId(toId(groupId, artifactId, packaging, version))
 
@@ -27,10 +31,10 @@ public class MavenId(val id: String) {
     }
 
     init {
-        val c = id.split(":")
-        if (c.size != 3 && c.size != 4) {
+        if (! isMavenId(id)) {
             throw IllegalArgumentException("Illegal id: $id")
         }
+        val c = id.split(":")
         groupId = c[0]
         artifactId = c[1]
         if (! c[2].isEmpty()) {
