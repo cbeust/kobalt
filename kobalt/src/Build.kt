@@ -77,7 +77,7 @@ val kobalt = kotlinProject(wrapper) {
                 "com.google.guava:guava:19.0-rc2",
                 "org.apache.maven:maven-model:3.3.3",
                 "com.github.spullara.mustache.java:compiler:0.9.1",
-                "io.reactivex:rxjava:1.0.14",
+                "io.reactivex:rxjava:1.0.16",
                 "com.google.code.gson:gson:2.4",
                 "com.squareup.retrofit:retrofit:1.9.0",
 //                "com.squareup.retrofit:retrofit:2.0.0-beta2",
