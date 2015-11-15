@@ -115,7 +115,8 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
                 }
             }
         } else {
-            warn("Couldn't find any jcenter{} configuration, not uploading anything")
+            log(2, "Couldn't find any jcenter{} configuration, not uploading anything")
+            success = true
         }
 
         return TaskResult(success, messages.joinToString("\n  "))
