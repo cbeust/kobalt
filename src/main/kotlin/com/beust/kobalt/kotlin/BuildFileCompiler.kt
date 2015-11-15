@@ -5,8 +5,8 @@ import com.beust.kobalt.KobaltException
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.PluginInfo
+import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Topological
@@ -34,7 +34,7 @@ import javax.inject.Inject
  */
 public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFiles: List<BuildFile>,
         @Assisted val pluginInfo: PluginInfo, val files: KFiles, val plugins: Plugins,
-        val jvmCompiler: JvmCompiler, val pluginProperties: PluginProperties) {
+        val dependencyManager: DependencyManager, val pluginProperties: PluginProperties) {
 
     interface IFactory {
         fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>, pluginInfo: PluginInfo) : BuildFileCompiler
@@ -183,7 +183,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         }
 
     private fun generateJarFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File) {
-        val kotlintDeps = jvmCompiler.calculateDependencies(null, context, listOf<IClasspathDependency>())
+        val kotlintDeps = dependencyManager.calculateDependencies(null, context, listOf<IClasspathDependency>())
         val deps: List<String> = kotlintDeps.map { it.jarFile.get().absolutePath }
         kotlinCompilePrivate {
             classpath(files.kobaltJar)

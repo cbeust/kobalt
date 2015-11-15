@@ -5,8 +5,10 @@ import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.RunCommand
+import com.beust.kobalt.plugin.packaging.PackageConfig
 import com.beust.kobalt.plugin.packaging.PackagingPlugin
 import com.google.inject.Inject
 import com.google.inject.Singleton
@@ -29,7 +31,8 @@ fun Project.application(init: ApplicationConfig.() -> Unit) {
 }
 
 @Singleton
-class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors) : BasePlugin() {
+class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
+        val dependencyManager: DependencyManager) : BasePlugin() {
 
     companion object {
         const val NAME = "application"
@@ -49,7 +52,18 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors) : Ba
             val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
             if (config.mainClass != null) {
                 val jarName = context.pluginProperties.get("packaging", PackagingPlugin.JAR_NAME) as String
-                val args = listOf("-classpath", jarName) + config.jvmArgs + config.mainClass!!
+                val packages = context.pluginProperties.get("packaging", PackagingPlugin.PACKAGES)
+                        as List<PackageConfig>
+                val allDeps = arrayListOf(jarName)
+                if (! isFatJar(packages, jarName)) {
+                    // If the jar file is not fat, we need to add the transitive closure of all dependencies
+                    // on the classpath
+                    allDeps.addAll(
+                            dependencyManager.calculateDependencies(project, context, project.compileDependencies)
+                                .map { it.jarFile.get().path })
+                }
+                val allDepsJoined = allDeps.joinToString(File.pathSeparator)
+                val args = listOf("-classpath", allDepsJoined) + config.jvmArgs + config.mainClass!!
                 RunCommand(java.absolutePath).run(args, successCallback = { output: List<String> ->
                     println(output.joinToString("\n"))
                 })
@@ -58,6 +72,17 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors) : Ba
             }
         }
         return TaskResult()
+    }
+
+    private fun isFatJar(packages: List<PackageConfig>, jarName: String): Boolean {
+        packages.forEach { pc ->
+            pc.jars.forEach { jar ->
+                if ((jar.name == null || jar.name == jarName) && jar.fatJar) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 }
 

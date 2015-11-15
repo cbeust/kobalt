@@ -2,7 +2,6 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.IClasspathContributor
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.DependencyManager
@@ -25,7 +24,8 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
             : TaskResult {
 
         // Dependencies
-        val allDependencies = info.dependencies + calculateDependencies(project, context!!, info.dependencies)
+        val allDependencies = info.dependencies +
+                dependencyManager.calculateDependencies(project, context!!, info.dependencies)
 
         // Plugins that add flags to the compiler
         val addedFlags = ArrayList(info.compilerArgs) +
@@ -48,30 +48,6 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
             }
         }
     }
-
-    /**
-     * @return the classpath for this project, including the IClasspathContributors.
-     */
-    fun calculateDependencies(project: Project?, context: KobaltContext,
-            vararg allDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
-        var result = arrayListOf<IClasspathDependency>()
-        allDependencies.forEach { dependencies ->
-            result.addAll(dependencyManager.transitiveClosure(dependencies))
-        }
-        result.addAll(runClasspathContributors(project, context))
-
-        return result
-    }
-
-    private fun runClasspathContributors(project: Project?, context: KobaltContext) :
-            Collection<IClasspathDependency> {
-        val result = hashSetOf<IClasspathDependency>()
-        context.pluginInfo.classpathContributors.forEach { it: IClasspathContributor ->
-            result.addAll(it.entriesFor(project))
-        }
-        return result
-    }
-
 }
 
 data class CompilerActionInfo(val directory: String?, val dependencies: List<IClasspathDependency>,

@@ -45,6 +45,9 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         @ExportedProperty
         const val JAR_NAME = "jarName"
 
+        @ExportedProperty
+        const val PACKAGES = "packages"
+
         const val TASK_ASSEMBLE: String = "assemble"
         const val TASK_INSTALL: String = "install"
     }
@@ -62,6 +65,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
     @Task(name = TASK_ASSEMBLE, description = "Package the artifacts", runAfter = arrayOf(JavaPlugin.TASK_COMPILE))
     fun taskAssemble(project: Project) : TaskResult {
+    context.pluginProperties.put(PLUGIN_NAME, PACKAGES, packages)
         packages.filter { it.project.name == project.name }.forEach { pkg ->
             pkg.jars.forEach { generateJar(pkg.project, it) }
             pkg.wars.forEach { generateWar(pkg.project, it) }
@@ -277,11 +281,8 @@ fun Project.install(init: InstallConfig.() -> Unit) {
 
 class InstallConfig(var libDir : String = "libs")
 
-@Directive
-fun Project.assemble(init: PackageConfig.(p: Project) -> Unit): PackageConfig {
-    val pd = PackageConfig(this)
-    pd.init(this)
-    return pd
+fun Project.assemble(init: PackageConfig.(p: Project) -> Unit) = let {
+    PackageConfig(this).apply { init(it) }
 }
 
 class PackageConfig(val project: Project) : AttributeHolder {

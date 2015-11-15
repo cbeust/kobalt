@@ -1,5 +1,8 @@
 package com.beust.kobalt.maven
 
+import com.beust.kobalt.api.IClasspathContributor
+import com.beust.kobalt.api.KobaltContext
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.KobaltExecutors
 import com.google.common.collect.ArrayListMultimap
 import java.util.*
@@ -9,6 +12,30 @@ import javax.inject.Singleton
 @Singleton
 public class DependencyManager @Inject constructor(val executors: KobaltExecutors,
         val depFactory: DepFactory){
+
+    /**
+     * @return the classpath for this project, including the IClasspathContributors.
+     */
+    fun calculateDependencies(project: Project?, context: KobaltContext,
+            vararg allDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
+        var result = arrayListOf<IClasspathDependency>()
+        allDependencies.forEach { dependencies ->
+            result.addAll(transitiveClosure(dependencies))
+        }
+        result.addAll(runClasspathContributors(project, context))
+
+        return result
+    }
+
+    private fun runClasspathContributors(project: Project?, context: KobaltContext) :
+            Collection<IClasspathDependency> {
+        val result = hashSetOf<IClasspathDependency>()
+        context.pluginInfo.classpathContributors.forEach { it: IClasspathContributor ->
+            result.addAll(it.entriesFor(project))
+        }
+        return result
+    }
+
     fun transitiveClosure(dependencies : List<IClasspathDependency>): List<IClasspathDependency> {
         var executor = executors.newExecutor("JvmCompiler}", 10)
 

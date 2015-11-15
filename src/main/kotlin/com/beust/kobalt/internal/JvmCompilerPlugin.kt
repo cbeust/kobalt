@@ -59,7 +59,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         with(project) {
             arrayListOf(compileDependencies, compileProvidedDependencies, testDependencies,
                     testProvidedDependencies).forEach {
-                result.addAll(jvmCompiler.calculateDependencies(project, context, it))
+                result.addAll(dependencyManager.calculateDependencies(project, context, it))
             }
         }
         return dependencyManager.reorderDependencies(result)
