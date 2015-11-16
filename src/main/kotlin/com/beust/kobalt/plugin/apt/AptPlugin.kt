@@ -37,9 +37,9 @@ public class AptPlugin @Inject constructor(val depFactory: DepFactory, val execu
         val result = arrayListOf<String>()
         configs[project.name]?.let { config ->
             aptDependencies.get(key = project.name)?.let { aptDependency ->
-                val dependency = depFactory.create(aptDependency, executors.miscExecutor)
+                val dependencyJarFile = JarFinder.byId(aptDependency)
                 result.add("-processorpath")
-                result.add(dependency.jarFile.get().absolutePath)
+                result.add(dependencyJarFile.absolutePath)
                 val generated = KFiles.joinAndMakeDir(project.directory, project.buildDirectory!!, config.outputDir)
                 result.add("-s")
                 result.add(generated)

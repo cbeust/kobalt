@@ -4,6 +4,7 @@ import com.beust.kobalt.JavaInfo
 import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.ConfigPlugin
+import com.beust.kobalt.api.JarFinder
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
@@ -40,7 +41,7 @@ class DokkaPlugin @Inject constructor(val depFactory: DepFactory) : ConfigPlugin
         val classpathString = (classpath.map { it.jarFile.get().absolutePath } +
                 listOf(buildDir))
             .joinToString(File.pathSeparator)
-        val dokkaJar = depFactory.create(DOKKA_ID, context.executors.miscExecutor).jarFile.get().absolutePath
+        val dokkaJar = JarFinder.byId(DOKKA_ID)
         if (config != null) {
             val args = listOf(
                     "-classpath", classpathString,
