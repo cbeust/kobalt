@@ -36,12 +36,12 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
 
         val project: String?
             get() = if (id.contains(":")) id.split(":")[0] else null
-        val task: String
+        val taskName: String
             get() = if (id.contains(":")) id.split(":")[1] else id
         fun matches(projectName: String) = project == null || project == projectName
     }
 
-    public fun runTargets(targets: List<String>, projects: List<Project>) : Int {
+    public fun runTargets(taskNames: List<String>, projects: List<Project>) : Int {
         var result = 0
         projects.forEach { project ->
             val projectName = project.name
@@ -55,14 +55,14 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             AsciiArt.logBox("Building project ${project.name}")
 
             val graph = DynamicGraph<PluginTask>()
-            targets.forEach { target ->
-                val ti = TaskInfo(target)
-                if (! tasksByNames.contains(ti.task)) {
-                    throw KobaltException("Unknown task: $target")
+            taskNames.forEach { taskName ->
+                val ti = TaskInfo(taskName)
+                if (! tasksByNames.contains(ti.taskName)) {
+                    throw KobaltException("Unknown task: $taskName")
                 }
 
                 if (ti.matches(projectName)) {
-                    val task = tasksByNames[ti.task]
+                    val task = tasksByNames[ti.taskName]
                     if (task != null && task.plugin.accept(project)) {
                         val reverseAfter = hashMapOf<String, String>()
                         alwaysRunAfter.keys().forEach { from ->
@@ -77,7 +77,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                         //
                         val allFreeTasks = calculateFreeTasks(tasksByNames, reverseAfter)
                         val currentFreeTask = allFreeTasks.filter {
-                            TaskInfo(projectName, it.name).task == target
+                            TaskInfo(projectName, it.name).taskName == task
                         }
                         if (currentFreeTask.size == 1) {
                             currentFreeTask[0].let {
@@ -162,10 +162,10 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
      * Find the transitive closure for the given TaskInfo
      */
     private fun calculateTransitiveClosure(project: Project, tasksByNames: Map<String, PluginTask>, ti: TaskInfo): HashSet<PluginTask> {
-        log(3, "Processing ${ti.task}")
+        log(3, "Processing ${ti.taskName}")
 
         val transitiveClosure = hashSetOf<PluginTask>()
-        val seen = hashSetOf(ti.task)
+        val seen = hashSetOf(ti.taskName)
         val toProcess = hashSetOf(ti)
         var done = false
         while (! done) {
@@ -173,9 +173,9 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             log(3, "toProcess size: " + toProcess.size)
             toProcess.forEach { target ->
 
-                val currentTask = TaskInfo(project.name, target.task)
-                transitiveClosure.add(tasksByNames[currentTask.task]!!)
-                val thisTask = tasksByNames[target.task]
+                val currentTask = TaskInfo(project.name, target.taskName)
+                transitiveClosure.add(tasksByNames[currentTask.taskName]!!)
+                val thisTask = tasksByNames[target.taskName]
                 if (thisTask == null) {
                     throw KobaltException("Unknown task: $target")
                 } else {
