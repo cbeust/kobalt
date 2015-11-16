@@ -1,8 +1,10 @@
 package com.beust.kobalt.internal
 
-import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.*
+import com.beust.kobalt.api.BasePlugin
+import com.beust.kobalt.api.IProjectContributor
+import com.beust.kobalt.api.KobaltContext
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.*
@@ -148,28 +150,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
 
     @Task(name = JavaPlugin.TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project) : TaskResult {
-        maybeGenerateBuildConfig(project)
+        context.variant.maybeGenerateBuildConfig(project, context)
         return doCompile(project, createCompilerActionInfo(project, context))
-    }
-
-    /**
-     * If either the Project or the current variant has a build config defined, generate BuildConfig.java
-     */
-    private fun maybeGenerateBuildConfig(project: Project) {
-        println("Maybe generate build config")
-        if (project.buildConfig != null || context.variant.hasBuildConfig) {
-            val buildConfigs = arrayListOf<BuildConfig>()
-            if (project.buildConfig != null) buildConfigs.add(project.buildConfig!!)
-            with (context.variant) {
-                if (buildType?.buildConfig != null) buildConfigs.add(buildType?.buildConfig!!)
-                if (productFlavor?.buildConfig != null) buildConfigs.add(productFlavor?.buildConfig!!)
-            }
-            var pkg = project.packageName ?: project.group
-                ?: throw KobaltException("packageName needs to be defined on the project in order to generate " +
-                    "BuildConfig")
-            val code = project.projectInfo.generateBuildConfig(pkg, context.variant, buildConfigs)
-            println("Generating: " + code)
-        }
     }
 
     @Task(name = JavaPlugin.TASK_JAVADOC, description = "Run Javadoc")

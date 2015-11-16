@@ -32,6 +32,7 @@ class JavaProjectInfo : IProjectInfo {
                 }
             }
             add("}")
+            add("")
         }
 
         return lines.joinToString("\n")
