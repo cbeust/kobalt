@@ -38,12 +38,13 @@ public class AptPlugin @Inject constructor(val depFactory: DepFactory, val execu
                 result.add("-s")
                 result.add(generated)
             }
+            log(2, "New flags from apt: " + result.joinToString(" "))
         }
-        log(2, "New flags from apt: " + result.joinToString(" "))
         return result
     }
 
     private val aptDependencies = hashMapOf<String, String>()
+
     fun addAptDependency(dependencies: Dependencies, it: String) {
         aptDependencies.put(dependencies.project.name, it)
     }
