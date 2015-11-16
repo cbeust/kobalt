@@ -112,7 +112,8 @@ public class Main {
     private Path installJarFile() throws IOException {
         Properties properties = maybeCreateProperties();
 
-        initWrapperFile(properties.getProperty(PROPERTY_VERSION));
+        String version = properties.getProperty(PROPERTY_VERSION);
+        initWrapperFile(version);
         String wrapperVersion = getWrapperVersion();
 
         log(2, "Wrapper version: " + wrapperVersion);
@@ -147,24 +148,26 @@ public class Main {
         //
         // Copy the wrapper files in the current kobalt/wrapper directory
         //
-        log(2, "Copying the wrapper files");
-        for (String file : FILES) {
-            Path from = Paths.get(zipOutputDir, file);
-            Path to = Paths.get(new File(".").getAbsolutePath(), file);
-            try {
-                if (isWindows() && to.toFile().exists()) {
-                    log(1, "Windows detected, not overwriting " + to);
-                } else {
-                    Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
+        if (! wrapperVersion.equals(version)) {
+            log(2, "Copying the wrapper files");
+            for (String file : FILES) {
+                Path from = Paths.get(zipOutputDir, file);
+                Path to = Paths.get(new File(".").getAbsolutePath(), file);
+                try {
+                    if (isWindows() && to.toFile().exists()) {
+                        log(1, "Windows detected, not overwriting " + to);
+                    } else {
+                        Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                } catch (IOException ex) {
+                    log(1, "Couldn't copy " + from + " to " + to + ": " + ex.getMessage());
                 }
-            } catch (IOException ex) {
-                log(1, "Couldn't copy " + from + " to " + to + ": " + ex.getMessage());
             }
-        }
 
-        if (!new File(KOBALTW).setExecutable(true)) {
-            if (!isWindows()) {
-                log(1, "Couldn't make " + KOBALTW + " executable");
+            if (!new File(KOBALTW).setExecutable(true)) {
+                if (!isWindows()) {
+                    log(1, "Couldn't make " + KOBALTW + " executable");
+                }
             }
         }
 
