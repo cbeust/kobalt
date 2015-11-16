@@ -76,9 +76,14 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
                     } catch(ex: TimeoutException) {
                         log(2, "Time out")
                     } catch(ex: Exception) {
-                        if (ex.cause is InvocationTargetException
-                                && (ex.cause as InvocationTargetException).targetException is KobaltException) {
-                            throw (ex.cause as InvocationTargetException).targetException
+                        if (ex.cause is InvocationTargetException) {
+                            val ite = ex.cause
+                            if (ite.targetException is KobaltException) {
+                                throw (ex.cause as InvocationTargetException).targetException
+                            } else {
+                                error("Error: ${ite.cause?.message}", ite.cause)
+                                gotError = true
+                            }
                         } else {
                             error("Error: ${ex.message}", ex)
                             gotError = true
