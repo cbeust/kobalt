@@ -148,7 +148,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
             depFactory.create(it.id, executor)
 
             //
-            // Open the jar, parse its plugin.xml and add the resulting PluginInfo to pluginInfo
+            // Open the jar, parse its kobalt-plugin.xml and add the resulting PluginInfo to pluginInfo
             //
             val pluginXml = JarUtils.extractTextFile(JarFile(it.jarFile.get()), PluginInfo.PLUGIN_XML)
             if (pluginXml != null) {

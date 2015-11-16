@@ -79,7 +79,7 @@ private class Main @Inject constructor(
         addReposFromContributors(null)
 
         //
-        // Add all the plugins read in plugin.xml to the Plugins singleton, so that code
+        // Add all the plugins read in kobalt-plugin.xml to the Plugins singleton, so that code
         // in the build file that calls Plugins.findPlugin() can find them (code in the
         // build file do not have access to the KobaltContext).
         //
