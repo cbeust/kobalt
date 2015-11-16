@@ -3,7 +3,7 @@ package com.beust.kobalt.plugin.dokka
 import com.beust.kobalt.JavaInfo
 import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.BasePlugin
+import com.beust.kobalt.api.ConfigPlugin
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
@@ -17,7 +17,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DokkaPlugin @Inject constructor(val depFactory: DepFactory) : BasePlugin() {
+class DokkaPlugin @Inject constructor(val depFactory: DepFactory) : ConfigPlugin<DokkaConfig>() {
     override val name = PLUGIN_NAME
 
     companion object {
@@ -34,7 +34,7 @@ class DokkaPlugin @Inject constructor(val depFactory: DepFactory) : BasePlugin()
     )
     fun taskDokka(project: Project) : TaskResult {
         val javaExecutable = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
-        val config = configurations[project.name]
+        val config = configurationFor(project)
         val classpath = context.dependencyManager.calculateDependencies(project, context)
         val buildDir = project.projectProperties.getString(JvmCompilerPlugin.BUILD_DIR)
         val classpathString = (classpath.map { it.jarFile.get().absolutePath } +
@@ -55,12 +55,6 @@ class DokkaPlugin @Inject constructor(val depFactory: DepFactory) : BasePlugin()
         }
         return TaskResult()
     }
-
-    private val configurations = hashMapOf<String, DokkaConfig>()
-
-    fun addDokkaConfiguration(name: String, dokkaConfig: DokkaConfig) {
-        configurations.put(name, dokkaConfig)
-    }
 }
 
 /*
@@ -76,7 +70,7 @@ module - the name of the module being documented (used as the root directory of 
 include - names of files containing the documentation for the module and individual packages
 nodeprecated
  */
-class DokkaConfig(project: Project) {
+class DokkaConfig() {
     val args = arrayListOf<String>()
     fun args(vararg options: String) {
         args.addAll(options)
@@ -84,10 +78,10 @@ class DokkaConfig(project: Project) {
 }
 
 @Directive
-public fun Project.dokka(init: DokkaConfig.() -> Unit) {
-    with(DokkaConfig(this)) {
+public fun Project.dokka(init: DokkaConfig.() -> Unit) = let { project ->
+    with(DokkaConfig()) {
         init()
-        (Kobalt.findPlugin(DokkaPlugin.PLUGIN_NAME) as DokkaPlugin).addDokkaConfiguration(name, this)
+        (Kobalt.findPlugin(DokkaPlugin.PLUGIN_NAME) as DokkaPlugin).addConfiguration(project, this)
     }
 }
 
