@@ -56,11 +56,11 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
 
             val graph = DynamicGraph<PluginTask>()
             targets.forEach { target ->
-                if (! tasksByNames.contains(target)) {
+                val ti = TaskInfo(target)
+                if (! tasksByNames.contains(ti.task)) {
                     throw KobaltException("Unknown task: $target")
                 }
 
-                val ti = TaskInfo(target)
                 if (ti.matches(projectName)) {
                     val task = tasksByNames[ti.task]
                     if (task != null && task.plugin.accept(project)) {
