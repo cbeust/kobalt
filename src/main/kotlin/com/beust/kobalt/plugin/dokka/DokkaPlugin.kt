@@ -12,6 +12,7 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.misc.RunCommand
+import com.beust.kobalt.misc.error
 import com.beust.kobalt.misc.log
 import java.io.File
 import javax.inject.Inject
@@ -42,40 +43,47 @@ class DokkaPlugin @Inject constructor(val depFactory: DepFactory) : ConfigPlugin
                 listOf(buildDir))
             .joinToString(File.pathSeparator)
         val dokkaJar = JarFinder.byId(DOKKA_ID)
+        var success = true
         if (config != null) {
             val args : List<String> = listOf(
                     "-classpath", classpathString,
                     "-jar", dokkaJar.absolutePath,
-                    "src/main/kotlin") +
+                    *(project.sourceDirectories.toTypedArray())) +
                 config.args
-            RunCommand(javaExecutable.absolutePath).run(args, successCallback = {
-                println("COMMAND SUCCESS")
+            RunCommand(javaExecutable.absolutePath).run(args, errorCallback = { output: List<String> ->
+                error("Error running dokka:\n " + output.joinToString("\n"))
+                success = false
             })
         } else {
             log(2, "No dokka configuration found for project ${project.name}, skipping it")
         }
-        return TaskResult()
+        return TaskResult(success)
     }
 }
 
-/*
-output - the output directory where the documentation is generated
-format - the output format:
-html - HTML (default)
-markdown - Markdown
-jekyll - Markdown adapted for Jekyll sites
-javadoc - Javadoc (showing how the project can be accessed from Java)
-classpath - list of directories or .jar files to include in the classpath (used for resolving references)
-samples - list of directories containing sample code (documentation for those directories is not generated but declarations from them can be referenced using the @sample tag)
-module - the name of the module being documented (used as the root directory of the generated documentation)
-include - names of files containing the documentation for the module and individual packages
-nodeprecated
- */
 class DokkaConfig() {
     val args = arrayListOf<String>()
     fun args(vararg options: String) {
         args.addAll(options)
     }
+
+    var linkMapping: LinkMappingConfig? = null
+
+    @Directive
+    fun linkMapping(init: LinkMappingConfig.() -> Unit) {
+        let { project ->
+            linkMapping = LinkMappingConfig().let {
+                it.init()
+                it
+            }
+        }
+    }
+}
+
+class LinkMappingConfig {
+    var dir: String = ""
+    var url: String = ""
+    var suffix: String? = null
 }
 
 @Directive

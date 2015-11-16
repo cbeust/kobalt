@@ -10,6 +10,7 @@
         <class-name>com.beust.kobalt.plugin.packaging.PackagingPlugin</class-name>
         <class-name>com.beust.kobalt.plugin.publish.PublishPlugin</class-name>
         <class-name>com.beust.kobalt.plugin.apt.AptPlugin</class-name>
+        <class-name>com.beust.kobalt.plugin.dokka.DokkaPlugin</class-name>
     </plugins>
     <classpath-contributors>
         <class-name>com.beust.kobalt.plugin.android.AndroidPlugin</class-name>
