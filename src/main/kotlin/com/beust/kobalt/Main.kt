@@ -167,7 +167,9 @@ private class Main @Inject constructor(
                     Plugins.plugins.forEach { plugin ->
                         if (plugin.tasks.size > 0) {
                             sb.append("\n  ===== ${plugin.name} =====\n")
-                            plugin.tasks.forEach { task ->
+                            plugin.tasks.distinctBy {
+                                it.name
+                            }.forEach { task ->
                                 sb.append("    ${task.name}\t\t${task.doc}\n")
                             }
                         }
