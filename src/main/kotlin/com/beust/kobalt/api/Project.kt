@@ -155,7 +155,6 @@ class BuildConfig {
     val fields = arrayListOf<Field>()
 
     fun field(name: String, type: String, value: Any) {
-        println("Adding field $name")
         fields.add(Field(name, type, value))
     }
 }
