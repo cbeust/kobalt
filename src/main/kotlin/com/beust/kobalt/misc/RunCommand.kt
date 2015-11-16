@@ -26,7 +26,8 @@ open class RunCommand(val command: String) {
 
         val pb = ProcessBuilder(allArgs)
         pb.directory(directory)
-        log(2, "Running command: " + allArgs.joinToString(" ") + "\n      Current directory: $directory")
+        log(2, "Running command: " + allArgs.joinToString(" ") +
+                "\n      Current directory: ${directory.absolutePath}")
         val process = pb.start()
         pb.environment().let { pbEnv ->
             env.forEach {
@@ -38,16 +39,22 @@ open class RunCommand(val command: String) {
         if (callSucceeded) {
             successCallback(fromStream(process.inputStream))
         } else {
-            errorCallback(listOf("$command failed") + fromStream(process.errorStream))
+            val stream = if (process.errorStream.available() > 0) process.errorStream
+                else if (process.inputStream.available() > 0) process.inputStream
+                else null
+            val errorString =
+                if (stream != null) fromStream(stream).joinToString("\n")
+                else "<no output>"
+            errorCallback(listOf("$command failed") + errorString)
         }
         return if (callSucceeded) 0 else 1
-
     }
 
     private fun fromStream(ins: InputStream) : List<String> {
         val result = arrayListOf<String>()
         val br = BufferedReader(InputStreamReader(ins))
         var line = br.readLine()
+
         while (line != null) {
             result.add(line)
             line = br.readLine()
