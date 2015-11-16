@@ -1,6 +1,7 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.KobaltTest
 import com.beust.kobalt.ProjectGenerator
 import com.beust.kobalt.internal.PluginInfo
 import com.google.inject.Inject
@@ -8,7 +9,7 @@ import org.testng.Assert
 import org.testng.annotations.Test
 import java.io.File
 
-class PomTest @Inject constructor(val pluginInfo: PluginInfo){
+class PomTest @Inject constructor(val pluginInfo: PluginInfo) : KobaltTest() {
     @Test
     fun importPom() {
         val pomSrc = File("src/test/resources/pom.xml")

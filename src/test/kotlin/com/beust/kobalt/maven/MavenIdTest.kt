@@ -22,7 +22,7 @@ class MavenIdTest {
 
     @Test(dataProvider = "dp")
     fun parseVersions(id: String, groupId: String, artifactId: String, version: String?,
-            packaging: String? /* , qualifier: String? */) {
+            packaging: String?, qualifier: String?) {
         val mi = MavenId(id)
         Assert.assertEquals(mi.groupId, groupId)
         Assert.assertEquals(mi.artifactId, artifactId)
