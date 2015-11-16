@@ -4,16 +4,14 @@ import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.IFileSpec.FileSpec
 import com.beust.kobalt.IFileSpec.Glob
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.ConfigPlugin
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -161,14 +159,25 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         if (jar.fatJar) {
             log(2, "Creating fat jar")
 
-            listOf(dependencyManager.transitiveClosure(project.compileDependencies),
-                    dependencyManager.transitiveClosure(project.compileRuntimeDependencies)).forEach { dep ->
-                dep.map { it.jarFile.get() }.forEach {
-                    if (!isExcluded(it, jar.excludes)) {
-                        allFiles.add(IncludedFile(arrayListOf(FileSpec(it.path))))
-                    }
-                }
-            }
+            val seen = hashSetOf<String>()
+            val dependentProjects = project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
+                    as List<ProjectDescription>
+            listOf(dependencyManager.calculateDependencies(project, context, dependentProjects,
+                        project.compileDependencies),
+                    dependencyManager.calculateDependencies(project, context, dependentProjects,
+                            project.compileRuntimeDependencies))
+                        .forEach { deps : List<IClasspathDependency> ->
+                                deps.map {
+                                    it.jarFile.get()
+                                }.forEach { file : File ->
+                                    if (! seen.contains(file.name)) {
+                                        seen.add(file.name)
+                                        if (!isExcluded(file, jar.excludes)) {
+                                            allFiles.add(IncludedFile(arrayListOf(FileSpec(file.path))))
+                                        }
+                                    }
+                                }
+                        }
         }
 
         //

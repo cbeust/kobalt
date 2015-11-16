@@ -34,18 +34,22 @@ public class JarUtils {
                 val path = spec.toString()
                 spec.toFiles(directory + "/" + file.from).forEach { source ->
                     if (source.isDirectory) {
+                        log(2, "Writing contents of directory ${source}")
+
                         // Directory
                         var name = path
                         if (!name.isEmpty()) {
                             if (!name.endsWith("/")) name += "/"
                             val entry = JarEntry(name)
                             entry.time = source.lastModified()
-                            outputStream.putNextEntry(entry)
-                            outputStream.closeEntry()
+                            try {
+                                outputStream.putNextEntry(entry)
+                            } finally {
+                                outputStream.closeEntry()
+                            }
                         }
-                        val fileSpecs: List<IFileSpec> = source.listFiles().map { IFileSpec.FileSpec(it.name) }
-                        val subFiles = IncludedFile(From(file.from), To(file.to), fileSpecs)
-                        addSingleFile(directory, subFiles, outputStream, expandJarFiles)
+                        val includedFile = IncludedFile(From(source.path), To(""), listOf(IFileSpec.Glob("**")))
+                        addSingleFile(directory, includedFile, outputStream, expandJarFiles)
                     } else {
                         if (expandJarFiles and source.name.endsWith(".jar")) {
                             log(2, "Writing contents of jar file ${source}")
