@@ -52,7 +52,7 @@ public class Main {
                 kobaltArgv.add(argv[i]);
             }
         }
-        Path kobaltJarFile = installJarFile();
+        Path kobaltJarFile = installDistribution();
         if (! noLaunch) {
             launchMain(kobaltJarFile, kobaltArgv.toArray(new String[kobaltArgv.size()]));
         }
@@ -120,7 +120,7 @@ public class Main {
         return System.getProperty("os.name").contains("Windows");
     }
 
-    private Path installJarFile() throws IOException {
+    private Path installDistribution() throws IOException {
         Properties properties = maybeCreateProperties();
 
         String version = properties.getProperty(PROPERTY_VERSION);
@@ -161,12 +161,20 @@ public class Main {
         //
         // Copy the wrapper files in the current kobalt/wrapper directory
         //
-        if (! noOverwrite && ! wrapperVersion.equals(version)) {
+        if (! noOverwrite) {
             log(2, "Copying the wrapper files");
             for (String file : FILES) {
                 Path to = Paths.get(new File(".").getAbsolutePath(), file);
+                if (Files.exists(to)) {
+                    log(1, to + " already exists, not overwriting it");
+                    continue;
+                }
                 boolean extractFile = true;
-                if (file.equals("kobaltw")) {
+                if (file.equals(KOBALTW)) {
+                    //
+                    // For kobaltw: try to generate it with the correct env shebang. If this fails,
+                    // we'll extract the one from the zip file
+                    //
                     File envFile = new File("/bin/env");
                     if (!envFile.exists()) {
                         envFile = new File("/usr/bin/env");
@@ -204,6 +212,9 @@ public class Main {
         return kobaltJarFile;
     }
 
+    /**
+     * Extract the zip file in ~/.kobalt/wrapper/dist/$version
+     */
     private void extractZipFile(Path localZipFile, String zipOutputDir) throws IOException {
         log(2, "Extracting " + localZipFile);
         try (ZipFile zipFile = new ZipFile(localZipFile.toFile())) {
