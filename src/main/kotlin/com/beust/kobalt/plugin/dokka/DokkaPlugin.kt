@@ -43,9 +43,9 @@ class DokkaPlugin @Inject constructor(val depFactory: DepFactory) : ConfigPlugin
             .joinToString(File.pathSeparator)
         val dokkaJar = JarFinder.byId(DOKKA_ID)
         if (config != null) {
-            val args = listOf(
+            val args : List<String> = listOf(
                     "-classpath", classpathString,
-                    "-jar", dokkaJar,
+                    "-jar", dokkaJar.absolutePath,
                     "src/main/kotlin") +
                 config.args
             RunCommand(javaExecutable.absolutePath).run(args, successCallback = {
