@@ -1,13 +1,19 @@
 package com.beust.kobalt.api
 
+import com.beust.kobalt.Args
 import com.beust.kobalt.Plugins
+import com.beust.kobalt.misc.MainModule
+import com.google.inject.Guice
 import com.google.inject.Injector
 import java.io.InputStream
 import java.util.*
 
 public class Kobalt {
     companion object {
-        lateinit var INJECTOR : Injector
+        // This injector will eventually be replaced with a different injector initialized with the
+        // correct arguments (or with a TestModule) but it's necessary to give it a default value
+        // here so the kobalt-plugin.xml file can be read since this is done very early
+        var INJECTOR : Injector = Guice.createInjector(MainModule(Args()))
 
         var context: KobaltContext? = null
 
