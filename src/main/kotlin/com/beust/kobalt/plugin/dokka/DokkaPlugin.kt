@@ -71,11 +71,9 @@ class DokkaConfig() {
 
     @Directive
     fun linkMapping(init: LinkMappingConfig.() -> Unit) {
-        let { project ->
-            linkMapping = LinkMappingConfig().let {
-                it.init()
-                it
-            }
+        linkMapping = LinkMappingConfig().let {
+            it.init()
+            it
         }
     }
 }
