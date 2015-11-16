@@ -106,7 +106,9 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
                 } else {
                     warn("Couldn't find any classes dir for project depended on ${p.name}")
                 }
-                result.addAll(calculateDependencies(p, context, projectDescriptions))
+                val otherDependencies = calculateDependencies(p, context, projectDescriptions,
+                        p.compileDependencies)
+                result.addAll(otherDependencies)
             }
         }
 
