@@ -21,7 +21,10 @@ open public class Project(
         @Directive open var scm : Scm? = null,
         @Directive open var url: String? = null,
         @Directive open var licenses: List<License> = arrayListOf<License>(),
-        val projectInfo: IProjectInfo) {
+        @Directive open var packageName: String? = group,
+        val projectInfo: IProjectInfo) : IBuildConfig {
+
+    override var buildConfig: BuildConfig? = null
 
     var testArgs: ArrayList<String> = arrayListOf()
 
@@ -98,14 +101,12 @@ open public class Project(
     val productFlavors = hashMapOf<String, ProductFlavorConfig>()
 
     fun addProductFlavor(name: String, pf: ProductFlavorConfig) {
-        println("Adding ProductFlavor $name")
         productFlavors.put(name, pf)
     }
 
     val buildTypes = hashMapOf<String, BuildTypeConfig>()
 
     fun addBuildType(name: String, bt: BuildTypeConfig) {
-        println("Adding BuildType $name")
         buildTypes.put(name, bt)
     }
 }
@@ -148,21 +149,43 @@ public class License(val name: String, val url: String) {
 
 }
 
-class ProductFlavorConfig {
-    var description: String = ""
+class BuildConfig {
+    class Field(val name: String, val type: String, val value: Any)
+
+    val fields = arrayListOf<Field>()
+
+    fun field(name: String, type: String, value: Any) {
+        println("Adding field $name")
+        fields.add(Field(name, type, value))
+    }
+}
+
+interface IBuildConfig {
+    var buildConfig: BuildConfig?
+
+    fun buildConfig(init: BuildConfig.() -> Unit) {
+        buildConfig = BuildConfig().apply {
+            init()
+        }
+    }
+}
+
+class ProductFlavorConfig(val name: String) : IBuildConfig {
+    override var buildConfig: BuildConfig? = null
 }
 
 @Directive
-fun Project.productFlavor(name: String, init: ProductFlavorConfig.() -> Unit) = ProductFlavorConfig().apply {
+fun Project.productFlavor(name: String, init: ProductFlavorConfig.() -> Unit) = ProductFlavorConfig(name).apply {
         init()
         addProductFlavor(name, this)
     }
 
-class BuildTypeConfig {
+class BuildTypeConfig(val name: String) : IBuildConfig {
+    override var buildConfig: BuildConfig? = null
 }
 
 @Directive
-fun Project.buildType(name: String, init: BuildTypeConfig.() -> Unit) = BuildTypeConfig().apply {
+fun Project.buildType(name: String, init: BuildTypeConfig.() -> Unit) = BuildTypeConfig(name).apply {
         init()
         addBuildType(name, this)
     }

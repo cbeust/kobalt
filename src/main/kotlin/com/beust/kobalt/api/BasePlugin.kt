@@ -2,8 +2,8 @@ package com.beust.kobalt.api
 
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.TaskResult
+import com.beust.kobalt.Variant
 import com.beust.kobalt.internal.TaskManager
-import com.beust.kobalt.internal.Variant
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -32,8 +32,10 @@ abstract public class BasePlugin : IPlugin {
      */
     protected fun addVariantTasks(project: Project, taskName: String, runAfter : List<String>,
             runTask: (Project) -> TaskResult) {
-        project.productFlavors.keys.forEach { pf ->
-            project.buildTypes.keys.forEach { bt ->
+        project.productFlavors.keys.forEach {
+            val pf = project.productFlavors.get(it)
+            project.buildTypes.keys.forEach { btName ->
+                val bt = project.buildTypes[btName]
                 val variant = Variant(pf, bt)
                 val taskName = variant.toTask(taskName)
                 addTask(project, taskName, taskName,

@@ -1,10 +1,8 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.BasePlugin
-import com.beust.kobalt.api.IProjectContributor
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.*
@@ -149,7 +147,30 @@ abstract class JvmCompilerPlugin @Inject constructor(
     override fun projects() = projects
 
     @Task(name = JavaPlugin.TASK_COMPILE, description = "Compile the project")
-    fun taskCompile(project: Project) = doCompile(project, createCompilerActionInfo(project, context))
+    fun taskCompile(project: Project) : TaskResult {
+        maybeGenerateBuildConfig(project)
+        return doCompile(project, createCompilerActionInfo(project, context))
+    }
+
+    /**
+     * If either the Project or the current variant has a build config defined, generate BuildConfig.java
+     */
+    private fun maybeGenerateBuildConfig(project: Project) {
+        println("Maybe generate build config")
+        if (project.buildConfig != null || context.variant.hasBuildConfig) {
+            val buildConfigs = arrayListOf<BuildConfig>()
+            if (project.buildConfig != null) buildConfigs.add(project.buildConfig!!)
+            with (context.variant) {
+                if (buildType?.buildConfig != null) buildConfigs.add(buildType?.buildConfig!!)
+                if (productFlavor?.buildConfig != null) buildConfigs.add(productFlavor?.buildConfig!!)
+            }
+            var pkg = project.packageName ?: project.group
+                ?: throw KobaltException("packageName needs to be defined on the project in order to generate " +
+                    "BuildConfig")
+            val code = project.projectInfo.generateBuildConfig(pkg, context.variant, buildConfigs)
+            println("Generating: " + code)
+        }
+    }
 
     @Task(name = JavaPlugin.TASK_JAVADOC, description = "Run Javadoc")
     fun taskJavadoc(project: Project) = doJavadoc(project, createCompilerActionInfo(project, context))
@@ -178,45 +199,3 @@ abstract class JvmCompilerPlugin @Inject constructor(
     abstract fun doJavadoc(project: Project, cai: CompilerActionInfo) : TaskResult
 }
 
-class Variant(val productFlavorName: String = "", val buildTypeName: String = "") {
-    val isDefault : Boolean
-        get() = productFlavorName.isBlank() && buildTypeName.isBlank()
-
-    fun toTask(taskName: String) = taskName + productFlavorName.capitalize() + buildTypeName.capitalize()
-
-    fun sourceDirectories(project: Project) : List<File> {
-        val sourceDirectories = project.sourceDirectories.map { File(it) }
-        if (isDefault) return sourceDirectories
-        else {
-            val result = arrayListOf<File>()
-            // The ordering of files is: 1) build type 2) product flavor 3) default
-            if (! buildTypeName.isBlank()) {
-                val dir = File(KFiles.joinDir("src", buildTypeName, project.projectInfo.sourceDirectory))
-                log(2, "Adding source for build type $buildTypeName: ${dir.path}")
-                result.add(dir)
-            }
-            if (! productFlavorName.isBlank()) {
-                val dir = File(KFiles.joinDir("src", productFlavorName, project.projectInfo.sourceDirectory))
-                log(2, "Adding source for product flavor $productFlavorName: ${dir.path}")
-                result.add(dir)
-            }
-            result.addAll(sourceDirectories)
-            return result
-        }
-    }
-
-    fun archiveName(project: Project, archiveName: String?, suffix: String) : String {
-        val result: String =
-            if (isDefault) archiveName ?: project.name + "-" + project.version + suffix
-            else {
-                val base = if (archiveName != null) archiveName.substring(0, archiveName.length - suffix.length)
-                        else project.name + "-" + project.version
-                base +
-                    if (productFlavorName.isEmpty()) "" else "-$productFlavorName" +
-                    if (buildTypeName.isEmpty()) "" else "-$buildTypeName" +
-                    suffix
-
-            }
-        return result
-    }
-}
