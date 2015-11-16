@@ -204,4 +204,19 @@ class Variant(val productFlavorName: String = "", val buildTypeName: String = ""
             return result
         }
     }
+
+    fun archiveName(project: Project, archiveName: String?, suffix: String) : String {
+        val result: String =
+            if (isDefault) archiveName ?: project.name + "-" + project.version + suffix
+            else {
+                val base = if (archiveName != null) archiveName.substring(0, archiveName.length - suffix.length)
+                        else project.name + "-" + project.version
+                base +
+                    if (productFlavorName.isEmpty()) "" else "-$productFlavorName" +
+                    if (buildTypeName.isEmpty()) "" else "-$buildTypeName" +
+                    suffix
+
+            }
+        return result
+    }
 }
