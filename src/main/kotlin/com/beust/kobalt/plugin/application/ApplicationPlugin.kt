@@ -1,7 +1,7 @@
 package com.beust.kobalt.plugin.application
 
 import com.beust.kobalt.*
-import com.beust.kobalt.api.BasePlugin
+import com.beust.kobalt.api.ConfigPlugin
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
@@ -26,13 +26,13 @@ class ApplicationConfig {
 fun Project.application(init: ApplicationConfig.() -> Unit) {
     ApplicationConfig().let { config ->
         config.init()
-        (Plugins.findPlugin(ApplicationPlugin.NAME) as ApplicationPlugin).addConfig(this, config)
+        (Plugins.findPlugin(ApplicationPlugin.NAME) as ApplicationPlugin).addConfiguration(this, config)
     }
 }
 
 @Singleton
 class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
-        val dependencyManager: DependencyManager) : BasePlugin() {
+        val dependencyManager: DependencyManager) : ConfigPlugin<ApplicationConfig>() {
 
     companion object {
         const val NAME = "application"
@@ -40,15 +40,9 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
 
     override val name = NAME
 
-    val configs = hashMapOf<String, ApplicationConfig>()
-
-    fun addConfig(project: Project, config: ApplicationConfig) {
-        configs.put(project.name, config)
-    }
-
     @Task(name = "run", description = "Run the main class", runAfter = arrayOf("assemble"))
     fun taskRun(project: Project): TaskResult {
-        configs[project.name]?.let { config ->
+        configurationFor(project)?.let { config ->
             val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
             if (config.mainClass != null) {
                 val jarName = project.projectProperties.get(PackagingPlugin.JAR_NAME) as String

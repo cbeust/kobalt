@@ -4,7 +4,7 @@ import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.IFileSpec.FileSpec
 import com.beust.kobalt.IFileSpec.Glob
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.BasePlugin
+import com.beust.kobalt.api.ConfigPlugin
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
@@ -34,7 +34,7 @@ import javax.inject.Singleton
 
 @Singleton
 class PackagingPlugin @Inject constructor(val dependencyManager : DependencyManager,
-        val executors: KobaltExecutors, val localRepo: LocalRepo) : BasePlugin() {
+        val executors: KobaltExecutors, val localRepo: LocalRepo) : ConfigPlugin<InstallConfig>() {
 
     companion object {
         const val PLUGIN_NAME = "packaging"
@@ -252,7 +252,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     @Task(name = PackagingPlugin.TASK_INSTALL, description = "Install the artifacts",
             runAfter = arrayOf(PackagingPlugin.TASK_ASSEMBLE))
     fun taskInstall(project: Project) : TaskResult {
-        val config = installConfigs[project.name]
+        val config = configurationFor(project)
         if (config != null) {
             val buildDir = project.projectProperties.getString(LIBS_DIR)
             log(1, "Installing from $buildDir to ${config.libDir}")
@@ -265,18 +265,13 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
         return TaskResult()
     }
-
-    private val installConfigs = hashMapOf<String, InstallConfig>()
-
-    fun addInstallConfig(project: Project, config: InstallConfig) =
-            installConfigs.put(project.name, config)
 }
 
 @Directive
 fun Project.install(init: InstallConfig.() -> Unit) {
     InstallConfig().let {
         it.init()
-        (Kobalt.findPlugin(PackagingPlugin.PLUGIN_NAME) as PackagingPlugin).addInstallConfig(this, it)
+        (Kobalt.findPlugin(PackagingPlugin.PLUGIN_NAME) as PackagingPlugin).addConfiguration(this, it)
     }
 }
 

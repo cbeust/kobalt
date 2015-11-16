@@ -18,7 +18,7 @@ import javax.inject.Singleton
  */
 @Singleton
 public class AptPlugin @Inject constructor(val depFactory: DepFactory, val executors: KobaltExecutors)
-        : BasePlugin(), ICompilerFlagContributor {
+        : ConfigPlugin<AptConfig>(), ICompilerFlagContributor {
     companion object {
         const val TASK_APT: String = "runApt"
         const val NAME = "apt"
@@ -26,16 +26,10 @@ public class AptPlugin @Inject constructor(val depFactory: DepFactory, val execu
 
     override val name = NAME
 
-    private val configs = hashMapOf<String, AptConfig>()
-
-    fun addAptConfig(project: Project, config: AptConfig) {
-        configs.put(project.name, config)
-    }
-
     // ICompilerFlagContributor
     override fun flagsFor(project: Project) : List<String> {
         val result = arrayListOf<String>()
-        configs[project.name]?.let { config ->
+        configurationFor(project)?.let { config ->
             aptDependencies.get(key = project.name)?.let { aptDependency ->
                 val dependencyJarFile = JarFinder.byId(aptDependency)
                 result.add("-processorpath")
@@ -61,7 +55,7 @@ class AptConfig(var outputDir: String = "generated/sources/apt")
 public fun Project.apt(init: AptConfig.() -> Unit) {
     AptConfig().let {
         it.init()
-        (Kobalt.findPlugin(AptPlugin.NAME) as AptPlugin).addAptConfig(this, it)
+        (Kobalt.findPlugin(AptPlugin.NAME) as AptPlugin).addConfiguration(this, it)
     }
 }
 

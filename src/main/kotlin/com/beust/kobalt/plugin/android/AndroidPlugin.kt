@@ -1,12 +1,12 @@
 package com.beust.kobalt.plugin.android
 
 import com.beust.kobalt.OperatingSystem
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.JvmCompilerPlugin
-import com.beust.kobalt.TaskResult
 import com.beust.kobalt.maven.FileDependency
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.MavenId
@@ -32,7 +32,7 @@ class AndroidConfig(var compileSdkVersion : String = "23",
 fun Project.android(init: AndroidConfig.() -> Unit) : AndroidConfig {
     val pd = AndroidConfig()
     pd.init()
-    (Kobalt.findPlugin("android") as AndroidPlugin).setConfiguration(this, pd)
+    (Kobalt.findPlugin("android") as AndroidPlugin).addConfiguration(this, pd)
     return pd
 }
 
@@ -41,10 +41,10 @@ val Project.isAndroid : Boolean
 
 @Singleton
 public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
-        : BasePlugin(), IClasspathContributor, IRepoContributor {
+        : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor {
     override val name = "android"
 
-    fun isAndroid(project: Project) = configurations[project.name] != null
+    fun isAndroid(project: Project) = configurationFor(project) != null
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
@@ -58,19 +58,15 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
         (Kobalt.findPlugin("java") as JvmCompilerPlugin).addCompilerArgs("-target", "1.6", "-source", "1.6")
     }
 
-    val configurations = hashMapOf<String, AndroidConfig>()
 
-    fun setConfiguration(p: Project, config: AndroidConfig) {
-        configurations.put(p.name, config)
-    }
-
-    override fun accept(project: Project) = configurations.containsKey(project.name)
+    override fun accept(project: Project) = isAndroid(project)
 
     val flavor = "debug"
 
-    fun compileSdkVersion(project: Project) = configurations[project.name]?.compileSdkVersion
+    fun compileSdkVersion(project: Project) = configurationFor(project)?.compileSdkVersion
+
     fun buildToolsVersion(project: Project): String {
-        val version = configurations[project.name]?.buildToolsVersion
+        val version = configurationFor(project)?.buildToolsVersion
         if (OperatingSystem.current().isWindows() && version == "21.1.2")
             return "build-tools-$version"
         else
@@ -80,7 +76,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     fun androidHomeNoThrows(project: Project?): String? {
         var result = System.getenv("ANDROID_HOME")
         if (project != null) {
-            configurations[project.name]?.androidHome?.let {
+            configurationFor(project)?.androidHome?.let {
                 result = it
             }
         }
@@ -135,7 +131,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     private fun generateR(project: Project, generated: Path, aapt: String, resDir: String) {
         val compileSdkVersion = compileSdkVersion(project)
         val androidJar = Paths.get(androidHome(project), "platforms", "android-$compileSdkVersion", "android.jar")
-        val applicationId = configurations[project.name]?.applicationId!!
+        val applicationId = configurationFor(project)?.applicationId!!
         val manifestDir = Paths.get(project.directory, "app", "src", "main").toString()
         val manifest = Paths.get(manifestDir, "AndroidManifest.xml")
 
