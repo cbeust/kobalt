@@ -46,11 +46,11 @@ public open class MainModule(val args: Args) : AbstractModule() {
         bind(object: TypeLiteral<KobaltExecutors>() {}).toInstance(executors)
         bind(object: TypeLiteral<ExecutorService>() {}).annotatedWith(DependencyExecutor::class.java)
                 .toInstance(executors.dependencyExecutor)
-        bind(Args::class.java).toProvider(object: Provider<Args> {
-            override fun get(): Args? = args
+        bind(Args::class.java).toProvider(Provider<Args> {
+            args
         })
-        bind(PluginInfo::class.java).toProvider(object: Provider<PluginInfo> {
-            override fun get(): PluginInfo? = PluginInfo.readKobaltPluginXml()
+        bind(PluginInfo::class.java).toProvider(Provider<PluginInfo> {
+            PluginInfo.readKobaltPluginXml()
         }).`in`(Singleton::class.java)
 
 
