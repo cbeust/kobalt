@@ -2,6 +2,7 @@
 import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.plugin.application.application
+//import com.beust.kobalt.plugin.dokka.dokka
 import com.beust.kobalt.plugin.java.javaCompiler
 import com.beust.kobalt.plugin.java.javaProject
 import com.beust.kobalt.plugin.kotlin.kotlinCompiler
@@ -66,6 +67,7 @@ val kobalt = kotlinProject(wrapper) {
     dependencies {
         compile("org.jetbrains.kotlin:kotlin-stdlib:1.0.0-beta-1038",
                 "org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.0-beta-1038",
+                "org.jetbrains.dokka:dokka-fatjar:0.9.1",
 
 //                file(homeDir("java/jcommander/target/jcommander-1.47.jar")),
                 "com.beust:jcommander:1.48",
@@ -113,6 +115,15 @@ val kobalt = kotlinProject(wrapper) {
     kotlinCompiler {
         args("-nowarn")
     }
+
+//    dokka {
+//        args("-output", "markdown")
+//        linkMapping {
+//            dir = "src/main/kotlin"
+//            url = "https://github.com/cy6erGn0m/vertx3-lang-kotlin/blob/master/src/main/kotlin"
+//            suffix = "#L"
+//        }
+//    }
 
     github {
         file("$buildDirectory/libs/$name-$version.zip", "$name/$version/$name-$version.zip")
