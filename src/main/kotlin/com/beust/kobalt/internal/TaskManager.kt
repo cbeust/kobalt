@@ -77,7 +77,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                         //
                         val allFreeTasks = calculateFreeTasks(tasksByNames, reverseAfter)
                         val currentFreeTask = allFreeTasks.filter {
-                            TaskInfo(projectName, it.name).taskName == task
+                            TaskInfo(projectName, it.name).taskName == task.name
                         }
                         if (currentFreeTask.size == 1) {
                             currentFreeTask[0].let {
