@@ -1,9 +1,8 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.KobaltException
-import com.beust.kobalt.misc.KobaltExecutors
-import java.util.concurrent.ExecutorService
-import javax.inject.Inject
+import com.beust.kobalt.misc.*
+import java.util.concurrent.*
+import javax.inject.*
 
 public class DepFactory @Inject constructor(val localRepo: LocalRepo,
         val repoFinder: RepoFinder,
@@ -20,25 +19,19 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
             return FileDependency(id.substring(IClasspathDependency.PREFIX_FILE.length))
         } else {
             val mavenId = MavenId(id)
-            var version = mavenId.version
-            var packaging = mavenId.packaging
-            var repoResult: RepoFinder.RepoResult?
 
-            if (! mavenId.hasVersion) {
-                if (localFirst) version = localRepo.findLocalVersion(mavenId.groupId, mavenId.artifactId,
-                        mavenId.packaging)
-                if (! localFirst || version == null) {
-                    repoResult = repoFinder.findCorrectRepo(id)
-                    if (!repoResult.found) {
-                        throw KobaltException("Couldn't resolve $id")
-                    } else {
-                        version = repoResult.version
-                    }
-                }
+            val resolvedVersion: String = when {
+                mavenId.version != null -> mavenId.version
+                else -> resolve(mavenId, localFirst)
             }
 
-            return MavenDependency(MavenId.create(mavenId.groupId, mavenId.artifactId, packaging, version!!),
+            return MavenDependency(MavenId(mavenId.groupId, mavenId.artifactId, resolvedVersion, mavenId.packaging, mavenId.classifier),
                     executor, localRepo, repoFinder, pomFactory, downloadManager)
         }
     }
+
+    private fun resolve(mavenId: MavenId, localFirst: Boolean) =
+            (if (localFirst) localRepo.findLocalVersion(mavenId) else null)
+                ?: repoFinder.findCorrectRepo(mavenId.id).let { if (it.found) it.version else null }
+                ?: throw KobaltException("Failed to resolve ${mavenId.id}")
 }

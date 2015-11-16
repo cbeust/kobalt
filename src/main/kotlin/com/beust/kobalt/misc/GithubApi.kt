@@ -28,6 +28,20 @@ import java.net.URL
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
 import javax.inject.Inject
+import com.beust.kobalt.maven.*
+import com.google.gson.*
+import com.google.gson.annotations.*
+import com.squareup.okhttp.*
+import retrofit.*
+import retrofit.client.*
+import retrofit.client.Response
+import retrofit.http.*
+import retrofit.mime.*
+import rx.*
+import java.io.*
+import java.net.*
+import java.util.concurrent.*
+import javax.inject.*
 
 /**
  * Retrieve Kobalt's latest release version from github.
@@ -123,7 +137,7 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
                     val jo = JsonParser().parse(reader) as JsonArray
                     if (jo.size() > 0) {
                         var versionName = (jo.get(0) as JsonObject).get("name").asString
-                        if (Strings.isEmpty(versionName)) {
+                        if (versionName.isEmpty()) {
                             versionName = (jo.get(0) as JsonObject).get("tag_name").asString
                         }
                         if (versionName != null) {

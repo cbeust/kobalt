@@ -1,19 +1,15 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.SystemProperties
-import com.beust.kobalt.api.Project
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
-import com.google.common.base.Preconditions
-import com.google.inject.assistedinject.Assisted
-import org.apache.maven.model.Developer
-import org.apache.maven.model.Model
+import com.beust.kobalt.*
+import com.beust.kobalt.api.*
+import com.beust.kobalt.misc.*
+import com.google.inject.assistedinject.*
+import org.apache.maven.model.*
 import org.apache.maven.model.Scm
-import org.apache.maven.model.io.xpp3.MavenXpp3Writer
-import java.io.File
-import java.io.StringWriter
-import java.nio.charset.Charset
-import javax.inject.Inject
+import org.apache.maven.model.io.xpp3.*
+import java.io.*
+import java.nio.charset.*
+import javax.inject.*
 
 public class PomGenerator @Inject constructor(@Assisted val project: Project) {
     interface IFactory {
@@ -21,8 +17,9 @@ public class PomGenerator @Inject constructor(@Assisted val project: Project) {
     }
 
     fun generate() {
-        Preconditions.checkNotNull(project.version, "version mandatory on project ${project.name}")
-        Preconditions.checkNotNull(project.artifactId, "artifactId mandatory on project ${project.name}")
+        requireNotNull(project.version) { "version mandatory on project ${project.name}" }
+        requireNotNull(project.artifactId) { "artifactId mandatory on project ${project.name}" }
+
         val m = Model().apply {
             name = project.name
             artifactId = project.artifactId
@@ -55,7 +52,7 @@ public class PomGenerator @Inject constructor(@Assisted val project: Project) {
 
         val buildDir = KFiles.makeDir(project.directory, project.buildDirectory!!)
         val outputDir = KFiles.makeDir(buildDir.path, "libs")
-        val mavenId = MavenId.create(project.group!!, project.artifactId!!, project.packaging, project.version!!)
+        val mavenId = MavenId(project.group!!, project.artifactId!!, project.version!!, project.packaging)
         val pomFile = SimpleDep(mavenId).toPomFileName()
         val outputFile = File(outputDir, pomFile)
         outputFile.writeText(s.toString(), Charset.defaultCharset())

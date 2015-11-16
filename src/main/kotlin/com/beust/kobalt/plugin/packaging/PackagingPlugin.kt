@@ -164,7 +164,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                     dependencyManager.transitiveClosure(project.compileRuntimeDependencies)).forEach { dep ->
                 dep.map { it.jarFile.get() }.forEach {
                     if (!isExcluded(it, jar.excludes)) {
-                        allFiles.add(IncludedFile(arrayListOf(FileSpec(it.path))))
+                        allFiles.add(IncludedFile(listOf(FileSpec(it.path))))
                     }
                 }
             }

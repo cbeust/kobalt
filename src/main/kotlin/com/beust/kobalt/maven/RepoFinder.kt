@@ -1,21 +1,13 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.Strings
-import com.beust.kobalt.misc.log
-import com.beust.kobalt.misc.warn
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
-import java.io.File
-import java.util.concurrent.Callable
-import java.util.concurrent.ExecutorCompletionService
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
-import javax.xml.xpath.XPathConstants
-import javax.xml.xpath.XPathFactory
-import kotlin.dom.parseXml
+import com.beust.kobalt.api.*
+import com.beust.kobalt.misc.*
+import com.google.common.cache.*
+import java.io.*
+import java.util.concurrent.*
+import javax.inject.*
+import javax.xml.xpath.*
+import kotlin.dom.*
 
 /**
  * Find the repo that contains the given dependency among a list of repos. Searches are performed in parallel and
@@ -83,8 +75,8 @@ public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val e
                     return RepoResult(repoUrl, false, "")
                 }
             } else {
-                val version = mavenId.version
-                if (version!!.contains("SNAPSHOT")) {
+                val version = mavenId.version!!
+                if (version.contains("SNAPSHOT")) {
                     val dep = SimpleDep(mavenId)
                     val snapshotVersion = findSnapshotVersion(dep.toMetadataXmlPath(false), repoUrl)
                     if (snapshotVersion != null) {
@@ -125,12 +117,12 @@ public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val e
         val url = repoUrl + metadataPath
         try {
             val doc = parseXml(url)
-            arrayListOf(XPATHS.forEach {
-                val result = it.evaluate(doc, XPathConstants.STRING) as String
-                if (! result.isEmpty()) {
+            XPATHS.forEach {
+                val result = it.evaluate(doc, XPathConstants.STRING) as? String
+                if (result != null && result.isNotEmpty()) {
                     return result
                 }
-            })
+            }
         } catch(ex: Exception) {
             log(2, "Couldn't find metadata at $url: ${ex.message}")
         }
@@ -146,7 +138,7 @@ public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val e
             val doc = parseXml(url)
             val ts = timestamp.evaluate(doc, XPathConstants.STRING)
             val bn = buildNumber.evaluate(doc, XPathConstants.STRING)
-            if (! Strings.isEmpty(ts.toString()) && ! Strings.isEmpty(bn.toString())) {
+            if (!ts?.toString().isNullOrEmpty() && !bn?.toString().isNullOrEmpty()) {
                 return ts.toString() + "-" + bn.toString()
             }
         } catch(ex: Exception) {

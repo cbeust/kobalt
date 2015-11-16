@@ -1,7 +1,5 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.misc.Strings
-
 open public class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.groupId, mavenId.artifactId) {
     companion object {
         fun create(id: String) = MavenId(id).let {
@@ -15,19 +13,20 @@ open public class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.
         return toDirectory(version, fileSystem) + "maven-metadata.xml"
     }
 
-    private fun toFile(v: String, s: String, suffix: String) : String {
+    private fun toFile(v: String, s: String, classifier: String?, suffix: String) : String {
         val fv = if (v.contains("SNAPSHOT")) v.replace("SNAPSHOT", "") else v
-        return Strings.join("/", arrayListOf(toDirectory(v, false),
-                artifactId + "-" + fv + s + suffix))
+        val classifierPart = if (classifier != null) "-$classifier" else ""
+
+        return toDirectory(v, false) + artifactId + "-" + fv + s + classifierPart + suffix
     }
 
-    fun toPomFile(v: String) = toFile(v, "", ".pom")
+    fun toPomFile(v: String) = toFile(v, "", null, ".pom")
 
-    fun toPomFile(r: RepoFinder.RepoResult) = toFile(r.version, r.snapshotVersion, ".pom")
+    fun toPomFile(r: RepoFinder.RepoResult) = toFile(r.version, r.snapshotVersion, null, ".pom")
 
-    fun toJarFile(v: String = version) = toFile(v, "", suffix)
+    fun toJarFile(v: String = version) = toFile(v, "", mavenId.classifier, suffix)
 
-    fun toJarFile(r: RepoFinder.RepoResult) = toFile(r.version, r.snapshotVersion, suffix)
+    fun toJarFile(r: RepoFinder.RepoResult) = toFile(r.version, r.snapshotVersion, mavenId.classifier, suffix)
 
     fun toPomFileName() = "$artifactId-$version.pom"
 
