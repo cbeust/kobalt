@@ -17,27 +17,27 @@ val p = {{directive}} {
 
     sourceDirectories {
         {{#sourceDirectories}}
-            path("{{toString}}")
+        path("{{toString}}")
         {{/sourceDirectories}}
     }
 
     sourceDirectoriesTest {
         {{#sourceDirectoriesTest}}
-            path("{{toString}}")
+        path("{{toString}}")
         {{/sourceDirectoriesTest}}
     }
 
     dependencies {
 //        compile("com.beust:jcommander:1.48")
         {{#mainDependencies}}
-            compile("{{groupId}}:{{artifactId}}:{{version}}")
+        compile("{{groupId}}:{{artifactId}}:{{version}}")
         {{/mainDependencies}}
     }
 
     dependenciesTest {
 //        compile("org.testng:testng:6.9.5")
         {{#testDependencies}}
-            compile("{{groupId}}:{{artifactId}}:{{version}}")
+        compile("{{groupId}}:{{artifactId}}:{{version}}")
         {{/testDependencies}}
 
     }
