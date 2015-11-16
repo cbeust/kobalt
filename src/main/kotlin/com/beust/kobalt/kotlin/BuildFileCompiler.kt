@@ -8,10 +8,7 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.IClasspathDependency
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.Topological
-import com.beust.kobalt.misc.countChar
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.*
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import com.google.inject.assistedinject.Assisted
 import rx.subjects.PublishSubject
@@ -34,7 +31,8 @@ import javax.inject.Inject
  */
 public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFiles: List<BuildFile>,
         @Assisted val pluginInfo: PluginInfo, val files: KFiles, val plugins: Plugins,
-        val dependencyManager: DependencyManager, val pluginProperties: PluginProperties) {
+        val dependencyManager: DependencyManager, val pluginProperties: PluginProperties,
+        val executors: KobaltExecutors) {
 
     interface IFactory {
         fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>, pluginInfo: PluginInfo) : BuildFileCompiler
@@ -51,6 +49,8 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         val context = KobaltContext(args)
         context.pluginInfo = pluginInfo
         context.pluginProperties = pluginProperties
+        context.dependencyManager = dependencyManager
+        context.executors = executors
         Kobalt.context = context
 
         //
