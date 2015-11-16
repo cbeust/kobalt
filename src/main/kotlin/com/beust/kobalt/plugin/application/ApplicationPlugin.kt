@@ -62,9 +62,10 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
                         as List<ProjectDescription>
                     // If the jar file is not fat, we need to add the transitive closure of all dependencies
                     // on the classpath
-                    allDeps.addAll(
+                    val allTheDependencies =
                             dependencyManager.calculateDependencies(project, context, projDeps,
-                                    allDependencies = project.compileDependencies).map { it.jarFile.get().path })
+                                    allDependencies = project.compileDependencies).map { it.jarFile.get().path }
+                    allDeps.addAll(allTheDependencies)
                 }
                 val allDepsJoined = allDeps.joinToString(File.pathSeparator)
                 val args = listOf("-classpath", allDepsJoined) + config.jvmArgs + config.mainClass!!

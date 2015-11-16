@@ -19,6 +19,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
 
     /**
      * @return the classpath for this project, including the IClasspathContributors.
+     * allDependencies is typically either compileDependencies or testDependencies
      */
     fun calculateDependencies(project: Project?, context: KobaltContext,
             dependentProjects: List<ProjectDescription> = emptyList(),
