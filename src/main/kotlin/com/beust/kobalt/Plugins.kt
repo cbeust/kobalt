@@ -84,7 +84,6 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
                     }
                     val annotation = it.second
 
-                    log(3, "Adding MethodTask from @Task: ${it.first} $annotation")
                     plugin.methodTasks.add(IPlugin.MethodTask(it.first, annotation))
                 }
 
@@ -96,6 +95,9 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
             plugin.methodTasks.forEach { methodTask ->
                 val method = methodTask.method
                 val annotation = methodTask.taskAnnotation
+
+                val methodName = method.declaringClass.toString() + "." + method.name
+                log(3, "    Found task:${annotation.name} method: $methodName")
 
                 fun toTask(m: Method, project: Project, plugin: IPlugin): (Project) -> TaskResult {
                     val result: (Project) -> TaskResult = {
