@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.0.0-beta-1038'
+    ext.kotlin_version = '1.0.0-beta-2423'
 
     repositories {
         mavenCentral()
@@ -38,6 +38,7 @@ repositories {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlin_version}",
             "org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlin_version}",
+            "org.jetbrains.dokka:dokka-fatjar:0.9.1",
 //            "org.jetbrains.kotlin:kotlin-compiler:${kotlin_version}",
 
             'com.beust:jcommander:1.48',
@@ -49,7 +50,9 @@ dependencies {
             'org.apache.maven:maven-model:3.3.3',
             'com.github.spullara.mustache.java:compiler:0.8.18',
             "io.reactivex:rxjava:1.0.14",
-            "com.google.code.gson:gson:2.4"
+            "com.google.code.gson:gson:2.4",
+            "com.squareup.retrofit:retrofit:1.9.0",
+            files("modules/wrapper/kobaltBuild/libs/kobalt-wrapper.jar")
 
 //    compile files("/Users/beust/.kobalt/repository/com/beust/kobalt-example-plugin/build/libs/kobalt-example-plugin.jar")
     testCompile 'org.testng:testng:6.9.6'
