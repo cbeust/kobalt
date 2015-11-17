@@ -1,11 +1,9 @@
 
-import com.beust.kobalt.TaskResult
+import com.beust.kobalt.*
 import com.beust.kobalt.api.License
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.Scm
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.file
-import com.beust.kobalt.homeDir
 import com.beust.kobalt.plugin.application.application
 import com.beust.kobalt.plugin.java.javaCompiler
 import com.beust.kobalt.plugin.java.javaProject
@@ -19,6 +17,8 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
+
+val r = repos("http://dl.bintray.com/kotlin/kotlinx.dom")
 
 val wrapper = javaProject {
     name = "kobalt-wrapper"
@@ -60,9 +60,10 @@ val kobalt = kotlinProject(wrapper) {
     }
 
     dependencies {
-        compile("org.jetbrains.kotlin:kotlin-stdlib:1.0.0-beta-1038",
-                "org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.0-beta-1038",
-                "org.jetbrains.dokka:dokka-fatjar:0.9.1",
+        compile("org.jetbrains.kotlin:kotlin-stdlib:1.0.0-beta-2423",
+                "org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.0-beta-2423",
+                "org.jetbrains.dokka:dokka-fatjar:0.9.2",
+                "org.jetbrains.kotlinx:kotlinx.dom:0.0.2",
 
 //                file(homeDir("java/jcommander/target/jcommander-1.47.jar")),
                 "com.beust:jcommander:1.48",

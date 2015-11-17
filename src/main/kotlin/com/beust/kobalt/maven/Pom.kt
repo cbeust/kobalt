@@ -1,15 +1,14 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.misc.toString
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.toString
 import com.google.inject.assistedinject.Assisted
-import org.jetbrains.kotlin.codegen.intrinsics.ToString
+import kotlinx.dom.childElements
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 import java.io.FileReader
 import javax.xml.xpath.XPathConstants
-import kotlin.dom.childElements
 
 public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         @Assisted documentFile: java.io.File) {
@@ -60,7 +59,7 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
     init {
         val DEPENDENCIES = XPATH.compile("/project/dependencies/dependency")
 
-        val document = kotlin.dom.parseXml(InputSource(FileReader(documentFile)))
+        val document = kotlinx.dom.parseXml(InputSource(FileReader(documentFile)))
         groupId = XPATH.compile("/project/groupId").evaluate(document)
         artifactId = XPATH.compile("/project/artifactId").evaluate(document)
         version = XPATH.compile("/project/version").evaluate(document)

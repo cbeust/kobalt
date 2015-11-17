@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
-import kotlin.dom.parseXml
+import kotlinx.dom.parseXml
 
 /**
  * Find the repo that contains the given dependency among a list of repos. Searches are performed in parallel and
