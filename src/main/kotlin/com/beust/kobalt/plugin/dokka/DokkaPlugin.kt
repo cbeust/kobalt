@@ -91,10 +91,8 @@ class DokkaConfig(
         var moduleName: String = "",
         var skip: Boolean = false) {
 
-    fun sourceLinks(init: SourceLinkMapItem.() -> Unit) {
-        val s: SourceLinkMapItem = SourceLinkMapItem().apply { init() }
-        sourceLinks.add(s)
-    }
+    fun sourceLinks(init: SourceLinkMapItem.() -> Unit)
+            = sourceLinks.add(SourceLinkMapItem().apply { init() })
 }
 
 @Directive
