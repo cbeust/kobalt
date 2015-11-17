@@ -27,23 +27,34 @@ public class Main {
     private final Properties wrapperProperties = new Properties();
 
     private static int logLevel = 1;
+    private boolean noOverwrite = false;
 
     private void installAndLaunchMain(String[] argv) throws IOException, InterruptedException {
+        List<String> kobaltArgv = new ArrayList<>();
         boolean noLaunch = false;
         for (int i = 0; i < argv.length; i++) {
+            boolean passToKobalt = true;
             switch(argv[i]) {
-                case "--no-launch":
+                case "--noOverwrite":
+                    noOverwrite = true;
+                    passToKobalt = false;
+                    break;
+                case "--noLaunch":
                     noLaunch = true;
                     break;
                 case "--log":
                     logLevel = Integer.parseInt(argv[i + 1]);
+                    kobaltArgv.add(argv[i]);
                     i++;
                     break;
+            }
+            if (passToKobalt) {
+                kobaltArgv.add(argv[i]);
             }
         }
         Path kobaltJarFile = installJarFile();
         if (! noLaunch) {
-            launchMain(kobaltJarFile, argv);
+            launchMain(kobaltJarFile, kobaltArgv.toArray(new String[kobaltArgv.size()]));
         }
     }
 
@@ -131,24 +142,26 @@ public class Main {
         //
         // Extract all the zip files
         //
-        int retries = 0;
-        while (retries < 2) {
-            try {
-                extractZipFile(localZipFile, zipOutputDir);
-                break;
-            } catch (ZipException e) {
-                retries++;
-                error("Couldn't open zip file " + localZipFile + ": " + e.getMessage());
-                error("The file is probably corrupt, downloading it again");
-                Files.delete(localZipFile);
-                download(localZipFile.toFile(), wrapperVersion);
+        if (! noOverwrite) {
+            int retries = 0;
+            while (retries < 2) {
+                try {
+                    extractZipFile(localZipFile, zipOutputDir);
+                    break;
+                } catch (ZipException e) {
+                    retries++;
+                    error("Couldn't open zip file " + localZipFile + ": " + e.getMessage());
+                    error("The file is probably corrupt, downloading it again");
+                    Files.delete(localZipFile);
+                    download(localZipFile.toFile(), wrapperVersion);
+                }
             }
         }
 
         //
         // Copy the wrapper files in the current kobalt/wrapper directory
         //
-        if (! wrapperVersion.equals(version)) {
+        if (! noOverwrite && ! wrapperVersion.equals(version)) {
             log(2, "Copying the wrapper files");
             for (String file : FILES) {
                 Path from = Paths.get(zipOutputDir, file);
@@ -175,6 +188,7 @@ public class Main {
     }
 
     private void extractZipFile(Path localZipFile, String zipOutputDir) throws IOException {
+        log(2, "Extracting " + localZipFile);
         try (ZipFile zipFile = new ZipFile(localZipFile.toFile())) {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
             while (entries.hasMoreElements()) {

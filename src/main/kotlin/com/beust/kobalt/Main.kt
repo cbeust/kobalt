@@ -134,9 +134,9 @@ private class Main @Inject constructor(
         if (args.init) {
             //
             // --init: create a new build project and install the wrapper
-            // Make sure the wrapper won't call us back with --no-launch
+            // Make sure the wrapper won't call us back with --noLaunch
             //
-            com.beust.kobalt.wrapper.Main.main(arrayOf("--no-launch") + argv)
+            com.beust.kobalt.wrapper.Main.main(arrayOf("--noLaunch") + argv)
             projectGenerator.run(args)
         } else if (args.usage) {
             jc.usage()
