@@ -164,16 +164,33 @@ public class Main {
         if (! noOverwrite && ! wrapperVersion.equals(version)) {
             log(2, "Copying the wrapper files");
             for (String file : FILES) {
-                Path from = Paths.get(zipOutputDir, file);
                 Path to = Paths.get(new File(".").getAbsolutePath(), file);
-                try {
-                    if (isWindows() && to.toFile().exists()) {
-                        log(1, "Windows detected, not overwriting " + to);
-                    } else {
-                        Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
+                boolean extractFile = true;
+                if (file.equals("kobaltw")) {
+                    File envFile = new File("/bin/env");
+                    if (!envFile.exists()) {
+                        envFile = new File("/usr/bin/env");
                     }
-                } catch (IOException ex) {
-                    log(1, "Couldn't copy " + from + " to " + to + ": " + ex.getMessage());
+                    if (envFile.exists()) {
+                        log(2, "Located " + envFile.getAbsolutePath() + ", generating " + file);
+                        String content = "#!" + envFile.getAbsolutePath() + " bash\n"
+                                + "java -jar $(dirname $0)/kobalt/wrapper/kobalt-wrapper.jar $*\n";
+                        Files.write(to, content.getBytes());
+                        extractFile = false;
+                    }
+                }
+
+                if (extractFile) {
+                    Path from = Paths.get(zipOutputDir, file);
+                    try {
+                        if (isWindows() && to.toFile().exists()) {
+                            log(1, "Windows detected, not overwriting " + to);
+                        } else {
+                            Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
+                        }
+                    } catch (IOException ex) {
+                        log(1, "Couldn't copy " + from + " to " + to + ": " + ex.getMessage());
+                    }
                 }
             }
 
