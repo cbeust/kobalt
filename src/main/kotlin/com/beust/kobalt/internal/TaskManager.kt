@@ -184,7 +184,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                         }
                     }
 
-                    runBefore.get(thisTask.name).forEach {
+                    dependencyNames.forEach {
                         newToProcess.add(TaskInfo(project.name, it))
                     }
                 }
