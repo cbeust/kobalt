@@ -17,10 +17,7 @@ import javax.inject.Inject
 /**
  * This command returns the list of dependencies for the given buildFile.
  * Payload:
- * {
- *   "name" : "getDependencies"
- *   "buildFile": "Build.kt"
- * }
+ * { "name" : "getDependencies", "buildFile": "/Users/beust/kotlin/kobalt/kobalt/src/Build.kt" }
  * The response is a GetDependenciesData.
  */
 class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
