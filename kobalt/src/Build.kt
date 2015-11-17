@@ -1,8 +1,12 @@
 
-import com.beust.kobalt.*
-import com.beust.kobalt.api.*
+import com.beust.kobalt.TaskResult
+import com.beust.kobalt.api.License
+import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.Scm
+import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.file
+import com.beust.kobalt.homeDir
 import com.beust.kobalt.plugin.application.application
-//import com.beust.kobalt.plugin.dokka.dokka
 import com.beust.kobalt.plugin.java.javaCompiler
 import com.beust.kobalt.plugin.java.javaProject
 import com.beust.kobalt.plugin.kotlin.kotlinCompiler
@@ -10,6 +14,7 @@ import com.beust.kobalt.plugin.kotlin.kotlinProject
 import com.beust.kobalt.plugin.packaging.assemble
 import com.beust.kobalt.plugin.publish.github
 import com.beust.kobalt.plugin.publish.jcenter
+import com.beust.kobalt.test
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -24,15 +29,6 @@ val wrapper = javaProject {
         args("-source", "1.7", "-target", "1.7")
     }
 
-    dependencies {
-//        compile(file(homeDir("java/java-apt-example/processor/kobaltBuild/libs/processor-0.1.jar")))
-//        apt(file(homeDir("java/java-apt-example/processor/kobaltBuild/libs/processor-0.1.jar")))
-    }
-
-//    apt {
-//        outputDir = "generated/sources/apt"
-//    }
-
     assemble {
         jar {
             name = projectName + ".jar"
@@ -44,7 +40,6 @@ val wrapper = javaProject {
 
     application {
         mainClass = "com.beust.kobalt.wrapper.Main"
-        jvmArgs("-Dtest=foo")
     }
 }
 
@@ -88,6 +83,7 @@ val kobalt = kotlinProject(wrapper) {
               )
     }
 
+
     assemble {
         mavenJars {
             fatJar = true
@@ -117,11 +113,11 @@ val kobalt = kotlinProject(wrapper) {
     }
 
 //    dokka {
-//        args("-output", "markdown")
-//        linkMapping {
+//        outputFormat = "markdown"
+//        sourceLinks {
 //            dir = "src/main/kotlin"
 //            url = "https://github.com/cy6erGn0m/vertx3-lang-kotlin/blob/master/src/main/kotlin"
-//            suffix = "#L"
+//            urlSuffix = "#L"
 //        }
 //    }
 
@@ -144,23 +140,16 @@ fun readVersion() : String {
     return p.getProperty("kobalt.version")
 }
 
-@com.beust.kobalt.api.annotation.Task(name = "copyVersionForWrapper", runBefore = arrayOf("compile"), description = "")
+@Task(name = "copyVersionForWrapper", runBefore = arrayOf("assemble"), runAfter = arrayOf("compile"), description = "")
 fun taskCopyVersionForWrapper(project: Project) : TaskResult {
     if (project.name == "kobalt-wrapper") {
-        Files.createDirectories(Paths.get("modules/wrapper/kobaltBuild/classes"))
-        Files.copy(Paths.get("src/main/resources/kobalt.properties"),
-                Paths.get("modules/wrapper/kobaltBuild/classes/kobalt.properties"),
+        val toString = "modules/wrapper/kobaltBuild/classes"
+        File(toString).mkdirs()
+        val from = Paths.get("src/main/resources/kobalt.properties")
+        val to = Paths.get("$toString/kobalt.properties")
+        Files.copy(from,
+                to,
                 StandardCopyOption.REPLACE_EXISTING)
     }
     return TaskResult()
 }
-//import com.beust.kobalt.plugin.linecount.lineCount
-//val plugins = plugins(
-//        "com.beust.kobalt:kobalt-line-count:0.15"
-////        file(homeDir("kotlin/kobalt-line-count/kobaltBuild/libs/kobalt-line-count-0.14.jar"))
-//)
-//
-//val lc = lineCount {
-//    suffix = "**.md"
-//}
-
