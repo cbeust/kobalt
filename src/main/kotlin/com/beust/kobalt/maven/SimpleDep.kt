@@ -17,8 +17,9 @@ open public class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.
 
     private fun toFile(v: String, s: String, suffix: String) : String {
         val fv = if (v.contains("SNAPSHOT")) v.replace("SNAPSHOT", "") else v
-        return Strings.join("/", arrayListOf(toDirectory(v, false),
+        val result = Strings.join("/", arrayListOf(toDirectory(v, false) +
                 artifactId + "-" + fv + s + suffix))
+        return result
     }
 
     fun toPomFile(v: String) = toFile(v, "", ".pom")
