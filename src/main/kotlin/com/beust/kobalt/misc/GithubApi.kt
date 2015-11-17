@@ -1,36 +1,25 @@
 package com.beust.kobalt.misc
 
-import com.beust.kobalt.KobaltException
-import com.beust.kobalt.internal.DocUrl
-import com.beust.kobalt.maven.Http
-import com.google.gson.Gson
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
-import com.beust.kobalt.homeDir
-import com.beust.kobalt.maven.KobaltException
+import com.beust.kobalt.*
+import com.beust.kobalt.internal.*
+import com.beust.kobalt.maven.*
 import com.google.gson.*
-import com.google.gson.annotations.SerializedName
+import com.google.gson.annotations.*
+import com.squareup.okhttp.*
 import com.squareup.okhttp.Headers
-import com.squareup.okhttp.OkHttpClient
-import retrofit.RestAdapter
-import retrofit.RetrofitError
-import retrofit.client.OkClient
-import retrofit.http.Body
-import retrofit.http.POST
+import retrofit.*
+import retrofit.client.*
+import retrofit.client.Response
+import retrofit.http.*
 import retrofit.http.Path
-import retrofit.http.Query
-import retrofit.mime.TypedByteArray
-import retrofit.mime.TypedFile
+import retrofit.mime.*
 import rx.Observable
-import java.io.BufferedReader
-import java.io.File
-import java.io.IOException
-import java.io.InputStreamReader
-import java.net.URL
-import java.util.concurrent.Callable
-import java.util.concurrent.Future
-import javax.inject.Inject
+import java.io.*
+import java.net.*
+import java.nio.file.*
+import java.util.*
+import java.util.concurrent.*
+import javax.inject.*
 
 /**
  * Retrieve Kobalt's latest release version from github.
@@ -64,7 +53,7 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
                         uploadAsset(accessToken, response.uploadUrl!!, TypedFile("application/zip", zipFile),
                                 tagName)
                     }
-                    .toBlocking()
+                    .toBlocking(
                     .forEach { action ->
                         log(1, "\n${zipFile.name} successfully uploaded")
                     }
@@ -169,7 +158,7 @@ class Prop {
         }
 
         private fun fromProperties(name: String) : String {
-            val result = localProperties.get(name)
+            val result = localProperties.getRaw(name)
                     ?: throw KobaltException("Couldn't find $name in local.properties")
             return result as String
         }
