@@ -33,7 +33,7 @@ class DownloadManager @Inject constructor(val factory: ArtifactFetcher.IFactory)
             }
         })
 
-    public fun download(url: String, fileName: String, executor: ExecutorService)
+    fun download(url: String, fileName: String, executor: ExecutorService)
             : Future<File> = CACHE.get(Key(url, fileName, executor))
 }
 
