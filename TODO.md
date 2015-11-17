@@ -1,13 +1,13 @@
 To do:
 
-- [ ] Make what version preBuildScript.jar was compiled with and wipe on new version
+- [ ] The test runner only selects classes with a parameterless constructor, which works for JUnit but not for TestNG
+ factories
 - [ ] Add a "Auto complete Build.kt" menu in the plug-in
 - [ ] "All artifacts successfully uploaded" is shown before the upload is actually done
 - [ ] use groupId/artifactId
 - [ ] Console mode with watch service, so recompilation can occur as soon as a source file is modified
 - [ ] ProjectGenerator: support migration from pom.xml (starting with dependencies)
 - [ ] Specify where to upload snapshots
-- [ ] Add the % download display in the Kotlin wrapper
 - [ ] Upload in a thread pool
 - [ ] repos() must appear before plugins(): fix that
 - [ ] Support version ranges
@@ -17,10 +17,8 @@ To do:
 - [ ] Centralize all the executors
 - [ ] Archetypes (e.g. "--initWith kobalt-plug-in")
 - [ ] Compile TestNG (including generating Version.java and OSGi headers)
-- [ ] Storage API: Plugins.storage("myplugin").get/set()
 - [ ] Support additional .kt files in ~/.kobalt/src
 - [ ] generateArchive() should use Path instead of File
-- [ ] archetypes, e.g. --initWith kotlin
 - [ ] --init: import dependencies from build.gradle
 - [ ] --init: also extract kobalt.bat (or generate it along with kobaltw)
 - [ ] Bug: --tasks displays multiple tasks when there are multiple projects
@@ -33,8 +31,12 @@ To do:
 
 Done:
 
+- [x] Make what version preBuildScript.jar was compiled with and wipe on new version
 - [x] Get rid of the $JAVA_HOME requirement
 - [x] getDependencies() should return the transitive dependencies
+- [x] Storage API: Plugins.storage("myplugin").get/set()
+- [x] Add the % download display in the Kotlin wrapper
+- [x] archetypes, e.g. --initWith kotlin
 - [x] Project ordering: kotlinProject(wrapper) {}
 - [x] Make files appear in download list automatically on bintray (undocumented API)
 - [x] Link kobalt to JCenter
