@@ -1,20 +1,19 @@
 package com.beust.kobalt.plugin.dokka
 
-import com.beust.kobalt.JavaInfo
-import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.ConfigPlugin
-import com.beust.kobalt.api.JarFinder
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DepFactory
-import com.beust.kobalt.misc.RunCommand
-import com.beust.kobalt.misc.error
+import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.log
-import java.io.File
+import com.beust.kobalt.plugin.packaging.PackagingPlugin
+import org.jetbrains.dokka.DokkaGenerator
+import org.jetbrains.dokka.DokkaLogger
+import org.jetbrains.dokka.SourceLinkDefinition
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,36 +23,39 @@ class DokkaPlugin @Inject constructor(val depFactory: DepFactory) : ConfigPlugin
 
     companion object {
         const val PLUGIN_NAME = "dokka"
-        const val DOKKA_ID = "org.jetbrains.dokka:dokka-fatjar:0.9.1"
     }
 
     /**
      * Probably no point in running this task if "assemble" hasn't completed.
      */
-    @Task(name = "dokka", description = "Run dokka",
-            runBefore = arrayOf("compile")
-//            runAfter = arrayOf(PackagingPlugin.TASK_ASSEMBLE)
-    )
+    @Task(name = "dokka", description = "Run dokka", runAfter = arrayOf(PackagingPlugin.TASK_ASSEMBLE))
     fun taskDokka(project: Project) : TaskResult {
-        val javaExecutable = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
         val config = configurationFor(project)
         val classpath = context.dependencyManager.calculateDependencies(project, context)
-        val buildDir = project.projectProperties.getString(JvmCompilerPlugin.BUILD_DIR)
-        val classpathString = (classpath.map { it.jarFile.get().absolutePath } +
-                listOf(buildDir))
-            .joinToString(File.pathSeparator)
-        val dokkaJar = JarFinder.byId(DOKKA_ID)
+        val buildDir = project.buildDirectory!!
+        val classpathList = (classpath.map { it.jarFile.get().absolutePath } + listOf(buildDir))
         var success = true
         if (config != null) {
-            val args : List<String> = listOf(
-                    "-classpath", classpathString,
-                    "-jar", dokkaJar.absolutePath,
-                    *(project.sourceDirectories.toTypedArray())) +
-                config.args
-            RunCommand(javaExecutable.absolutePath).run(args, errorCallback = { output: List<String> ->
-                error("Error running dokka:\n " + output.joinToString("\n"))
-                success = false
-            })
+            if (! config.skip) {
+                val outputDir = buildDir + "/" +
+                        if (config.outputDir.isBlank()) "doc" else config.outputDir
+
+                val gen = DokkaGenerator(
+                        KobaltDokkaLogger { success = false },
+                        classpathList,
+                        project.sourceDirectories.toList(),
+                        config.samplesDirs,
+                        config.includeDirs,
+                        config.moduleName,
+                        outputDir,
+                        config.outputFormat,
+                        config.sourceLinks.map { SourceLinkDefinition(it.dir, it.url, it.urlSuffix) }
+                )
+                gen.generate()
+                log(2, "Documentation generated in $outputDir")
+            } else {
+                log(2, "skip is true, not generating the documentation")
+            }
         } else {
             log(2, "No dokka configuration found for project ${project.name}, skipping it")
         }
@@ -61,27 +63,40 @@ class DokkaPlugin @Inject constructor(val depFactory: DepFactory) : ConfigPlugin
     }
 }
 
-class DokkaConfig() {
-    val args = arrayListOf<String>()
-    fun args(vararg options: String) {
-        args.addAll(options)
+class KobaltDokkaLogger(val onErrorCallback: () -> Unit = {}) : DokkaLogger {
+    override fun error(message: String) {
+        KobaltLogger.logger.error("Dokka", message)
+        onErrorCallback()
     }
 
-    var linkMapping: LinkMappingConfig? = null
+    override fun info(message: String) {
+        KobaltLogger.logger.log(2, message)
+    }
 
-    @Directive
-    fun linkMapping(init: LinkMappingConfig.() -> Unit) {
-        linkMapping = LinkMappingConfig().let {
-            it.init()
-            it
-        }
+    override fun warn(message: String) {
+        KobaltLogger.logger.warn("Dokka", message)
     }
 }
 
-class LinkMappingConfig {
+class SourceLinkMapItem {
     var dir: String = ""
     var url: String = ""
-    var suffix: String? = null
+    var urlSuffix: String? = null
+}
+
+class DokkaConfig(
+        var samplesDirs: List<String> = emptyList(),
+        var includeDirs: List<String> = emptyList(),
+        var outputDir: String = "",
+        var outputFormat: String = "html",
+        var sourceLinks : ArrayList<SourceLinkMapItem> = arrayListOf<SourceLinkMapItem>(),
+        var moduleName: String = "",
+        var skip: Boolean = false) {
+
+    fun sourceLinks(init: SourceLinkMapItem.() -> Unit) {
+        val s: SourceLinkMapItem = SourceLinkMapItem().apply { init() }
+        sourceLinks.add(s)
+    }
 }
 
 @Directive
