@@ -6,7 +6,6 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.packaging.PackagingPlugin
@@ -14,11 +13,10 @@ import org.jetbrains.dokka.DokkaGenerator
 import org.jetbrains.dokka.DokkaLogger
 import org.jetbrains.dokka.SourceLinkDefinition
 import java.util.*
-import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DokkaPlugin @Inject constructor(val depFactory: DepFactory) : ConfigPlugin<DokkaConfig>() {
+class DokkaPlugin : ConfigPlugin<DokkaConfig>() {
     override val name = PLUGIN_NAME
 
     companion object {
@@ -26,14 +24,14 @@ class DokkaPlugin @Inject constructor(val depFactory: DepFactory) : ConfigPlugin
     }
 
     /**
-     * Probably no point in running this task if "assemble" hasn't completed.
+     * Probably no point in running this task if "assemble" hasn't completed so we're running after.
      */
     @Task(name = "dokka", description = "Run dokka", runAfter = arrayOf(PackagingPlugin.TASK_ASSEMBLE))
     fun taskDokka(project: Project) : TaskResult {
         val config = configurationFor(project)
         val classpath = context.dependencyManager.calculateDependencies(project, context)
         val buildDir = project.buildDirectory!!
-        val classpathList = (classpath.map { it.jarFile.get().absolutePath } + listOf(buildDir))
+        val classpathList = classpath.map { it.jarFile.get().absolutePath } + listOf(buildDir)
         var success = true
         if (config != null) {
             if (! config.skip) {
