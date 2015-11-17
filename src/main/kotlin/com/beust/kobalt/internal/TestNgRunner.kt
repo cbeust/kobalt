@@ -10,21 +10,17 @@ public class TestNgRunner(override val project: Project, override val classpath:
     override val mainClass = "org.testng.TestNG"
 
     override val args: List<String>
-        get() {
-            arrayListOf<String>().let {
-                if (project.testArgs.size > 0) {
-                    it.addAll(project.testArgs)
+        get() = arrayListOf<String>().apply {
+            if (project.testArgs.size > 0) {
+                addAll(project.testArgs)
+            } else {
+                val testngXml = File(project.directory, KFiles.joinDir("src", "test", "resources", "testng.xml"))
+                if (testngXml.exists()) {
+                    add(testngXml.absolutePath)
                 } else {
-                    val testngXml = File(project.directory, KFiles.joinDir("src", "test", "resources", "testng.xml"))
-                    if (testngXml.exists()) {
-                        it.add(testngXml.absolutePath)
-                    } else {
-                        it.add("-testclass")
-                        it.addAll(findTestClasses())
-                    }
+                    add("-testclass")
+                    addAll(findTestClasses())
                 }
-                return it
             }
-
         }
 }
