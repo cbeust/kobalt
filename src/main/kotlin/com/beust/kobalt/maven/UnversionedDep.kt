@@ -14,12 +14,13 @@ open public class UnversionedDep(open val groupId: String, open val artifactId: 
 
     /**
      * Turn this dependency to a directory. If fileSystem is true, use the file system
-     * dependent path separator, otherwise, use '/' (used to create URL's)
+     * dependent path separator, otherwise, use '/' (used to create URL's). The returned
+     * string always ends with the path separator.
      */
     public fun toDirectory(v: String, fileSystem: Boolean = true): String {
         val sep = if (fileSystem) File.separator else "/"
         val l = listOf(groupId.replace(".", sep), artifactId, v)
         val result = Strings.Companion.join(sep, l)
-        return if (result.endsWith("/")) result else result + "/"
+        return if (result.endsWith(sep)) result else result + sep
     }
 }
