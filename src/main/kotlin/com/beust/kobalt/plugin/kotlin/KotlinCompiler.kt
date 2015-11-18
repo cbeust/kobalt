@@ -13,7 +13,9 @@ import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.wrapper.ParentLastClassLoader
 import org.jetbrains.kotlin.cli.common.CLICompiler
+import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import java.io.File
 import javax.inject.Inject
@@ -39,15 +41,58 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
             if (info.sourceFiles.size > 1) {
                 log(1, "  Compiling ${info.sourceFiles.size} files")
             }
+            val cp = compilerFirst(info.dependencies.map {it.jarFile.get()})
             val allArgs : Array<String> = arrayOf(
                     "-d", info.outputDir.path,
-                    "-classpath", info.dependencies.map {it.jarFile.get()}.joinToString(File.pathSeparator),
+                    "-classpath", cp.joinToString(File.pathSeparator),
                     *(info.compilerArgs.toTypedArray()),
                     *(info.sourceFiles.toTypedArray())
             )
-            log(2, "Calling kotlinc " + allArgs.joinToString(" "))
-            CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs)
-            return TaskResult()
+            val success = invokeCompiler(cp, allArgs)
+            return TaskResult(success)
+        }
+
+        /**
+         * Invoke the Kotlin compiler by reflection to make sure we use the class defined
+         * in the kotlin-embeddable jar file. At the time of this writing, the dokka fatJar
+         * also contains the compiler and there are some class incompatibilities in it, so
+         * this call blows up with a NoClassDefFound in ClassReader if it's the compiler
+         * in the dokka jar that gets invoked.
+         *
+         * There are plenty of ways in which this method can break but this will be immediately
+         * apparent if it happens.
+         */
+        private fun invokeCompiler(cp: List<File>, allArgs: Array<String>): Boolean {
+            log(1, "Calling kotlinc " + allArgs.joinToString(" "))
+            val result : Boolean =
+                if (true) {
+                    val classLoader = ParentLastClassLoader(cp.map { it.toURI().toURL() })
+                    val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
+                    val compilerMain = compiler.declaredMethods.filter {
+                        it.name == "doMainNoExit" && it.parameterTypes.size == 2
+                    }.get(0)
+                    val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
+                    val compilerInstance = kCompiler.newInstance()
+                    val exitCode = compilerMain.invoke(null, compilerInstance, allArgs)
+                    val nameMethod = exitCode.javaClass.getMethod("name")
+                    "OK" == nameMethod.invoke(exitCode).toString()
+                } else {
+                    val exitCode = CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs)
+                    exitCode == ExitCode.OK
+                }
+            return result
+        }
+
+        /**
+         * Reorder the files so that the kotlin-*jar files are at the front.
+         */
+        private fun compilerFirst(list: List<File>): List<File> {
+            val result = arrayListOf<File>()
+            list.forEach { it
+                if (it.name.startsWith("kotlin-")) result.add(0, it)
+                else result.add(it)
+            }
+            return result
         }
     }
 
