@@ -4,7 +4,6 @@ import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
-import com.google.common.base.Preconditions
 import com.google.inject.assistedinject.Assisted
 import org.apache.maven.model.Developer
 import org.apache.maven.model.Model
@@ -21,8 +20,8 @@ public class PomGenerator @Inject constructor(@Assisted val project: Project) {
     }
 
     fun generate() {
-        Preconditions.checkNotNull(project.version, "version mandatory on project ${project.name}")
-        Preconditions.checkNotNull(project.artifactId, "artifactId mandatory on project ${project.name}")
+        requireNotNull(project.version, { "version mandatory on project ${project.name}"})
+        requireNotNull(project.artifactId, { "artifactId mandatory on project ${project.name}" })
         val m = Model().apply {
             name = project.name
             artifactId = project.artifactId

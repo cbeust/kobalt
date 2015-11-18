@@ -9,7 +9,6 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.DocUrl
 import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.misc.*
-import com.google.common.base.Preconditions
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -38,10 +37,10 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
     }
 
     private fun validateProject(project: Project) {
-        Preconditions.checkNotNull(project.name, "Project $project should have a name")
-        Preconditions.checkNotNull(project.version, "Project $project should have a version")
-        Preconditions.checkNotNull(project.group, "Project $project should have a group")
-        Preconditions.checkNotNull(project.artifactId, "Project $project should have a artifactId")
+        requireNotNull(project.name, { "Project $project should have a name" })
+        requireNotNull(project.version, { "Project $project should have a version" })
+        requireNotNull(project.group, { "Project $project should have a group" })
+        requireNotNull(project.artifactId, { "Project $project should have a artifactId" })
     }
 
     private val VALID = arrayListOf(".jar", ".pom")
