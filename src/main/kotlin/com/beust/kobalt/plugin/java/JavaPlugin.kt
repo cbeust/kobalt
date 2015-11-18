@@ -2,7 +2,6 @@ package com.beust.kobalt.plugin.java
 
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.BasePlugin
-import com.beust.kobalt.api.IProjectContributor
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
@@ -31,8 +30,7 @@ public class JavaPlugin @Inject constructor(
         override val executors: KobaltExecutors,
         val javaCompiler: JavaCompiler,
         override val jvmCompiler: JvmCompiler)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler),
-            IProjectContributor {
+        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler) {
     companion object {
         public const val TASK_COMPILE : String = "compile"
         public const val TASK_JAVADOC : String = "javadoc"
@@ -72,11 +70,6 @@ public class JavaPlugin @Inject constructor(
 
     }
 
-    @Task(name = TASK_COMPILE, description = "Compile the project")
-    fun taskCompile(project: Project) : TaskResult {
-        return baseTaskCompile(project, projects())
-    }
-
     override fun doCompile(project: Project, classpath: List<IClasspathDependency>, sourceFiles: List<String>,
             buildDirectory: File) : TaskResult {
         val result =
@@ -105,8 +98,6 @@ public class JavaPlugin @Inject constructor(
             }
         return result
     }
-
-    override fun projects() = projects
 }
 
 @Directive

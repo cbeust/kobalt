@@ -2,9 +2,9 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.BasePlugin
+import com.beust.kobalt.api.IProjectContributor
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.ProjectDescription
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.*
@@ -12,6 +12,7 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
+import com.beust.kobalt.plugin.java.JavaPlugin
 import java.io.File
 import java.util.*
 import javax.inject.Inject
@@ -24,7 +25,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         open val depFactory: DepFactory,
         open val dependencyManager: DependencyManager,
         open val executors: KobaltExecutors,
-        open val jvmCompiler: JvmCompiler) : BasePlugin() {
+        open val jvmCompiler: JvmCompiler) : BasePlugin(), IProjectContributor {
 
     companion object {
         @ExportedProjectProperty(doc = "The location of the build directory", type = "String")
@@ -138,10 +139,13 @@ abstract class JvmCompilerPlugin @Inject constructor(
                 .map { File(projectDir, it).absolutePath }
     }
 
-    fun baseTaskCompile(project: Project, projectDescriptions: List<ProjectDescription>) : TaskResult {
+    override fun projects() = projects
+
+    @Task(name = JavaPlugin.TASK_COMPILE, description = "Compile the project")
+    fun taskCompile(project: Project) : TaskResult {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
 
-        val projDeps = dependencyManager.dependentProjectDependencies(projectDescriptions, project, context)
+        val projDeps = dependencyManager.dependentProjectDependencies(projects(), project, context)
 
         val classpath = dependencyManager.calculateDependencies(project, context, project.compileDependencies,
                 project.compileProvidedDependencies, projDeps)

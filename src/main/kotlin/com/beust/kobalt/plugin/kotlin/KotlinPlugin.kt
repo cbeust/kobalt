@@ -1,7 +1,10 @@
 package com.beust.kobalt.plugin.kotlin
 
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.*
+import com.beust.kobalt.api.BasePlugin
+import com.beust.kobalt.api.IClasspathContributor
+import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.JvmCompiler
@@ -23,7 +26,7 @@ class KotlinPlugin @Inject constructor(
         override val executors: KobaltExecutors,
         override val jvmCompiler: JvmCompiler)
         : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler),
-            IProjectContributor, IClasspathContributor {
+            IClasspathContributor {
 
     companion object {
         public const val TASK_COMPILE: String = "compile"
@@ -33,11 +36,6 @@ class KotlinPlugin @Inject constructor(
     override val name = "kotlin"
 
     override fun accept(project: Project) = project is KotlinProject
-
-    @Task(name = TASK_COMPILE, description = "Compile the project")
-    fun taskCompile(project: Project): TaskResult {
-        return baseTaskCompile(project, projects())
-    }
 
     override fun doCompile(project: Project, classpath: List<IClasspathDependency>, sourceFiles: List<String>,
             buildDirectory: File) : TaskResult {
@@ -85,9 +83,6 @@ class KotlinPlugin @Inject constructor(
             output = outputDirectory
         }.compile(project, context)
     }
-
-    // interface IProjectContributor
-    override fun projects() = projects
 
     private fun getKotlinCompilerJar(name: String) : String {
         val id = "org.jetbrains.kotlin:$name:${KotlinCompiler.KOTLIN_VERSION}"
