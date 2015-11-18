@@ -1,8 +1,8 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.KobaltException
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.warn
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
@@ -58,8 +58,9 @@ class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
         urlFactory.create(url).toFile(file)
         log(1, "  Downloaded $url")
 
-        if (remoteMd5 != null && remoteMd5 != Md5.toMd5(file)) {
-            throw KobaltException("MD5 not matching for $url")
+        val localMd5 = Md5.toMd5(file)
+        if (remoteMd5 != null && remoteMd5 != localMd5) {
+            warn("MD5 not matching for $url")
         } else {
             log(2, "No md5 found for $url, skipping md5 check")
         }
