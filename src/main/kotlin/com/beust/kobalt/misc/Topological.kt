@@ -1,5 +1,6 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.KobaltException
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.HashMultimap
 import java.util.*
@@ -28,6 +29,9 @@ class Topological<T> {
         while (all.size > 0) {
             val freeNodes = all.filter {
                 dependMap.get(it).isEmpty()
+            }
+            if (freeNodes.isEmpty()) {
+                throw KobaltException("The dependency graph has a cycle: $all")
             }
             result.addAll(freeNodes)
             all.removeAll(freeNodes)
