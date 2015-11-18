@@ -1,8 +1,8 @@
 package com.beust.kobalt.maven
 
-import org.jetbrains.kotlin.rmi.toHexString
 import java.io.File
 import java.security.MessageDigest
+import javax.xml.bind.DatatypeConverter
 
 public class Md5 {
     companion object {
@@ -10,7 +10,7 @@ public class Md5 {
                 file.forEachBlock { bytes, size ->
                     md5.update(bytes, 0, size)
                 }
-                md5.digest().toHexString()
+                DatatypeConverter.printHexBinary(md5.digest()).toLowerCase()
             }
     }
 }
