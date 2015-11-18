@@ -1,5 +1,6 @@
 package com.beust.kobalt.plugin.java
 
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.IProjectContributor
 import com.beust.kobalt.api.Kobalt
@@ -8,12 +9,12 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
-import com.beust.kobalt.TaskResult
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.warn
 import java.io.File
 import java.nio.file.Paths
 import java.util.*
@@ -56,10 +57,18 @@ public class JavaPlugin @Inject constructor(
     fun taskJavadoc(project: Project) : TaskResult {
         val projectDir = File(project.directory)
         val sourceFiles = findSourceFiles(project.directory, project.sourceDirectories)
-        val buildDir = File(projectDir,
-                project.buildDirectory + File.separator + JvmCompilerPlugin.DOCS_DIRECTORY).apply { mkdirs() }
-        return javaCompiler.javadoc(project, context, project.compileDependencies, sourceFiles,
-                buildDir, compilerArgs)
+        val result =
+            if (sourceFiles.size > 0) {
+                val buildDir = File(projectDir,
+                        project.buildDirectory + File.separator + JvmCompilerPlugin.DOCS_DIRECTORY).apply { mkdirs() }
+                javaCompiler.javadoc(project, context, project.compileDependencies, sourceFiles,
+                        buildDir, compilerArgs)
+            } else {
+                warn("Couldn't find any source files to run Javadoc on")
+                TaskResult()
+            }
+        return result
+
     }
 
     @Task(name = TASK_COMPILE, description = "Compile the project")
@@ -67,10 +76,17 @@ public class JavaPlugin @Inject constructor(
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
         val projectDir = File(project.directory)
         val sourceFiles = findSourceFiles(project.directory, project.sourceDirectories)
-        val buildDir = File(projectDir, project.buildDirectory + File.separator + "classes")
-                .apply { mkdirs() }
-        return javaCompiler.compile(project, context, project.compileDependencies, sourceFiles,
-                buildDir, compilerArgs)
+        val result =
+            if (sourceFiles.size > 0) {
+                val buildDir = File(projectDir, project.buildDirectory + File.separator + "classes")
+                        .apply { mkdirs() }
+                javaCompiler.compile(project, context, project.compileDependencies, sourceFiles,
+                        buildDir, compilerArgs)
+            } else {
+                warn("Couldn't find any source files to compile")
+                TaskResult()
+            }
+        return result
     }
 
     @Task(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf("compile"))
@@ -83,7 +99,7 @@ public class JavaPlugin @Inject constructor(
                 javaCompiler.compile(project, context, testDependencies(project), sourceFiles,
                         buildDir, compilerArgs)
             } else {
-                // No files to compile
+                warn("Couldn't find any tests to compile")
                 TaskResult()
             }
         return result

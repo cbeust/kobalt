@@ -9,6 +9,7 @@ import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.warn
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,15 +44,20 @@ class KotlinPlugin @Inject constructor(
         val buildDirectory = File(projectDirectory, project.buildDirectory + File.separator + "classes")
         buildDirectory.mkdirs()
 
-        val sourceFiles = files.findRecursively(projectDirectory,
-                project.sourceDirectories.map { File(it) }, { it.endsWith(".kt") })
-        val absoluteSourceFiles = sourceFiles.map {
-            File(projectDirectory, it).absolutePath
-        }
+        val sourceFiles = files.findRecursively(projectDirectory, project.sourceDirectories.map { File(it) },
+                { it .endsWith(".kt") })
+                    .map { File(projectDirectory, it).absolutePath }
 
-        compilePrivate(project, classpath, absoluteSourceFiles, buildDirectory)
-        lp(project, "Compilation succeeded")
-        return TaskResult()
+        val result =
+            if (sourceFiles.size > 0) {
+                compilePrivate(project, classpath, sourceFiles, buildDirectory)
+                lp(project, "Compilation succeeded")
+                TaskResult()
+            } else {
+                warn("Couldn't find any source files")
+                TaskResult()
+            }
+        return result
     }
 
     @Task(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf(TASK_COMPILE))
@@ -59,16 +65,22 @@ class KotlinPlugin @Inject constructor(
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
         val projectDir = File(project.directory)
 
-        val absoluteSourceFiles = files.findRecursively(projectDir, project.sourceDirectoriesTest.map { File(it) })
+        val sourceFiles = files.findRecursively(projectDir, project.sourceDirectoriesTest.map { File(it) })
             { it: String -> it.endsWith(".kt") }
                     .map { File(projectDir, it).absolutePath }
 
-        compilePrivate(project, testDependencies(project),
-                absoluteSourceFiles,
-                makeOutputTestDir(project))
+        val result =
+            if (sourceFiles.size > 0) {
+                compilePrivate(project, testDependencies(project),
+                        sourceFiles,
+                        makeOutputTestDir(project))
+            } else {
+                warn("Couldn't find any test files")
+                TaskResult()
+            }
 
         lp(project, "Compilation of tests succeeded")
-        return TaskResult()
+        return result
     }
 
     private fun compilePrivate(project: Project, cpList: List<IClasspathDependency>, sources: List<String>,
