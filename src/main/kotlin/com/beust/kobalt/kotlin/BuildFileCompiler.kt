@@ -62,6 +62,17 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         return allProjects
     }
 
+    private fun validateProjects(projects: List<Project>) {
+        val seen = hashSetOf<String>()
+        projects.forEach {
+            if (seen.contains(it.name)) {
+                throw KobaltException("Duplicate project name: $it")
+            } else {
+                seen.add(it.name)
+            }
+        }
+    }
+
     private fun findProjects(context: KobaltContext): List<Project> {
         val result = arrayListOf<Project>()
         buildFiles.forEach { buildFile ->
@@ -254,6 +265,8 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         } finally {
             stream?.close()
         }
+
+        validateProjects(projects)
 
         //
         // Now that the build file has run, fetch all the project contributors, grab the projects from them and sort
