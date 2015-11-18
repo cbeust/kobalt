@@ -1,6 +1,5 @@
 To do:
 
-- [ ] Dependent projects: kobalt should automatically add the dependency on the jar file
 - [ ] The test runner only selects classes with a parameterless constructor, which works for JUnit but not for TestNG
  factories
 - [ ] Add a "Auto complete Build.kt" menu in the plug-in
@@ -32,6 +31,7 @@ To do:
 
 Done:
 
+- [x] Dependent projects: kobalt should automatically add the dependency on the jar file
 - [x] Make what version preBuildScript.jar was compiled with and wipe on new version
 - [x] Get rid of the $JAVA_HOME requirement
 - [x] getDependencies() should return the transitive dependencies
