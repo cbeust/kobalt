@@ -65,7 +65,6 @@ val kobalt = kotlinProject(wrapper) {
                 "org.jetbrains.dokka:dokka-fatjar:0.9.2",
                 "org.jetbrains.kotlinx:kotlinx.dom:0.0.2",
 
-//                file(homeDir("java/jcommander/target/jcommander-1.47.jar")),
                 "com.beust:jcommander:1.48",
                 "com.squareup.okhttp:okhttp:2.5.0",
                 "org.jsoup:jsoup:1.8.3",
@@ -78,10 +77,7 @@ val kobalt = kotlinProject(wrapper) {
                 "io.reactivex:rxjava:1.0.16",
                 "com.google.code.gson:gson:2.4",
                 "com.squareup.retrofit:retrofit:1.9.0",
-                "com.squareup.okio:okio:1.6.0",
-//                "com.squareup.retrofit:retrofit:2.0.0-beta2",
-//                "com.squareup.retrofit:converter-gson:2.0.0-beta2",
-                file("modules/wrapper/kobaltBuild/libs/kobalt-wrapper.jar")
+                "com.squareup.okio:okio:1.6.0"
               )
     }
 

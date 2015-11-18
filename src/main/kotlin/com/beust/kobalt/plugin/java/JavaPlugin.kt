@@ -11,6 +11,7 @@ import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -73,15 +74,15 @@ public class JavaPlugin @Inject constructor(
 
     @Task(name = TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project) : TaskResult {
-        copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
-        val projectDir = File(project.directory)
-        val sourceFiles = findSourceFiles(project.directory, project.sourceDirectories)
+        return baseTaskCompile(project, projects())
+    }
+
+    override fun doCompile(project: Project, classpath: List<IClasspathDependency>, sourceFiles: List<String>,
+            buildDirectory: File) : TaskResult {
         val result =
             if (sourceFiles.size > 0) {
-                val buildDir = File(projectDir, project.buildDirectory + File.separator + "classes")
-                        .apply { mkdirs() }
-                javaCompiler.compile(project, context, project.compileDependencies, sourceFiles,
-                        buildDir, compilerArgs)
+                javaCompiler.compile(project, context, classpath, sourceFiles,
+                        buildDirectory, compilerArgs)
             } else {
                 warn("Couldn't find any source files to compile")
                 TaskResult()
@@ -103,13 +104,6 @@ public class JavaPlugin @Inject constructor(
                 TaskResult()
             }
         return result
-    }
-
-    private fun findSourceFiles(dir: String, sourceDirectories: Collection<String>): List<String> {
-        val projectDir = File(dir)
-        return files.findRecursively(projectDir,
-                sourceDirectories.map { File(it) }) { it: String -> it.endsWith(".java") }
-                .map { File(projectDir, it).absolutePath }
     }
 
     override fun projects() = projects

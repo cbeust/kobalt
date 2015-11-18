@@ -36,27 +36,20 @@ class KotlinPlugin @Inject constructor(
 
     @Task(name = TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project): TaskResult {
-        copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
-        val classpath = dependencyManager.calculateDependencies(project, context, project.compileDependencies,
-                project.compileProvidedDependencies)
+        return baseTaskCompile(project, projects())
+    }
 
-        val projectDirectory = java.io.File(project.directory)
-        val buildDirectory = File(projectDirectory, project.buildDirectory + File.separator + "classes")
-        buildDirectory.mkdirs()
-
-        val sourceFiles = files.findRecursively(projectDirectory, project.sourceDirectories.map { File(it) },
-                { it .endsWith(".kt") })
-                    .map { File(projectDirectory, it).absolutePath }
-
+    override fun doCompile(project: Project, classpath: List<IClasspathDependency>, sourceFiles: List<String>,
+            buildDirectory: File) : TaskResult {
         val result =
-            if (sourceFiles.size > 0) {
-                compilePrivate(project, classpath, sourceFiles, buildDirectory)
-                lp(project, "Compilation succeeded")
-                TaskResult()
-            } else {
-                warn("Couldn't find any source files")
-                TaskResult()
-            }
+                if (sourceFiles.size > 0) {
+                    compilePrivate(project, classpath, sourceFiles, buildDirectory)
+                    lp(project, "Compilation succeeded")
+                    TaskResult()
+                } else {
+                    warn("Couldn't find any source files")
+                    TaskResult()
+                }
         return result
     }
 
@@ -66,7 +59,7 @@ class KotlinPlugin @Inject constructor(
         val projectDir = File(project.directory)
 
         val sourceFiles = files.findRecursively(projectDir, project.sourceDirectoriesTest.map { File(it) })
-            { it: String -> it.endsWith(".kt") }
+            { it: String -> it.endsWith(project.sourceSuffix) }
                     .map { File(projectDir, it).absolutePath }
 
         val result =

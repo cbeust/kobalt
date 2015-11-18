@@ -4,6 +4,7 @@ import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.BasePlugin
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.ProjectDescription
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.*
@@ -129,4 +130,34 @@ abstract class JvmCompilerPlugin @Inject constructor(
     fun addCompilerArgs(vararg args: String) {
         compilerArgs.addAll(args)
     }
+
+    fun findSourceFiles(dir: String, sourceDirectories: Collection<String>): List<String> {
+        val projectDir = File(dir)
+        return files.findRecursively(projectDir,
+                sourceDirectories.map { File(it) }) { it: String -> it.endsWith(".java") }
+                .map { File(projectDir, it).absolutePath }
+    }
+
+    fun baseTaskCompile(project: Project, projectDescriptions: List<ProjectDescription>) : TaskResult {
+        copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
+
+        val projDeps = dependencyManager.dependentProjectDependencies(projectDescriptions, project, context)
+
+        val classpath = dependencyManager.calculateDependencies(project, context, project.compileDependencies,
+                project.compileProvidedDependencies, projDeps)
+
+        val projectDirectory = File(project.directory)
+        val buildDirectory = File(projectDirectory, project.buildDirectory + File.separator + "classes")
+        buildDirectory.mkdirs()
+
+        val sourceFiles = files.findRecursively(projectDirectory, project.sourceDirectories.map { File(it) },
+                { it .endsWith(project.sourceSuffix) })
+                .map { File(projectDirectory, it).absolutePath }
+
+        val result = doCompile(project, classpath, sourceFiles, buildDirectory)
+        return result
+    }
+
+    abstract fun doCompile(project: Project, classpath: List<IClasspathDependency>, sourceFiles: List<String>,
+            buildDirectory: File) : TaskResult
 }

@@ -3,7 +3,9 @@ package com.beust.kobalt.maven
 import com.beust.kobalt.api.IClasspathContributor
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.ProjectDescription
 import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.plugin.packaging.PackagingPlugin
 import com.google.common.collect.ArrayListMultimap
 import java.util.*
 import javax.inject.Inject
@@ -79,6 +81,26 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
             Collections.sort(l, Collections.reverseOrder())
             result.add(l.get(0))
         }
+        return result
+    }
+
+    /**
+     * If this project depends on other projects, we need to include their jar file and also
+     * their own dependencies
+     */
+    fun dependentProjectDependencies(projectDescriptions: List<ProjectDescription>,
+            project: Project, context: KobaltContext) :
+    List<IClasspathDependency> {
+        val result = arrayListOf<IClasspathDependency>()
+        projectDescriptions.filter {
+            it.project.name == project.name
+        }.forEach { pd ->
+            pd.dependsOn.forEach { p ->
+                result.add(FileDependency(p.projectProperties.getString(PackagingPlugin.JAR_NAME)))
+                result.addAll(calculateDependencies(p, context))
+            }
+        }
+
         return result
     }
 }
