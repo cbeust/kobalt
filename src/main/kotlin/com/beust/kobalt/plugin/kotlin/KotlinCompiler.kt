@@ -63,7 +63,7 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
          * apparent if it happens.
          */
         private fun invokeCompiler(cp: List<File>, allArgs: Array<String>): Boolean {
-            log(1, "Calling kotlinc " + allArgs.joinToString(" "))
+            log(2, "Calling kotlinc " + allArgs.joinToString(" "))
             val result : Boolean =
                 if (true) {
                     val classLoader = ParentLastClassLoader(cp.map { it.toURI().toURL() })
