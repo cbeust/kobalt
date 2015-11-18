@@ -17,6 +17,8 @@ import com.google.inject.Guice
 import java.io.File
 import java.nio.file.Paths
 import java.util.*
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import javax.inject.Inject
 
 public fun main(argv: Array<String>) {
@@ -104,24 +106,30 @@ private class Main @Inject constructor(
         log(1, if (result != 0) "BUILD FAILED: $result" else "BUILD SUCCESSFUL ($seconds seconds)")
 
         // Check for new version
-        val latestVersionString = latestVersionFuture.get()
-        val latestVersion = Versions.toLongVersion(latestVersionString)
-        val current = Versions.toLongVersion(Kobalt.version)
-        if (latestVersion > current) {
-            listOf("", "New Kobalt version available: $latestVersionString",
-                    "To update, run ./kobaltw --update", "").forEach {
-                log(1, "**** $it")
+        try {
+            val latestVersionString = latestVersionFuture.get(1, TimeUnit.SECONDS)
+            val latestVersion = Versions.toLongVersion(latestVersionString)
+            val current = Versions.toLongVersion(Kobalt.version)
+            if (latestVersion > current) {
+                listOf("", "New Kobalt version available: $latestVersionString",
+                        "To update, run ./kobaltw --update", "").forEach {
+                    log(1, "**** $it")
+                }
             }
+        } catch(ex: TimeoutException) {
+            log(2, "Didn't get the new version in time, skipping it")
         }
         return result
     }
-
 
     //    public fun runTest() {
     //        val file = File("src\\main\\resources\\META-INF\\plugin.ml")
     //    }
 
     private fun runWithArgs(jc: JCommander, args: Args, argv: Array<String>): Int {
+//        val file = File("/Users/beust/.kobalt/repository/com/google/guava/guava/19.0-rc2/guava-19.0-rc2.pom")
+//        val md5 = Md5.toMd5(file)
+//        val md52 = MessageDigest.getInstance("MD5").digest(file.readBytes()).toHexString()
         var result = 0
         val p = if (args.buildFile != null) File(args.buildFile) else findBuildFile()
         args.buildFile = p.absolutePath
