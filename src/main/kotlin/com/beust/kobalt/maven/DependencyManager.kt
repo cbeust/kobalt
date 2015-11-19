@@ -4,8 +4,10 @@ import com.beust.kobalt.api.IClasspathContributor
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.ProjectDescription
+import com.beust.kobalt.internal.JvmCompilerPlugin
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.plugin.packaging.PackagingPlugin
+import com.beust.kobalt.misc.warn
 import com.google.common.collect.ArrayListMultimap
 import java.util.*
 import javax.inject.Inject
@@ -96,7 +98,12 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
             it.project.name == project.name
         }.forEach { pd ->
             pd.dependsOn.forEach { p ->
-                result.add(FileDependency(p.projectProperties.getString(PackagingPlugin.JAR_NAME)))
+                val classesDir = p.projectProperties.getString(JvmCompilerPlugin.BUILD_DIR)
+                if (classesDir != null) {
+                    result.add(FileDependency(KFiles.joinDir(p.directory, classesDir)))
+                } else {
+                    warn("Couldn't find any classes dir for project depended on ${p.name}")
+                }
                 result.addAll(calculateDependencies(p, context))
             }
         }
