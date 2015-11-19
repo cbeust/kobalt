@@ -1,10 +1,9 @@
 
 import com.beust.kobalt.*
-import com.beust.kobalt.api.License
-import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.Scm
+import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.plugin.application.application
+import com.beust.kobalt.plugin.dokka.*
 import com.beust.kobalt.plugin.java.javaCompiler
 import com.beust.kobalt.plugin.java.javaProject
 import com.beust.kobalt.plugin.kotlin.kotlinCompiler
@@ -36,6 +35,12 @@ val wrapper = javaProject {
                 attributes("Main-Class", "com.beust.kobalt.wrapper.Main")
             }
         }
+    }
+
+    productFlavor("dev") {
+    }
+
+    buildType("debug") {
     }
 
     application {
@@ -110,14 +115,13 @@ val kobalt = kotlinProject(wrapper) {
         args("-nowarn")
     }
 
-//    dokka {
-//        outputFormat = "markdown"
-//        sourceLinks {
-//            dir = "src/main/kotlin"
-//            url = "https://github.com/cy6erGn0m/vertx3-lang-kotlin/blob/master/src/main/kotlin"
-//            urlSuffix = "#L"
-//        }
-//    }
+    dokka {
+        outputFormat = "markdown"
+    }
+
+    dokka {
+        outputFormat = "html"
+    }
 
     github {
         file("$buildDirectory/libs/$name-$version.zip", "$name/$version/$name-$version.zip")
