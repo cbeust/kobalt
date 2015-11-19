@@ -36,30 +36,38 @@ abstract class GenericTestRunner(open val project: Project, open val classpath: 
         return result
     }
 
-    fun runTests() {
+    /**
+     * @return true if all the tests passed
+     */
+    fun runTests() : Boolean {
         val jvm = JavaInfo.create(File(SystemProperties.javaBase))
         val java = jvm.javaExecutable
-        val allArgs = arrayListOf<String>().apply {
-            add(java!!.absolutePath)
-            add("-classpath")
-            add(classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator))
-            add(mainClass)
-            addAll(args)
-        }
+        if (args.size > 0) {
+            val allArgs = arrayListOf<String>().apply {
+                add(java!!.absolutePath)
+                add("-classpath")
+                add(classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator))
+                add(mainClass)
+                addAll(args)
+            }
 
-        val pb = ProcessBuilder(allArgs)
-        pb.directory(File(project.directory))
-        pb.inheritIO()
-        log(1, "Running tests with classpath size ${classpath.size}")
-        log(2, "Launching " + allArgs.joinToString(" "))
-        val process = pb.start()
-        val errorCode = process.waitFor()
-        if (errorCode == 0) {
-            log(1, "All tests passed")
+            val pb = ProcessBuilder(allArgs)
+            pb.directory(File(project.directory))
+            pb.inheritIO()
+            log(1, "Running tests with classpath size ${classpath.size}")
+            log(2, "Launching " + allArgs.joinToString(" "))
+            val process = pb.start()
+            val errorCode = process.waitFor()
+            if (errorCode == 0) {
+                log(1, "All tests passed")
+            } else {
+                log(1, "Test failures")
+            }
+            return errorCode == 0
         } else {
-            log(1, "Test failures")
+            log(2, "Couldn't find any test classes")
+            return true
         }
-
     }
 }
 

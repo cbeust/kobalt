@@ -64,18 +64,20 @@ abstract class JvmCompilerPlugin @Inject constructor(
                 result.addAll(dependencyManager.calculateDependencies(project, context, it))
             }
         }
-        return dependencyManager.reorderDependencies(result)
+        val result2 = dependencyManager.reorderDependencies(result)
+        return result2
     }
 
     @Task(name = TASK_TEST, description = "Run the tests", runAfter = arrayOf("compile", "compileTest"))
     fun taskTest(project: Project) : TaskResult {
         lp(project, "Running tests")
-        if (project.testDependencies.any { it.id.contains("testng")} ) {
-            TestNgRunner(project, testDependencies(project)).runTests()
-        } else {
-            JUnitRunner(project, testDependencies(project)).runTests()
-        }
-        return TaskResult()
+        val success =
+            if (project.testDependencies.any { it.id.contains("testng")} ) {
+                TestNgRunner(project, testDependencies(project)).runTests()
+            } else {
+                JUnitRunner(project, testDependencies(project)).runTests()
+            }
+        return TaskResult(success)
     }
 
     @Task(name = TASK_CLEAN, description = "Clean the project", runBefore = arrayOf("compile"))
