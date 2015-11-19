@@ -63,10 +63,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
                             taskCompile(project)
                             TaskResult()
                         })
-                println("New task: " + Variant(pf, bt).toTask("compile"))
             }
         }
-        println("Done")
     }
 
     /**
