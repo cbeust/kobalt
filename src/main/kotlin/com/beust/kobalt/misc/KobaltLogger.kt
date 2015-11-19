@@ -37,26 +37,24 @@ object KobaltLogger {
 class Logger(val dev: Boolean) {
     val FORMAT = SimpleDateFormat("HH:mm:ss.SSS")
 
-    private fun getPattern(type: String, devType: String, tag: String, message: String) =
+    private fun getPattern(shortTag: String, shortMessage: String, longMessage: String, tag: String) =
         if (dev) {
             val ts = FORMAT.format(Date())
-            "$type/$ts [" + Thread.currentThread().name + "] $tag - $message"
+            "$shortTag/$ts [" + Thread.currentThread().name + "] $tag - $shortMessage"
         } else {
-            devType + message
+            longMessage
         }
 
     final fun debug(tag: String, message: String) =
-        println(getPattern("D", "Debug ", tag, message))
+        println(getPattern("D", message, message, tag))
 
     final fun error(tag: String, message: String, e: Throwable? = null) {
         val docUrl = if (e is KobaltException && e.docUrl != null) e.docUrl else null
-        val shortMessage = if (e != null) e.message else { "<unknown error>" }
-        val longMessage = "*****\n***** ERROR " + shortMessage +
-                (if (docUrl != null) { "\n***** Documentation: $docUrl" } else "") +
-                "\n*****"
+        val text = if (e != null) e.message else { "<unknown error>" }
+        val shortMessage = "***** E $text " + docUrl?.let { " Documentation: $docUrl" }
+        val longMessage = "*****\n***** ERROR $text\n*****"
 
-        println(getPattern("***** E $shortMessage " + docUrl?.let { " Documentation: $docUrl" },
-                longMessage, tag, message))
+        println(getPattern("E", shortMessage, longMessage, tag))
         if (KobaltLogger.LOG_LEVEL > 1) {
             e?.printStackTrace()
         }
@@ -64,11 +62,11 @@ class Logger(val dev: Boolean) {
 
     final fun warn(tag: String, message: String, e: Throwable? = null) {
         val fullMessage = e?.message ?: message
-        println(getPattern("W", "***** WARNING ", tag, fullMessage))
+        println(getPattern("W", fullMessage, fullMessage, tag))
     }
 
     final fun log(tag: String, message: String, newLine: Boolean) =
-        with(getPattern("L", "", tag, message)) {
+        with(getPattern("L", message, message, tag)) {
             if (newLine) println(this)
             else print("\r" + this)
         }
