@@ -62,6 +62,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         super.apply(project, context)
         project.projectProperties.put(LIBS_DIR, libsDir(project))
 
+
         project.productFlavors.keys.forEach { pf ->
             project.buildTypes.keys.forEach { bt ->
                 val variant = Variant(pf, bt)
