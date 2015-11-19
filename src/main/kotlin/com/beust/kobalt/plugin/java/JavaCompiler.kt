@@ -2,13 +2,12 @@ package com.beust.kobalt.plugin.java
 
 import com.beust.kobalt.JavaInfo
 import com.beust.kobalt.SystemProperties
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
-import com.beust.kobalt.TaskResult
-import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import com.google.inject.Singleton
@@ -46,23 +45,15 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
     }
 
     /**
-     * Create an ICompilerAction based on the parameters and send it to JvmCompiler.doCompile() with
-     * the given executable.
+     * Invoke the given executale on the CompilerActionInfo.
      */
-    private fun run(project: Project?, context: KobaltContext?, directory: String?,
-            dependencies: List<IClasspathDependency>, sourceFiles: List<String>, outputDir: File,
-            args: List<String>, executable: File): TaskResult {
-        val info = CompilerActionInfo(directory, dependencies, sourceFiles, outputDir, args)
-        return jvmCompiler.doCompile(project, context, compilerAction(executable), info)
+    private fun run(project: Project?, context: KobaltContext?, cai: CompilerActionInfo, executable: File): TaskResult {
+        return jvmCompiler.doCompile(project, context, compilerAction(executable), cai)
     }
 
-    fun compile(project: Project?, context: KobaltContext?, dependencies: List<IClasspathDependency>,
-            sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult
-        = run(project, context, project?.directory, dependencies, sourceFiles, outputDir, args,
-            JavaInfo.create(File(SystemProperties.javaBase)).javacExecutable!!)
+    fun compile(project: Project?, context: KobaltContext?, cai: CompilerActionInfo) : TaskResult
+        = run(project, context, cai, JavaInfo.create(File(SystemProperties.javaBase)).javacExecutable!!)
 
-    fun javadoc(project: Project?, context: KobaltContext?, dependencies: List<IClasspathDependency>,
-            sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult
-        = run(project, context, project?.directory, dependencies, sourceFiles, outputDir, args,
-            JavaInfo.create(File(SystemProperties.javaBase)).javadocExecutable!!)
+    fun javadoc(project: Project?, context: KobaltContext?, cai: CompilerActionInfo) : TaskResult
+        = run(project, context, cai, JavaInfo.create(File(SystemProperties.javaBase)).javadocExecutable!!)
 }

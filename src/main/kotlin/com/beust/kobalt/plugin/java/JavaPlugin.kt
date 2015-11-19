@@ -6,11 +6,11 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -52,30 +52,21 @@ public class JavaPlugin @Inject constructor(
         return dirs
     }
 
-    @Task(name = TASK_JAVADOC, description = "Run Javadoc")
-    fun taskJavadoc(project: Project) : TaskResult {
-        val projectDir = File(project.directory)
-        val sourceFiles = findSourceFiles(project.directory, project.sourceDirectories)
+    override fun doJavadoc(project: Project, cai: CompilerActionInfo) : TaskResult {
         val result =
-            if (sourceFiles.size > 0) {
-                val buildDir = File(projectDir,
-                        project.buildDirectory + File.separator + JvmCompilerPlugin.DOCS_DIRECTORY).apply { mkdirs() }
-                javaCompiler.javadoc(project, context, project.compileDependencies, sourceFiles,
-                        buildDir, compilerArgs)
-            } else {
-                warn("Couldn't find any source files to run Javadoc on")
-                TaskResult()
-            }
+                if (cai.sourceFiles.size > 0) {
+                    javaCompiler.javadoc(project, context, cai.copy(compilerArgs = compilerArgs))
+                } else {
+                    warn("Couldn't find any source files to run Javadoc on")
+                    TaskResult()
+                }
         return result
-
     }
 
-    override fun doCompile(project: Project, classpath: List<IClasspathDependency>, sourceFiles: List<String>,
-            buildDirectory: File) : TaskResult {
+    override fun doCompile(project: Project, cai: CompilerActionInfo) : TaskResult {
         val result =
-            if (sourceFiles.size > 0) {
-                javaCompiler.compile(project, context, classpath, sourceFiles,
-                        buildDirectory, compilerArgs)
+            if (cai.sourceFiles.size > 0) {
+                javaCompiler.compile(project, context, cai.copy(compilerArgs = compilerArgs))
             } else {
                 warn("Couldn't find any source files to compile")
                 TaskResult()
@@ -90,8 +81,8 @@ public class JavaPlugin @Inject constructor(
             if (sourceFiles.size > 0) {
                 copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
                 val buildDir = makeOutputTestDir(project)
-                javaCompiler.compile(project, context, testDependencies(project), sourceFiles,
-                        buildDir, compilerArgs)
+                javaCompiler.compile(project, context, CompilerActionInfo(project.directory, testDependencies(project),
+                        sourceFiles, buildDir, compilerArgs))
             } else {
                 warn("Couldn't find any tests to compile")
                 TaskResult()

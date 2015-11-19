@@ -6,6 +6,7 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.homeDir
+import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.FileDependency
 import com.beust.kobalt.maven.IClasspathDependency
@@ -206,10 +207,9 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     private fun compile(project: Project, rDirectory: String): File {
         val sourceFiles = arrayListOf(Paths.get(rDirectory, "R.java").toFile().path)
         val buildDir = Paths.get(project.buildDirectory, "generated", "classes").toFile()
-
-        javaCompiler.compile(project, context, listOf(), sourceFiles, buildDir, listOf(
-                "-source", "1.6", "-target", "1.6"
-        ))
+        val cai = CompilerActionInfo(project.directory, listOf(), sourceFiles, buildDir, listOf(
+                "-source", "1.6", "-target", "1.6"))
+        javaCompiler.compile(project, context, cai)
         return buildDir
     }
 

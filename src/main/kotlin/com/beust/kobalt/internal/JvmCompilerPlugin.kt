@@ -142,7 +142,12 @@ abstract class JvmCompilerPlugin @Inject constructor(
     override fun projects() = projects
 
     @Task(name = JavaPlugin.TASK_COMPILE, description = "Compile the project")
-    fun taskCompile(project: Project) : TaskResult {
+    fun taskCompile(project: Project) = doCompile(project, createCompilerActionInfo(project))
+
+    @Task(name = JavaPlugin.TASK_JAVADOC, description = "Run Javadoc")
+    fun taskJavadoc(project: Project) = doJavadoc(project, createCompilerActionInfo(project))
+
+    private fun createCompilerActionInfo(project: Project) : CompilerActionInfo {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
 
         val projDeps = dependencyManager.dependentProjectDependencies(projects(), project, context)
@@ -158,10 +163,11 @@ abstract class JvmCompilerPlugin @Inject constructor(
                 { it .endsWith(project.sourceSuffix) })
                 .map { File(projectDirectory, it).absolutePath }
 
-        val result = doCompile(project, classpath, sourceFiles, buildDirectory)
-        return result
+        val cai = CompilerActionInfo(projectDirectory.absolutePath, classpath, sourceFiles, buildDirectory,
+                emptyList())
+        return cai
     }
 
-    abstract fun doCompile(project: Project, classpath: List<IClasspathDependency>, sourceFiles: List<String>,
-            buildDirectory: File) : TaskResult
+    abstract fun doCompile(project: Project, cai: CompilerActionInfo) : TaskResult
+    abstract fun doJavadoc(project: Project, cai: CompilerActionInfo) : TaskResult
 }

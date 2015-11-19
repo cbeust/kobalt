@@ -7,6 +7,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.*
@@ -37,11 +38,10 @@ class KotlinPlugin @Inject constructor(
 
     override fun accept(project: Project) = project is KotlinProject
 
-    override fun doCompile(project: Project, classpath: List<IClasspathDependency>, sourceFiles: List<String>,
-            buildDirectory: File) : TaskResult {
+    override fun doCompile(project: Project, cai: CompilerActionInfo) : TaskResult {
         val result =
-                if (sourceFiles.size > 0) {
-                    compilePrivate(project, classpath, sourceFiles, buildDirectory)
+                if (cai.sourceFiles.size > 0) {
+                    compilePrivate(project, cai.dependencies, cai.sourceFiles, cai.outputDir)
                     lp(project, "Compilation succeeded")
                     TaskResult()
                 } else {
@@ -51,7 +51,12 @@ class KotlinPlugin @Inject constructor(
         return result
     }
 
-    @Task(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf(TASK_COMPILE))
+    override fun doJavadoc(project: Project, cai: CompilerActionInfo) : TaskResult {
+        warn("javadoc task not implemented for Kotlin, call the dokka task instead")
+        return TaskResult()
+    }
+
+        @Task(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf(TASK_COMPILE))
     fun taskCompileTest(project: Project): TaskResult {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
         val projectDir = File(project.directory)
