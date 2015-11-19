@@ -31,6 +31,9 @@ abstract class JvmCompilerPlugin @Inject constructor(
         @ExportedProjectProperty(doc = "The location of the build directory", type = "String")
         const val BUILD_DIR = "buildDir"
 
+        @ExportedProjectProperty(doc = "Projects this project depends on", type = "List<ProjectDescription>")
+        const val DEPENDENT_PROJECTS = "dependentProjects"
+
         const val TASK_CLEAN = "clean"
         const val TASK_TEST = "test"
 
@@ -49,6 +52,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
         project.projectProperties.put(BUILD_DIR, project.buildDirectory + File.separator + "classes")
+        project.projectProperties.put(DEPENDENT_PROJECTS, projects())
     }
 
     /**
@@ -61,7 +65,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         with(project) {
             arrayListOf(compileDependencies, compileProvidedDependencies, testDependencies,
                     testProvidedDependencies).forEach {
-                result.addAll(dependencyManager.calculateDependencies(project, context, it))
+                result.addAll(dependencyManager.calculateDependencies(project, context, projects(), it))
             }
         }
         val result2 = dependencyManager.reorderDependencies(result)
@@ -152,10 +156,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
     private fun createCompilerActionInfo(project: Project) : CompilerActionInfo {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
 
-        val projDeps = dependencyManager.dependentProjectDependencies(projects(), project, context)
-
-        val classpath = dependencyManager.calculateDependencies(project, context, project.compileDependencies,
-                project.compileProvidedDependencies, projDeps)
+        val classpath = dependencyManager.calculateDependencies(project, context, projects,
+                project.compileDependencies)
 
         val projectDirectory = File(project.directory)
         val buildDirectory = File(projectDirectory, project.buildDirectory + File.separator + "classes")

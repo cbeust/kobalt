@@ -25,7 +25,7 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
 
         // Dependencies
         val allDependencies = (info.dependencies
-                + dependencyManager.calculateDependencies(project, context!!, info.dependencies))
+                + dependencyManager.calculateDependencies(project, context!!, allDependencies = info.dependencies))
             .distinct()
 
         // Plugins that add flags to the compiler

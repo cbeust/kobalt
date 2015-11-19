@@ -7,7 +7,6 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.misc.*
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import com.google.inject.assistedinject.Assisted
@@ -194,7 +193,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         }
 
     private fun generateJarFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File) {
-        val kotlintDeps = dependencyManager.calculateDependencies(null, context, listOf<IClasspathDependency>())
+        val kotlintDeps = dependencyManager.calculateDependencies(null, context)
         val deps: List<String> = kotlintDeps.map { it.jarFile.get().absolutePath }
         kotlinCompilePrivate {
             classpath(files.kobaltJar)

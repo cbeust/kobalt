@@ -21,12 +21,14 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
      * @return the classpath for this project, including the IClasspathContributors.
      */
     fun calculateDependencies(project: Project?, context: KobaltContext,
+            dependentProjects: List<ProjectDescription> = emptyList(),
             vararg allDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
         var result = arrayListOf<IClasspathDependency>()
         allDependencies.forEach { dependencies ->
             result.addAll(transitiveClosure(dependencies))
         }
         result.addAll(runClasspathContributors(project, context))
+        result.addAll(dependentProjectDependencies(dependentProjects, project, context))
 
         return result
     }
@@ -90,12 +92,12 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
      * If this project depends on other projects, we need to include their jar file and also
      * their own dependencies
      */
-    fun dependentProjectDependencies(projectDescriptions: List<ProjectDescription>,
-            project: Project, context: KobaltContext) :
+    private fun dependentProjectDependencies(projectDescriptions: List<ProjectDescription>,
+            project: Project?, context: KobaltContext) :
     List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         projectDescriptions.filter {
-            it.project.name == project.name
+            it.project.name == project?.name
         }.forEach { pd ->
             pd.dependsOn.forEach { p ->
                 val classesDir = p.projectProperties.getString(JvmCompilerPlugin.BUILD_DIR)
@@ -104,7 +106,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
                 } else {
                     warn("Couldn't find any classes dir for project depended on ${p.name}")
                 }
-                result.addAll(calculateDependencies(p, context))
+                result.addAll(calculateDependencies(p, context, projectDescriptions))
             }
         }
 
