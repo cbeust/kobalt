@@ -40,14 +40,15 @@ class KotlinPlugin @Inject constructor(
 
     override fun doCompile(project: Project, cai: CompilerActionInfo) : TaskResult {
         val result =
-                if (cai.sourceFiles.size > 0) {
-                    compilePrivate(project, cai.dependencies, cai.sourceFiles, cai.outputDir)
-                    lp(project, "Compilation succeeded")
-                    TaskResult()
-                } else {
-                    warn("Couldn't find any source files")
-                    TaskResult()
-                }
+            if (cai.sourceFiles.size > 0) {
+                compilePrivate(project, cai.dependencies, cai.sourceFiles, cai.outputDir)
+            } else {
+                warn("Couldn't find any source files")
+                TaskResult()
+            }
+
+        lp(project, "Compilation " + if (result.success) "succeeded" else "failed")
+
         return result
     }
 
@@ -56,7 +57,7 @@ class KotlinPlugin @Inject constructor(
         return TaskResult()
     }
 
-        @Task(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf(TASK_COMPILE))
+    @Task(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf(TASK_COMPILE))
     fun taskCompileTest(project: Project): TaskResult {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
         val projectDir = File(project.directory)
