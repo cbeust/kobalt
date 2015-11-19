@@ -13,6 +13,7 @@ import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
+import com.beust.kobalt.internal.Variant
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
@@ -60,6 +61,20 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
         project.projectProperties.put(LIBS_DIR, libsDir(project))
+
+        project.productFlavors.keys.forEach { pf ->
+            project.buildTypes.keys.forEach { bt ->
+                val variant = Variant(pf, bt)
+                val taskName = variant.toTask("assemble")
+                addTask(project, taskName, "Assemble $taskName",
+                        runAfter = listOf(variant.toTask("compile")),
+                        task = { p: Project ->
+                            context.variant = Variant(pf, bt)
+                            taskAssemble(project)
+                            TaskResult()
+                        })
+            }
+        }
     }
 
     private fun libsDir(project: Project) = KFiles.makeDir(buildDir(project).path, "libs").path
@@ -123,7 +138,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         allFiles.add(IncludedFile(From(fullDir), To(WEB_INF), listOf(Glob("**"))))
 
         val jarFactory = { os:OutputStream -> JarOutputStream(os, manifest) }
-        return generateArchive(project, war.name, ".war", allFiles,
+        return generateArchive(project, ".war", allFiles,
                 false /* don't expand jar files */, jarFactory)
     }
 
@@ -179,7 +194,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         }
         val jarFactory = { os:OutputStream -> JarOutputStream(os, manifest) }
 
-        return generateArchive(project, jar.name, ".jar", allFiles,
+        return generateArchive(project, ".jar", allFiles,
                 true /* expandJarFiles */, jarFactory)
     }
 
@@ -219,16 +234,21 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
     private fun generateZip(project: Project, zip: Zip) {
         val allFiles = findIncludedFiles(project.directory, zip.includedFiles, zip.excludes)
-        generateArchive(project, zip.name, ".zip", allFiles)
+        generateArchive(project, ".zip", allFiles)
     }
 
     private val DEFAULT_STREAM_FACTORY = { os : OutputStream -> ZipOutputStream(os) }
 
-    private fun generateArchive(project: Project, archiveName: String?, suffix: String,
+    private fun generateArchive(project: Project, suffix: String,
             includedFiles: List<IncludedFile>,
             expandJarFiles : Boolean = false,
             outputStreamFactory: (OutputStream) -> ZipOutputStream = DEFAULT_STREAM_FACTORY) : File {
-        val fullArchiveName = archiveName ?: arrayListOf(project.name, project.version!!).joinToString("-") + suffix
+        val variantSuffix = with(context.variant) {
+            if (isDefault) ""
+            else listOf(productFlavorName, buildTypeName).joinToString("-")
+        }
+
+        val fullArchiveName = listOf(project.name, project.version!!, variantSuffix).joinToString("-") + suffix
         val archiveDir = File(libsDir(project))
         val result = File(archiveDir.path, fullArchiveName)
         val outStream = outputStreamFactory(FileOutputStream(result))
