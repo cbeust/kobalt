@@ -200,14 +200,15 @@ class Variant(val productFlavorName: String = "", val buildTypeName: String = ""
         if (isDefault) return sourceDirectories
         else {
             val result = arrayListOf<File>()
-            if (! productFlavorName.isBlank()) {
-                val dir = File(KFiles.joinDir("src", productFlavorName, project.projectInfo.sourceDirectory))
-                log(2, "Adding source for product flavor $productFlavorName: ${dir.path}")
-                result.add(dir)
-            }
+            // The ordering of files is: 1) build type 2) product flavor 3) default
             if (! buildTypeName.isBlank()) {
                 val dir = File(KFiles.joinDir("src", buildTypeName, project.projectInfo.sourceDirectory))
                 log(2, "Adding source for build type $buildTypeName: ${dir.path}")
+                result.add(dir)
+            }
+            if (! productFlavorName.isBlank()) {
+                val dir = File(KFiles.joinDir("src", productFlavorName, project.projectInfo.sourceDirectory))
+                log(2, "Adding source for product flavor $productFlavorName: ${dir.path}")
                 result.add(dir)
             }
             result.addAll(sourceDirectories)
