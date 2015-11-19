@@ -32,6 +32,7 @@ To do:
 
 Done:
 
+- [x] Finish abstracting everything in `JvmCompilerPlugin`
 - [x] Dependent projects: kobalt should automatically add the dependency on the jar file
 - [x] Make what version preBuildScript.jar was compiled with and wipe on new version
 - [x] Get rid of the $JAVA_HOME requirement
