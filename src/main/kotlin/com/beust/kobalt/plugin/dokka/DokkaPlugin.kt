@@ -1,7 +1,7 @@
 package com.beust.kobalt.plugin.dokka
 
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.ConfigPlugin
+import com.beust.kobalt.api.ConfigsPlugin
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
@@ -16,7 +16,7 @@ import java.util.*
 import javax.inject.Singleton
 
 @Singleton
-class DokkaPlugin : ConfigPlugin<DokkaConfig>() {
+class DokkaPlugin : ConfigsPlugin<DokkaConfig>() {
     override val name = PLUGIN_NAME
 
     companion object {
@@ -28,13 +28,13 @@ class DokkaPlugin : ConfigPlugin<DokkaConfig>() {
      */
     @Task(name = "dokka", description = "Run dokka", runAfter = arrayOf(PackagingPlugin.TASK_ASSEMBLE))
     fun taskDokka(project: Project) : TaskResult {
-        val config = configurationFor(project)
+        val configs = configurationFor(project)
         val classpath = context.dependencyManager.calculateDependencies(project, context)
         val buildDir = project.buildDirectory!!
         val classpathList = classpath.map { it.jarFile.get().absolutePath } + listOf(buildDir)
         var success = true
-        if (config != null) {
-            if (! config.skip) {
+        configs.forEach { config ->
+            if (!config.skip) {
                 val outputDir = buildDir + "/" +
                         if (config.outputDir.isBlank()) "doc" else config.outputDir
 
@@ -54,8 +54,6 @@ class DokkaPlugin : ConfigPlugin<DokkaConfig>() {
             } else {
                 log(2, "skip is true, not generating the documentation")
             }
-        } else {
-            log(2, "No dokka configuration found for project ${project.name}, skipping it")
         }
         return TaskResult(success)
     }
