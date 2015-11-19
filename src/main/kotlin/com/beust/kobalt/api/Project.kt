@@ -95,14 +95,14 @@ open public class Project(
     @Directive
     val projectName: String get() = name
 
-    private val productFlavors = hashMapOf<String, ProductFlavorConfig>()
+    val productFlavors = hashMapOf<String, ProductFlavorConfig>()
 
     fun addProductFlavor(name: String, pf: ProductFlavorConfig) {
         println("Adding ProductFlavor $name")
         productFlavors.put(name, pf)
     }
 
-    private val buildTypes = hashMapOf<String, BuildTypeConfig>()
+    val buildTypes = hashMapOf<String, BuildTypeConfig>()
 
     fun addBuildType(name: String, bt: BuildTypeConfig) {
         println("Adding BuildType $name")

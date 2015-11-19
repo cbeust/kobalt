@@ -8,6 +8,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
 class KFiles {
@@ -100,23 +101,33 @@ class KFiles {
                 allDirs.addAll(directories.map { File(rootDir, it.path) })
             }
 
-            allDirs.forEach {
-                if (! it.exists()) {
-                    log(2, "Couldn't find directory $it")
+            val seen = hashSetOf<Path>()
+            allDirs.forEach { dir ->
+                if (! dir.exists()) {
+                    log(2, "Couldn't find directory $dir")
                 } else {
-                    result.addAll(findRecursively(it, function))
+                    val files = findRecursively(dir, function)
+                    files.map { Paths.get(it) }.forEach {
+                        val rel = Paths.get(dir.path).relativize(it)
+                        if (! seen.contains(rel)) {
+                            result.add(File(dir, rel.toFile().path).path)
+                            seen.add(rel)
+                        } else {
+                            log(2, "Skipped file already seen in previous flavor: $rel")
+                        }
+                    }
                 }
             }
             // Return files relative to rootDir
-            val r = result.map { it.substring(rootDir.absolutePath.length + 1)}
+            val r = result.map { it.substring(rootDir.path.length + 1)}
             return r
         }
 
         fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {
             var result = arrayListOf<String>()
             directory.listFiles().forEach {
-                if (it.isFile && function(it.absolutePath)) {
-                    result.add(it.absolutePath)
+                if (it.isFile && function(it.path)) {
+                    result.add(it.path)
                 } else if (it.isDirectory) {
                     result.addAll(findRecursively(it, function))
                 }

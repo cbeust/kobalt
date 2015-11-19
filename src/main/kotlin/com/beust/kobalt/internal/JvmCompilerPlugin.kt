@@ -53,6 +53,20 @@ abstract class JvmCompilerPlugin @Inject constructor(
         super.apply(project, context)
         project.projectProperties.put(BUILD_DIR, project.buildDirectory + File.separator + "classes")
         project.projectProperties.put(DEPENDENT_PROJECTS, projects())
+
+        project.productFlavors.keys.forEach { pf ->
+            project.buildTypes.keys.forEach { bt ->
+                val taskName = Variant(pf, bt).toTask("compile")
+                addTask(project, taskName, "Compile $taskName",
+                        task = { p: Project ->
+                            context.variant = Variant(pf, bt)
+                            taskCompile(project)
+                            TaskResult()
+                        })
+                println("New task: " + Variant(pf, bt).toTask("compile"))
+            }
+        }
+        println("Done")
     }
 
     /**
@@ -148,12 +162,12 @@ abstract class JvmCompilerPlugin @Inject constructor(
     override fun projects() = projects
 
     @Task(name = JavaPlugin.TASK_COMPILE, description = "Compile the project")
-    fun taskCompile(project: Project) = doCompile(project, createCompilerActionInfo(project))
+    fun taskCompile(project: Project) = doCompile(project, createCompilerActionInfo(project, context))
 
     @Task(name = JavaPlugin.TASK_JAVADOC, description = "Run Javadoc")
-    fun taskJavadoc(project: Project) = doJavadoc(project, createCompilerActionInfo(project))
+    fun taskJavadoc(project: Project) = doJavadoc(project, createCompilerActionInfo(project, context))
 
-    private fun createCompilerActionInfo(project: Project) : CompilerActionInfo {
+    private fun createCompilerActionInfo(project: Project, context: KobaltContext) : CompilerActionInfo {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
 
         val classpath = dependencyManager.calculateDependencies(project, context, projects,
@@ -163,7 +177,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
         val buildDirectory = File(projectDirectory, project.buildDirectory + File.separator + "classes")
         buildDirectory.mkdirs()
 
-        val sourceFiles = files.findRecursively(projectDirectory, project.sourceDirectories.map { File(it) },
+        val sourceDirectories = context.variant.sourceDirectories(project)
+        val sourceFiles = files.findRecursively(projectDirectory, sourceDirectories,
                 { it .endsWith(project.sourceSuffix) })
                 .map { File(projectDirectory, it).absolutePath }
 
@@ -174,4 +189,31 @@ abstract class JvmCompilerPlugin @Inject constructor(
 
     abstract fun doCompile(project: Project, cai: CompilerActionInfo) : TaskResult
     abstract fun doJavadoc(project: Project, cai: CompilerActionInfo) : TaskResult
+}
+
+class Variant(val productFlavorName: String = "", val buildTypeName: String = "") {
+    val isDefault : Boolean
+        get() = productFlavorName.isBlank() && buildTypeName.isBlank()
+
+    fun toTask(taskName: String) = taskName + productFlavorName.capitalize() + buildTypeName.capitalize()
+
+    fun sourceDirectories(project: Project) : List<File> {
+        val sourceDirectories = project.sourceDirectories.map { File(it) }
+        if (isDefault) return sourceDirectories
+        else {
+            val result = arrayListOf<File>()
+            if (! productFlavorName.isBlank()) {
+                val dir = File(KFiles.joinDir("src", productFlavorName, project.projectInfo.sourceDirectory))
+                log(2, "Adding source for product flavor $productFlavorName: ${dir.path}")
+                result.add(dir)
+            }
+            if (! buildTypeName.isBlank()) {
+                val dir = File(KFiles.joinDir("src", buildTypeName, project.projectInfo.sourceDirectory))
+                log(2, "Adding source for build type $buildTypeName: ${dir.path}")
+                result.add(dir)
+            }
+            result.addAll(sourceDirectories)
+            return result
+        }
+    }
 }

@@ -5,6 +5,7 @@ import com.google.inject.Singleton
 
 @Singleton
 class JavaProjectInfo : IProjectInfo {
+    override val sourceDirectory = "java"
     override val defaultSourceDirectories = hashSetOf("src/main/java", "src/main/resources")
     override val defaultTestDirectories = hashSetOf("src/test/java", "src/test/resources")
 }
