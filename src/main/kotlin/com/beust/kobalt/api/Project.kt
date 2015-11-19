@@ -94,6 +94,20 @@ open public class Project(
     /** Used to disambiguate various name properties */
     @Directive
     val projectName: String get() = name
+
+    private val productFlavors = hashMapOf<String, ProductFlavorConfig>()
+
+    fun addProductFlavor(name: String, pf: ProductFlavorConfig) {
+        println("Adding ProductFlavor $name")
+        productFlavors.put(name, pf)
+    }
+
+    private val buildTypes = hashMapOf<String, BuildTypeConfig>()
+
+    fun addBuildType(name: String, bt: BuildTypeConfig) {
+        println("Adding BuildType $name")
+        buildTypes.put(name, bt)
+    }
 }
 
 public class Sources(val project: Project, val sources: HashSet<String>) {
@@ -133,3 +147,22 @@ public class License(val name: String, val url: String) {
     }
 
 }
+
+class ProductFlavorConfig {
+    var description: String = ""
+}
+
+@Directive
+fun Project.productFlavor(name: String, init: ProductFlavorConfig.() -> Unit) = ProductFlavorConfig().apply {
+        init()
+        addProductFlavor(name, this)
+    }
+
+class BuildTypeConfig {
+}
+
+@Directive
+fun Project.buildType(name: String, init: BuildTypeConfig.() -> Unit) = BuildTypeConfig().apply {
+        init()
+        addBuildType(name, this)
+    }
