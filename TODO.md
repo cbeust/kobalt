@@ -1,5 +1,6 @@
 To do:
 
+- [ ] Dokka: allow multiple format outputs e.g `outputFormat("html", "javadoc")`
 - [ ] The test runner only selects classes with a parameterless constructor, which works for JUnit but not for TestNG
  factories
 - [ ] Add a "Auto complete Build.kt" menu in the plug-in
