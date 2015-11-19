@@ -2,6 +2,7 @@ package com.beust.kobalt.plugin.application
 
 import com.beust.kobalt.*
 import com.beust.kobalt.api.ConfigPlugin
+import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.ProjectDescription
 import com.beust.kobalt.api.annotation.Directive
@@ -41,6 +42,11 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
     }
 
     override val name = NAME
+
+    override fun apply(project: Project, context: KobaltContext) {
+        super.apply(project, context)
+        addVariantTasks(project, "run", listOf("assemble"), { taskRun(project) })
+    }
 
     @Task(name = "run", description = "Run the main class", runAfter = arrayOf("assemble"))
     fun taskRun(project: Project): TaskResult {

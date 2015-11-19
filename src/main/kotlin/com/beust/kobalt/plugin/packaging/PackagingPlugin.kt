@@ -13,7 +13,6 @@ import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
-import com.beust.kobalt.internal.Variant
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
@@ -61,21 +60,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
         project.projectProperties.put(LIBS_DIR, libsDir(project))
-
-
-        project.productFlavors.keys.forEach { pf ->
-            project.buildTypes.keys.forEach { bt ->
-                val variant = Variant(pf, bt)
-                val taskName = variant.toTask("assemble")
-                addTask(project, taskName, "Assemble $taskName",
-                        runAfter = listOf(variant.toTask("compile")),
-                        task = { p: Project ->
-                            context.variant = Variant(pf, bt)
-                            taskAssemble(project)
-                            TaskResult()
-                        })
-            }
-        }
+        addVariantTasks(project, "assemble", listOf("compile"), { taskAssemble(project) })
     }
 
     private fun libsDir(project: Project) = KFiles.makeDir(buildDir(project).path, "libs").path
@@ -210,8 +195,10 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 val fromPath = directory + "/" + includedFile.from
                 if (File(fromPath).exists()) {
                     spec.toFiles(fromPath).forEach { file ->
-                        if (!File(fromPath, file.path).exists()) {
-                            throw AssertionError("File should exist: $file")
+                        File(fromPath, file.path).let {
+                            if (! it.exists()) {
+                                throw AssertionError("File should exist: $it")
+                            }
                         }
 
                         if (!isExcluded(file, excludes)) {

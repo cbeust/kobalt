@@ -53,18 +53,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         super.apply(project, context)
         project.projectProperties.put(BUILD_DIR, project.buildDirectory + File.separator + "classes")
         project.projectProperties.put(DEPENDENT_PROJECTS, projects())
-
-        project.productFlavors.keys.forEach { pf ->
-            project.buildTypes.keys.forEach { bt ->
-                val taskName = Variant(pf, bt).toTask("compile")
-                addTask(project, taskName, "Compile $taskName",
-                        task = { p: Project ->
-                            context.variant = Variant(pf, bt)
-                            taskCompile(project)
-                            TaskResult()
-                        })
-            }
-        }
+        addVariantTasks(project, "compile", emptyList(), { taskCompile(project) })
     }
 
     /**

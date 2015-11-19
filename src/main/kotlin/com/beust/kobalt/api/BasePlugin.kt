@@ -1,7 +1,9 @@
 package com.beust.kobalt.api
 
 import com.beust.kobalt.Plugins
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.internal.TaskManager
+import com.beust.kobalt.internal.Variant
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -23,4 +25,26 @@ abstract public class BasePlugin : IPlugin {
     fun addProject(project: Project, dependsOn: Array<out Project>) {
         projects.add(ProjectDescription(project, dependsOn.toList()))
     }
+
+    /**
+     * Register dynamic tasks corresponding to the variants found in the project,e.g. assembleDevDebug,
+     * assembleDevRelease, etc...
+     */
+    protected fun addVariantTasks(project: Project, taskName: String, runAfter : List<String>,
+            runTask: (Project) -> TaskResult) {
+        project.productFlavors.keys.forEach { pf ->
+            project.buildTypes.keys.forEach { bt ->
+                val variant = Variant(pf, bt)
+                val taskName = variant.toTask(taskName)
+                addTask(project, taskName, taskName,
+                        runAfter = runAfter.map { variant.toTask(it) },
+                        task = { p: Project ->
+                            context.variant = Variant(pf, bt)
+                            runTask(project)
+                            TaskResult()
+                        })
+            }
+        }
+    }
+
 }
