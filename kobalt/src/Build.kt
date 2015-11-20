@@ -108,7 +108,7 @@ val kobalt = kotlinProject(wrapper) {
 //    }
 
     test {
-        args("-log", "1", "src/test/resources/testng.xml")
+        args("-log", "2", "src/test/resources/testng.xml")
     }
 
     kotlinCompiler {
