@@ -5,4 +5,4 @@ jdk:
 
 install: true
 
-script: ./kobaltw test --log 2
+script: ./kobaltw test --log 1
