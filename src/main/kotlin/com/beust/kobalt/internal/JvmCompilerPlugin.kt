@@ -184,7 +184,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
                 { it .endsWith(project.sourceSuffix) })
                 .map { File(projectDirectory, it).absolutePath }
 
-        val cai = CompilerActionInfo(projectDirectory.absolutePath, classpath, sourceFiles, buildDirectory,
+        val cai = CompilerActionInfo(projectDirectory.path, classpath, sourceFiles, buildDirectory,
                 emptyList())
         return cai
     }
