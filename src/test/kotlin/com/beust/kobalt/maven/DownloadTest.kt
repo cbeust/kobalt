@@ -2,6 +2,7 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.KobaltTest
 import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.warn
 import org.testng.Assert
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
@@ -24,49 +25,67 @@ public class DownloadTest @Inject constructor(
         executor = executors.newExecutor("DependentTest", 5)
     }
 
+    private fun deleteDir() : Boolean {
+        val dir = File(localRepo.toFullPath("$groupId"))
+        val result = dir.deleteRecursively()
+        return result
+    }
+
     @Test
     public fun shouldDownloadWithVersion() {
-        File(localRepo.toFullPath("org/testng/testng")).deleteRecursively()
+        val success = deleteDir()
 
-        arrayListOf("org.testng:testng:6.9.4", "org.testng:testng:6.9.5").forEach {
-            val dep = depFactory.create(it, executor)
-            val future = dep.jarFile
-            Assert.assertFalse(future is CompletedFuture)
-            val file = future.get()
-            Assert.assertTrue(file.exists())
+        if (success) {
+            arrayListOf("$groupId:$artifactId:$version", "$groupId:$artifactId:$previousVersion").forEach {
+                val dep = depFactory.create(it, executor)
+                val future = dep.jarFile
+                Assert.assertFalse(future is CompletedFuture)
+                val file = future.get()
+                Assert.assertTrue(file.exists())
+            }
+        } else {
+            warn("Couldn't delete directory, not running test \"shouldDownloadNoVersion\"")
         }
     }
 
-    val latestTestNg = "6.9.9"
+    val version = "2.9.1"
+    val previousVersion = "2.9"
+    val groupId = "joda-time"
+   val artifactId = "joda-time"
+    val jarFile = "$artifactId-$version.jar"
+    val idNoVersion = "$groupId:$artifactId:"
 
-    @Test
+    @Test(description = "Make sure that versionless id's, e.g. org.testng:testng:, get downloaded")
     public fun shouldDownloadNoVersion() {
-        File(localRepo.toFullPath("org/testng/testng")).deleteRecursively()
+        val success = deleteDir()
+        if (success) {
+            val dep = depFactory.create(idNoVersion, executor)
 
-        val dep = depFactory.create("org.testng:testng:", executor)
-
-        val future = dep.jarFile
-        val file = future.get()
-        Assert.assertFalse(future is CompletedFuture)
-        Assert.assertEquals(file.name, "testng-$latestTestNg.jar")
-        Assert.assertTrue(file.exists())
+            val future = dep.jarFile
+            val file = future.get()
+            Assert.assertFalse(future is CompletedFuture)
+            Assert.assertEquals(file.name, jarFile)
+            Assert.assertTrue(file.exists())
+        } else {
+            warn("Couldn't delete directory, not running test \"shouldDownloadNoVersion\"")
+        }
     }
 
     @Test(dependsOnMethods = arrayOf("shouldDownloadWithVersion"))
     public fun shouldFindLocalJar() {
-        val dep = depFactory.create("org.testng:testng:$latestTestNg", executor)
+        val dep = depFactory.create("$idNoVersion$version", executor)
         val future = dep.jarFile
-        Assert.assertTrue(future is CompletedFuture)
+//        Assert.assertTrue(future is CompletedFuture)
         val file = future.get()
         Assert.assertTrue(file.exists())
     }
 
     @Test(dependsOnMethods = arrayOf("shouldDownloadWithVersion"))
     public fun shouldFindLocalJarNoVersion() {
-        val dep = depFactory.create("org.testng:testng:", executor)
+        val dep = depFactory.create(idNoVersion, executor, localFirst = false)
         val future = dep.jarFile
         val file = future.get()
-        Assert.assertEquals(file.name, "testng-$latestTestNg.jar")
+        Assert.assertEquals(file.name, jarFile)
         Assert.assertTrue(file.exists())
     }
 }

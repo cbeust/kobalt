@@ -40,7 +40,7 @@ open public class LocalRepo(open val localRepo: String = KFiles.localRepo) {
                     val v2 = Versions.toLongVersion(f2.name)
                     v2.compareTo(v1) // we want the most recent at position 0
                 })
-                val result = directories.get(0).name
+                val result = directories[0].name
                 val newDep = LocalDep(MavenId.create(groupId, artifactId, packaging, result), this)
                 if (existsPom(newDep, result) && existsJar(newDep, result)) {
                     return result

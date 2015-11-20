@@ -57,6 +57,7 @@ class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
         file.parentFile.mkdirs()
         urlFactory.create(url).toFile(file)
         log(1, "  Downloaded $url")
+        log(2, "     to $file")
 
         val localMd5 = Md5.toMd5(file)
         if (remoteMd5 != null && remoteMd5 != localMd5) {
