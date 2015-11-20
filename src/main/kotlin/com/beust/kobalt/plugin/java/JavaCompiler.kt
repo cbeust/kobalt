@@ -8,6 +8,7 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import com.google.inject.Singleton
@@ -21,7 +22,7 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
 
             val allArgs = arrayListOf(
                     executable.absolutePath,
-                    "-d", info.outputDir.absolutePath)
+                    "-d", KFiles.makeDir(info.directory!!, info.outputDir.path).path)
             if (info.dependencies.size > 0) {
                 allArgs.add("-classpath")
                 allArgs.add(info.dependencies.map {it.jarFile.get()}.joinToString(File.pathSeparator))
