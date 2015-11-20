@@ -54,9 +54,9 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         val id: String = "$groupId:$artifactId:$version"
     }
 
-    val dependencies: List<Dependency> by lazy {
-        val result = arrayListOf<Dependency>()
+    val dependencies = arrayListOf<Dependency>()
 
+    init {
         val DEPENDENCIES = XPATH.compile("/project/dependencies/dependency")
 
         val document = kotlinx.dom.parseXml(InputSource(FileReader(documentFile)))
@@ -99,9 +99,8 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
             }
             log(3, "Done parsing: $groupId $artifactId $version")
             val tmpDependency = Dependency(groupId!!, artifactId!!, packaging, version, optional!!, scope)
-            result.add(tmpDependency)
+            dependencies.add(tmpDependency)
         }
-        result
     }
 
     override public fun toString() = toString("Pom", id, "id")
