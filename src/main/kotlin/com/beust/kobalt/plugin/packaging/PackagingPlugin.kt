@@ -291,6 +291,7 @@ fun Project.install(init: InstallConfig.() -> Unit) {
 
 class InstallConfig(var libDir : String = "libs")
 
+@Directive
 fun Project.assemble(init: PackageConfig.(p: Project) -> Unit) = let {
     PackageConfig(this).apply { init(it) }
 }
@@ -331,7 +332,8 @@ class PackageConfig(val project: Project) : AttributeHolder {
     /**
      * Package all the jar files necessary for a maven repo: classes, sources, javadocs.
      */
-    public fun mavenJars(init: MavenJars.(p: MavenJars) -> Unit) : MavenJars {
+    @Directive
+    fun mavenJars(init: MavenJars.(p: MavenJars) -> Unit) : MavenJars {
         val m = MavenJars(this)
         m.init(m)
 
