@@ -8,6 +8,8 @@ import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.inject.assistedinject.Assisted
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
@@ -53,19 +55,24 @@ class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
             if (k.exists) k.string.trim(' ', '\t', '\n').substring(0, 32)
             else null
 
-        val file = File(fileName)
-        file.parentFile.mkdirs()
-        urlFactory.create(url).toFile(file)
+        val tmpFile = Paths.get(fileName + ".tmp")
+        val file = Paths.get(fileName)
+        with(tmpFile.toFile()) {
+            parentFile.mkdirs()
+            urlFactory.create(url).toFile(this)
+        }
+        log(2, "Done downloading, renaming $tmpFile to $file")
+        Files.move(tmpFile, file)
         log(1, "  Downloaded $url")
-        log(2, "     to $file")
+        log(2, "     to $tmpFile")
 
-        val localMd5 = Md5.toMd5(file)
+        val localMd5 = Md5.toMd5(file.toFile())
         if (remoteMd5 != null && remoteMd5 != localMd5) {
             warn("MD5 not matching for $url")
         } else {
             log(2, "No md5 found for $url, skipping md5 check")
         }
 
-        return file
+        return file.toFile()
     }
 }
