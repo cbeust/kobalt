@@ -39,7 +39,9 @@ class Kurl @Inject constructor(@Assisted val url: String) {
 
     fun toOutputStream(os: OutputStream, progress: (Long) -> Unit) = copy(connection.inputStream, os, progress)
 
-    fun toFile(file: File, progress: (Long) -> Unit = {}) = toOutputStream(FileOutputStream(file), progress)
+    fun toFile(file: File, progress: (Long) -> Unit = {}) = FileOutputStream(file).use {
+        toOutputStream(it, progress)
+    }
 
     private fun copy(from: InputStream, to: OutputStream, progress: (Long) -> Unit = {}) : Long {
         val estimate =
