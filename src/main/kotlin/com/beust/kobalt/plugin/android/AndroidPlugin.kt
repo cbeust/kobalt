@@ -16,6 +16,7 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.java.JavaCompiler
+import com.beust.kobalt.plugin.java.JavaProject
 import com.beust.kobalt.plugin.packaging.JarUtils
 import com.google.common.collect.HashMultimap
 import com.google.inject.Inject
@@ -244,16 +245,20 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
      * happen if the developer is using RetroLambda for example).
      */
     override fun flagsFor(project: Project) : List<String> {
-        val result : ArrayList<String> = project.projectProperties.get(JvmCompilerPlugin.COMPILER_ARGS)?.let {
-            arrayListOf<String>().apply { addAll(it as List<String>) }
-        } ?: arrayListOf<String>()
-        if (! result.contains("-source")) with(result) {
-            addAll(listOf("-source", "1.6"))
+        if (project is JavaProject) {
+            val result: ArrayList<String> = project.projectProperties.get(JvmCompilerPlugin.COMPILER_ARGS)?.let {
+                arrayListOf<String>().apply { addAll(it as List<String>) }
+            } ?: arrayListOf<String>()
+            if (!result.contains("-source")) with(result) {
+                addAll(listOf("-source", "1.6"))
+            }
+            if (!result.contains("-target")) with(result) {
+                addAll(listOf("-target", "1.6"))
+            }
+            return result
+        } else {
+            return emptyList()
         }
-        if (! result.contains("-target")) with(result) {
-            addAll(listOf("-target", "1.6"))
-        }
-        return result
     }
 
     companion object {
