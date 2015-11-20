@@ -64,7 +64,7 @@ class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
         log(2, "Done downloading, renaming $tmpFile to $file")
         Files.move(tmpFile, file)
         log(1, "  Downloaded $url")
-        log(2, "     to $tmpFile")
+        log(2, "     to $file")
 
         val localMd5 = Md5.toMd5(file.toFile())
         if (remoteMd5 != null && remoteMd5 != localMd5) {
