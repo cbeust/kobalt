@@ -54,6 +54,10 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
 
             AsciiArt.logBox("Building project ${project.name}")
 
+            log(2, "Tasks:")
+            tasksByNames.keys.forEach {
+                log(2, "  $it: " + tasksByNames.get(it))
+            }
             val graph = DynamicGraph<PluginTask>()
             taskNames.forEach { taskName ->
                 val ti = TaskInfo(taskName)
@@ -96,7 +100,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                                 if (to != null) {
                                     graph.addEdge(pluginTask, to)
                                 } else {
-                                    throw KobaltException("Should have found $it")
+                                    log(2, "Couldn't find node $it: not applicable to project ${project.name}")
                                 }
                             }
                         }
@@ -174,14 +178,13 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             toProcess.forEach { target ->
 
                 val currentTask = TaskInfo(project.name, target.taskName)
-                transitiveClosure.add(tasksByNames[currentTask.taskName]!!)
-                val thisTask = tasksByNames[target.taskName]
-                if (thisTask == null) {
-                    throw KobaltException("Unknown task: $target")
-                } else {
+                log(2, "Trying to look up ${currentTask.taskName} in the tasks")
+                val thisTask = tasksByNames[currentTask.taskName]
+                if (thisTask != null) {
+                    transitiveClosure.add(thisTask)
                     val dependencyNames = runBefore.get(thisTask.name)
                     dependencyNames.forEach { dependencyName ->
-                        if (! seen.contains(dependencyName)) {
+                        if (!seen.contains(dependencyName)) {
                             newToProcess.add(currentTask)
                             seen.add(dependencyName)
                         }
@@ -190,6 +193,8 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                     dependencyNames.forEach {
                         newToProcess.add(TaskInfo(project.name, it))
                     }
+            } else {
+                    log(2, "Couldn't find task ${currentTask.taskName}: not applicable to project ${project.name}")
                 }
             }
             done = newToProcess.isEmpty()
