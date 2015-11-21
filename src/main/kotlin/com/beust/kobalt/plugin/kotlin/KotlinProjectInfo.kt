@@ -8,8 +8,8 @@ import com.google.inject.Singleton
 @Singleton
 class KotlinProjectInfo : IProjectInfo {
     override val sourceDirectory = "kotlin"
-    override val defaultSourceDirectories = hashSetOf("src/main/kotlin", "src/main/resources")
-    override val defaultTestDirectories = hashSetOf("src/test/kotlin", "src/test/resources")
+    override val defaultSourceDirectories = hashSetOf("src/main/kotlin", "src/main/resources", "src/main/res")
+    override val defaultTestDirectories = hashSetOf("src/test/kotlin", "src/test/resources", "src/test/res")
 
     private fun generate(type: String, name: String, value: Any) =
             "        val $name : $type = $value"

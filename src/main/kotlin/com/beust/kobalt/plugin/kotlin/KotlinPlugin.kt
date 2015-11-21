@@ -85,7 +85,7 @@ class KotlinPlugin @Inject constructor(
         return kotlinCompilePrivate {
             classpath(cpList.map { it.jarFile.get().absolutePath })
             sourceFiles(sources)
-            compilerArgs(compilerArgs)
+            compilerArgs(compilerArgsFor(project))
             output = outputDirectory
         }.compile(project, context)
     }
@@ -120,11 +120,13 @@ fun kotlinProject(vararg project: Project, init: KotlinProject.() -> Unit): Kotl
     }
 }
 
-class KotlinCompilerConfig {
+class KotlinCompilerConfig(val project: Project) {
     fun args(vararg options: String) {
-        (Kobalt.findPlugin("kotlin") as JvmCompilerPlugin).addCompilerArgs(*options)
+        (Kobalt.findPlugin("kotlin") as JvmCompilerPlugin).addCompilerArgs(project, *options)
     }
 }
 
 @Directive
-fun Project.kotlinCompiler(init: KotlinCompilerConfig.() -> Unit) = KotlinCompilerConfig().init()
+fun Project.kotlinCompiler(init: KotlinCompilerConfig.() -> Unit) = let {
+    KotlinCompilerConfig(it).init()
+}

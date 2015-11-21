@@ -34,6 +34,9 @@ abstract class JvmCompilerPlugin @Inject constructor(
         @ExportedProjectProperty(doc = "Projects this project depends on", type = "List<ProjectDescription>")
         const val DEPENDENT_PROJECTS = "dependentProjects"
 
+        @ExportedProjectProperty(doc = "Compiler args", type = "List<String>")
+        const val COMPILER_ARGS = "compilerArgs"
+
         const val TASK_CLEAN = "clean"
         const val TASK_TEST = "test"
 
@@ -133,10 +136,19 @@ abstract class JvmCompilerPlugin @Inject constructor(
         }
     }
 
-    protected val compilerArgs = arrayListOf<String>()
+    private val compilerArgs = hashMapOf<String, List<String>>()
 
-    fun addCompilerArgs(vararg args: String) {
-        compilerArgs.addAll(args)
+    protected fun compilerArgsFor(project: Project) : List<String> {
+        val result = project.projectProperties.get(COMPILER_ARGS)
+        if (result != null) {
+            return result as List<String>
+        } else {
+            return emptyList()
+        }
+    }
+
+    fun addCompilerArgs(project: Project, vararg args: String) {
+        project.projectProperties.put(COMPILER_ARGS, arrayListOf(*args))
     }
 
     fun findSourceFiles(dir: String, sourceDirectories: Collection<String>): List<String> {

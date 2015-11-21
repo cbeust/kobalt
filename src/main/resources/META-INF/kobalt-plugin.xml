@@ -28,6 +28,7 @@
         <class-name>com.beust.kobalt.plugin.android.AndroidPlugin</class-name>
     </repo-contributors>
     <compiler-flag-contributors>
+        <class-name>com.beust.kobalt.plugin.android.AndroidPlugin</class-name>
         <class-name>com.beust.kobalt.plugin.apt.AptPlugin</class-name>
     </compiler-flag-contributors>
 </kobalt-plugin>

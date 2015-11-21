@@ -12,7 +12,16 @@ class Variant(val productFlavor: ProductFlavorConfig? = null, val buildType: Bui
     val isDefault : Boolean
         get() = productFlavor == null && buildType == null
 
-    fun toTask(taskName: String) = taskName + productFlavor?.name?.capitalize() + buildType?.name?.capitalize()
+    fun toTask(taskName: String) = taskName +
+            (productFlavor?.name?.capitalize() ?: "") +
+            (buildType?.name?.capitalize() ?: "")
+
+    fun variantSourceDirectories(context: KobaltContext) : List<File> {
+        val result =
+            if (isDefault) listOf("src/main")
+            else (listOf(buildType?.name) + listOf(productFlavor?.name)).filterNotNull()
+        return result.map { File(it) }
+    }
 
     fun sourceDirectories(project: Project) : List<File> {
         val sourceDirectories = project.sourceDirectories.map { File(it) }
@@ -88,4 +97,36 @@ class Variant(val productFlavor: ProductFlavorConfig? = null, val buildType: Bui
         }
     }
 
+    override fun toString() = toTask("")
+
+    companion object {
+        fun allVariants(project: Project): List<Variant> {
+            val result = arrayListOf<Variant>()
+
+            if (project.buildTypes.size > 0) {
+                project.buildTypes.keys.forEach {
+                    val bt = project.buildTypes[it]
+                    if (project.productFlavors.size > 0) {
+                        project.productFlavors.keys.forEach {
+                            result.add(Variant(project.productFlavors[it], bt))
+                        }
+                    } else {
+                        result.add(Variant(null, bt))
+                    }
+                }
+            } else if (project.productFlavors.size > 0) {
+                project.productFlavors.keys.forEach {
+                    val pf = project.productFlavors[it]
+                    if (project.buildTypes.size > 0) {
+                        project.buildTypes.keys.forEach {
+                            result.add(Variant(pf, project.buildTypes[it]))
+                        }
+                    } else {
+                        result.add(Variant(pf, null))
+                    }
+                }
+            }
+            return result
+        }
+    }
 }

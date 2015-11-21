@@ -2,6 +2,7 @@ package com.beust.kobalt.plugin.android
 
 import com.beust.kobalt.OperatingSystem
 import com.beust.kobalt.TaskResult
+import com.beust.kobalt.Variant
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
@@ -23,6 +24,7 @@ import java.io.File
 import java.net.URI
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.*
 
 class AndroidConfig(var compileSdkVersion : String = "23",
         var buildToolsVersion : String = "23.0.1",
@@ -42,21 +44,20 @@ val Project.isAndroid : Boolean
 
 @Singleton
 public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
-        : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor {
+        : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor {
     override val name = "android"
 
     fun isAndroid(project: Project) = configurationFor(project) != null
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        log(1, "Applying plug-in Android on project $project")
         if (accept(project)) {
             project.compileDependencies.add(FileDependency(androidJar(project).toString()))
         }
         context.pluginInfo.classpathContributors.add(this)
 
         // TODO: Find a more flexible way of enabling this, e.g. creating a contributor for it
-        (Kobalt.findPlugin("java") as JvmCompilerPlugin).addCompilerArgs("-target", "1.6", "-source", "1.6")
+//        (Kobalt.findPlugin("java") as JvmCompilerPlugin).addCompilerArgs("-target", "1.6", "-source", "1.6")
     }
 
 
@@ -114,50 +115,68 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
         return TaskResult()
     }
 
-    open class AndroidCommand(androidHome: String, command: String) : RunCommand(command) {
+    inner open class AndroidCommand(project: Project, command: String, cwd: File = File(project.directory))
+            : RunCommand(command) {
         init {
-            env.put("ANDROID_HOME", androidHome)
-        }
-    }
-
-    inner class AaptCommand(project: Project, aapt: String, val aaptCommand: String,
-            cwd: File = File(project.directory)) : AndroidCommand(androidHome(project), aapt) {
-        init {
+            env.put("ANDROID_HOME", androidHome(project))
             directory = cwd
         }
 
-        fun call(args: List<String>) = run(arrayListOf(aaptCommand) + args,
+        fun call(args: List<String>) = run(args,
+                successCallback = { output ->
+                    log(1, "$command succeeded:")
+                    output.forEach {
+                        log(1, "  $it")
+                    }
+                },
                 errorCallback = { output ->
-                    error("Error running $aaptCommand:")
+                    error("Error running $command:")
                     output.forEach {
                         error("  $it")
                     }
                 })
     }
 
+//    inner class AaptCommand(project: Project, aapt: String, val aaptCommand: String,
+//            cwd: File = File(project.directory)) : AndroidCommand(project, aapt) {
+//        init {
+//            directory = cwd
+//        }
+//
+//        override val commandName = "$aapt $aaptCommand"
+//    }
+
+    private fun findResDirs(project: Project) = project.sourceDirectories.filter { it.contains("res") }
+
+    private fun findManifests(variant: Variant) = variant.variantSourceDirectories(context).map {
+            File(it, "AndroidManifest.xml")
+        }.filter {
+            it.exists()
+        }
+
     private fun generateR(project: Project, generated: Path, aapt: String, resDir: String) {
         val compileSdkVersion = compileSdkVersion(project)
         val androidJar = Paths.get(androidHome(project), "platforms", "android-$compileSdkVersion", "android.jar")
         val applicationId = configurationFor(project)?.applicationId!!
-        val manifestDir = Paths.get(project.directory, "app", "src", "main").toString()
-        val manifest = Paths.get(manifestDir, "AndroidManifest.xml")
+        val manifests = findManifests(context.variant)
 
         val crunchedPngDir = KFiles.joinAndMakeDir(intermediates(project).toString(), "res", flavor)
 
-        AaptCommand(project, aapt, "crunch").call(listOf(
+        val resDirArgs = arrayListOf("-S", resDir) + findResDirs(project).filter {
+                File(it).exists()
+            }.map {
+                "-S $it"
+            }.joinToString(" ").split(" ")
+        AndroidCommand(project, aapt).call(listOf("crunch") + resDirArgs + listOf(
                 "-v",
-                "-S", "app/src/main/res",//resourceDir,
-                "-S", resDir,
                 "-C", crunchedPngDir
         ))
 
-        AaptCommand(project, aapt, "package").call(listOf(
+        val manifestArgs = manifests.map { "-M ${it.path}" }.joinToString(" ").split(" ")
+        AndroidCommand(project, aapt).call(listOf("package") + resDirArgs + manifestArgs + listOf(
                 "-f",
                 "--no-crunch",
                 "-I", androidJar.toString(),
-                "-M", manifest.toString(),
-                "-S", "app/src/main/res",
-                "-S", resDir,
                 // where to find more assets
                 "-A", KFiles.joinAndMakeDir(intermediates(project).toString(), "assets", flavor),
                 "-m", // create directory
@@ -206,17 +225,35 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
 
             // Copy all the resources from this aar into the same intermediate directory
             log(2, "Copying the resources to $resDir")
-            KFiles.copyRecursively(destDir.resolve("res"), resDir, deleteFirst = false)
+            KFiles.copyRecursively(destDir.resolve("res"), resDir, deleteFirst = true)
         }
     }
 
     private fun compile(project: Project, rDirectory: String): File {
         val sourceFiles = arrayListOf(Paths.get(rDirectory, "R.java").toFile().path)
+        val c = sourceFiles.javaClass
         val buildDir = Paths.get(project.buildDirectory, "generated", "classes").toFile()
-        val cai = CompilerActionInfo(project.directory, listOf(), sourceFiles, buildDir, listOf(
-                "-source", "1.6", "-target", "1.6"))
+        val cai = CompilerActionInfo(project.directory, listOf(), sourceFiles, buildDir, emptyList())
         javaCompiler.compile(project, context, cai)
         return buildDir
+    }
+
+    /**
+     * Implements ICompilerFlagContributor
+     * Make sure we compile and generate 1.6 sources unless the build file defined those (which can
+     * happen if the developer is using RetroLambda for example).
+     */
+    override fun flagsFor(project: Project) : List<String> {
+        val result : ArrayList<String> = project.projectProperties.get(JvmCompilerPlugin.COMPILER_ARGS)?.let {
+            arrayListOf<String>().apply { addAll(it as List<String>) }
+        } ?: arrayListOf<String>()
+        if (! result.contains("-source")) with(result) {
+            addAll(listOf("-source", "1.6"))
+        }
+        if (! result.contains("-target")) with(result) {
+            addAll(listOf("-target", "1.6"))
+        }
+        return result
     }
 
     companion object {
@@ -244,16 +281,17 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
                     it.jarFile.get().path
                 }.filter { ! it.endsWith(".aar") && ! it.endsWith("android.jar") }
             } ?: emptyList()
-        RunCommand(dx).run(args + otherArgs)
+        AndroidCommand(project, dx).run(args + otherArgs)
 
         //
         // Add classes.dex to existing .ap_
         // Because aapt doesn't handle directory moving, we need to cd to classes.dex's directory so
         // that classes.dex ends up in the root directory of the .ap_.
         //
-        AaptCommand(project, aapt(project), "add").apply {
+        AndroidCommand(project, aapt(project)).apply {
             directory = File(outClassesDex).parentFile
-        }.call(listOf("-v", KFiles.joinDir(File(temporaryApk(project, flavor)).absolutePath), classesDex))
+        }.call(listOf("add") + listOf("-v", KFiles.joinDir(File(temporaryApk(project, flavor)).absolutePath),
+                classesDex))
 
         return TaskResult()
     }

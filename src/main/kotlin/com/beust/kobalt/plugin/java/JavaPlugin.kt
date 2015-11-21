@@ -55,7 +55,7 @@ public class JavaPlugin @Inject constructor(
     override fun doJavadoc(project: Project, cai: CompilerActionInfo) : TaskResult {
         val result =
                 if (cai.sourceFiles.size > 0) {
-                    javaCompiler.javadoc(project, context, cai.copy(compilerArgs = compilerArgs))
+                    javaCompiler.javadoc(project, context, cai.copy(compilerArgs = compilerArgsFor(project)))
                 } else {
                     warn("Couldn't find any source files to run Javadoc on")
                     TaskResult()
@@ -66,7 +66,7 @@ public class JavaPlugin @Inject constructor(
     override fun doCompile(project: Project, cai: CompilerActionInfo) : TaskResult {
         val result =
             if (cai.sourceFiles.size > 0) {
-                javaCompiler.compile(project, context, cai.copy(compilerArgs = compilerArgs))
+                javaCompiler.compile(project, context, cai.copy(compilerArgs = compilerArgsFor(project)))
             } else {
                 warn("Couldn't find any source files to compile")
                 TaskResult()
@@ -82,7 +82,7 @@ public class JavaPlugin @Inject constructor(
                 copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
                 val buildDir = makeOutputTestDir(project)
                 javaCompiler.compile(project, context, CompilerActionInfo(project.directory, testDependencies(project),
-                        sourceFiles, buildDir, compilerArgs))
+                        sourceFiles, buildDir, compilerArgsFor(project)))
             } else {
                 warn("Couldn't find any tests to compile")
                 TaskResult()
@@ -99,12 +99,14 @@ public fun javaProject(vararg project: Project, init: JavaProject.() -> Unit): J
     }
 }
 
-class JavaCompilerConfig {
+class JavaCompilerConfig(val project: Project) {
     fun args(vararg options: String) {
-        (Kobalt.findPlugin("java") as JvmCompilerPlugin).addCompilerArgs(*options)
+        (Kobalt.findPlugin("java") as JvmCompilerPlugin).addCompilerArgs(project, *options)
     }
 }
 
 @Directive
-fun Project.javaCompiler(init: JavaCompilerConfig.() -> Unit) = JavaCompilerConfig().init()
+fun Project.javaCompiler(init: JavaCompilerConfig.() -> Unit) = let {
+    JavaCompilerConfig(it).init()
+}
 
