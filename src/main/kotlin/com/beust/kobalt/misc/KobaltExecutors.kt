@@ -35,7 +35,7 @@ class KobaltExecutor(name: String, threadCount: Int)
             }
         }
         if (ex != null) {
-            error(if (ex.message != null) ex.message!! else ex.javaClass.toString())
+            error(ex.toString())
         }
     }
 }
