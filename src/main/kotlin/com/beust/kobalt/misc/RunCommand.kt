@@ -35,11 +35,12 @@ open class RunCommand(val command: String) {
             }
         }
         val callSucceeded = process.waitFor(30, TimeUnit.SECONDS)
+        val hasErrors = process.errorStream.available() > 0
 //        val callSucceeded = if (passed == 0) true else false
-        if (callSucceeded) {
+        if (callSucceeded && ! hasErrors) {
             successCallback(fromStream(process.inputStream))
         } else {
-            val stream = if (process.errorStream.available() > 0) process.errorStream
+            val stream = if (hasErrors) process.errorStream
                 else if (process.inputStream.available() > 0) process.inputStream
                 else null
             val errorString =
