@@ -126,7 +126,13 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
             directory = cwd
         }
 
-        fun call(args: List<String>) = run(arrayListOf(aaptCommand) + args)
+        fun call(args: List<String>) = run(arrayListOf(aaptCommand) + args,
+                errorCallback = { output ->
+                    error("Error running $aaptCommand:")
+                    output.forEach {
+                        error("  $it")
+                    }
+                })
     }
 
     private fun generateR(project: Project, generated: Path, aapt: String, resDir: String) {
