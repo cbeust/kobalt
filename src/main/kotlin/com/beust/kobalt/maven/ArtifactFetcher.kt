@@ -10,6 +10,7 @@ import com.google.inject.assistedinject.Assisted
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
@@ -62,7 +63,7 @@ class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
             urlFactory.create(url).toFile(this)
         }
         log(2, "Done downloading, renaming $tmpFile to $file")
-        Files.move(tmpFile, file)
+        Files.move(tmpFile, file, StandardCopyOption.REPLACE_EXISTING)
         log(1, "  Downloaded $url")
         log(2, "     to $file")
 
