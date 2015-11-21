@@ -164,7 +164,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
                 project.compileDependencies)
 
         val projectDirectory = File(project.directory)
-        val buildDirectory = File(projectDirectory, project.buildDirectory + File.separator + "classes")
+        val buildDirectory = File(project.projectProperties.getString(BUILD_DIR))
         buildDirectory.mkdirs()
 
         val sourceDirectories = context.variant.sourceDirectories(project)
