@@ -230,7 +230,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
         val classesDex = "classes.dex"
         val outClassesDex = KFiles.joinDir(classesDexDir, classesDex)
 
-        val args = listOf("--dex", "--output", outClassesDex)
+        val args = listOf("--dex", "--output", outClassesDex,
+                project.projectProperties.getString(JvmCompilerPlugin.BUILD_DIR)!!)
         val otherArgs =
             project.dependencies?.let {
                 it.dependencies.map {
