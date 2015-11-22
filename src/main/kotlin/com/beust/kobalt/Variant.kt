@@ -8,20 +8,20 @@ import java.io.File
 /**
  * Capture the product flavor and the build type of a build.
  */
-class Variant(val productFlavor: ProductFlavorConfig? = null, val buildType: BuildTypeConfig? = null) {
-    val isDefault : Boolean
-        get() = productFlavor == null && buildType == null
+class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
+        val initialBuildType: BuildTypeConfig? = null) {
 
-    fun toTask(taskName: String) = taskName +
-            (productFlavor?.name?.capitalize() ?: "") +
-            (buildType?.name?.capitalize() ?: "")
-
-    fun variantSourceDirectories(context: KobaltContext) : List<File> {
-        val result =
-            if (isDefault) listOf("src/main")
-            else (listOf(buildType?.name) + listOf(productFlavor?.name)).filterNotNull()
-        return result.map { File(it) }
+    val productFlavor: ProductFlavorConfig by lazy {
+        initialProductFlavor ?: Variant.DEFAULT_PRODUCT_FLAVOR
     }
+    val buildType: BuildTypeConfig by lazy {
+        initialBuildType ?: Variant.DEFAULT_BUILD_TYPE
+    }
+
+    val isDefault : Boolean
+        get() = productFlavor == DEFAULT_PRODUCT_FLAVOR && buildType == DEFAULT_BUILD_TYPE
+
+    fun toTask(taskName: String) = taskName + productFlavor.name.capitalize() + buildType.name.capitalize()
 
     fun sourceDirectories(project: Project) : List<File> {
         val sourceDirectories = project.sourceDirectories.map { File(it) }
@@ -29,12 +29,12 @@ class Variant(val productFlavor: ProductFlavorConfig? = null, val buildType: Bui
         else {
             val result = arrayListOf<File>()
             // The ordering of files is: 1) build type 2) product flavor 3) default
-            buildType?.let {
+            buildType.let {
                 val dir = File(KFiles.joinDir("src", it.name, project.projectInfo.sourceDirectory))
                 log(2, "Adding source for build type ${it.name}: ${dir.path}")
                 result.add(dir)
             }
-            productFlavor?.let {
+            productFlavor.let {
                 val dir = File(KFiles.joinDir("src", it.name, project.projectInfo.sourceDirectory))
                 log(2, "Adding source for product flavor ${it.name}: ${dir.path}")
                 result.add(dir)
@@ -52,23 +52,19 @@ class Variant(val productFlavor: ProductFlavorConfig? = null, val buildType: Bui
     }
 
     fun archiveName(project: Project, archiveName: String?, suffix: String) : String {
+        val base = if (archiveName != null) archiveName.substring(0, archiveName.length - suffix.length)
+        else project.name + "-" + project.version
         val result: String =
-            if (isDefault) archiveName ?: project.name + "-" + project.version + suffix
-            else {
-                val base = if (archiveName != null) archiveName.substring(0, archiveName.length - suffix.length)
-                        else project.name + "-" + project.version
-                base +
-                    if (productFlavor == null) "" else "-${productFlavor.name}" +
-                    if (buildType == null) "" else "-${buildType.name}" +
-                    suffix
+                base + "-${productFlavor.name}" + "-${buildType.name}"
 
-            }
         return result
     }
 
+    val shortArchiveName = productFlavor.name + "-" + buildType.name
+
     val hasBuildConfig: Boolean
         get() {
-            return productFlavor?.buildConfig != null || buildType?.buildConfig != null
+            return productFlavor.buildConfig != null || buildType.buildConfig != null
         }
 
     var generatedSourceDirectory: File? = null
@@ -77,14 +73,14 @@ class Variant(val productFlavor: ProductFlavorConfig? = null, val buildType: Bui
      * If either the Project or the current variant has a build config defined, generate BuildConfig.java
      */
     fun maybeGenerateBuildConfig(project: Project, context: KobaltContext) {
-        fun generated(project: Project) = KFiles.joinDir(project.buildDirectory!!, "generated", "source")
+        fun generated(project: Project) = KFiles.joinDir(project.buildDirectory, "generated", "source")
 
         if (project.buildConfig != null || context.variant.hasBuildConfig) {
             val buildConfigs = arrayListOf<BuildConfig>()
             if (project.buildConfig != null) buildConfigs.add(project.buildConfig!!)
             with (context.variant) {
-                if (buildType?.buildConfig != null) buildConfigs.add(buildType?.buildConfig!!)
-                if (productFlavor?.buildConfig != null) buildConfigs.add(productFlavor?.buildConfig!!)
+                if (buildType.buildConfig != null) buildConfigs.add(buildType.buildConfig!!)
+                if (productFlavor.buildConfig != null) buildConfigs.add(productFlavor.buildConfig!!)
             }
             var pkg = project.packageName ?: project.group
                     ?: throw KobaltException(
@@ -100,6 +96,9 @@ class Variant(val productFlavor: ProductFlavorConfig? = null, val buildType: Bui
     override fun toString() = toTask("")
 
     companion object {
+        val DEFAULT_PRODUCT_FLAVOR = ProductFlavorConfig("")
+        val DEFAULT_BUILD_TYPE = BuildTypeConfig("debug")
+
         fun allVariants(project: Project): List<Variant> {
             val result = arrayListOf<Variant>()
 
@@ -127,6 +126,14 @@ class Variant(val productFlavor: ProductFlavorConfig? = null, val buildType: Bui
                 }
             }
             return result
+        }
+    }
+
+    fun toIntermediateDir() : String {
+        if (isDefault) {
+            throw AssertionError("DEFAULT VARIANT NOT IMPLEMENTED")
+        } else {
+            return KFiles.joinDir(productFlavor.name, buildType.name)
         }
     }
 }

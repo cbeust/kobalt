@@ -30,11 +30,14 @@ abstract public class BasePlugin : IPlugin {
      * Register dynamic tasks corresponding to the variants found in the project,e.g. assembleDevDebug,
      * assembleDevRelease, etc...
      */
-    protected fun addVariantTasks(project: Project, taskName: String, runAfter : List<String>,
+    protected fun addVariantTasks(project: Project, taskName: String,
+            runBefore : List<String> = emptyList(),
+            runAfter : List<String> = emptyList(),
             runTask: (Project) -> TaskResult) {
         Variant.allVariants(project).forEach { variant ->
             val taskName = variant.toTask(taskName)
             addTask(project, taskName, taskName,
+                runBefore = runBefore.map { variant.toTask(it) },
                 runAfter = runAfter.map { variant.toTask(it) },
                 task = { p: Project ->
                     context.variant = variant

@@ -45,7 +45,7 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        addVariantTasks(project, "run", listOf("assemble"), { taskRun(project) })
+        addVariantTasks(project, "run", runAfter = listOf("assemble"), runTask = { taskRun(project) })
     }
 
     @Task(name = "run", description = "Run the main class", runAfter = arrayOf("assemble"))

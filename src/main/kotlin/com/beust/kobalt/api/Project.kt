@@ -11,7 +11,7 @@ open public class Project(
         @Directive open var name: String,
         @Directive open var version: String? = null,
         @Directive open var directory: String = ".",
-        @Directive open var buildDirectory: String? = KFiles.KOBALT_BUILD_DIR,
+        @Directive open var buildDirectory: String = KFiles.KOBALT_BUILD_DIR,
         @Directive open var group: String? = null,
         @Directive open var artifactId: String? = null,
         @Directive open var packaging: String? = null,
@@ -104,7 +104,10 @@ open public class Project(
         productFlavors.put(name, pf)
     }
 
-    val buildTypes = hashMapOf<String, BuildTypeConfig>()
+    val buildTypes = hashMapOf(
+            "debug" to BuildTypeConfig("debug"),
+            "release" to BuildTypeConfig("release")
+    )
 
     fun addBuildType(name: String, bt: BuildTypeConfig) {
         buildTypes.put(name, bt)

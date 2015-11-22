@@ -15,7 +15,7 @@ public class JavaProject(
         override var directory: String = ".",
         /** The build directory, relative to the project directory */
         @Directive
-        override var buildDirectory: String? = "kobaltBuild",
+        override var buildDirectory: String = "kobaltBuild",
         @Directive
         override var group: String? = null,
         @Directive

@@ -26,8 +26,8 @@ open class RunCommand(val command: String) {
 
         val pb = ProcessBuilder(allArgs)
         pb.directory(directory)
-        log(2, "Running command: " + allArgs.joinToString(" ") +
-                "\n      Current directory: ${directory.absolutePath}")
+        log(2, "Running command in directory ${directory.absolutePath}" +
+            "\n  " + allArgs.joinToString(" ").replace("\\", "/"))
         val process = pb.start()
         pb.environment().let { pbEnv ->
             env.forEach {

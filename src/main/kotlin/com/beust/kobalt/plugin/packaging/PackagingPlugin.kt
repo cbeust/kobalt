@@ -58,7 +58,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
         project.projectProperties.put(LIBS_DIR, libsDir(project))
-        addVariantTasks(project, "assemble", listOf("compile"), { taskAssemble(project) })
+        addVariantTasks(project, "assemble", runAfter = listOf("compile"), runTask = { taskAssemble(project) })
     }
 
     private fun libsDir(project: Project) = KFiles.makeDir(buildDir(project).path, "libs").path
