@@ -22,7 +22,6 @@ import java.io.File
 import java.net.URI
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
 import java.util.*
 
 class AndroidConfig(var compileSdkVersion : String = "23",
@@ -100,28 +99,24 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     fun androidJar(project: Project): Path =
             Paths.get(androidHome(project), "platforms", "android-${compileSdkVersion(project)}", "android.jar")
 
-    private fun generated(project: Project) = KFiles.joinDir(project.directory, project.buildDirectory, "generated")
-    private fun intermediates(project: Project) = KFiles.joinDir(project.directory, project.buildDirectory,
-            "intermediates")
-
     private fun aapt(project: Project) = "${androidHome(project)}/build-tools/${buildToolsVersion(project)}/aapt"
 
     private fun adb(project: Project) = "${androidHome(project)}/platform-tools/adb"
 
     private fun temporaryApk(project: Project, flavor: String)
-            = KFiles.joinFileAndMakeDir(intermediates(project), "res", "resources-$flavor.ap_")
+            = KFiles.joinFileAndMakeDir(AndroidFiles.intermediates(project), "res", "resources-$flavor.ap_")
 
     private fun apk(project: Project, flavor: String)
-            = KFiles.joinFileAndMakeDir(project.buildDirectory!!, "outputs", "apk", "app-$flavor.apk")
+            = KFiles.joinFileAndMakeDir(project.buildDirectory, "outputs", "apk", "app-$flavor.apk")
 
     @Task(name = "generateR", description = "Generate the R.java file",
             runBefore = arrayOf("compile"), runAfter = arrayOf("clean"))
     fun taskGenerateRFile(project: Project): TaskResult {
 
-        val intermediates = intermediates(project)
+        val intermediates = AndroidFiles.intermediates(project)
         val resDir = "temporaryBogusResDir"
         explodeAarFiles(project, intermediates, File(resDir))
-        val generated = generated(project)
+        val generated = AndroidFiles.generated(project)
         generateR(project, generated, aapt(project))
         return TaskResult()
     }
@@ -137,48 +132,12 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
         override fun call(args: List<String>) = super.run(arrayListOf(aaptCommand) + args)
     }
 
-    fun mergedResources(project: Project, variant: Variant) =
-            KFiles.joinAndMakeDir(intermediates(project), "res", "merged", variant.toIntermediateDir())
-
-    fun mergedManifest(project: Project, variant: Variant) : String {
-        val dir = KFiles.joinAndMakeDir(intermediates(project), "manifests", "full", variant.toIntermediateDir())
-        return KFiles.joinDir(dir, "AndroidManifest.xml")
-    }
-
-    /**
-     * TODO: not implemented yet, just copying the manifest to where the merged manifest should be.
-     */
-    private fun mergeAndroidManifest(project: Project, variant: Variant) {
-        val dest = mergedManifest(project, variant)
-        log(1, "Manifest merging not implemented, copying it to $dest")
-        KFiles.copy(Paths.get("app/src/main/AndroidManifest.xml"),
-                Paths.get(dest),
-                StandardCopyOption.REPLACE_EXISTING)
-    }
-
-    /**
-     * TODO: not implemented yet, just copying the resources into the variant dir
-     * Spec: http://developer.android.com/sdk/installing/studio-build.html
-     */
-    private fun mergeResources(project: Project, variant: Variant) {
-        val dest = mergedResources(project, variant)
-        log(1, "Resource merging not implemented, copying app/src/main/res to $dest")
-        listOf("main", variant.productFlavor.name, variant.buildType.name).forEach {
-            log(1, "  Copying app/src/$it/res into $dest")
-            KFiles.copyRecursively(File("app/src/$it/res"), File(dest), deleteFirst = false)
-        }
-    }
-
     private fun generateR(project: Project, generated: String, aapt: String) {
-
-        mergeAndroidManifest(project, context.variant)
-        mergeResources(project, context.variant)
-
         val compileSdkVersion = compileSdkVersion(project)
         val androidJar = Paths.get(androidHome(project), "platforms", "android-$compileSdkVersion", "android.jar")
         val applicationId = configurationFor(project)?.applicationId!!
-        val intermediates = intermediates(project)
-        val crunchedPngDir = KFiles.joinAndMakeDir(intermediates(project).toString(), "res")
+        val intermediates = AndroidFiles.intermediates(project)
+        val crunchedPngDir = KFiles.joinAndMakeDir(AndroidFiles.intermediates(project).toString(), "res")
 
 //        AaptCommand(project, aapt, "crunch").call(listOf(
 //                "-v",
@@ -193,8 +152,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
                 "-f",
                 "--no-crunch",
                 "-I", androidJar.toString(),
-                "-M", mergedManifest(project, context.variant),
-                "-S", mergedResources(project, context.variant),
+                "-M", AndroidFiles.mergedManifest(project, context.variant),
+                "-S", AndroidFiles.mergedResources(project, context.variant),
                 // where to find more assets
                 "-A", KFiles.joinAndMakeDir(intermediates, "assets", variantDir),
                 "-m", // create directory
@@ -255,7 +214,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
         return buildDir
     }
 
-
     /**
      * Implements ICompilerFlagContributor
      * Make sure we compile and generate 1.6 sources unless the build file defined those (which can
@@ -291,7 +249,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
         val buildToolsDir = buildToolsVersion(project)
         val dx = "${androidHome(project)}/build-tools/$buildToolsDir/dx" +
                 if (OperatingSystem.current().isWindows()) ".bat" else ""
-        val classesDexDir = KFiles.joinDir(intermediates(project), "dex", context.variant.toIntermediateDir())
+        val classesDexDir = KFiles.joinDir(AndroidFiles.intermediates(project), "dex",
+                context.variant.toIntermediateDir())
         File(classesDexDir).mkdirs()
         val classesDex = "classes.dex"
         val outClassesDex = KFiles.joinDir(classesDexDir, classesDex)
@@ -386,7 +345,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
 
     // IBuildDirectoryInterceptor
     override fun intercept(project: Project, context: KobaltContext, buildDirectory: String): String {
-        val result = KFiles.joinDir(intermediates(project), "classes", context.variant.toIntermediateDir())
+        val result = KFiles.joinDir(AndroidFiles.intermediates(project), "classes",
+                context.variant.toIntermediateDir())
         return result
     }
 
