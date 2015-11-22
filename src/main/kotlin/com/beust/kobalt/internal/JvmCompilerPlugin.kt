@@ -28,9 +28,6 @@ abstract class JvmCompilerPlugin @Inject constructor(
         open val jvmCompiler: JvmCompiler) : BasePlugin(), IProjectContributor {
 
     companion object {
-        @ExportedProjectProperty(doc = "The location of the build directory", type = "String")
-        const val BUILD_DIR = "buildDir"
-
         @ExportedProjectProperty(doc = "Projects this project depends on", type = "List<ProjectDescription>")
         const val DEPENDENT_PROJECTS = "dependentProjects"
 
@@ -54,7 +51,6 @@ abstract class JvmCompilerPlugin @Inject constructor(
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        project.projectProperties.put(BUILD_DIR, project.buildDirectory + File.separator + "classes")
         project.projectProperties.put(DEPENDENT_PROJECTS, projects())
         addVariantTasks(project, "compile", runTask = { taskCompile(project) })
     }
@@ -176,17 +172,23 @@ abstract class JvmCompilerPlugin @Inject constructor(
                 project.compileDependencies)
 
         val projectDirectory = File(project.directory)
-        val buildDirectory = File(project.projectProperties.getString(BUILD_DIR))
+        val buildDirectory = File(project.classesDir(context))
         buildDirectory.mkdirs()
 
-        val sourceDirectories = context.variant.sourceDirectories(project)
+        val initialSourceDirectories = context.variant.sourceDirectories(project)
+        val sourceDirectories = context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories,
+                { sd, interceptor -> interceptor.intercept(project, context, sd) })
+
         val sourceFiles = files.findRecursively(projectDirectory, sourceDirectories,
                 { it .endsWith(project.sourceSuffix) })
-                .map { File(projectDirectory, it).absolutePath }
+                .map { File(projectDirectory, it).path }
 
-        val cai = CompilerActionInfo(projectDirectory.path, classpath, sourceFiles, buildDirectory,
+        val initialActionInfo = CompilerActionInfo(projectDirectory.path, classpath, sourceFiles, buildDirectory,
                 emptyList())
-        return cai
+        val result = context.pluginInfo.compilerInterceptors.fold(initialActionInfo, { ai, interceptor ->
+            interceptor.intercept(project, context, ai)
+        })
+        return result
     }
 
     abstract fun doCompile(project: Project, cai: CompilerActionInfo) : TaskResult

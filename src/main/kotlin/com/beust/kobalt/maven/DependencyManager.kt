@@ -4,7 +4,6 @@ import com.beust.kobalt.api.IClasspathContributor
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.ProjectDescription
-import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.warn
@@ -101,7 +100,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
             it.project.name == project?.name
         }.forEach { pd ->
             pd.dependsOn.forEach { p ->
-                val classesDir = p.projectProperties.getString(JvmCompilerPlugin.BUILD_DIR)
+                val classesDir = p.classesDir(context)
                 if (classesDir != null) {
                     result.add(FileDependency(KFiles.joinDir(p.directory, classesDir)))
                 } else {

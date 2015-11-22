@@ -1,4 +1,7 @@
 package com.beust.kobalt.api
 
-interface IContributor
+interface IPluginActor
+
+interface IContributor : IPluginActor
+
 

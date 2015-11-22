@@ -112,6 +112,14 @@ open public class Project(
     fun addBuildType(name: String, bt: BuildTypeConfig) {
         buildTypes.put(name, bt)
     }
+
+    fun classesDir(context: KobaltContext): String {
+        val initial = KFiles.joinDir(buildDirectory, "classes")
+        val result = context.pluginInfo.buildDirectoryInterceptors.fold(initial, { dir, intercept ->
+            intercept.intercept(this, context, dir)
+        })
+        return result
+    }
 }
 
 public class Sources(val project: Project, val sources: HashSet<String>) {

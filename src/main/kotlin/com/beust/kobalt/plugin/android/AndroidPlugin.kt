@@ -1,12 +1,9 @@
 package com.beust.kobalt.plugin.android
 
-import com.beust.kobalt.OperatingSystem
-import com.beust.kobalt.TaskResult
-import com.beust.kobalt.Variant
+import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.FileDependency
@@ -41,12 +38,13 @@ fun Project.android(init: AndroidConfig.() -> Unit) : AndroidConfig {
     return pd
 }
 
-val Project.isAndroid : Boolean
-        get() = (Kobalt.findPlugin("android") as AndroidPlugin).isAndroid(this)
+//val Project.isAndroid : Boolean
+//        get() = (Kobalt.findPlugin("android") as AndroidPlugin).isAndroid(this)
 
 @Singleton
 public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
-        : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor {
+        : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
+            ICompilerInterceptor, ISourceDirectoriesIncerceptor, IBuildDirectoryIncerceptor {
     override val name = "android"
 
     fun isAndroid(project: Project) = configurationFor(project) != null
@@ -305,19 +303,30 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
         val buildToolsDir = buildToolsVersion(project)
         val dx = "${androidHome(project)}/build-tools/$buildToolsDir/dx" +
                 if (OperatingSystem.current().isWindows()) ".bat" else ""
-        val classesDexDir = KFiles.joinDir(intermediates(project), "dex", context.variant.shortArchiveName)
+        val classesDexDir = KFiles.joinDir(intermediates(project), "dex", context.variant.toIntermediateDir())
         File(classesDexDir).mkdirs()
         val classesDex = "classes.dex"
         val outClassesDex = KFiles.joinDir(classesDexDir, classesDex)
 
-        val args = listOf("--dex", "--output", outClassesDex)
-        val otherArgs =
-            project.dependencies?.let {
-                it.dependencies.map {
-                    it.jarFile.get().path
-                }.filter { ! it.endsWith(".aar") && ! it.endsWith("android.jar") }
-            } ?: emptyList()
-        RunCommand(dx).run(args + otherArgs)
+        // java.exe -Xmx1024M -Dfile.encoding=windows-1252 -Duser.country=US -Duser.language=en -Duser.variant -cp D:\android\adt-bundle-windows-x86_64-20140321\sdk\build-tools\23.0.1\lib\dx.jar com.android.dx.command.Main --dex --verbose --num-threads=4 --output C:\Users\cbeust\android\android_hello_world\app\build\intermediates\dex\pro\debug C:\Users\cbeust\android\android_hello_world\app\build\intermediates\classes\pro\debug
+
+        val javaExecutable = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
+        RunCommand(javaExecutable.absolutePath).run(listOf(
+                "-cp", KFiles.joinDir(androidHome(project), "build-tools", buildToolsVersion(project), "lib", "dx.jar"),
+                "com.android.dx.command.Main",
+                "--dex", "--verbose", "--num-threads=4",
+                "--output", outClassesDex,
+                   //KFiles.joinDir(intermediates(project), "dex", context.variant.toIntermediateDir()),
+                project.classesDir(context)
+        ))
+//        val args = listOf("--dex", "--output", outClassesDex)
+//        val otherArgs =
+//            project.dependencies?.let {
+//                it.dependencies.map {
+//                    it.jarFile.get().path
+//                }.filter { ! it.endsWith(".aar") && ! it.endsWith("android.jar") }
+//            } ?: emptyList()
+//        RunCommand(dx).run(args + otherArgs)
 
         //
         // Add classes.dex to existing .ap_
@@ -376,4 +385,25 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
             emptyList()
         }
     }
+
+    // IBuildDirectoryInterceptor
+    override fun intercept(project: Project, context: KobaltContext, buildDirectory: String): String {
+        val result = KFiles.joinDir(intermediates(project), "classes", context.variant.toIntermediateDir())
+        return result
+    }
+
+    // ISourceDirectoriesInterceptor
+    override fun intercept(project: Project, context: KobaltContext, sourceDirectories: List<File>): List<File> {
+        return sourceDirectories.map { File("app", it.path)}
+    }
+
+    // ICompilerInterceptor
+    override fun intercept(project: Project, context: KobaltContext, actionInfo: CompilerActionInfo)
+            : CompilerActionInfo {
+        val newOutputDir = KFiles.joinDir("kobaltBuild", "intermediates", "classes",
+                context.variant.toIntermediateDir())
+        return actionInfo.copy(outputDir = File(newOutputDir))
+    }
+
+
 }

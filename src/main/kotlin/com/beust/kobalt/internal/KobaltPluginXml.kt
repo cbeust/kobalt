@@ -52,6 +52,15 @@ class KobaltPluginXml {
 
     @XmlElement(name = "compiler-flag-contributors") @JvmField
     var compilerFlagContributors: ClassNameXml? = null
+
+    @XmlElement(name = "compiler-interceptors") @JvmField
+    var compilerInterceptors: ClassNameXml? = null
+
+    @XmlElement(name = "source-directories-interceptors") @JvmField
+    var sourceDirectoriesInterceptors: ClassNameXml? = null
+
+    @XmlElement(name = "build-directory-interceptors") @JvmField
+    var buildDirectoryInterceptors: ClassNameXml? = null
 }
 
 class ContributorXml {
@@ -76,6 +85,9 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val initContributors = arrayListOf<IInitContributor>()
     val repoContributors = arrayListOf<IRepoContributor>()
     val compilerFlagContributors = arrayListOf<ICompilerFlagContributor>()
+    val compilerInterceptors = arrayListOf<ICompilerInterceptor>()
+    val sourceDirectoriesInterceptors = arrayListOf<ISourceDirectoriesIncerceptor>()
+    val buildDirectoryInterceptors = arrayListOf<IBuildDirectoryIncerceptor>()
 
     // Future contributors:
     // source files
@@ -139,6 +151,15 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         }
         xml.compilerFlagContributors?.className?.forEach {
             compilerFlagContributors.add(factory.instanceOf(forName(it)) as ICompilerFlagContributor)
+        }
+        xml.compilerInterceptors?.className?.forEach {
+            compilerInterceptors.add(factory.instanceOf(forName(it)) as ICompilerInterceptor)
+        }
+        xml.sourceDirectoriesInterceptors?.className?.forEach {
+            sourceDirectoriesInterceptors.add(factory.instanceOf(forName(it)) as ISourceDirectoriesIncerceptor)
+        }
+        xml.buildDirectoryInterceptors?.className?.forEach {
+            buildDirectoryInterceptors.add(factory.instanceOf(forName(it)) as IBuildDirectoryIncerceptor)
         }
     }
 
