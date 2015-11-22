@@ -152,11 +152,15 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
 
     /**
      * TODO: not implemented yet, just copying the resources into the variant dir
+     * Spec: http://developer.android.com/sdk/installing/studio-build.html
      */
     private fun mergeResources(project: Project, variant: Variant) {
         val dest = mergedResources(project, variant)
         log(1, "Resource merging not implemented, copying app/src/main/res to $dest")
-        KFiles.copyRecursively(File("app/src/main/res"), File(dest))
+        listOf("main", variant.productFlavor.name, variant.buildType.name).forEach {
+            log(1, "  Copying app/src/$it/res into $dest")
+            KFiles.copyRecursively(File("app/src/$it/res"), File(dest), deleteFirst = false)
+        }
     }
 
     inner open class AndroidCommand(project: Project, command: String, cwd: File = File(project.directory))

@@ -135,12 +135,58 @@ class KFiles {
             return result
         }
 
-        fun copyRecursively(from: File, to: File, deleteFirst: Boolean = true) {
+        fun copyRecursively(from: File, to: File, replaceExisting: Boolean = true, deleteFirst: Boolean = true) {
             // Need to wait until copyRecursively supports an overwrite: Boolean = false parameter
             // Until then, wipe everything first
             if (deleteFirst) to.deleteRecursively()
             to.mkdirs()
-            from.copyRecursively(to)
+            hackCopyRecursively(from, to, replaceExisting)
+        }
+
+        /** Private exception class, used to terminate recursive copying */
+        private class TerminateException(file: File) : FileSystemException(file) {}
+
+        /**
+         * Copy/pasted from kotlin/io/Utils.kt to add support for overwriting.
+         */
+        private fun hackCopyRecursively(from: File, dst: File,
+                replaceExisting: Boolean,
+                onError: (File, IOException) -> OnErrorAction =
+                { file, exception -> throw exception }
+        ): Boolean {
+            if (!from.exists()) {
+                return onError(from, NoSuchFileException(file = from, reason = "The source file doesn't exist")) !=
+                        OnErrorAction.TERMINATE
+            }
+            try {
+                // We cannot break for loop from inside a lambda, so we have to use an exception here
+                for (src in from.walkTopDown().fail { f, e -> if (onError(f, e) == OnErrorAction.TERMINATE) throw TerminateException(f) }) {
+                    if (!src.exists()) {
+                        if (onError(src, NoSuchFileException(file = src, reason = "The source file doesn't exist")) ==
+                                OnErrorAction.TERMINATE)
+                            return false
+                    } else {
+                        val relPath = src.relativeTo(from)
+                        val dstFile = File(dst, relPath)
+                        if (dstFile.exists() && !replaceExisting && !(src.isDirectory() && dstFile.isDirectory())) {
+                            if (onError(dstFile, FileAlreadyExistsException(file = src,
+                                    other = dstFile,
+                                    reason = "The destination file already exists")) == OnErrorAction.TERMINATE)
+                                return false
+                        } else if (src.isDirectory()) {
+                            dstFile.mkdirs()
+                        } else {
+                            if (src.copyTo(dstFile, true) != src.length()) {
+                                if (onError(src, IOException("src.length() != dst.length()")) == OnErrorAction.TERMINATE)
+                                    return false
+                            }
+                        }
+                    }
+                }
+                return true
+            } catch (e: TerminateException) {
+                return false
+            }
         }
 
         fun findDotDir(startDir: File) : File {
