@@ -178,7 +178,6 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             toProcess.forEach { target ->
 
                 val currentTask = TaskInfo(project.name, target.taskName)
-                log(2, "Trying to look up ${currentTask.taskName} in the tasks")
                 val thisTask = tasksByNames[currentTask.taskName]
                 if (thisTask != null) {
                     transitiveClosure.add(thisTask)
