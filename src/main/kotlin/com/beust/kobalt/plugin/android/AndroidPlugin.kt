@@ -128,7 +128,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
 
     inner class AaptCommand(project: Project, aapt: String, val aaptCommand: String,
             useErrorStream: Boolean = false,
-            cwd: File = File(project.directory)) : AndroidCommand(project, aapt) {
+            cwd: File = File(project.directory)) : AndroidCommand(project, androidHome(project), aapt) {
         init {
             directory = cwd
             useErrorStreamAsErrorIndicator = useErrorStream
@@ -167,28 +167,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
             log(1, "  Copying app/src/$it/res into $dest")
             KFiles.copyRecursively(File("app/src/$it/res"), File(dest), deleteFirst = false)
         }
-    }
-
-    inner open class AndroidCommand(project: Project, command: String, cwd: File = File(project.directory))
-            : RunCommand(command) {
-        init {
-            env.put("ANDROID_HOME", androidHome(project))
-            directory = cwd
-        }
-
-        open fun call(args: List<String>) = run(args,
-                successCallback = { output ->
-                    log(1, "$command succeeded:")
-                    output.forEach {
-                        log(1, "  $it")
-                    }
-                },
-                errorCallback = { output ->
-                    error("Error running $command:")
-                    output.forEach {
-                        error("  $it")
-                    }
-                })
     }
 
     private fun generateR(project: Project, generated: String, aapt: String) {
