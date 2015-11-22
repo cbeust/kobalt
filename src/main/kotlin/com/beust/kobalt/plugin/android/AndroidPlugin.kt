@@ -59,6 +59,10 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
 
             addVariantTasks(project, "generateR", runBefore = listOf("compile"),
                     runTask = { taskGenerateRFile(project) })
+            addVariantTasks(project, "generateDex", runAfter = listOf("compile"), runBefore = listOf("assemble"),
+                    runTask = { taskGenerateDex(project) })
+            addVariantTasks(project, "signApk", runAfter = listOf("generateDex"), runBefore = listOf("assemble"),
+                    runTask = { taskSignApk(project) })
         }
         context.pluginInfo.classpathContributors.add(this)
 
@@ -292,7 +296,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
         const val TASK_GENERATE_DEX = "generateDex"
     }
 
-    @Task(name = TASK_GENERATE_DEX, description = "Generate the dex file", runAfter = arrayOf("compile"))
+    @Task(name = TASK_GENERATE_DEX, description = "Generate the dex file", runBefore = arrayOf("assemble"),
+            runAfter = arrayOf("compile"))
     fun taskGenerateDex(project: Project): TaskResult {
         //
         // Call dx to generate classes.dex
@@ -336,7 +341,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
      */
     @Task(name = "signApk", description = "Sign the apk file", runAfter = arrayOf(TASK_GENERATE_DEX),
             runBefore = arrayOf("assemble"))
-    fun signApk(project: Project): TaskResult {
+    fun taskSignApk(project: Project): TaskResult {
         val apk = apk(project, context.variant.shortArchiveName)
         val temporaryApk = temporaryApk(project, context.variant.shortArchiveName)
         RunCommand("jarsigner").run(listOf(
