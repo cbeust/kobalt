@@ -61,6 +61,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
                     runTask = { taskGenerateDex(project) })
             addVariantTasks(project, "signApk", runAfter = listOf("generateDex"), runBefore = listOf("assemble"),
                     runTask = { taskSignApk(project) })
+            addVariantTasks(project, "install", runAfter = listOf("signApk"),
+                    runTask = { taskInstall(project) })
         }
         context.pluginInfo.classpathContributors.add(this)
 
@@ -104,6 +106,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
 
     private fun aapt(project: Project) = "${androidHome(project)}/build-tools/${buildToolsVersion(project)}/aapt"
 
+    private fun adb(project: Project) = "${androidHome(project)}/platform-tools/adb"
+
     private fun temporaryApk(project: Project, flavor: String)
             = KFiles.joinFileAndMakeDir(intermediates(project), "res", "resources-$flavor.ap_")
 
@@ -123,9 +127,11 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     }
 
     inner class AaptCommand(project: Project, aapt: String, val aaptCommand: String,
+            useErrorStream: Boolean = false,
             cwd: File = File(project.directory)) : AndroidCommand(project, aapt) {
         init {
             directory = cwd
+            useErrorStreamAsErrorIndicator = useErrorStream
         }
 
         override fun call(args: List<String>) = super.run(arrayListOf(aaptCommand) + args)
@@ -205,7 +211,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
         val variantDir = context.variant.toIntermediateDir()
 
         val rDirectory = KFiles.joinAndMakeDir(generated, "source", "r", variantDir).toString()
-        AaptCommand(project, aapt, "package").call(listOf(
+        AaptCommand(project, aapt, "package", false).call(listOf(
                 "-f",
                 "--no-crunch",
                 "-I", androidJar.toString(),
@@ -366,6 +372,16 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
                 "androiddebugkey"
         ))
         log(1, "Created $apk")
+        return TaskResult()
+    }
+
+    @Task(name = "install", description = "Install the apk file", runAfter = arrayOf(TASK_GENERATE_DEX),
+            runBefore = arrayOf("assemble"))
+    fun taskInstall(project: Project): TaskResult {
+        val apk = apk(project, context.variant.shortArchiveName)
+        RunCommand(adb(project)).useErrorStreamAsErrorIndicator(false).run(args = listOf(
+                "install", "-r",
+                apk))
         return TaskResult()
     }
 

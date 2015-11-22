@@ -17,6 +17,18 @@ open class RunCommand(val command: String) {
     var directory = File(".")
     var env = hashMapOf<String, String>()
 
+    /**
+     * Some commands fail but return 0, so the only way to find out if they failed is to look
+     * at the error stream. However, some commands succeed but output text on the error stream.
+     * This field is used to specify how errors are caught.
+     */
+    var useErrorStreamAsErrorIndicator = true
+
+    fun useErrorStreamAsErrorIndicator(f: Boolean) : RunCommand {
+        useErrorStreamAsErrorIndicator = f
+        return this
+    }
+
     fun run(args: List<String>,
             errorCallback: Function1<List<String>, Unit> = defaultError,
             successCallback: Function1<List<String>, Unit> = defaultSuccess) : Int {
@@ -35,12 +47,16 @@ open class RunCommand(val command: String) {
             }
         }
         val callSucceeded = process.waitFor(30, TimeUnit.SECONDS)
-        val hasErrors = process.errorStream.available() > 0
-//        val callSucceeded = if (passed == 0) true else false
-        if (callSucceeded && ! hasErrors) {
+        val hasErrorStream = process.errorStream.available() > 0
+        var hasErrors = ! callSucceeded
+        if (useErrorStreamAsErrorIndicator && ! hasErrors) {
+            hasErrors = hasErrors && hasErrorStream
+        }
+
+        if (! hasErrors) {
             successCallback(fromStream(process.inputStream))
         } else {
-            val stream = if (hasErrors) process.errorStream
+            val stream = if (hasErrorStream) process.errorStream
                 else if (process.inputStream.available() > 0) process.inputStream
                 else null
             val errorString =
