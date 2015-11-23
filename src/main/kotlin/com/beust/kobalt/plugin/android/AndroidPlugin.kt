@@ -43,7 +43,7 @@ fun Project.android(init: AndroidConfig.() -> Unit) : AndroidConfig {
 @Singleton
 public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, val merger: Merger)
         : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
-            ICompilerInterceptor, ISourceDirectoriesIncerceptor, IBuildDirectoryIncerceptor {
+            ICompilerInterceptor, IBuildDirectoryIncerceptor {
     override val name = "android"
 
     fun isAndroid(project: Project) = configurationFor(project) != null
@@ -347,22 +347,27 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 
     // IBuildDirectoryInterceptor
     override fun intercept(project: Project, context: KobaltContext, buildDirectory: String): String {
-        val result = KFiles.joinDir(AndroidFiles.intermediates(project), "classes",
-                context.variant.toIntermediateDir())
-        return result
-    }
-
-    // ISourceDirectoriesInterceptor
-    override fun intercept(project: Project, context: KobaltContext, sourceDirectories: List<File>): List<File> {
-        return sourceDirectories.map { File("app", it.path)}
+        if (isAndroid(project)) {
+            val result = KFiles.joinDir(AndroidFiles.intermediates(project), "classes",
+                    context.variant.toIntermediateDir())
+            return result
+        } else {
+            return buildDirectory
+        }
     }
 
     // ICompilerInterceptor
     override fun intercept(project: Project, context: KobaltContext, actionInfo: CompilerActionInfo)
             : CompilerActionInfo {
-        val newOutputDir = KFiles.joinDir("kobaltBuild", "intermediates", "classes",
-                context.variant.toIntermediateDir())
-        return actionInfo.copy(outputDir = File(newOutputDir))
+        val result: CompilerActionInfo =
+            if (isAndroid(project)) {
+                val newOutputDir = KFiles.joinDir("kobaltBuild", "intermediates", "classes",
+                        context.variant.toIntermediateDir())
+                actionInfo.copy(outputDir = File(newOutputDir))
+            } else {
+                actionInfo
+            }
+        return result
     }
 
 

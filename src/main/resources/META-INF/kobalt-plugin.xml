@@ -34,9 +34,6 @@
     <build-directory-interceptors>
         <class-name>com.beust.kobalt.plugin.android.AndroidPlugin</class-name>
     </build-directory-interceptors>
-    <source-directories-interceptors>
-        <class-name>com.beust.kobalt.plugin.android.AndroidPlugin</class-name>
-    </source-directories-interceptors>
     <compiler-interceptors>
         <class-name>com.beust.kobalt.plugin.android.AndroidPlugin</class-name>
     </compiler-interceptors>

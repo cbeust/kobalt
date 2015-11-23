@@ -33,7 +33,7 @@ class Merger @Inject constructor() {
     private fun mergeAndroidManifest(project: Project, variant: Variant) {
         val dest = AndroidFiles.mergedManifest(project, variant)
         log(1, "Manifest merging not implemented, copying it to $dest")
-        KFiles.copy(Paths.get("app/src/main/AndroidManifest.xml"), Paths.get(dest))
+        KFiles.copy(Paths.get("src/main/AndroidManifest.xml"), Paths.get(dest))
     }
 
     interface IFileMerger {
@@ -101,11 +101,11 @@ class Merger @Inject constructor() {
      */
     private fun mergeResources(project: Project, variant: Variant) {
         val dest = AndroidFiles.Companion.mergedResources(project, variant)
-        log(1, "Resource merging not implemented, copying app/src/main/res to $dest")
+        log(1, "Resource merging not implemented, copying src/main/res to $dest")
         listOf(variant.buildType.name, variant.productFlavor.name, "main").forEach {
             log(1, "  CURRENT VARIANT: $it, Copying app/src/$it/res into $dest")
 
-            val fromDir = File("app/src/$it/res")
+            val fromDir = File("src/$it/res")
             KFiles.findRecursively(fromDir).forEach {
                 val fromFile = File(fromDir, it)
                 val toFile = File(dest, it)

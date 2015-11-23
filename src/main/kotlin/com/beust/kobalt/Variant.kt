@@ -3,7 +3,6 @@ package com.beust.kobalt
 import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.misc.warn
 import java.io.File
 
 /**
@@ -53,11 +52,17 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     }
 
     fun archiveName(project: Project, archiveName: String?, suffix: String) : String {
-        val base = if (archiveName != null) archiveName.substring(0, archiveName.length - suffix.length)
-        else project.name + "-" + project.version
-        val result: String =
-                base + "-${productFlavor.name}" + "-${buildType.name}"
+        val result =
+            if (isDefault) {
+                archiveName ?: project.name + "-" + project.version + suffix
+            } else {
+                val base = if (archiveName != null) archiveName.substring(0, archiveName.length - suffix.length)
+                else project.name + "-" + project.version
+                val result: String =
+                        base + "-${productFlavor.name}" + "-${buildType.name}"
 
+                result
+            }
         return result
     }
 
@@ -132,7 +137,6 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
 
     fun toIntermediateDir() : String {
         if (isDefault) {
-            warn("DEFAULT VARIANT NOT IMPLEMENTED")
             return ""
         } else {
             return KFiles.joinDir(productFlavor.name, buildType.name)
