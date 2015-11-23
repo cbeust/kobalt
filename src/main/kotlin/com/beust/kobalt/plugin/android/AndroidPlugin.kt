@@ -41,7 +41,7 @@ fun Project.android(init: AndroidConfig.() -> Unit) : AndroidConfig {
 //        get() = (Kobalt.findPlugin("android") as AndroidPlugin).isAndroid(this)
 
 @Singleton
-public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
+public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, val merger: Merger)
         : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
             ICompilerInterceptor, ISourceDirectoriesIncerceptor, IBuildDirectoryIncerceptor {
     override val name = "android"
@@ -112,6 +112,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     @Task(name = "generateR", description = "Generate the R.java file",
             runBefore = arrayOf("compile"), runAfter = arrayOf("clean"))
     fun taskGenerateRFile(project: Project): TaskResult {
+
+        merger.merge(project, context)
 
         val intermediates = AndroidFiles.intermediates(project)
         val resDir = "temporaryBogusResDir"
