@@ -135,12 +135,13 @@ class KFiles {
             return result
         }
 
-        fun copyRecursively(from: File, to: File, replaceExisting: Boolean = true, deleteFirst: Boolean = true) {
+        fun copyRecursively(from: File, to: File, replaceExisting: Boolean = true, deleteFirst: Boolean = true,
+                onError: (File, IOException) -> OnErrorAction = { file, exception -> throw exception }) {
             // Need to wait until copyRecursively supports an overwrite: Boolean = false parameter
             // Until then, wipe everything first
             if (deleteFirst) to.deleteRecursively()
-            to.mkdirs()
-            hackCopyRecursively(from, to, replaceExisting)
+//            to.mkdirs()
+            hackCopyRecursively(from, to, replaceExisting, onError)
         }
 
         /** Private exception class, used to terminate recursive copying */
@@ -217,9 +218,9 @@ class KFiles {
 
         private fun isWindows() = System.getProperty("os.name").contains("Windows");
 
-        fun copy(from: Path?, to: Path?, option: StandardCopyOption) {
+        fun copy(from: Path?, to: Path?, option: StandardCopyOption = StandardCopyOption.REPLACE_EXISTING) {
             if (isWindows() && to!!.toFile().exists()) {
-                log(2, "Windows detected, not overwriting ${to!!}")
+                log(2, "Windows detected, not overwriting ${to}")
             } else {
                 try {
                     log(2, "Copy from $from to ${to!!}")
