@@ -74,8 +74,8 @@ class ClassNameXml {
 }
 
 /**
- * Turn a KobaltPluginXml (the raw content of kobalt-plugin.xml mapped to POJO's) into a PluginInfo object, which contains
- * all the contributors instantiated and other information that Kobalt can actually use. Kobalt code that
+ * Turn a KobaltPluginXml (the raw content of kobalt-plugin.xml mapped to POJO's) into a PluginInfo object, which
+ * contains all the contributors instantiated and other information that Kobalt can actually use. Kobalt code that
  * needs to access plug-in info can then just inject a PluginInfo object.
  */
 class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
