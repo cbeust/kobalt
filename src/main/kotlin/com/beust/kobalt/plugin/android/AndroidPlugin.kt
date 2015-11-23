@@ -321,6 +321,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         RunCommand(adb(project)).useErrorStreamAsErrorIndicator(false).run(args = listOf(
                 "install", "-r",
                 apk))
+        log(1, "Installed $apk")
         return TaskResult()
     }
 
