@@ -24,7 +24,6 @@ import java.io.OutputStream
 import java.nio.file.FileSystems
 import java.nio.file.PathMatcher
 import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
@@ -116,8 +115,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val fullDir = outDir + "/" + WEB_INF
         File(fullDir).mkdirs()
         allDependencies.map { it.jarFile.get() }.forEach {
-            KFiles.copy(Paths.get(it.absolutePath), Paths.get(fullDir, it.name),
-                    StandardCopyOption.REPLACE_EXISTING)
+            KFiles.copy(Paths.get(it.absolutePath), Paths.get(fullDir, it.name))
         }
         allFiles.add(IncludedFile(From(fullDir), To(WEB_INF), listOf(Glob("**"))))
 
