@@ -34,7 +34,7 @@ class Merger @Inject constructor() {
     private fun mergeAndroidManifest(project: Project, variant: Variant) {
         val dest = AndroidFiles.mergedManifest(project, variant)
         log(2, "----- Merging manifest (not implemented, copying it to $dest)")
-        KFiles.copy(Paths.get("src/main/AndroidManifest.xml"), Paths.get(dest))
+        KFiles.copy(Paths.get(project.directory, "src/main/AndroidManifest.xml"), Paths.get(dest))
     }
 
     interface IFileMerger {
