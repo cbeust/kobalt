@@ -10,6 +10,10 @@ import javax.xml.bind.annotation.XmlRootElement
  * Parse AndroidManifest.xml and expose its content.
  */
 class AndroidManifest(val ins: InputStream) {
+    companion object {
+        const val NAMESPACE = "http://schemas.android.com/apk/res/android"
+    }
+
     val manifest: AndroidManifestXml by lazy {
         val jaxbContext = JAXBContext.newInstance(AndroidManifestXml::class.java)
         jaxbContext.createUnmarshaller().unmarshal(ins) as AndroidManifestXml
@@ -51,7 +55,7 @@ class ApplicationXml {
 }
 
 class ActivityXml {
-    @XmlAttribute(namespace = "http://schemas.android.com/apk/res/android", name = "name") @JvmField
+    @XmlAttribute(namespace = AndroidManifest.NAMESPACE, name = "name") @JvmField
     var name: String? = null
 
     @XmlElement(name = "intent-filter") @JvmField
@@ -64,11 +68,11 @@ class IntentFilter {
 }
 
 class ActionXml {
-    @XmlAttribute(namespace = "http://schemas.android.com/apk/res/android", name = "name") @JvmField
+    @XmlAttribute(namespace = AndroidManifest.NAMESPACE, name = "name") @JvmField
     var name: String? = null
 }
 
 class CategoryXml {
-    @XmlAttribute(namespace = "http://schemas.android.com/apk/res/android", name = "name") @JvmField
+    @XmlAttribute(namespace = AndroidManifest.NAMESPACE, name = "name") @JvmField
     var name: String? = null
 }
