@@ -16,7 +16,10 @@ class AndroidFiles {
             return KFiles.joinDir(dir, "AndroidManifest.xml")
         }
 
+        fun mergedResourcesNoVariant(project: Project, variant: Variant) =
+                KFiles.joinAndMakeDir(AndroidFiles.intermediates(project), "res", "merged")
+
         fun mergedResources(project: Project, variant: Variant) =
-                KFiles.joinAndMakeDir(AndroidFiles.intermediates(project), "res", "merged", variant.toIntermediateDir())
+                KFiles.joinAndMakeDir(mergedResourcesNoVariant(project, variant), variant.toIntermediateDir())
     }
 }

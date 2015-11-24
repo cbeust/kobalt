@@ -22,8 +22,10 @@ import javax.xml.bind.annotation.XmlValue
  */
 class Merger @Inject constructor() {
     fun merge(project: Project, context: KobaltContext) {
+        File(AndroidFiles.mergedResourcesNoVariant(project, context.variant)).deleteRecursively()
         mergeResources(project, context.variant)
         mergeAndroidManifest(project, context.variant)
+        log(2, "All done merging")
     }
 
     /**
@@ -31,7 +33,7 @@ class Merger @Inject constructor() {
      */
     private fun mergeAndroidManifest(project: Project, variant: Variant) {
         val dest = AndroidFiles.mergedManifest(project, variant)
-        log(2, "Manifest merging not implemented, copying it to $dest")
+        log(2, "----- Merging manifest (not implemented, copying it to $dest)")
         KFiles.copy(Paths.get("src/main/AndroidManifest.xml"), Paths.get(dest))
     }
 
@@ -40,6 +42,11 @@ class Merger @Inject constructor() {
         fun doMerge(fromFile: File, toFile: File)
     }
 
+    /**
+     * Merge files found in values/, e.g. values/strings.xml.
+     * All the files are enumerated for each one, look if a file by the same name is present in the merged
+     * directory. If not, copy it. If there is, look for a merger for this file and run it.
+     */
     class ValuesFileMerger : IFileMerger {
         override fun canMerge(fromFile: File, toFile: File) : Boolean {
             return fromFile.parentFile.name == "values"
@@ -56,7 +63,7 @@ class Merger @Inject constructor() {
                             log(2, "      Unconflicted string: ${it.name}")
                             toXml.strings.add(it)
                         } else {
-                            log(2, "      String ${it.name} overwritten")
+                            log(2, "      String ${it.name} already present, ignoring")
                         }
                     }
                 }
@@ -71,7 +78,6 @@ class Merger @Inject constructor() {
                     }
                 }
                 KFiles.saveFile(toFile, mergedText.toString())
-                log(2, "Wrote merged File: $toFile:\n" + mergedText.toString())
             }
         }
 
@@ -85,35 +91,41 @@ class Merger @Inject constructor() {
         }
     }
 
+    /**
+     * The default file merger does nothing (leaves the file in the merged directory alone).
+     */
     class DefaultFileMerger : IFileMerger {
         override fun canMerge(fromFile: File, toFile: File) : Boolean = true
         override fun doMerge(fromFile: File, toFile: File) {
-            log(2, "    DefaultMerger for $fromFile into $toFile, not doing anything")
+            log(2, "      DefaultMerger for $fromFile into $toFile, not doing anything")
         }
     }
 
+    /**
+     * Default file merger last.
+     */
     val fileMergers : List<IFileMerger> = arrayListOf(ValuesFileMerger(), DefaultFileMerger())
 
     /**
-     * TODO: not implemented yet, just copying the resources into the variant dir
      * Spec: http://developer.android.com/sdk/installing/studio-build.html
      */
     private fun mergeResources(project: Project, variant: Variant) {
         val dest = AndroidFiles.Companion.mergedResources(project, variant)
-        log(2, "Resource merging not implemented, copying src/main/res to $dest")
+        log(2, "----- Merging res/ directory to $dest")
         listOf(variant.buildType.name, variant.productFlavor.name, "main").forEach {
-            log(2, "  CURRENT VARIANT: $it, Copying app/src/$it/res into $dest")
+            log(2, "  Current variant: $it")
 
             val fromDir = File("src/$it/res")
             KFiles.findRecursively(fromDir).forEach {
                 val fromFile = File(fromDir, it)
                 val toFile = File(dest, it)
                 if (! toFile.exists()) {
-                    log(2, "    Copy $it to $toFile")
+                    log(2, "    Merge status for $it: COPY")
                     toFile.parentFile.mkdirs()
                     Files.copy(Paths.get(fromFile.absolutePath), Paths.get(toFile.absolutePath))
                 } else {
                     val fileMerger = fileMergers.first { it.canMerge(fromFile, toFile) }
+                    log(2, "    Merge status for $it: MERGE using $fileMerger")
                     fileMerger.doMerge(fromFile, toFile)
                 }
 
