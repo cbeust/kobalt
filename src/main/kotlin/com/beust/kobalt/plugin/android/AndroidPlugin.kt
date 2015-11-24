@@ -125,7 +125,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 
     inner class AaptCommand(project: Project, aapt: String, val aaptCommand: String,
             useErrorStream: Boolean = false,
-            cwd: File = File(project.directory)) : AndroidCommand(project, androidHome(project), aapt) {
+            cwd: File = File(".")) : AndroidCommand(project, androidHome(project), aapt) {
         init {
             directory = cwd
             useErrorStreamAsErrorIndicator = useErrorStream
@@ -209,8 +209,9 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 
     private fun compile(project: Project, rDirectory: String): File {
         val sourceFiles = arrayListOf(Paths.get(rDirectory, "R.java").toFile().path)
-        val buildDir = Paths.get(project.buildDirectory, "generated", "classes").toFile()
-        val cai = CompilerActionInfo(project.directory, listOf(), sourceFiles, buildDir, listOf(
+        val buildDir = File(AndroidFiles.generated(project), "classes")
+        // Using a directory of "." since the project.directory is already present in buildDir
+        val cai = CompilerActionInfo(".", listOf(), sourceFiles, buildDir, listOf(
                 "-source", "1.6", "-target", "1.6"))
         javaCompiler.compile(project, context, cai)
         return buildDir
