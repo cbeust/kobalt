@@ -37,4 +37,7 @@
     <compiler-interceptors>
         <class-name>com.beust.kobalt.plugin.android.AndroidPlugin</class-name>
     </compiler-interceptors>
+    <run-contributors>
+        <class-name>com.beust.kobalt.plugin.application.ApplicationPlugin</class-name>
+    </run-contributors>
 </kobalt-plugin>

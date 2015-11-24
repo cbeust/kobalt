@@ -1,16 +1,14 @@
 package com.beust.kobalt.plugin.application
 
 import com.beust.kobalt.*
-import com.beust.kobalt.api.ConfigPlugin
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.ProjectDescription
+import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.RunCommand
+import com.beust.kobalt.misc.warn
 import com.beust.kobalt.plugin.packaging.PackageConfig
 import com.beust.kobalt.plugin.packaging.PackagingPlugin
 import com.google.inject.Inject
@@ -35,7 +33,7 @@ fun Project.application(init: ApplicationConfig.() -> Unit) {
 
 @Singleton
 class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
-        val dependencyManager: DependencyManager) : ConfigPlugin<ApplicationConfig>() {
+        val dependencyManager: DependencyManager) : ConfigPlugin<ApplicationConfig>(), IRunContributor {
 
     companion object {
         const val NAME = "application"
@@ -50,40 +48,13 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
 
     @Task(name = "run", description = "Run the main class", runAfter = arrayOf("assemble"))
     fun taskRun(project: Project): TaskResult {
-        var result = TaskResult()
-        configurationFor(project)?.let { config ->
-            val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
-            if (config.mainClass != null) {
-                val jarName = project.projectProperties.get(PackagingPlugin.JAR_NAME) as String
-                val packages = project.projectProperties.get(PackagingPlugin.PACKAGES) as List<PackageConfig>
-                val allDeps = arrayListOf(jarName)
-                if (! isFatJar(packages, jarName)) {
-                    val projDeps = project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
-                        as List<ProjectDescription>
-                    // If the jar file is not fat, we need to add the transitive closure of all dependencies
-                    // on the classpath
-                    val allTheDependencies =
-                            dependencyManager.calculateDependencies(project, context, projDeps,
-                                    allDependencies = project.compileDependencies).map { it.jarFile.get().path }
-                    allDeps.addAll(allTheDependencies)
-                }
-                val allDepsJoined = allDeps.joinToString(File.pathSeparator)
-                val args = listOf("-classpath", allDepsJoined) + config.jvmArgs + config.mainClass!!
-                val exitCode = RunCommand(java.absolutePath).run(args,
-                        successCallback = { output: List<String> ->
-                            println(output.joinToString("\n"))
-                        },
-                        errorCallback =  { output: List<String> ->
-                            println("ERROR")
-                            println(output.joinToString("\n"))
-                        }
-                )
-                result = TaskResult(exitCode == 0)
-            } else {
-                throw KobaltException("No \"mainClass\" specified in the application{} part of project ${project.name}")
-            }
+        val runContributor = context.pluginInfo.runContributors.maxBy { it.runAffinity(project, context)}
+        if (runContributor != null && runContributor.runAffinity(project, context) > 0) {
+            return runContributor.run(project, context)
+        } else {
+            warn("Couldn't find a runner for project ${project.name}")
+            return TaskResult()
         }
-        return result
     }
 
     private fun isFatJar(packages: List<PackageConfig>, jarName: String): Boolean {
@@ -96,5 +67,53 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
         }
         return false
     }
+
+    // IRunContributor
+
+    override fun runAffinity(project: Project, context: KobaltContext): Int {
+        return if (configurationFor(project) != null) IRunContributor.DEFAULT_POSITIVE_AFFINITY else 0
+    }
+
+    override fun run(project: Project, context: KobaltContext): TaskResult {
+        var result = TaskResult()
+        configurationFor(project)?.let { config ->
+            if (config.mainClass != null) {
+                result = runJarFile(project, config)
+            } else {
+                throw KobaltException("No \"mainClass\" specified in the application{} part of project ${project.name}")
+            }
+        }
+        return result
+    }
+
+    private fun runJarFile(project: Project, config: ApplicationConfig) : TaskResult {
+        val jarName = project.projectProperties.get(PackagingPlugin.JAR_NAME) as String
+        val packages = project.projectProperties.get(PackagingPlugin.PACKAGES) as List<PackageConfig>
+        val allDeps = arrayListOf(jarName)
+        val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
+        if (! isFatJar(packages, jarName)) {
+            val projDeps = project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
+                    as List<ProjectDescription>
+            // If the jar file is not fat, we need to add the transitive closure of all dependencies
+            // on the classpath
+            val allTheDependencies =
+                    dependencyManager.calculateDependencies(project, context, projDeps,
+                            allDependencies = project.compileDependencies).map { it.jarFile.get().path }
+            allDeps.addAll(allTheDependencies)
+        }
+        val allDepsJoined = allDeps.joinToString(File.pathSeparator)
+        val args = listOf("-classpath", allDepsJoined) + config.jvmArgs + config.mainClass!!
+        val exitCode = RunCommand(java.absolutePath).run(args,
+                successCallback = { output: List<String> ->
+                    println(output.joinToString("\n"))
+                },
+                errorCallback =  { output: List<String> ->
+                    println("ERROR")
+                    println(output.joinToString("\n"))
+                }
+        )
+        return TaskResult(exitCode == 0)
+    }
+
 }
 
