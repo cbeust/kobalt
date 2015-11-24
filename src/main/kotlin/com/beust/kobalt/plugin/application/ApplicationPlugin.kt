@@ -43,10 +43,10 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        addVariantTasks(project, "run", runAfter = listOf("assemble"), runTask = { taskRun(project) })
+        addVariantTasks(project, "run", runAfter = listOf("install"), runTask = { taskRun(project) })
     }
 
-    @Task(name = "run", description = "Run the main class", runAfter = arrayOf("assemble"))
+    @Task(name = "run", description = "Run the main class", runAfter = arrayOf("install"))
     fun taskRun(project: Project): TaskResult {
         val runContributor = context.pluginInfo.runContributors.maxBy { it.runAffinity(project, context)}
         if (runContributor != null && runContributor.runAffinity(project, context) > 0) {

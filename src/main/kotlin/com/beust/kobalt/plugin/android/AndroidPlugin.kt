@@ -19,6 +19,7 @@ import com.google.common.collect.HashMultimap
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
+import java.io.FileInputStream
 import java.net.URI
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -43,7 +44,7 @@ fun Project.android(init: AndroidConfig.() -> Unit) : AndroidConfig {
 @Singleton
 public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, val merger: Merger)
         : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
-            ICompilerInterceptor, IBuildDirectoryIncerceptor {
+            ICompilerInterceptor, IBuildDirectoryIncerceptor, IRunContributor {
     override val name = "android"
 
     fun isAndroid(project: Project) = configurationFor(project) != null
@@ -371,5 +372,21 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         return result
     }
 
+    // IRunContributor
+    override fun runAffinity(project: Project, context: KobaltContext): Int {
+        val manifest = AndroidFiles.manifest(project, context)
+        return if (File(manifest).exists()) IRunContributor.DEFAULT_POSITIVE_AFFINITY else 0
+    }
+
+    override fun run(project: Project, context: KobaltContext): TaskResult {
+        val manifest = AndroidFiles.manifest(project, context)
+        FileInputStream(File(manifest)).use { ins ->
+            // adb shell am start -n com.package.name/com.package.name.ActivityName
+            val manifest = AndroidManifest(ins)
+            RunCommand(adb(project)).useErrorStreamAsErrorIndicator(false).run(args = listOf(
+                    "shell", "am", "start", "-n", manifest.pkg + "/" + manifest.mainActivity))
+            return TaskResult()
+        }
+    }
 
 }
