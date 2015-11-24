@@ -3,6 +3,7 @@ package com.beust.kobalt
 import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.plugin.android.AndroidFiles
 import java.io.File
 
 /**
@@ -79,8 +80,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
      * If either the Project or the current variant has a build config defined, generate BuildConfig.java
      */
     fun maybeGenerateBuildConfig(project: Project, context: KobaltContext) {
-        fun generated(project: Project) = KFiles.joinDir(project.directory, project.buildDirectory, "generated",
-                "source")
+        fun generated(project: Project) = KFiles.joinDir(AndroidFiles.generated(project), "source")
 
         if (project.buildConfig != null || context.variant.hasBuildConfig) {
             val buildConfigs = arrayListOf<BuildConfig>()
