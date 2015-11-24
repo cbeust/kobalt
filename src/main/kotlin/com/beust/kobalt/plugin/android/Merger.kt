@@ -115,7 +115,7 @@ class Merger @Inject constructor() {
         listOf(variant.buildType.name, variant.productFlavor.name, "main").forEach {
             log(2, "  Current variant: $it")
 
-            val fromDir = File("src/$it/res")
+            val fromDir = File(project.directory, "src/$it/res")
             KFiles.findRecursively(fromDir).forEach {
                 val fromFile = File(fromDir, it)
                 val toFile = File(dest, it)
