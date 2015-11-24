@@ -145,10 +145,10 @@ class ValuesXml {
 
 class ValueString {
     @XmlValue @JvmField
-    val string: String? = null
+    var string: String? = null
 
     @XmlAttribute(name = "name") @JvmField
-    val name: String? = null
+    var name: String? = null
 }
 
 fun String.forward() : String = replace("\\", "/")
