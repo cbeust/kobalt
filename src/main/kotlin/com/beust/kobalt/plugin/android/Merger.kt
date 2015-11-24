@@ -60,10 +60,10 @@ class Merger @Inject constructor() {
                     val seen = toXml.strings.map { it.name!! }.toHashSet<String>()
                     fromXml.strings.forEach {
                         if (!seen.contains(it.name!!)) {
-                            log(2, "      Unconflicted string: ${it.name}")
+                            log(3, "      Unconflicted string: ${it.name}")
                             toXml.strings.add(it)
                         } else {
-                            log(2, "      String ${it.name} already present, ignoring")
+                            log(3, "      String ${it.name} already present, ignoring")
                         }
                     }
                 }
@@ -97,7 +97,7 @@ class Merger @Inject constructor() {
     class DefaultFileMerger : IFileMerger {
         override fun canMerge(fromFile: File, toFile: File) : Boolean = true
         override fun doMerge(fromFile: File, toFile: File) {
-            log(2, "      DefaultMerger for $fromFile into $toFile, not doing anything")
+            log(3, "      DefaultMerger for $fromFile into $toFile, not doing anything")
         }
     }
 
@@ -113,19 +113,19 @@ class Merger @Inject constructor() {
         val dest = AndroidFiles.Companion.mergedResources(project, variant)
         log(2, "----- Merging res/ directory to $dest")
         listOf(variant.buildType.name, variant.productFlavor.name, "main").forEach {
-            log(2, "  Current variant: $it")
+            log(3, "  Current variant: $it")
 
             val fromDir = File(project.directory, "src/$it/res")
             KFiles.findRecursively(fromDir).forEach {
                 val fromFile = File(fromDir, it)
                 val toFile = File(dest, it)
                 if (! toFile.exists()) {
-                    log(2, "    Merge status for $it: COPY")
+                    log(3, "    Merge status for $it: COPY")
                     toFile.parentFile.mkdirs()
                     Files.copy(Paths.get(fromFile.absolutePath), Paths.get(toFile.absolutePath))
                 } else {
                     val fileMerger = fileMergers.first { it.canMerge(fromFile, toFile) }
-                    log(2, "    Merge status for $it: MERGE using $fileMerger")
+                    log(3, "    Merge status for $it: MERGE using ${fileMerger.javaClass}")
                     fileMerger.doMerge(fromFile, toFile)
                 }
 
