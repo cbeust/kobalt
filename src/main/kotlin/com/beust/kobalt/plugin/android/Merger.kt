@@ -34,7 +34,7 @@ class Merger @Inject constructor() {
     private fun mergeAndroidManifest(project: Project, variant: Variant) {
         val dest = AndroidFiles.mergedManifest(project, variant)
         log(2, "----- Merging manifest (not implemented, copying it to $dest)")
-        KFiles.copy(Paths.get("src/main/AndroidManifest.xml"), Paths.get(dest))
+        KFiles.copy(Paths.get(project.directory, "src/main/AndroidManifest.xml"), Paths.get(dest))
     }
 
     interface IFileMerger {
@@ -115,7 +115,7 @@ class Merger @Inject constructor() {
         listOf(variant.buildType.name, variant.productFlavor.name, "main").forEach {
             log(2, "  Current variant: $it")
 
-            val fromDir = File("src/$it/res")
+            val fromDir = File(project.directory, "src/$it/res")
             KFiles.findRecursively(fromDir).forEach {
                 val fromFile = File(fromDir, it)
                 val toFile = File(dest, it)
