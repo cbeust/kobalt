@@ -51,7 +51,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        log(1, "Applying plug-in Android on project $project")
         if (accept(project)) {
             project.compileDependencies.add(FileDependency(androidJar(project).toString()))
 
