@@ -1,9 +1,15 @@
 package com.beust.kobalt
 
-import com.beust.kobalt.api.*
+import com.beust.kobalt.api.BuildConfig
+import com.beust.kobalt.api.BuildTypeConfig
+import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.KobaltContext
+import com.beust.kobalt.api.ProductFlavorConfig
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.android.AndroidFiles
+import com.beust.kobalt.plugin.android.AndroidPlugin
 import java.io.File
 
 /**
@@ -89,9 +95,12 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
                 if (buildType.buildConfig != null) buildConfigs.add(buildType.buildConfig!!)
                 if (productFlavor.buildConfig != null) buildConfigs.add(productFlavor.buildConfig!!)
             }
-            var pkg = project.packageName ?: project.group
-                    ?: throw KobaltException(
+
+            val androidConfig = (Kobalt.findPlugin("android") as AndroidPlugin).configurationFor(project)
+            val pkg = androidConfig?.applicationId ?: project.packageName ?: project.group
+                        ?: throw KobaltException(
                         "packageName needs to be defined on the project in order to generate BuildConfig")
+
             val code = project.projectInfo.generateBuildConfig(pkg, context.variant, buildConfigs)
             generatedSourceDirectory = KFiles.makeDir(generated(project), pkg.replace('.', File.separatorChar))
             val outputFile = File(generatedSourceDirectory, "BuildConfig" + project .sourceSuffix)
