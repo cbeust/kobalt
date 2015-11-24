@@ -10,6 +10,7 @@ import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.plugin.android.forward
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
@@ -36,7 +37,7 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
 //            }
             pb.inheritIO()
             val line = allArgs.joinToString(" ")
-            log(2, "  Compiling $line")
+            log(2, "  Compiling ${line.forward()}")
             val process = pb.start()
             val errorCode = process.waitFor()
 
