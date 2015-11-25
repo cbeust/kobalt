@@ -1,6 +1,5 @@
 To do:
 
-- [ ] Android: multiple -source/-target flags
 - [ ] The test runner only selects classes with a parameterless constructor, which works for JUnit but not for TestNG
  factories
 - [ ] Add a "Auto complete Build.kt" menu in the plug-in
@@ -32,6 +31,7 @@ To do:
 
 Done:
 
+- [x] Android: multiple -source/-target flags
 - [x] Dokka: allow multiple format outputs e.g `outputFormat("html", "javadoc")`
 - [x] Finish abstracting everything in `JvmCompilerPlugin`
 - [x] Dependent projects: kobalt should automatically add the dependency on the jar file
