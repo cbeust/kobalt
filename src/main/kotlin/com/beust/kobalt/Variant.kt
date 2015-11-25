@@ -96,7 +96,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     }
 
     /**
-     * Generate BuildConfig.java. Also look up if any BuildConfig is defined on the current build type,
+     * Generate BuildConfig.java if requested. Also look up if any BuildConfig is defined on the current build type,
      * product flavor or main project, and use them to generate any additional field (in that order to
      * respect the priorities).
      */
@@ -105,16 +105,18 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
 
         val buildConfigs = findBuildConfigs(project, context.variant)
 
-        val androidConfig = (Kobalt.findPlugin("android") as AndroidPlugin).configurationFor(project)
-        val pkg = androidConfig?.applicationId ?: project.packageName ?: project.group
+        if (buildConfigs.size > 0) {
+            val androidConfig = (Kobalt.findPlugin("android") as AndroidPlugin).configurationFor(project)
+            val pkg = androidConfig?.applicationId ?: project.packageName ?: project.group
                     ?: throw KobaltException(
                     "packageName needs to be defined on the project in order to generate BuildConfig")
 
-        val code = project.projectInfo.generateBuildConfig(pkg, context.variant, buildConfigs)
-        generatedSourceDirectory = KFiles.makeDir(generated(project), pkg.replace('.', File.separatorChar))
-        val outputFile = File(generatedSourceDirectory, "BuildConfig" + project .sourceSuffix)
-        KFiles.saveFile(outputFile, code)
-        log(2, "Generated ${outputFile.path}")
+            val code = project.projectInfo.generateBuildConfig(pkg, context.variant, buildConfigs)
+            generatedSourceDirectory = KFiles.makeDir(generated(project), pkg.replace('.', File.separatorChar))
+            val outputFile = File(generatedSourceDirectory, "BuildConfig" + project.sourceSuffix)
+            KFiles.saveFile(outputFile, code)
+            log(2, "Generated ${outputFile.path}")
+        }
     }
 
     override fun toString() = toTask("")
