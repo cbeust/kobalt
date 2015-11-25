@@ -1,11 +1,6 @@
 package com.beust.kobalt
 
-import com.beust.kobalt.api.BuildConfig
-import com.beust.kobalt.api.BuildTypeConfig
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.ProductFlavorConfig
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.android.AndroidFiles
@@ -75,38 +70,51 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
 
     val shortArchiveName = productFlavor.name + "-" + buildType.name
 
-    val hasBuildConfig: Boolean
-        get() {
-            return productFlavor.buildConfig != null || buildType.buildConfig != null
-        }
-
     var generatedSourceDirectory: File? = null
 
+    private fun findBuildTypeBuildConfig(project: Project, variant: Variant?) : BuildConfig? {
+        val buildTypeName = variant?.buildType?.name
+        return project.buildTypes.getRaw(buildTypeName)?.buildConfig ?: null
+    }
+
+    private fun findProductFlavorBuildConfig(project: Project, variant: Variant?) : BuildConfig? {
+        val buildTypeName = variant?.productFlavor?.name
+        return project.productFlavors.getRaw(buildTypeName)?.buildConfig ?: null
+    }
+
     /**
-     * If either the Project or the current variant has a build config defined, generate BuildConfig.java
+     * Return a list of the BuildConfigs found on the productFlavor{}, buildType{} and project{} (in that order).
+     */
+    private fun findBuildConfigs(project: Project, variant: Variant?) : List<BuildConfig> {
+        val result = listOf(
+                findBuildTypeBuildConfig(project, variant),
+                findProductFlavorBuildConfig(project, variant),
+                project.buildConfig)
+            .filterNotNull()
+
+        return result
+    }
+
+    /**
+     * Generate BuildConfig.java. Also look up if any BuildConfig is defined on the current build type,
+     * product flavor or main project, and use them to generate any additional field (in that order to
+     * respect the priorities).
      */
     fun maybeGenerateBuildConfig(project: Project, context: KobaltContext) {
         fun generated(project: Project) = KFiles.joinDir(AndroidFiles.generated(project), "source")
 
-        if (project.buildConfig != null || context.variant.hasBuildConfig) {
-            val buildConfigs = arrayListOf<BuildConfig>()
-            if (project.buildConfig != null) buildConfigs.add(project.buildConfig!!)
-            with (context.variant) {
-                if (buildType.buildConfig != null) buildConfigs.add(buildType.buildConfig!!)
-                if (productFlavor.buildConfig != null) buildConfigs.add(productFlavor.buildConfig!!)
-            }
+        val buildConfigs = findBuildConfigs(project, context.variant)
 
-            val androidConfig = (Kobalt.findPlugin("android") as AndroidPlugin).configurationFor(project)
-            val pkg = androidConfig?.applicationId ?: project.packageName ?: project.group
-                        ?: throw KobaltException(
-                        "packageName needs to be defined on the project in order to generate BuildConfig")
+        val androidConfig = (Kobalt.findPlugin("android") as AndroidPlugin).configurationFor(project)
+        val pkg = androidConfig?.applicationId ?: project.packageName ?: project.group
+                    ?: throw KobaltException(
+                    "packageName needs to be defined on the project in order to generate BuildConfig")
 
-            val code = project.projectInfo.generateBuildConfig(pkg, context.variant, buildConfigs)
-            generatedSourceDirectory = KFiles.makeDir(generated(project), pkg.replace('.', File.separatorChar))
-            val outputFile = File(generatedSourceDirectory, "BuildConfig" + project .sourceSuffix)
-            KFiles.saveFile(outputFile, code)
-            log(2, "Generated ${outputFile.path}")
-        }
+        val code = project.projectInfo.generateBuildConfig(pkg, context.variant, buildConfigs)
+        generatedSourceDirectory = KFiles.makeDir(generated(project), pkg.replace('.', File.separatorChar))
+        val outputFile = File(generatedSourceDirectory, "BuildConfig" + project .sourceSuffix)
+        KFiles.saveFile(outputFile, code)
+        log(2, "Generated ${outputFile.path}")
     }
 
     override fun toString() = toTask("")
