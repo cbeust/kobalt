@@ -54,9 +54,9 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
 
             AsciiArt.logBox("Building project ${project.name}")
 
-            log(2, "Tasks:")
+            log(3, "Tasks:")
             tasksByNames.keys.forEach {
-                log(2, "  $it: " + tasksByNames.get(it))
+                log(3, "  $it: " + tasksByNames.get(it))
             }
             val graph = DynamicGraph<PluginTask>()
             taskNames.forEach { taskName ->
