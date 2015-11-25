@@ -21,12 +21,8 @@ class KotlinProjectInfo : IProjectInfo {
             add("")
             add("class BuildConfig {")
             add("    companion object {")
-            if (variant.productFlavor != null) {
-                add(generate("String", "PRODUCT_FLAVOR", "\"" + variant.productFlavor.name + "\""))
-            }
-            if (variant.buildType != null) {
-                add(generate("String", "BUILD_TYPE", "\"" + variant.buildType.name + "\""))
-            }
+            add(generate("String", "PRODUCT_FLAVOR", "\"" + variant.productFlavor.name + "\""))
+            add(generate("String", "BUILD_TYPE", "\"" + variant.buildType.name + "\""))
             buildConfigs.forEach {
                 it.fields.forEach { field ->
                     add(generate(field.type, field.name, field.value))
