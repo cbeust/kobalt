@@ -86,8 +86,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
      * If either the Project or the current variant has a build config defined, generate BuildConfig.java
      */
     fun maybeGenerateBuildConfig(project: Project, context: KobaltContext) {
-        fun generated(project: Project) = KFiles.joinDir(project.directory, project.buildDirectory, "generated",
-                "source")
+        fun generated(project: Project) = KFiles.joinDir(AndroidFiles.generated(project), "source")
 
         if (project.buildConfig != null || context.variant.hasBuildConfig) {
             val buildConfigs = arrayListOf<BuildConfig>()
