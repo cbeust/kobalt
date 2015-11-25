@@ -11,6 +11,7 @@ import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.FileDependency
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.wrapper.ParentLastClassLoader
@@ -43,7 +44,7 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
             }
             val cp = compilerFirst(info.dependencies.map {it.jarFile.get()})
             val allArgs : Array<String> = arrayOf(
-                    "-d", info.outputDir.path,
+                    "-d", KFiles.makeDir(info.directory!!, info.outputDir.path).path,
                     "-classpath", cp.joinToString(File.pathSeparator),
                     *(info.compilerArgs.toTypedArray()),
                     *(info.sourceFiles.toTypedArray())
