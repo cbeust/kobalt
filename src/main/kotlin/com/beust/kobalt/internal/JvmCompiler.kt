@@ -32,7 +32,7 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
         val addedFlags = ArrayList(info.compilerArgs) +
             if (project != null) {
                 context.pluginInfo.compilerFlagContributors.flatMap {
-                    it.flagsFor(project)
+                    it.flagsFor(project, info.compilerArgs)
                 }
             } else {
                 emptyList()

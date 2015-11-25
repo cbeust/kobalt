@@ -27,14 +27,14 @@ public class AptPlugin @Inject constructor(val depFactory: DepFactory, val execu
     override val name = NAME
 
     // ICompilerFlagContributor
-    override fun flagsFor(project: Project) : List<String> {
+    override fun flagsFor(project: Project, currentFlags: List<String>) : List<String> {
         val result = arrayListOf<String>()
         configurationFor(project)?.let { config ->
             aptDependencies.get(key = project.name)?.let { aptDependency ->
                 val dependencyJarFile = JarFinder.byId(aptDependency)
                 result.add("-processorpath")
                 result.add(dependencyJarFile.absolutePath)
-                val generated = KFiles.joinAndMakeDir(project.directory, project.buildDirectory!!, config.outputDir)
+                val generated = KFiles.joinAndMakeDir(project.directory, project.buildDirectory, config.outputDir)
                 result.add("-s")
                 result.add(generated)
             }
