@@ -5,7 +5,6 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.CompilerActionInfo
-import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.FileDependency
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.MavenId
@@ -13,7 +12,6 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.java.JavaCompiler
-import com.beust.kobalt.plugin.java.JavaProject
 import com.beust.kobalt.plugin.packaging.JarUtils
 import com.google.common.collect.HashMultimap
 import com.google.inject.Inject
@@ -23,7 +21,6 @@ import java.io.FileInputStream
 import java.net.URI
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
 
 class AndroidConfig(var compileSdkVersion : String = "23",
         var buildToolsVersion : String = "23.0.1",
@@ -64,9 +61,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
                     runTask = { taskInstall(project) })
         }
         context.pluginInfo.classpathContributors.add(this)
-
-        // TODO: Find a more flexible way of enabling this, e.g. creating a contributor for it
-//        (Kobalt.findPlugin("java") as JvmCompilerPlugin).addCompilerArgs(project, "-target", "1.6", "-source", "1.6")
     }
 
 
@@ -222,15 +216,13 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
      * Make sure we compile and generate 1.6 sources unless the build file defined those (which can
      * happen if the developer is using RetroLambda for example).
      */
-    override fun flagsFor(project: Project) : List<String> {
-        if (project is JavaProject) {
-            val result: ArrayList<String> = project.projectProperties.get(JvmCompilerPlugin.COMPILER_ARGS)?.let {
-                arrayListOf<String>().apply { addAll(it as List<String>) }
-            } ?: arrayListOf<String>()
-            if (!result.contains("-source")) with(result) {
+    override fun flagsFor(project: Project, currentFlags: List<String>) : List<String> {
+        if (isAndroid(project)) {
+            val result = arrayListOf<String>()
+            if (! currentFlags.contains("-source")) with(result) {
                 addAll(listOf("-source", "1.6"))
             }
-            if (!result.contains("-target")) with(result) {
+            if (!currentFlags.contains("-target")) with(result) {
                 addAll(listOf("-target", "1.6"))
             }
             return result
