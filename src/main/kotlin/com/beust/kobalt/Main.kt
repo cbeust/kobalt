@@ -96,7 +96,7 @@ private class Main @Inject constructor(
             try {
                 result = runWithArgs(jc, args, argv)
             } catch(ex: KobaltException) {
-                error("", ex)
+                error("", ex.cause ?: ex)
                 result = 1
             } finally {
                 executors.shutdown()
