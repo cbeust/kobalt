@@ -51,9 +51,6 @@ class ParsedBuildFile(val file: File, val context: KobaltContext) {
              * val profile = true, otherwise return the same line
              */
             fun correctProfileLine(line: String) : String {
-                if (line.contains("experimental")) {
-                    println("DONOTCOMMIT")
-                }
                 context.profiles.forEach {
                     if (line.matches(kotlin.text.Regex("[ \\t]*val[ \\t]+$it[ \\t]+=.*"))) {
                         with("val $it = true") {
