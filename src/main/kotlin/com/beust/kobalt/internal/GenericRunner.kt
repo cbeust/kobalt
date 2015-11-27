@@ -14,7 +14,7 @@ abstract class GenericTestRunner(open val project: Project, open val classpath: 
     abstract val args: List<String>
 
     protected fun findTestClasses(): List<String> {
-        val path = KFiles.joinDir(project.directory, project.buildDirectory!!, KFiles.TEST_CLASSES_DIR)
+        val path = KFiles.joinDir(project.directory, project.buildDirectory, KFiles.TEST_CLASSES_DIR)
         val result = KFiles.findRecursively(File(path), arrayListOf(File(".")), {
             file -> file.endsWith(".class")
         }).map {
@@ -45,6 +45,7 @@ abstract class GenericTestRunner(open val project: Project, open val classpath: 
         if (args.size > 0) {
             val allArgs = arrayListOf<String>().apply {
                 add(java!!.absolutePath)
+                addAll(project.testJvmArgs)
                 add("-classpath")
                 add(classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator))
                 add(mainClass)

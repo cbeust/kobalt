@@ -7,6 +7,10 @@ class TestConfig(val project: Project) {
     fun args(vararg arg: String) {
         project.testArgs.addAll(arg)
     }
+
+    fun jvmArgs(vararg arg: String) {
+        project.testJvmArgs.addAll(arg)
+    }
 }
 
 @Directive

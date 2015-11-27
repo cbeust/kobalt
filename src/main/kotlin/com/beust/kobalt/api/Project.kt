@@ -26,7 +26,8 @@ open public class Project(
 
     override var buildConfig: BuildConfig? = null
 
-    var testArgs: ArrayList<String> = arrayListOf()
+    val testArgs = arrayListOf<String>()
+    val testJvmArgs = arrayListOf<String>()
 
     val projectProperties = ProjectProperties()
 
