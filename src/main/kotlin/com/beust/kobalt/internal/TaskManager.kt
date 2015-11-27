@@ -12,19 +12,17 @@ import javax.inject.Singleton
 @Singleton
 public class TaskManager @Inject constructor(val plugins: Plugins, val args: Args) {
     private val runBefore = TreeMultimap.create<String, String>()
-    private val runAfter = TreeMultimap.create<String, String>()
     private val alwaysRunAfter = TreeMultimap.create<String, String>()
 
     /**
      * Called by plugins to indicate task dependencies defined at runtime. Keys depend on values.
      * Declare that `task1` depends on `task2`.
+     *
+     * Note: there is no runAfter on this class since a runAfter(a, b) in a task simply translates
+     * to a runBefore(b, a) here.
      */
     fun runBefore(task1: String, task2: String) {
         runBefore.put(task1, task2)
-    }
-
-    fun runAfter(task1: String, task2: String) {
-        runAfter.put(task1, task2)
     }
 
     fun alwaysRunAfter(task1: String, task2: String) {
