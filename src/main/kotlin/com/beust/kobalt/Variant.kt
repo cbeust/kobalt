@@ -131,7 +131,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
 
     companion object {
         val DEFAULT_PRODUCT_FLAVOR = ProductFlavorConfig("")
-        val DEFAULT_BUILD_TYPE = BuildTypeConfig("debug")
+        val DEFAULT_BUILD_TYPE = BuildTypeConfig("")
 
         fun allVariants(project: Project): List<Variant> {
             val result = arrayListOf<Variant>()

@@ -105,10 +105,7 @@ open public class Project(
         productFlavors.put(name, pf)
     }
 
-    val buildTypes = hashMapOf(
-            "debug" to BuildTypeConfig("debug"),
-            "release" to BuildTypeConfig("release")
-    )
+    val buildTypes = hashMapOf<String, BuildTypeConfig>()
 
     fun addBuildType(name: String, bt: BuildTypeConfig) {
         buildTypes.put(name, bt)
