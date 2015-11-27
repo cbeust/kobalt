@@ -12,14 +12,14 @@ class JavaProjectInfo : IProjectInfo {
     override val defaultTestDirectories = hashSetOf("src/test/java", "src/test/resources", "src/test/res")
 
     private fun generate(type: String, name: String, value: Any) =
-            "    public static $type $name = $value;"
+            "    public static final $type $name = $value;"
 
     override fun generateBuildConfig(packageName: String, variant: Variant, buildConfigs: List<BuildConfig>) : String {
         val lines = arrayListOf<String>()
         with(lines) {
             add("package $packageName;")
             add("")
-            add("public class BuildConfig {")
+            add("public final class BuildConfig {")
             add(generate("String", "PRODUCT_FLAVOR", "\"" + variant.productFlavor.name + "\""))
             add(generate("String", "BUILD_TYPE", "\"" + variant.buildType.name + "\""))
             buildConfigs.forEach {
