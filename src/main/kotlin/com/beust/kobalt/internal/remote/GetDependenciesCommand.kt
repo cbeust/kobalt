@@ -3,8 +3,8 @@ package com.beust.kobalt.internal.remote
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.PluginInfo
-import com.beust.kobalt.internal.build.BuildFile
-import com.beust.kobalt.internal.build.BuildFileCompiler
+import com.beust.kobalt.kotlin.internal.build.BuildFile
+import com.beust.kobalt.kotlin.internal.build.BuildFileCompiler
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.MavenDependency
