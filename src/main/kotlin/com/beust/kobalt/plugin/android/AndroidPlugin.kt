@@ -104,10 +104,10 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     private fun adb(project: Project) = "${androidHome(project)}/platform-tools/adb"
 
     private fun temporaryApk(project: Project, flavor: String)
-            = KFiles.joinFileAndMakeDir(AndroidFiles.intermediates(project), "res", "resources-$flavor.ap_")
+            = KFiles.joinFileAndMakeDir(AndroidFiles.intermediates(project), "res", "resources$flavor.ap_")
 
     private fun apk(project: Project, flavor: String)
-            = KFiles.joinFileAndMakeDir(project.buildDirectory, "outputs", "apk", "app-$flavor.apk")
+            = KFiles.joinFileAndMakeDir(project.buildDirectory, "outputs", "apk", "${project.name}$flavor.apk")
 
     @Task(name = "generateR", description = "Generate the R.java file",
             runBefore = arrayOf("compile"), runAfter = arrayOf("clean"))

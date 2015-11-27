@@ -68,7 +68,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
         return result
     }
 
-    val shortArchiveName = productFlavor.name + "-" + buildType.name
+    val shortArchiveName = if (isDefault) "" else "-" + productFlavor.name + "-" + buildType.name
 
     var generatedSourceDirectory: File? = null
 
