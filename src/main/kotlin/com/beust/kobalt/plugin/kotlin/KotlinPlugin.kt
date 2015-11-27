@@ -30,11 +30,12 @@ class KotlinPlugin @Inject constructor(
             IClasspathContributor {
 
     companion object {
-        public const val TASK_COMPILE: String = "compile"
-        public const val TASK_COMPILE_TEST: String = "compileTest"
+        const val PLUGIN_NAME = "Kotlin"
+        const val TASK_COMPILE: String = "compile"
+        const val TASK_COMPILE_TEST: String = "compileTest"
     }
 
-    override val name = "kotlin"
+    override val name = PLUGIN_NAME
 
     override fun accept(project: Project) = project is KotlinProject
 
@@ -116,13 +117,13 @@ class KotlinPlugin @Inject constructor(
 fun kotlinProject(vararg project: Project, init: KotlinProject.() -> Unit): KotlinProject {
     return KotlinProject().apply {
         init()
-        (Kobalt.findPlugin("kotlin") as BasePlugin).addProject(this, project)
+        (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as BasePlugin).addProject(this, project)
     }
 }
 
 class KotlinCompilerConfig(val project: Project) {
     fun args(vararg options: String) {
-        (Kobalt.findPlugin("kotlin") as JvmCompilerPlugin).addCompilerArgs(project, *options)
+        (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as JvmCompilerPlugin).addCompilerArgs(project, *options)
     }
 }
 

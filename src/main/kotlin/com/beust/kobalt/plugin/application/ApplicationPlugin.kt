@@ -27,7 +27,7 @@ class ApplicationConfig {
 fun Project.application(init: ApplicationConfig.() -> Unit) {
     ApplicationConfig().let { config ->
         config.init()
-        (Plugins.findPlugin(ApplicationPlugin.NAME) as ApplicationPlugin).addConfiguration(this, config)
+        (Plugins.findPlugin(ApplicationPlugin.PLUGIN_NAME) as ApplicationPlugin).addConfiguration(this, config)
     }
 }
 
@@ -36,10 +36,10 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
         val dependencyManager: DependencyManager) : ConfigPlugin<ApplicationConfig>(), IRunContributor {
 
     companion object {
-        const val NAME = "application"
+        const val PLUGIN_NAME = "Application"
     }
 
-    override val name = NAME
+    override val name = PLUGIN_NAME
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)

@@ -20,11 +20,10 @@ import javax.inject.Singleton
 public class AptPlugin @Inject constructor(val depFactory: DepFactory, val executors: KobaltExecutors)
         : ConfigPlugin<AptConfig>(), ICompilerFlagContributor {
     companion object {
-        const val TASK_APT: String = "runApt"
-        const val NAME = "apt"
+        const val PLUGIN_NAME = "Apt"
     }
 
-    override val name = NAME
+    override val name = PLUGIN_NAME
 
     // ICompilerFlagContributor
     override fun flagsFor(project: Project, currentFlags: List<String>) : List<String> {
@@ -56,13 +55,13 @@ class AptConfig(var outputDir: String = "generated/sources/apt")
 public fun Project.apt(init: AptConfig.() -> Unit) {
     AptConfig().let {
         it.init()
-        (Kobalt.findPlugin(AptPlugin.NAME) as AptPlugin).addConfiguration(this, it)
+        (Kobalt.findPlugin(AptPlugin.PLUGIN_NAME) as AptPlugin).addConfiguration(this, it)
     }
 }
 
 @Directive
 fun Dependencies.apt(vararg dep: String) {
     dep.forEach {
-        (Kobalt.findPlugin(AptPlugin.NAME) as AptPlugin).addAptDependency(this, it)
+        (Kobalt.findPlugin(AptPlugin.PLUGIN_NAME) as AptPlugin).addAptDependency(this, it)
     }
 }

@@ -7,10 +7,10 @@ import javax.inject.Singleton
  * This plugin is used to gather tasks defined in build files, since these tasks don't really belong to any plugin.
  */
 @Singleton
-public class KobaltDefaultPlugin : BasePlugin() {
+public class KobaltPlugin : BasePlugin() {
     companion object {
-        public val NAME = "Kobalt default"
+        public val PLUGIN_NAME = "Kobalt"
     }
 
-    override val name: String get() = NAME
+    override val name: String get() = PLUGIN_NAME
 }

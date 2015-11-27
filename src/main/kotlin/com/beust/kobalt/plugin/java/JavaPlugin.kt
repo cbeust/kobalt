@@ -22,7 +22,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-public class JavaPlugin @Inject constructor(
+class JavaPlugin @Inject constructor(
         override val localRepo: LocalRepo,
         override val files: KFiles,
         override val depFactory: DepFactory,
@@ -32,12 +32,13 @@ public class JavaPlugin @Inject constructor(
         override val jvmCompiler: JvmCompiler)
         : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler) {
     companion object {
-        public const val TASK_COMPILE : String = "compile"
-        public const val TASK_JAVADOC : String = "javadoc"
-        public const val TASK_COMPILE_TEST: String = "compileTest"
+        const val PLUGIN_NAME = "Java"
+        const val TASK_COMPILE = "compile"
+        const val TASK_JAVADOC = "javadoc"
+        const val TASK_COMPILE_TEST = "compileTest"
     }
 
-    override val name = "java"
+    override val name = PLUGIN_NAME
 
     override fun accept(project: Project) = project is JavaProject
 
@@ -95,13 +96,13 @@ public class JavaPlugin @Inject constructor(
 public fun javaProject(vararg project: Project, init: JavaProject.() -> Unit): JavaProject {
     return JavaProject().apply {
         init()
-        (Kobalt.findPlugin("java") as BasePlugin).addProject(this, project)
+        (Kobalt.findPlugin(JavaPlugin.PLUGIN_NAME) as BasePlugin).addProject(this, project)
     }
 }
 
 class JavaCompilerConfig(val project: Project) {
     fun args(vararg options: String) {
-        (Kobalt.findPlugin("java") as JvmCompilerPlugin).addCompilerArgs(project, *options)
+        (Kobalt.findPlugin(JavaPlugin.PLUGIN_NAME) as JvmCompilerPlugin).addCompilerArgs(project, *options)
     }
 }
 

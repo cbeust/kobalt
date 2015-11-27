@@ -20,7 +20,7 @@ class DokkaPlugin : ConfigsPlugin<DokkaConfig>() {
     override val name = PLUGIN_NAME
 
     companion object {
-        const val PLUGIN_NAME = "dokka"
+        const val PLUGIN_NAME = "Dokka"
     }
 
     /**

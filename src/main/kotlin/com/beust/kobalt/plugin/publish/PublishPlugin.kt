@@ -18,9 +18,10 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
             val jcenterFactory: JCenterApi.IFactory, val github: GithubApi, val localProperties: LocalProperties)
         : BasePlugin() {
 
-    override val name = "publish"
+    override val name = PLUGIN_NAME
 
     companion object {
+        const val PLUGIN_NAME = "Publish"
         private const val TASK_UPLOAD_JCENTER = "uploadJcenter"
         private const val TASK_UPLOAD_GITHUB = "uploadGithub"
         private const val TASK_GENERATE_POM = "generatePom"
@@ -152,7 +153,7 @@ data class GithubConfig(val project: Project) {
 public fun Project.github(init: GithubConfig.() -> Unit) {
     with(GithubConfig(this)) {
         init()
-        (Kobalt.findPlugin("publish") as PublishPlugin).addGithubConfiguration(name, this)
+        (Kobalt.findPlugin(PublishPlugin.PLUGIN_NAME) as PublishPlugin).addGithubConfiguration(name, this)
     }
 }
 
@@ -170,6 +171,6 @@ data class JCenterConfig(val project: Project) {
 public fun Project.jcenter(init: JCenterConfig.() -> Unit) {
     with(JCenterConfig(this)) {
         init()
-        (Kobalt.findPlugin("publish") as PublishPlugin).addJCenterConfiguration(name, this)
+        (Kobalt.findPlugin(PublishPlugin.PLUGIN_NAME) as PublishPlugin).addJCenterConfiguration(name, this)
     }
 }

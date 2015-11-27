@@ -31,7 +31,7 @@ class AndroidConfig(var compileSdkVersion : String = "23",
 fun Project.android(init: AndroidConfig.() -> Unit) : AndroidConfig {
     val pd = AndroidConfig()
     pd.init()
-    (Kobalt.findPlugin("android") as AndroidPlugin).addConfiguration(this, pd)
+    (Kobalt.findPlugin(AndroidPlugin.PLUGIN_NAME) as AndroidPlugin).addConfiguration(this, pd)
     return pd
 }
 
@@ -42,7 +42,13 @@ fun Project.android(init: AndroidConfig.() -> Unit) : AndroidConfig {
 public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, val merger: Merger)
         : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
             ICompilerInterceptor, IBuildDirectoryIncerceptor, IRunContributor {
-    override val name = "android"
+
+    companion object {
+        const val PLUGIN_NAME = "Android"
+        const val TASK_GENERATE_DEX = "generateDex"
+    }
+
+    override val name = PLUGIN_NAME
 
     fun isAndroid(project: Project) = configurationFor(project) != null
 
@@ -235,10 +241,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         } else {
             return emptyList()
         }
-    }
-
-    companion object {
-        const val TASK_GENERATE_DEX = "generateDex"
     }
 
     @Task(name = TASK_GENERATE_DEX, description = "Generate the dex file", runBefore = arrayOf("assemble"),
