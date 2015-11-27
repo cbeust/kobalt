@@ -3,7 +3,7 @@ package com.beust.kobalt.misc
 import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.homeDir
-import com.beust.kobalt.kotlin.BuildFile
+import com.beust.kobalt.internal.build.BuildFile
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files

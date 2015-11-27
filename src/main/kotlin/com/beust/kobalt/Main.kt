@@ -5,10 +5,10 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
+import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.internal.build.BuildFileCompiler
 import com.beust.kobalt.internal.remote.KobaltClient
 import com.beust.kobalt.internal.remote.KobaltServer
-import com.beust.kobalt.kotlin.BuildFile
-import com.beust.kobalt.kotlin.BuildFileCompiler
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.LocalRepo
