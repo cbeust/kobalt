@@ -65,6 +65,9 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         return allProjects
     }
 
+    /**
+     * Make sure all the projects have a unique name.
+     */
     private fun validateProjects(projects: List<Project>) {
         val seen = hashSetOf<String>()
         projects.forEach {
@@ -93,7 +96,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
             }
 
             // Write the modified Build.kt (e.g. maybe profiles were applied) to a temporary file,
-            // compile it and run it
+            // compile it, jar it in buildScript.jar and run it
             val modifiedBuildFile = KFiles.createTempFile(".kt")
             KFiles.saveFile(modifiedBuildFile, pair.first.buildScriptCode)
             maybeCompileBuildFile(context, BuildFile(Paths.get(modifiedBuildFile.path), "Modified Build.kt"),
