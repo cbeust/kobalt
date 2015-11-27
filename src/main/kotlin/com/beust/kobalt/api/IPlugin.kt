@@ -1,14 +1,14 @@
 package com.beust.kobalt.api
 
 import com.beust.kobalt.BasePluginTask
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.TaskManager
-import com.beust.kobalt.TaskResult
 import com.beust.kobalt.internal.TaskResult2
 import java.lang.reflect.Method
 import java.util.*
 
-public interface IPlugin {
+public interface IPlugin : IPluginActor {
     val name: String
     val tasks : ArrayList<PluginTask>
     fun accept(project: Project) : Boolean

@@ -4,4 +4,6 @@ interface IPluginActor
 
 interface IContributor : IPluginActor
 
+interface IInterceptor : IPluginActor
+
 
