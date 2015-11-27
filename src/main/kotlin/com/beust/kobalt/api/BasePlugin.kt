@@ -35,8 +35,8 @@ abstract public class BasePlugin : IPlugin {
             runAfter : List<String> = emptyList(),
             runTask: (Project) -> TaskResult) {
         Variant.allVariants(project).forEach { variant ->
-            val taskName = variant.toTask(taskName)
-            addTask(project, taskName, taskName,
+            val variantTaskName = variant.toTask(taskName)
+            addTask(project, variantTaskName, variantTaskName,
                 runBefore = runBefore.map { variant.toTask(it) },
                 runAfter = runAfter.map { variant.toTask(it) },
                 task = { p: Project ->
