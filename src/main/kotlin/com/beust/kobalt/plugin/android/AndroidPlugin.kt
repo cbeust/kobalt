@@ -313,8 +313,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         return TaskResult()
     }
 
-    @Task(name = "install", description = "Install the apk file", runAfter = arrayOf(TASK_GENERATE_DEX),
-            runBefore = arrayOf("assemble"))
+    @Task(name = "install", description = "Install the apk file", runAfter = arrayOf(TASK_GENERATE_DEX, "assemble"))
     fun taskInstall(project: Project): TaskResult {
         val apk = apk(project, context.variant.shortArchiveName)
         RunCommand(adb(project)).useErrorStreamAsErrorIndicator(false).run(args = listOf(
