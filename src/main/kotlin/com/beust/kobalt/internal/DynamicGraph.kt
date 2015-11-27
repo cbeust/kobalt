@@ -93,6 +93,10 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
             }
         }
         executor.shutdown()
+        if (graph.freeNodes.size == 0 && graph.nodesReady.size > 0) {
+            throw KobaltException("Couldn't find any free nodes but a few nodes still haven't run, there is " +
+                    "a cycle in the dependencies.\n  Nodes left: " + graph.dump(graph.nodesReady))
+        }
         return if (lastResult.success) 0 else 1
     }
 }
@@ -101,7 +105,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
  * Representation of the graph of methods.
  */
 public class DynamicGraph<T> {
-    private val nodesReady = linkedSetOf<T>()
+    val nodesReady = linkedSetOf<T>()
     private val nodesRunning = linkedSetOf<T>()
     private val nodesFinished = linkedSetOf<T>()
     private val nodesInError = linkedSetOf<T>()
@@ -258,21 +262,23 @@ public class DynamicGraph<T> {
 
     val nodes = hashSetOf<T>()
 
-    fun dump() : String {
+    fun dump(nodes: Collection<T>) : String {
         val result = StringBuffer()
         val free = arrayListOf<T>()
-        nodesReady.forEach { node ->
+        nodes.forEach { node ->
             val d = dependedUpon.get(node)
             if (d == null || d.isEmpty()) {
                 free.add(node)
             }
         }
 
-        result.append("Free: $free").append("\n  Dependencies:\n")
-        dependedUpon.keySet().forEach {
+        result.append("Free nodes: $free").append("\n  Dependent nodes:\n")
+        nodes.forEach {
             result.append("     $it -> ${dependedUpon.get(it)}\n")
         }
         return result.toString()
     }
+
+    fun dump() = dump(nodesReady)
 }
 
