@@ -11,7 +11,6 @@ import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.FileDependency
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
-import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.wrapper.ParentLastClassLoader
@@ -43,8 +42,14 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
                 log(1, "  Compiling ${info.sourceFiles.size} files")
             }
             val cp = compilerFirst(info.dependencies.map {it.jarFile.get()})
+            val outputDir = (info.directory ?: "") + info.outputDir
+            // kotlinc can accept a jar file as -d (which is super convenient) so only
+            // create a directory if the output is not a jar file
+            if (! outputDir.endsWith(".jar")) {
+                File(outputDir).mkdirs()
+            }
             val allArgs : Array<String> = arrayOf(
-                    "-d", KFiles.makeDir(info.directory!!, info.outputDir.path).path,
+                    "-d", outputDir,
                     "-classpath", cp.joinToString(File.pathSeparator),
                     *(info.compilerArgs.toTypedArray()),
                     *(info.sourceFiles.toTypedArray())
