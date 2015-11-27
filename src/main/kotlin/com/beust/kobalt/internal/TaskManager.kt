@@ -4,6 +4,8 @@ import com.beust.kobalt.*
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.log
+import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.Multimap
 import com.google.common.collect.TreeMultimap
 import java.util.*
 import javax.inject.Inject
@@ -43,7 +45,9 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
         var result = 0
         projects.forEach { project ->
             val projectName = project.name
-            val tasksByNames = hashMapOf<String, PluginTask>()
+            // There can be multiple tasks by the same name (e.g. PackagingPlugin and AndroidPlugin both
+            // define "install"), so use a multimap
+            val tasksByNames = ArrayListMultimap.create<String, PluginTask>()
             plugins.allTasks.filter {
                 it.project.name == project.name
             }.forEach {
@@ -53,66 +57,69 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             AsciiArt.logBox("Building project ${project.name}")
 
             log(3, "Tasks:")
-            tasksByNames.keys.forEach {
+            tasksByNames.keys().forEach {
                 log(3, "  $it: " + tasksByNames.get(it))
             }
             val graph = DynamicGraph<PluginTask>()
             taskNames.forEach { taskName ->
                 val ti = TaskInfo(taskName)
-                if (! tasksByNames.contains(ti.taskName)) {
+                if (! tasksByNames.keys().contains(ti.taskName)) {
                     throw KobaltException("Unknown task: $taskName")
                 }
 
                 if (ti.matches(projectName)) {
-                    val task = tasksByNames[ti.taskName]
-                    if (task != null && task.plugin.accept(project)) {
-                        val reverseAfter = hashMapOf<String, String>()
-                        alwaysRunAfter.keys().forEach { from ->
-                            val tasks = alwaysRunAfter.get(from)
-                            tasks.forEach {
-                                reverseAfter.put(it, from)
-                            }
-                        }
-
-                        //
-                        // If the current target is free, add it as a single node to the graph
-                        //
-                        val allFreeTasks = calculateFreeTasks(tasksByNames, reverseAfter)
-                        val currentFreeTask = allFreeTasks.filter {
-                            TaskInfo(projectName, it.name).taskName == task.name
-                        }
-                        if (currentFreeTask.size == 1) {
-                            currentFreeTask[0].let {
-                                graph.addNode(it)
-                            }
-                        }
-
-                        //
-                        // Add the transitive closure of the current task as edges to the graph
-                        //
-                        val transitiveClosure = calculateTransitiveClosure(project, tasksByNames, ti)
-                        transitiveClosure.forEach { pluginTask ->
-                            val rb = runBefore.get(pluginTask.name)
-                            rb.forEach {
-                                val to = tasksByNames[it]
-                                if (to != null) {
-                                    graph.addEdge(pluginTask, to)
-                                } else {
-                                    log(2, "Couldn't find node $it: not applicable to project ${project.name}")
+                    tasksByNames[ti.taskName].forEach { task ->
+                        if (task != null && task.plugin.accept(project)) {
+                            val reverseAfter = hashMapOf<String, String>()
+                            alwaysRunAfter.keys().forEach { from ->
+                                val tasks = alwaysRunAfter.get(from)
+                                tasks.forEach {
+                                    reverseAfter.put(it, from)
                                 }
                             }
-                        }
 
-                        //
-                        // If any of the nodes in the graph has an "alwaysRunAfter", add that edge too
-                        //
-                        val allNodes = arrayListOf<PluginTask>()
-                        allNodes.addAll(graph.nodes)
-                        allNodes.forEach { node ->
-                            val other = alwaysRunAfter.get(node.name)
-                            other?.forEach { o ->
-                                tasksByNames[o]?.let {
-                                    graph.addEdge(it, node)
+                            //
+                            // If the current target is free, add it as a single node to the graph
+                            //
+                            val allFreeTasks = calculateFreeTasks(tasksByNames, reverseAfter)
+                            val currentFreeTask = allFreeTasks.filter {
+                                TaskInfo(projectName, it.name).taskName == task.name
+                            }
+                            if (currentFreeTask.size == 1) {
+                                currentFreeTask[0].let {
+                                    graph.addNode(it)
+                                }
+                            }
+
+                            //
+                            // Add the transitive closure of the current task as edges to the graph
+                            //
+                            val transitiveClosure = calculateTransitiveClosure(project, tasksByNames, ti)
+                            transitiveClosure.forEach { pluginTask ->
+                                val rb = runBefore.get(pluginTask.name)
+                                rb.forEach {
+                                    val tos = tasksByNames[it]
+                                    if (tos != null && tos.size > 0) {
+                                        tos.forEach { to ->
+                                            graph.addEdge(pluginTask, to)
+                                        }
+                                    } else {
+                                        log(2, "Couldn't find node $it: not applicable to project ${project.name}")
+                                    }
+                                }
+                            }
+
+                            //
+                            // If any of the nodes in the graph has an "alwaysRunAfter", add that edge too
+                            //
+                            val allNodes = arrayListOf<PluginTask>()
+                            allNodes.addAll(graph.nodes)
+                            allNodes.forEach { node ->
+                                val other = alwaysRunAfter.get(node.name)
+                                other?.forEach { o ->
+                                    tasksByNames[o]?.forEach {
+                                        graph.addEdge(it, node)
+                                    }
                                 }
                             }
                         }
@@ -148,12 +155,14 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
     /**
      * Find the free tasks of the graph.
      */
-    private fun calculateFreeTasks(tasksByNames: Map<String, PluginTask>, reverseAfter: HashMap<String, String>)
+    private fun calculateFreeTasks(tasksByNames: Multimap<String, PluginTask>, reverseAfter: HashMap<String, String>)
             : Collection<PluginTask> {
         val freeTaskMap = hashMapOf<String, PluginTask>()
-        tasksByNames.keys.forEach {
+        tasksByNames.keys().forEach {
             if (! runBefore.containsKey(it) && ! reverseAfter.containsKey(it)) {
-                freeTaskMap.put(it, tasksByNames[it]!!)
+                tasksByNames[it].forEach { t ->
+                    freeTaskMap.put(it, t)
+                }
             }
         }
 
@@ -163,7 +172,8 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
     /**
      * Find the transitive closure for the given TaskInfo
      */
-    private fun calculateTransitiveClosure(project: Project, tasksByNames: Map<String, PluginTask>, ti: TaskInfo): HashSet<PluginTask> {
+    private fun calculateTransitiveClosure(project: Project, tasksByNames: Multimap<String, PluginTask>, ti: TaskInfo):
+            HashSet<PluginTask> {
         log(3, "Processing ${ti.taskName}")
 
         val transitiveClosure = hashSetOf<PluginTask>()
@@ -178,8 +188,8 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
                 val currentTask = TaskInfo(project.name, target.taskName)
                 val thisTask = tasksByNames[currentTask.taskName]
                 if (thisTask != null) {
-                    transitiveClosure.add(thisTask)
-                    val dependencyNames = runBefore.get(thisTask.name)
+                    transitiveClosure.addAll(thisTask)
+                    val dependencyNames = runBefore.get(currentTask.taskName)
                     dependencyNames.forEach { dependencyName ->
                         if (!seen.contains(dependencyName)) {
                             newToProcess.add(currentTask)
