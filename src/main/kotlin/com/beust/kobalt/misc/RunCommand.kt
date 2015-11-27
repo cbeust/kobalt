@@ -50,7 +50,7 @@ open class RunCommand(val command: String) {
         val hasErrorStream = process.errorStream.available() > 0
         var hasErrors = ! callSucceeded
         if (useErrorStreamAsErrorIndicator && ! hasErrors) {
-            hasErrors = hasErrors && hasErrorStream
+            hasErrors = hasErrors || hasErrorStream
         }
 
         if (! hasErrors) {
@@ -64,7 +64,7 @@ open class RunCommand(val command: String) {
                 else "<no output>"
             errorCallback(listOf("$command failed") + errorString)
         }
-        return if (callSucceeded) 0 else 1
+        return if (hasErrors) 1 else 0
     }
 
     private fun fromStream(ins: InputStream) : List<String> {

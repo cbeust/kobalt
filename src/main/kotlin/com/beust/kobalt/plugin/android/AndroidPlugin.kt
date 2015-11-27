@@ -119,22 +119,25 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         val resDir = "temporaryBogusResDir"
         explodeAarFiles(project, intermediates, File(resDir))
         val generated = AndroidFiles.generated(project)
-        generateR(project, generated, aapt(project))
-        return TaskResult()
+        val success = generateR(project, generated, aapt(project))
+        return TaskResult(success)
     }
 
+    /**
+     * aapt returns 0 even if it fails, so in order to detect whether it failed, we are checking
+     * if its error stream contains anything.
+     */
     inner class AaptCommand(project: Project, aapt: String, val aaptCommand: String,
-            useErrorStream: Boolean = false,
             cwd: File = File(".")) : AndroidCommand(project, androidHome(project), aapt) {
         init {
             directory = cwd
-            useErrorStreamAsErrorIndicator = useErrorStream
+            useErrorStreamAsErrorIndicator = true
         }
 
         override fun call(args: List<String>) = super.run(arrayListOf(aaptCommand) + args)
     }
 
-    private fun generateR(project: Project, generated: String, aapt: String) {
+    private fun generateR(project: Project, generated: String, aapt: String) : Boolean {
         val compileSdkVersion = compileSdkVersion(project)
         val androidJar = Paths.get(androidHome(project), "platforms", "android-$compileSdkVersion", "android.jar")
         val applicationId = configurationFor(project)?.applicationId!!
@@ -150,7 +153,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         val variantDir = context.variant.toIntermediateDir()
 
         val rDirectory = KFiles.joinAndMakeDir(generated, "source", "r", variantDir).toString()
-        AaptCommand(project, aapt, "package", false).call(listOf(
+        val result = AaptCommand(project, aapt, "package").call(listOf(
                 "-f",
                 "--no-crunch",
                 "-I", androidJar.toString(),
@@ -172,6 +175,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         val rOutputDirectory = KFiles.joinDir(rDirectory, applicationId.replace(".", File.separator))
         val generatedBuildDir = compile(project, rOutputDirectory)
         project.compileDependencies.add(FileDependency(generatedBuildDir.path))
+        return result == 0
     }
 
     /**

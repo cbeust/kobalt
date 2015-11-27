@@ -42,7 +42,6 @@ abstract public class BasePlugin : IPlugin {
                 task = { p: Project ->
                     context.variant = variant
                     runTask(project)
-                    TaskResult()
                 })
         }
     }
