@@ -1,17 +1,30 @@
 package com.beust.kobalt.kotlin.internal
 
+import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.KobaltContext
+import com.beust.kobalt.api.Project
+import com.beust.kobalt.kotlin.BuildFile
+import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.countChar
+import com.beust.kobalt.misc.log
+import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import java.io.File
+import java.net.URL
 import java.nio.charset.Charset
+import java.nio.file.Paths
 import java.util.*
 
-class ParsedBuildFile(val file: File, val context: KobaltContext) {
-    val plugins = arrayListOf<String>()
+class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val buildScriptUtil: BuildScriptUtil,
+        val dependencyManager: DependencyManager, val files: KFiles) {
+    val pluginList = arrayListOf<String>()
     val repos = arrayListOf<String>()
     val profileLines = arrayListOf<String>()
+    val pluginUrls = arrayListOf<URL>()
+    val projects = arrayListOf<Project>()
 
-    private val preBuildScript = arrayListOf("import com.beust.kobalt.*",
+    private val preBuildScript = arrayListOf(
+            "import com.beust.kobalt.*",
             "import com.beust.kobalt.api.*")
     val preBuildScriptCode : String get() = preBuildScript.joinToString("\n")
 
@@ -20,15 +33,16 @@ class ParsedBuildFile(val file: File, val context: KobaltContext) {
 
     init {
         parseBuildFile()
+        initPluginUrls()
     }
 
     private fun parseBuildFile() {
         var parenCount = 0
-        file.forEachLine(Charset.defaultCharset()) { line ->
+        buildFile.path.toFile().forEachLine(Charset.defaultCharset()) { line ->
             var current: ArrayList<String>? = null
             var index = line.indexOf("plugins(")
             if (index >= 0) {
-                current = plugins
+                current = pluginList
             } else {
                 index = line.indexOf("repos(")
                 if (index >= 0) {
@@ -66,7 +80,51 @@ class ParsedBuildFile(val file: File, val context: KobaltContext) {
         }
 
         repos.forEach { preBuildScript.add(it) }
-        plugins.forEach { preBuildScript.add(it) }
+        pluginList.forEach { preBuildScript.add(it) }
+    }
+
+    private fun initPluginUrls() {
+        //
+        // Compile and run preBuildScriptCode, which contains all the plugins() calls extracted. This
+        // will add all the dynamic plugins found in this code to Plugins.dynamicPlugins
+        //
+        val pluginSourceFile = KFiles.createTempFile(".kt")
+        pluginSourceFile.writeText(preBuildScriptCode, Charset.defaultCharset())
+        log(2, "Saved ${pluginSourceFile.absolutePath}")
+
+        //
+        // Compile to preBuildScript.jar
+        //
+        val buildScriptJar = KFiles.findBuildScriptLocation(buildFile, "preBuildScript.jar")
+        val buildScriptJarFile = File(buildScriptJar)
+        if (! buildScriptUtil.isUpToDate(buildFile, File(buildScriptJar))) {
+            buildScriptJarFile.parentFile.mkdirs()
+            generateJarFile(context, BuildFile(Paths.get(pluginSourceFile.path), "Plugins"), buildScriptJarFile)
+            VersionFile.generateVersionFile(buildScriptJarFile.parentFile)
+        }
+
+        //
+        // Run preBuildScript.jar to initialize plugins and repos
+        //
+        projects.addAll(buildScriptUtil.runBuildScriptJarFile(buildScriptJarFile, arrayListOf<URL>(), context))
+
+        //
+        // All the plug-ins are now in Plugins.dynamicPlugins, download them if they're not already
+        //
+        Plugins.dynamicPlugins.forEach {
+            pluginUrls.add(it.jarFile.get().toURI().toURL())
+        }
+    }
+
+    private fun generateJarFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File) {
+        val kotlintDeps = dependencyManager.calculateDependencies(null, context)
+        val deps: List<String> = kotlintDeps.map { it.jarFile.get().absolutePath }
+        kotlinCompilePrivate {
+            classpath(files.kobaltJar)
+            classpath(deps)
+            sourceFiles(buildFile.path.toFile().absolutePath)
+            output = File(buildScriptJarFile.absolutePath)
+        }.compile(context = context)
     }
 }
 

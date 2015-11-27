@@ -1,6 +1,7 @@
 package com.beust.kobalt.internal.remote
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.kotlin.BuildFile
 import com.beust.kobalt.kotlin.BuildFileCompiler
@@ -28,16 +29,16 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
         val buildFile = BuildFile(Paths.get(received.get("buildFile").asString), "GetDependenciesCommand")
         val scriptCompiler = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
         scriptCompiler.observable.subscribe {
-            buildScriptInfo -> if (buildScriptInfo.projects.size > 0) {
-                sender.sendData(toData(buildScriptInfo))
+            projects -> if (projects.size > 0) {
+                sender.sendData(toData(projects))
             }
         }
         scriptCompiler.compileBuildFiles(args)
     }
 
-    private fun toData(info: BuildFileCompiler.BuildScriptInfo) : CommandData {
+    private fun toData(projects: List<Project>) : CommandData {
+        val projectDatas = arrayListOf<ProjectData>()
         val executor = executors.miscExecutor
-        val projects = arrayListOf<ProjectData>()
 
         fun toDependencyData(d: IClasspathDependency, scope: String) : DependencyData {
             val dep = MavenDependency.create(d.id, executor)
@@ -46,7 +47,7 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
 
         fun allDeps(l: List<IClasspathDependency>) = dependencyManager.transitiveClosure(l)
 
-        info.projects.forEach { project ->
+        projects.forEach { project ->
             val allDependencies =
                 allDeps(project.compileDependencies).map { toDependencyData(it, "compile") } +
                 allDeps(project.compileProvidedDependencies).map { toDependencyData(it, "provided") } +
@@ -54,10 +55,10 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
                 allDeps(project.testDependencies).map { toDependencyData(it, "testCompile") } +
                 allDeps(project.testProvidedDependencies).map { toDependencyData(it, "testProvided") }
 
-            projects.add(ProjectData(project.name, allDependencies))
+            projectDatas.add(ProjectData(project.name, allDependencies))
         }
         log(1, "Returning BuildScriptInfo")
-        val result = toCommandData(Gson().toJson(GetDependenciesData(projects)))
+        val result = toCommandData(Gson().toJson(GetDependenciesData(projectDatas)))
         log(2, "  $result")
         return result
     }
