@@ -9,3 +9,4 @@ test-output
 .kobalt/dist
 local.properties
 classes
+libs
