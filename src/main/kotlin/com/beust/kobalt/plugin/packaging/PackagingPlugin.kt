@@ -264,15 +264,14 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     @Task(name = PackagingPlugin.TASK_INSTALL, description = "Install the artifacts",
             runAfter = arrayOf(PackagingPlugin.TASK_ASSEMBLE))
     fun taskInstall(project: Project) : TaskResult {
-        val config = configurationFor(project)
-        if (config != null) {
-            val buildDir = project.projectProperties.getString(LIBS_DIR)
+        val config = configurationFor(project) ?: InstallConfig()
+        val buildDir = project.projectProperties.getString(LIBS_DIR)
+        val buildDirFile = File(buildDir)
+        if (buildDirFile.exists()) {
             log(1, "Installing from $buildDir to ${config.libDir}")
 
             val toDir = KFiles.makeDir(config.libDir)
-            KFiles.copyRecursively(File(buildDir), toDir)
-        } else {
-            log(1, "No install specified for ${project.name}, nothing to do")
+            KFiles.copyRecursively(buildDirFile, toDir)
         }
 
         return TaskResult()
