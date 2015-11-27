@@ -22,22 +22,6 @@ import java.net.URI
 import java.nio.file.Path
 import java.nio.file.Paths
 
-class AndroidConfig(var compileSdkVersion : String = "23",
-        var buildToolsVersion : String = "23.0.1",
-        var applicationId: String? = null,
-        val androidHome: String? = null)
-
-@Directive
-fun Project.android(init: AndroidConfig.() -> Unit) : AndroidConfig {
-    val pd = AndroidConfig()
-    pd.init()
-    (Kobalt.findPlugin(AndroidPlugin.PLUGIN_NAME) as AndroidPlugin).addConfiguration(this, pd)
-    return pd
-}
-
-//val Project.isAndroid : Boolean
-//        get() = (Kobalt.findPlugin("android") as AndroidPlugin).isAndroid(this)
-
 @Singleton
 public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, val merger: Merger)
         : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
@@ -295,6 +279,11 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         return TaskResult()
     }
 
+    private val DEFAULT_DEBUG_SIGNING_CONFIG = SigningConfig(
+            SigningConfig.DEFAULT_STORE_FILE,
+            SigningConfig.DEFAULT_STORE_PASSWORD,
+            SigningConfig.DEFAULT_KEY_ALIAS,
+            SigningConfig.DEFAULT_KEY_PASSWORD)
 
     /**
      * Sign the apk
@@ -307,16 +296,29 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     fun taskSignApk(project: Project): TaskResult {
         val apk = apk(project, context.variant.shortArchiveName)
         val temporaryApk = temporaryApk(project, context.variant.shortArchiveName)
-        RunCommand("jarsigner").run(listOf(
-                "-keystore", homeDir(".android", "debug.keystore"),
-                "-storepass", "android",
-                "-keypass", "android",
+        val buildType = context.variant.buildType.name
+
+        val config = configurationFor(project)
+        var signingConfig = config!!.signingConfigs[buildType]
+        if (signingConfig == null && buildType == "debug") {
+            signingConfig = DEFAULT_DEBUG_SIGNING_CONFIG
+        }
+
+        if (signingConfig == null) {
+            throw KobaltException("No signingConfig found for product type $buildType")
+        }
+
+        val success = RunCommand("jarsigner").run(listOf(
+                "-keystore", signingConfig.storeFile,
+                "-storepass", signingConfig.storePassword,
+                "-keypass", signingConfig.keyPassword,
                 "-signedjar", apk,
                 temporaryApk,
-                "androiddebugkey"
+                signingConfig.keyAlias
         ))
         log(1, "Created $apk")
-        return TaskResult()
+
+        return TaskResult(success == 0)
     }
 
     @Task(name = "install", description = "Install the apk file", runAfter = arrayOf(TASK_GENERATE_DEX, "assemble"))
@@ -391,5 +393,46 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
             return TaskResult()
         }
     }
-
 }
+
+class AndroidConfig(val project: Project, var compileSdkVersion : String = "23",
+        var buildToolsVersion : String = "23.0.1",
+        var applicationId: String? = null,
+        val androidHome: String? = null) {
+
+    val signingConfigs = hashMapOf<String, SigningConfig>()
+
+    fun addSigningConfig(name: String, project: Project, signingConfig: SigningConfig) {
+        signingConfigs.put(name, signingConfig)
+    }
+}
+
+@Directive
+fun Project.android(init: AndroidConfig.() -> Unit) : AndroidConfig = let { project ->
+    return AndroidConfig(project).apply {
+        init()
+        (Kobalt.findPlugin(AndroidPlugin.PLUGIN_NAME) as AndroidPlugin).addConfiguration(project, this)
+    }
+}
+
+class SigningConfig(var storeFile: String = SigningConfig.DEFAULT_STORE_FILE,
+        var storePassword: String = SigningConfig.DEFAULT_STORE_PASSWORD,
+        var keyAlias: String = SigningConfig.DEFAULT_KEY_ALIAS,
+        var keyPassword: String = SigningConfig.DEFAULT_KEY_ALIAS) {
+
+    companion object {
+        val DEFAULT_STORE_FILE = homeDir(".android", "debug.keystore")
+        val DEFAULT_STORE_PASSWORD = "android"
+        val DEFAULT_KEY_ALIAS = "androiddebugkey"
+        val DEFAULT_KEY_PASSWORD = "android"
+    }
+}
+
+@Directive
+fun AndroidConfig.signingConfig(name: String, init: SigningConfig.() -> Unit) : SigningConfig = let { androidConfig ->
+    SigningConfig().apply {
+        init()
+        androidConfig.addSigningConfig(name, project, this)
+    }
+}
+
