@@ -105,8 +105,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         }
 
         //
-        // Transitive closure of libraries into WEB-INF/libs
-        // Copy them all in kobaltBuild/war/WEB-INF/libs and created one IncludedFile out of that directory
+        // The transitive closure of libraries goes into WEB-INF/libs.
+        // Copy them all in kobaltBuild/war/WEB-INF/libs and create one IncludedFile out of that directory
         //
         val allDependencies = dependencyManager.transitiveClosure(project.compileDependencies)
 
@@ -114,9 +114,22 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val outDir = project.buildDirectory + "/war"
         val fullDir = outDir + "/" + WEB_INF
         File(fullDir).mkdirs()
+
+        // Run through all the classpath contributors and add their contributions to the libs/ directory
+        context.pluginInfo.classpathContributors.map {
+            it.entriesFor(project)
+        }.map { deps : Collection<IClasspathDependency> ->
+            deps.forEach { dep ->
+                val jar = dep.jarFile.get()
+                KFiles.copy(Paths.get(jar.path), Paths.get(fullDir, jar.name))
+            }
+        }
+
+        // Add the regular dependencies to the libs/ directory
         allDependencies.map { it.jarFile.get() }.forEach {
             KFiles.copy(Paths.get(it.absolutePath), Paths.get(fullDir, it.name))
         }
+
         allFiles.add(IncludedFile(From(fullDir), To(WEB_INF), listOf(Glob("**"))))
 
         val jarFactory = { os:OutputStream -> JarOutputStream(os, manifest) }
