@@ -9,3 +9,4 @@ local.properties
 classes
 libs
 .kobalt/
+build/
