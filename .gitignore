@@ -2,11 +2,10 @@
 annotations
 .idea/*
 !.idea/modules.xml
-build
 buildScript
 kobaltBuild
 test-output
-.kobalt/dist
 local.properties
 classes
 libs
+.kobalt/
