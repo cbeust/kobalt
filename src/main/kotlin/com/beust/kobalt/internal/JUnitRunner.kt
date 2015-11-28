@@ -3,7 +3,7 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.api.IRunnerContributor
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.maven.IClasspathDependency
+import com.beust.kobalt.maven.dependency.IClasspathDependency
 
 public class JUnitRunner() : GenericTestRunner() {
 

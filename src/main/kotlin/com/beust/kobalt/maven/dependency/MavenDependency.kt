@@ -1,11 +1,13 @@
-package com.beust.kobalt.maven
+package com.beust.kobalt.maven.dependency
 
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.DependencyExecutor
 import com.beust.kobalt.misc.Versions
 import com.beust.kobalt.misc.warn
 import com.google.inject.Key
+import org.apache.maven.model.Dependency
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
@@ -59,8 +61,8 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
 
     override val id = mavenId.toId
 
-    override fun toMavenDependencies(): org.apache.maven.model.Dependency {
-        return org.apache.maven.model.Dependency().apply {
+    override fun toMavenDependencies(): Dependency {
+        return Dependency().apply {
             setGroupId(groupId)
             setArtifactId(artifactId)
             setVersion(version)

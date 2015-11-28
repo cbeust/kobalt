@@ -1,6 +1,9 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.KobaltException
+import com.beust.kobalt.maven.dependency.FileDependency
+import com.beust.kobalt.maven.dependency.IClasspathDependency
+import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KobaltExecutors
 import java.util.concurrent.ExecutorService
 import javax.inject.Inject

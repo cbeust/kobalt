@@ -11,6 +11,9 @@ import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.*
+import com.beust.kobalt.maven.dependency.FileDependency
+import com.beust.kobalt.maven.dependency.IClasspathDependency
+import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.warn

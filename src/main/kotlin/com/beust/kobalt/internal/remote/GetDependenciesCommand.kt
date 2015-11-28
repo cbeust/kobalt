@@ -6,8 +6,8 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.internal.build.BuildFileCompiler
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.IClasspathDependency
-import com.beust.kobalt.maven.MavenDependency
+import com.beust.kobalt.maven.dependency.IClasspathDependency
+import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.google.gson.Gson

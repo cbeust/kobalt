@@ -5,7 +5,7 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.maven.DepFactory
-import com.beust.kobalt.maven.IClasspathDependency
+import com.beust.kobalt.maven.dependency.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors

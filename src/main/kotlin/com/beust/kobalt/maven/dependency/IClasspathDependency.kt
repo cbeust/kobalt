@@ -1,11 +1,17 @@
-package com.beust.kobalt.maven
+package com.beust.kobalt.maven.dependency
 
+import org.apache.maven.model.Dependency
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
 
+/**
+ * Encapsulate a dependency that can be put on the classpath. This interface
+ * has two subclasses: FileDependency (a physical file) and MavenDependency,
+ * which represents a dependency living in a Maven repo.
+ */
 interface IClasspathDependency {
     companion object {
         val PREFIX_FILE: String = "file://"
@@ -18,7 +24,7 @@ interface IClasspathDependency {
     val jarFile: Future<File>
 
     /** Convert to a Maven <dependency> model tag */
-    fun toMavenDependencies() : org.apache.maven.model.Dependency
+    fun toMavenDependencies() : Dependency
 
     /** The list of dependencies for this element (not the transitive closure */
     fun directDependencies(): List<IClasspathDependency>
@@ -53,38 +59,4 @@ interface IClasspathDependency {
         }
         return result
     }
-}
-
-open public class FileDependency(open val fileName: String) : IClasspathDependency, Comparable<FileDependency> {
-    override val id = IClasspathDependency.PREFIX_FILE + fileName
-
-    override val jarFile = CompletedFuture(File(fileName))
-
-    override fun toMavenDependencies(): org.apache.maven.model.Dependency {
-        with(org.apache.maven.model.Dependency()) {
-            systemPath = jarFile.get().absolutePath
-            return this
-        }
-    }
-
-    override val shortId = fileName
-
-    override fun directDependencies() = arrayListOf<IClasspathDependency>()
-
-    override fun compareTo(other: FileDependency) = fileName.compareTo(other.fileName)
-
-    override fun toString() = fileName
-
-    override fun equals(other: Any?): Boolean{
-        if (this === other) return true
-        if (other?.javaClass != javaClass) return false
-
-        other as FileDependency
-
-        if (id != other.id) return false
-
-        return true
-    }
-
-    override fun hashCode() = id.hashCode()
 }

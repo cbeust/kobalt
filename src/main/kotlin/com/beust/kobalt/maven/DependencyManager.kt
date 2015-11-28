@@ -4,6 +4,8 @@ import com.beust.kobalt.api.IClasspathContributor
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.ProjectDescription
+import com.beust.kobalt.maven.dependency.FileDependency
+import com.beust.kobalt.maven.dependency.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.warn

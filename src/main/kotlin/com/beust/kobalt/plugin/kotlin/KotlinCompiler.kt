@@ -8,8 +8,8 @@ import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.maven.DepFactory
-import com.beust.kobalt.maven.FileDependency
-import com.beust.kobalt.maven.IClasspathDependency
+import com.beust.kobalt.maven.dependency.FileDependency
+import com.beust.kobalt.maven.dependency.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -127,7 +127,7 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
 //                getKotlinCompilerJar("kotlin-compiler-embeddable"))
 //            .map { FileDependency(it) }
 
-        val dependencies = compileDependencies + otherClasspath.map { FileDependency(it)}
+        val dependencies = compileDependencies + otherClasspath.map { FileDependency(it) }
         val info = CompilerActionInfo(project?.directory, dependencies, sourceFiles, outputDir, args)
         return jvmCompiler.doCompile(project, context, compilerAction, info)
     }

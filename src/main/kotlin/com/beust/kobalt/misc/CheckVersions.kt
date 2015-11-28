@@ -2,7 +2,7 @@ package com.beust.kobalt.misc
 
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.DepFactory
-import com.beust.kobalt.maven.MavenDependency
+import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.maven.MavenId
 import javax.inject.Inject
 

@@ -4,7 +4,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.maven.DepFactory
-import com.beust.kobalt.maven.IClasspathDependency
+import com.beust.kobalt.maven.dependency.IClasspathDependency
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.SystemProperties
 import java.io.File

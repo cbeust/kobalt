@@ -5,9 +5,9 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.CompilerActionInfo
-import com.beust.kobalt.maven.FileDependency
-import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.MavenId
+import com.beust.kobalt.maven.dependency.FileDependency
+import com.beust.kobalt.maven.dependency.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.misc.log
