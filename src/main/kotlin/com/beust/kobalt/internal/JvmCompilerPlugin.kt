@@ -7,7 +7,9 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.maven.*
+import com.beust.kobalt.maven.DepFactory
+import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
@@ -55,33 +57,18 @@ abstract class JvmCompilerPlugin @Inject constructor(
         addVariantTasks(project, "compile", runTask = { taskCompile(project) })
     }
 
-    /**
-     * @return the test dependencies for this project, including the contributors.
-     */
-    protected fun testDependencies(project: Project) : List<IClasspathDependency> {
-        val result = arrayListOf<IClasspathDependency>()
-        result.add(FileDependency(makeOutputDir(project).absolutePath))
-        result.add(FileDependency(makeOutputTestDir(project).absolutePath))
-        with(project) {
-            arrayListOf(compileDependencies, compileProvidedDependencies, testDependencies,
-                    testProvidedDependencies).forEach {
-                result.addAll(dependencyManager.calculateDependencies(project, context, projects(), it))
-            }
-        }
-        val result2 = dependencyManager.reorderDependencies(result)
-        return result2
-    }
-
     @Task(name = TASK_TEST, description = "Run the tests", runAfter = arrayOf("compile", "compileTest"))
     fun taskTest(project: Project) : TaskResult {
         lp(project, "Running tests")
-        val success =
-            if (project.testDependencies.any { it.id.contains("testng")} ) {
-                TestNgRunner(project, testDependencies(project)).runTests()
-            } else {
-                JUnitRunner(project, testDependencies(project)).runTests()
-            }
-        return TaskResult(success)
+
+        val runContributor = context.pluginInfo.testRunnerContributors.maxBy { it.runAffinity(project, context)}
+        if (runContributor != null && runContributor.runAffinity(project, context) > 0) {
+            return runContributor.run(project, context, dependencyManager.testDependencies(project, context,
+                    projects()))
+        } else {
+            log(2, "Couldn't find a test runner for project ${project.name}, not running any tests")
+            return TaskResult()
+        }
     }
 
     @Task(name = TASK_CLEAN, description = "Clean the project", runBefore = arrayOf("compile"))
@@ -92,14 +79,6 @@ abstract class JvmCompilerPlugin @Inject constructor(
             }
         }
         return TaskResult()
-    }
-
-    protected fun makeOutputDir(project: Project) : File = makeDir(project, KFiles.CLASSES_DIR)
-
-    protected fun makeOutputTestDir(project: Project) : File = makeDir(project, KFiles.TEST_CLASSES_DIR)
-
-    private fun makeDir(project: Project, suffix: String) : File {
-        return File(project.directory, project.buildDirectory + File.separator + suffix).apply { mkdirs() }
     }
 
     /**
@@ -120,7 +99,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
 
         if (sourceDirs.size > 0) {
             lp(project, "Copying $sourceSet resources")
-            val absOutputDir = File(KFiles.joinDir(project.directory, project.buildDirectory!!, outputDir))
+            val absOutputDir = File(KFiles.joinDir(project.directory, project.buildDirectory, outputDir))
             sourceDirs.map { File(project.directory, it) }.filter {
                 it.exists()
             } .forEach {

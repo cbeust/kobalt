@@ -2,6 +2,9 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.JavaInfo
 import com.beust.kobalt.SystemProperties
+import com.beust.kobalt.TaskResult
+import com.beust.kobalt.api.IRunnerContributor
+import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
@@ -9,11 +12,15 @@ import com.beust.kobalt.misc.log
 import java.io.File
 import java.net.URLClassLoader
 
-abstract class GenericTestRunner(open val project: Project, open val classpath: List<IClasspathDependency>) {
+abstract class GenericTestRunner : IRunnerContributor {
     abstract val mainClass: String
-    abstract val args: List<String>
+    abstract fun args(project: Project, classpath: List<IClasspathDependency>) : List<String>
 
-    protected fun findTestClasses(): List<String> {
+    override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>)
+            = TaskResult(runTests(project, context, classpath))
+
+
+    protected fun findTestClasses(project: Project, classpath: List<IClasspathDependency>): List<String> {
         val path = KFiles.joinDir(project.directory, project.buildDirectory, KFiles.TEST_CLASSES_DIR)
         val result = KFiles.findRecursively(File(path), arrayListOf(File(".")), {
             file -> file.endsWith(".class")
@@ -39,9 +46,10 @@ abstract class GenericTestRunner(open val project: Project, open val classpath: 
     /**
      * @return true if all the tests passed
      */
-    fun runTests() : Boolean {
+    fun runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>) : Boolean {
         val jvm = JavaInfo.create(File(SystemProperties.javaBase))
         val java = jvm.javaExecutable
+        val args = args(project, classpath)
         if (args.size > 0) {
             val allArgs = arrayListOf<String>().apply {
                 add(java!!.absolutePath)

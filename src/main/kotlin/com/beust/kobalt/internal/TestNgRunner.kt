@@ -1,16 +1,21 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.api.IRunnerContributor
+import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
 import java.io.File
 
-public class TestNgRunner(override val project: Project, override val classpath: List<IClasspathDependency>)
-        : GenericTestRunner(project, classpath) {
+public class TestNgRunner() : GenericTestRunner() {
+
     override val mainClass = "org.testng.TestNG"
 
-    override val args: List<String>
-        get() = arrayListOf<String>().apply {
+    override fun runAffinity(project: Project, context: KobaltContext) =
+        if (project.testDependencies.any { it.id.contains("testng")}) IRunnerContributor.DEFAULT_POSITIVE_AFFINITY
+        else 0
+
+    override fun args(project: Project, classpath: List<IClasspathDependency>) = arrayListOf<String>().apply {
             if (project.testArgs.size > 0) {
                 addAll(project.testArgs)
             } else {
@@ -19,7 +24,7 @@ public class TestNgRunner(override val project: Project, override val classpath:
                     add(testngXml.absolutePath)
                 } else {
                     add("-testclass")
-                    addAll(findTestClasses())
+                    addAll(findTestClasses(project, classpath))
                 }
             }
         }

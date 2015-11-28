@@ -81,8 +81,9 @@ class JavaPlugin @Inject constructor(
         val result =
             if (sourceFiles.size > 0) {
                 copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
-                val buildDir = makeOutputTestDir(project)
-                javaCompiler.compile(project, context, CompilerActionInfo(project.directory, testDependencies(project),
+                val buildDir = KFiles.makeOutputTestDir(project)
+                javaCompiler.compile(project, context, CompilerActionInfo(project.directory,
+                        dependencyManager.testDependencies(project, context, projects()),
                         sourceFiles, buildDir, compilerArgsFor(project)))
             } else {
                 warn("Couldn't find any tests to compile")

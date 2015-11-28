@@ -114,4 +114,42 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
 
         return result
     }
+
+    /**
+     * @return the test dependencies for this project, including the contributors.
+     */
+    fun dependencies(project: Project, context: KobaltContext,
+            projects: List<ProjectDescription>) : List<IClasspathDependency> {
+        val result = arrayListOf<IClasspathDependency>()
+        result.add(FileDependency(KFiles.makeOutputDir(project).absolutePath))
+        result.add(FileDependency(KFiles.makeOutputTestDir(project).absolutePath))
+        with(project) {
+            arrayListOf(compileDependencies, compileProvidedDependencies).forEach {
+                result.addAll(calculateDependencies(project, context, projects, it))
+            }
+        }
+        val result2 = reorderDependencies(result)
+        return result2
+    }
+
+    /**
+     * @return the test dependencies for this project, including the contributors.
+     */
+    fun testDependencies(project: Project, context: KobaltContext,
+            projects: List<ProjectDescription>) : List<IClasspathDependency> {
+        val result = arrayListOf<IClasspathDependency>()
+        result.add(FileDependency(KFiles.makeOutputDir(project).absolutePath))
+        result.add(FileDependency(KFiles.makeOutputTestDir(project).absolutePath))
+        with(project) {
+            arrayListOf(compileDependencies, compileProvidedDependencies, testDependencies,
+                    testProvidedDependencies).forEach {
+                result.addAll(calculateDependencies(project, context, projects, it))
+            }
+        }
+        val result2 = reorderDependencies(result)
+        return result2
+    }
+
+
+
 }

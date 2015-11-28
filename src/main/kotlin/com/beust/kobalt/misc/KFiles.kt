@@ -2,6 +2,7 @@ package com.beust.kobalt.misc
 
 import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.build.BuildFile
 import java.io.File
@@ -239,6 +240,14 @@ class KFiles {
             }
 
         fun src(filePath: String): String = KFiles.joinDir(KOBALT_DIR, SRC, filePath)
+
+        fun makeDir(project: Project, suffix: String) : File {
+            return File(project.directory, project.buildDirectory + File.separator + suffix).apply { mkdirs() }
+        }
+
+        fun makeOutputDir(project: Project) : File = makeDir(project, KFiles.CLASSES_DIR)
+
+        fun makeOutputTestDir(project: Project) : File = makeDir(project, KFiles.TEST_CLASSES_DIR)
     }
 
     fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {

@@ -6,6 +6,7 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.misc.warn
@@ -48,14 +49,16 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
 
     @Task(name = "run", description = "Run the main class", runAfter = arrayOf("install"))
     fun taskRun(project: Project): TaskResult {
-        val runContributor = context.pluginInfo.runContributors.maxBy { it.runAffinity(project, context)}
+        val runContributor = context.pluginInfo.runnerContributors.maxBy { it.runAffinity(project, context)}
         if (runContributor != null && runContributor.runAffinity(project, context) > 0) {
-            return runContributor.run(project, context)
+            return runContributor.run(project, context, dependencyManager.dependencies(project, context, projects()))
         } else {
             warn("Couldn't find a runner for project ${project.name}")
             return TaskResult()
         }
     }
+
+    private fun projects() = context.pluginInfo.projectContributors.flatMap { it.projects() }
 
     private fun isFatJar(packages: List<PackageConfig>, jarName: String): Boolean {
         packages.forEach { pc ->
@@ -74,7 +77,7 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
         return if (configurationFor(project) != null) IRunnerContributor.DEFAULT_POSITIVE_AFFINITY else 0
     }
 
-    override fun run(project: Project, context: KobaltContext): TaskResult {
+    override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>): TaskResult {
         var result = TaskResult()
         configurationFor(project)?.let { config ->
             if (config.mainClass != null) {

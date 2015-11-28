@@ -397,7 +397,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         return if (File(manifest).exists()) IRunnerContributor.DEFAULT_POSITIVE_AFFINITY else 0
     }
 
-    override fun run(project: Project, context: KobaltContext): TaskResult {
+    override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>): TaskResult {
         val manifest = AndroidFiles.manifest(project, context)
         FileInputStream(File(manifest)).use { ins ->
             // adb shell am start -n com.package.name/com.package.name.ActivityName

@@ -69,9 +69,9 @@ class KotlinPlugin @Inject constructor(
 
         val result =
             if (sourceFiles.size > 0) {
-                compilePrivate(project, testDependencies(project),
+                compilePrivate(project, dependencyManager.testDependencies(project, context, projects()),
                         sourceFiles,
-                        makeOutputTestDir(project))
+                        KFiles.makeOutputTestDir(project))
             } else {
                 warn("Couldn't find any test files")
                 TaskResult()
