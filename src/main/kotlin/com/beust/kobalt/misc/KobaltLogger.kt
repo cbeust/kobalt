@@ -63,7 +63,7 @@ class Logger(val dev: Boolean) {
     }
 
     final fun warn(tag: String, message: String, e: Throwable? = null) {
-        val fullMessage = e?.message ?: message
+        val fullMessage = "***** WARNING " + (e?.message ?: message)
         println(getPattern("W", fullMessage, fullMessage, tag))
     }
 
