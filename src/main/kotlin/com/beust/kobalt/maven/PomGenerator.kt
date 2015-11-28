@@ -20,7 +20,7 @@ public class PomGenerator @Inject constructor(@Assisted val project: Project) {
     }
 
     fun generate() {
-        requireNotNull(project.version, { "version mandatory on project ${project.name}"})
+        requireNotNull(project.version, { "version mandatory on project ${project.name}" })
         requireNotNull(project.artifactId, { "artifactId mandatory on project ${project.name}" })
         val m = Model().apply {
             name = project.name
