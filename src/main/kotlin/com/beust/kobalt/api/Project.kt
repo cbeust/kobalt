@@ -1,10 +1,13 @@
 package com.beust.kobalt.api
 
+import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.IProjectInfo
 import com.beust.kobalt.maven.IClasspathDependency
 import com.beust.kobalt.maven.MavenDependency
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.plugin.android.AndroidPlugin
+import com.beust.kobalt.plugin.android.Proguard
 import java.util.*
 
 open public class Project(
@@ -188,12 +191,20 @@ fun Project.productFlavor(name: String, init: ProductFlavorConfig.() -> Unit) = 
         addProductFlavor(name, this)
     }
 
-class BuildTypeConfig(val name: String) : IBuildConfig {
+class BuildTypeConfig(val project: Project?, val name: String) : IBuildConfig {
+    var minifyEnabled = false
+    var proguardFile: String? = null
+
+    fun getDefaultProguardFile(name: String) : String {
+        val androidPlugin = Plugins.findPlugin(AndroidPlugin.PLUGIN_NAME) as AndroidPlugin
+        return Proguard(androidPlugin.androidHome(project)).getDefaultProguardFile(name)
+    }
+
     override var buildConfig: BuildConfig? = null
 }
 
 @Directive
-fun Project.buildType(name: String, init: BuildTypeConfig.() -> Unit) = BuildTypeConfig(name).apply {
+fun Project.buildType(name: String, init: BuildTypeConfig.() -> Unit) = BuildTypeConfig(this, name).apply {
         init()
         addBuildType(name, this)
     }

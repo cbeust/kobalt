@@ -31,6 +31,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     companion object {
         const val PLUGIN_NAME = "Android"
         const val TASK_GENERATE_DEX = "generateDex"
+        const val TASK_SIGN_APK = "signApk"
+        const val TASK_INSTALL= "install"
     }
 
     override val name = PLUGIN_NAME
@@ -50,6 +52,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
                     runTask = { taskSignApk(project) })
             addVariantTasks(project, "install", runAfter = listOf("signApk"),
                     runTask = { taskInstall(project) })
+            addVariantTasks(project, "proguard", runBefore = listOf("install"), runAfter = listOf("compile"),
+                    runTask = { taskProguard(project) })
         }
         context.pluginInfo.classpathContributors.add(this)
     }
@@ -232,6 +236,22 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         }
     }
 
+    @Task(name = "proguard", description = "Run Proguard, if enabled", runBefore = arrayOf(TASK_GENERATE_DEX),
+            runAfter = arrayOf("compile"))
+    fun taskProguard(project: Project): TaskResult {
+        val config = configurationFor(project)
+        if (config != null) {
+            val buildType = context.variant.buildType
+            if (buildType.minifyEnabled) {
+                log(1, "minifyEnabled is true, running Proguard")
+                val classesDir = project.classesDir(context)
+                val proguardHome = KFiles.joinDir(androidHome(project), "tools", "proguard")
+                val proguardCommand = KFiles.joinDir(proguardHome, "bin", "proguard.sh")
+            }
+        }
+        return TaskResult()
+    }
+
     @Task(name = TASK_GENERATE_DEX, description = "Generate the dex file", runBefore = arrayOf("assemble"),
             runAfter = arrayOf("compile"))
     fun taskGenerateDex(project: Project): TaskResult {
@@ -258,14 +278,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
                    //KFiles.joinDir(intermediates(project), "dex", context.variant.toIntermediateDir()),
                 project.classesDir(context)
         ))
-//        val args = listOf("--dex", "--output", outClassesDex)
-//        val otherArgs =
-//            project.dependencies?.let {
-//                it.dependencies.map {
-//                    it.jarFile.get().path
-//                }.filter { ! it.endsWith(".aar") && ! it.endsWith("android.jar") }
-//            } ?: emptyList()
-//        RunCommand(dx).run(args + otherArgs)
 
         //
         // Add classes.dex to existing .ap_
@@ -292,7 +304,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
      * jarsigner -keystore ~/.android/debug.keystore -storepass android -keypass android -signedjar a.apk a.ap_
      * androiddebugkey
      */
-    @Task(name = "signApk", description = "Sign the apk file", runAfter = arrayOf(TASK_GENERATE_DEX),
+    @Task(name = TASK_SIGN_APK, description = "Sign the apk file", runAfter = arrayOf(TASK_GENERATE_DEX),
             runBefore = arrayOf("assemble"))
     fun taskSignApk(project: Project): TaskResult {
         val apk = apk(project, context.variant.shortArchiveName)
@@ -320,10 +332,10 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
             ))
             log(1, "Created $apk")
 
-            return TaskResult(success == 0)
+        return TaskResult(success == 0)
     }
 
-    @Task(name = "install", description = "Install the apk file", runAfter = arrayOf(TASK_GENERATE_DEX, "assemble"))
+    @Task(name = TASK_INSTALL, description = "Install the apk file", runAfter = arrayOf(TASK_GENERATE_DEX, "assemble"))
     fun taskInstall(project: Project): TaskResult {
         val apk = apk(project, context.variant.shortArchiveName)
         RunCommand(adb(project)).useErrorStreamAsErrorIndicator(false).run(args = listOf(
@@ -437,4 +449,5 @@ fun AndroidConfig.signingConfig(name: String, init: SigningConfig.() -> Unit) : 
         androidConfig.addSigningConfig(name, project, this)
     }
 }
+
 
