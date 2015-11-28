@@ -33,7 +33,7 @@ fun Project.application(init: ApplicationConfig.() -> Unit) {
 
 @Singleton
 class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
-        val dependencyManager: DependencyManager) : ConfigPlugin<ApplicationConfig>(), IRunContributor {
+        val dependencyManager: DependencyManager) : ConfigPlugin<ApplicationConfig>(), IRunnerContributor {
 
     companion object {
         const val PLUGIN_NAME = "Application"
@@ -71,7 +71,7 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
     // IRunContributor
 
     override fun runAffinity(project: Project, context: KobaltContext): Int {
-        return if (configurationFor(project) != null) IRunContributor.DEFAULT_POSITIVE_AFFINITY else 0
+        return if (configurationFor(project) != null) IRunnerContributor.DEFAULT_POSITIVE_AFFINITY else 0
     }
 
     override fun run(project: Project, context: KobaltContext): TaskResult {

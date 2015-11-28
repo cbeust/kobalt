@@ -91,7 +91,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val compilerInterceptors = arrayListOf<ICompilerInterceptor>()
     val sourceDirectoriesInterceptors = arrayListOf<ISourceDirectoriesIncerceptor>()
     val buildDirectoryInterceptors = arrayListOf<IBuildDirectoryIncerceptor>()
-    val runContributors = arrayListOf<IRunContributor>()
+    val runContributors = arrayListOf<IRunnerContributor>()
 
     // Future contributors:
     // source files
@@ -166,7 +166,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
             buildDirectoryInterceptors.add(factory.instanceOf(forName(it)) as IBuildDirectoryIncerceptor)
         }
         xml.runContributors?.className?.forEach {
-            runContributors.add(factory.instanceOf(forName(it)) as IRunContributor)
+            runContributors.add(factory.instanceOf(forName(it)) as IRunnerContributor)
         }
     }
 

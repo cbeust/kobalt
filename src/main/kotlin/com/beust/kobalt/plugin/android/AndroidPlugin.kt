@@ -26,7 +26,7 @@ import java.nio.file.Paths
 @Singleton
 public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, val merger: Merger)
         : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
-            ICompilerInterceptor, IBuildDirectoryIncerceptor, IRunContributor {
+            ICompilerInterceptor, IBuildDirectoryIncerceptor, IRunnerContributor {
 
     companion object {
         const val PLUGIN_NAME = "Android"
@@ -394,7 +394,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     // IRunContributor
     override fun runAffinity(project: Project, context: KobaltContext): Int {
         val manifest = AndroidFiles.manifest(project, context)
-        return if (File(manifest).exists()) IRunContributor.DEFAULT_POSITIVE_AFFINITY else 0
+        return if (File(manifest).exists()) IRunnerContributor.DEFAULT_POSITIVE_AFFINITY else 0
     }
 
     override fun run(project: Project, context: KobaltContext): TaskResult {

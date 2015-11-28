@@ -5,7 +5,7 @@ import com.beust.kobalt.TaskResult
 /**
  * Plugins that can run a project (task "run") should implement this interface.
  */
-interface IRunContributor : IContributor {
+interface IRunnerContributor : IContributor {
     companion object {
         /**
          * The recommended default affinity if your plug-in can run this project. Use a higher
