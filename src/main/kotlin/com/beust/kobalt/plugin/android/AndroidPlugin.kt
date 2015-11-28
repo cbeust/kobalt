@@ -11,6 +11,7 @@ import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.warn
 import com.beust.kobalt.plugin.java.JavaCompiler
 import com.beust.kobalt.plugin.packaging.JarUtils
 import com.google.common.collect.HashMultimap
@@ -300,13 +301,12 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 
         val config = configurationFor(project)
         var signingConfig = config!!.signingConfigs[buildType]
-        if (signingConfig == null && buildType == "debug") {
-            signingConfig = DEFAULT_DEBUG_SIGNING_CONFIG
+
+        if (signingConfig == null && buildType != "debug") {
+            warn("No signingConfig found for product type \"$buildType\", using the \"debug\" signConfig")
         }
 
-        if (signingConfig == null) {
-            throw KobaltException("No signingConfig found for product type $buildType")
-        }
+        signingConfig = DEFAULT_DEBUG_SIGNING_CONFIG
 
         val success = RunCommand("jarsigner").apply {
 //            useInputStreamAsErrorIndicator = true
