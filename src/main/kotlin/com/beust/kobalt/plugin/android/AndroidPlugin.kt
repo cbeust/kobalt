@@ -308,17 +308,19 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
             throw KobaltException("No signingConfig found for product type $buildType")
         }
 
-        val success = RunCommand("jarsigner").run(listOf(
+        val success = RunCommand("jarsigner").apply {
+//            useInputStreamAsErrorIndicator = true
+        }.run(listOf(
                 "-keystore", signingConfig.storeFile,
                 "-storepass", signingConfig.storePassword,
                 "-keypass", signingConfig.keyPassword,
                 "-signedjar", apk,
                 temporaryApk,
                 signingConfig.keyAlias
-        ))
-        log(1, "Created $apk")
+            ))
+            log(1, "Created $apk")
 
-        return TaskResult(success == 0)
+            return TaskResult(success == 0)
     }
 
     @Task(name = "install", description = "Install the apk file", runAfter = arrayOf(TASK_GENERATE_DEX, "assemble"))

@@ -23,6 +23,7 @@ open class RunCommand(val command: String) {
      * This field is used to specify how errors are caught.
      */
     var useErrorStreamAsErrorIndicator = true
+    var useInputStreamAsErrorIndicator = false
 
     fun useErrorStreamAsErrorIndicator(f: Boolean) : RunCommand {
         useErrorStreamAsErrorIndicator = f
@@ -51,6 +52,9 @@ open class RunCommand(val command: String) {
         var hasErrors = ! callSucceeded
         if (useErrorStreamAsErrorIndicator && ! hasErrors) {
             hasErrors = hasErrors || hasErrorStream
+        }
+        if (useInputStreamAsErrorIndicator && ! hasErrors) {
+            hasErrors = hasErrors || process.inputStream.available() > 0
         }
 
         if (! hasErrors) {
