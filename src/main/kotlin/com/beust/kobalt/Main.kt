@@ -12,6 +12,7 @@ import com.beust.kobalt.internal.remote.KobaltServer
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.LocalRepo
+import com.beust.kobalt.maven.dependency.IClasspathDependency
 import com.beust.kobalt.misc.*
 import com.google.inject.Guice
 import java.io.File
@@ -162,6 +163,11 @@ private class Main @Inject constructor(
                 //
                 allProjects.forEach { addReposFromContributors(it) }
 
+                //
+                // Run all their dependencies through the IDependencyInterceptors
+                //
+                runClasspathInterceptors(allProjects, pluginInfo)
+
                 log(2, "Final list of repos:\n  " + Kobalt.repos.joinToString("\n  "))
 
                 if (args.dependency != null) {
@@ -199,6 +205,31 @@ private class Main @Inject constructor(
                     }
                 }
             }
+        }
+        return result
+    }
+
+    private fun runClasspathInterceptors(allProjects: List<Project>, pluginInfo: PluginInfo) {
+        allProjects.forEach {
+            runClasspathInterceptors(it.compileDependencies)
+            runClasspathInterceptors(it.compileProvidedDependencies)
+            runClasspathInterceptors(it.compileRuntimeDependencies)
+            runClasspathInterceptors(it.testProvidedDependencies)
+            runClasspathInterceptors(it.testDependencies)
+        }
+    }
+
+    private fun runClasspathInterceptors(dependencies: ArrayList<IClasspathDependency>) = with(dependencies) {
+        val deps = interceptDependencies(pluginInfo, this)
+        clear()
+        addAll(deps)
+    }
+
+    private fun interceptDependencies(pluginInfo: PluginInfo, dependencies: ArrayList<IClasspathDependency>)
+            : ArrayList<IClasspathDependency> {
+        val result = arrayListOf<IClasspathDependency>()
+        pluginInfo.classpathInterceptors.forEach {
+            result.addAll(it.intercept(dependencies))
         }
         return result
     }

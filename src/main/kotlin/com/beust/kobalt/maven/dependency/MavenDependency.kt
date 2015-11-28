@@ -51,9 +51,9 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
         val executor = Kobalt.INJECTOR.getInstance(Key.get(ExecutorService::class.java, DependencyExecutor::class.java))
         val depFactory = Kobalt.INJECTOR.getInstance(DepFactory::class.java)
 
-        fun create(id: String, ex: ExecutorService = executor) : IClasspathDependency {
-            return depFactory.create(id, ex)
-        }
+        fun create(id: String, ex: ExecutorService = executor) = depFactory.create(id, ex)
+
+        fun create(mavenId: MavenId, ex: ExecutorService = executor) = depFactory.create(mavenId.toId, ex)
     }
 
 

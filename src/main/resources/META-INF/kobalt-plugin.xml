@@ -45,4 +45,7 @@
         <class-name>com.beust.kobalt.internal.JUnitRunner</class-name>
         <class-name>com.beust.kobalt.internal.TestNgRunner</class-name>
     </test-runner-contributors>
+    <classpath-interceptors>
+        <class-name>com.beust.kobalt.plugin.android.AndroidPlugin</class-name>
+    </classpath-interceptors>
 </kobalt-plugin>

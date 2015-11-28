@@ -8,10 +8,8 @@ import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.IClasspathDependency
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.RunCommand
-import com.beust.kobalt.misc.log
-import com.beust.kobalt.misc.warn
+import com.beust.kobalt.maven.dependency.MavenDependency
+import com.beust.kobalt.misc.*
 import com.beust.kobalt.plugin.java.JavaCompiler
 import com.beust.kobalt.plugin.packaging.JarUtils
 import com.google.common.collect.HashMultimap
@@ -24,10 +22,10 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 @Singleton
-public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, val merger: Merger)
-        : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
-            ICompilerInterceptor, IBuildDirectoryIncerceptor, IRunnerContributor {
-
+public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, val merger: Merger,
+        val executors: KobaltExecutors)
+            : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
+                ICompilerInterceptor, IBuildDirectoryIncerceptor, IRunnerContributor, IClasspathInterceptor {
     companion object {
         const val PLUGIN_NAME = "Android"
         const val TASK_GENERATE_DEX = "generateDex"
@@ -407,6 +405,24 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
             return TaskResult()
         }
     }
+
+    /**
+     * Automatically add the "aar" packaging for support libraries.
+     */
+    // IClasspathInterceptor
+    override fun intercept(dependencies: List<IClasspathDependency>): List<IClasspathDependency> {
+        val result = arrayListOf<IClasspathDependency>()
+        dependencies.forEach {
+            if (it is MavenDependency && it.groupId == "com.android.support") {
+                val id = MavenId.create(it.groupId, it.artifactId, "aar", it.version)
+                result.add(MavenDependency.create(id, executors.miscExecutor))
+            } else {
+                result.add(it)
+            }
+        }
+        return result
+    }
+
 }
 
 class AndroidConfig(val project: Project, var compileSdkVersion : String = "23",
