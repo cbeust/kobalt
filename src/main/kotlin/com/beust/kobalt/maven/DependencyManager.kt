@@ -1,11 +1,7 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.api.IClasspathContributor
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.ProjectDescription
+import com.beust.kobalt.api.*
 import com.beust.kobalt.maven.dependency.FileDependency
-import com.beust.kobalt.maven.dependency.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.warn
@@ -53,7 +49,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
             result.add(projectDependency)
             projectDependency.id.let {
                 result.add(depFactory.create(it, executor))
-                val downloaded = projectDependency.transitiveDependencies(executor)
+                val downloaded = transitiveClosure(projectDependency.directDependencies())
 
                 result.addAll(downloaded)
             }

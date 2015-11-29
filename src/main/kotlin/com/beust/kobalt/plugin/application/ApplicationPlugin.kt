@@ -7,7 +7,6 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.ActorUtils
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.dependency.IClasspathDependency
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.misc.warn

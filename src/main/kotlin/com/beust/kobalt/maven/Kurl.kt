@@ -1,6 +1,6 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.maven.dependency.IClasspathDependency
+import com.beust.kobalt.api.IClasspathDependency
 import com.google.inject.assistedinject.Assisted
 import java.io.*
 import java.net.HttpURLConnection

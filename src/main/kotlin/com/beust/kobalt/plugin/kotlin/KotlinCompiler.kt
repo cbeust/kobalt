@@ -1,16 +1,13 @@
 package com.beust.kobalt.plugin.kotlin;
 
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.CompilerActionInfo
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.maven.DepFactory
-import com.beust.kobalt.maven.dependency.FileDependency
-import com.beust.kobalt.maven.dependency.IClasspathDependency
+import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
+import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
@@ -29,7 +26,8 @@ import kotlin.properties.Delegates
  */
 @Singleton
 class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
-        val files: com.beust.kobalt.misc.KFiles,
+        val files: KFiles,
+        val dependencyManager: DependencyManager,
         val depFactory: DepFactory,
         val executors: KobaltExecutors,
         val jvmCompiler: JvmCompiler) {
@@ -115,7 +113,7 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
 
         val executor = executors.newExecutor("KotlinCompiler", 10)
         val compilerDep = depFactory.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION", executor)
-        val deps = compilerDep.transitiveDependencies(executor)
+        val deps = dependencyManager.transitiveClosure(listOf(compilerDep))
 
         // Force a download of the compiler dependencies
         deps.forEach { it.jarFile.get() }

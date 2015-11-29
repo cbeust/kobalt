@@ -6,7 +6,7 @@ import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.IRunnerContributor
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.maven.dependency.IClasspathDependency
+import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import java.io.File

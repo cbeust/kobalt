@@ -1,5 +1,6 @@
 package com.beust.kobalt.maven.dependency
 
+import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.CompletedFuture
 import org.apache.maven.model.Dependency
 import java.io.File

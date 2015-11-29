@@ -3,7 +3,7 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.api.IAffinity
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.maven.dependency.IClasspathDependency
+import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
 import java.io.File
 

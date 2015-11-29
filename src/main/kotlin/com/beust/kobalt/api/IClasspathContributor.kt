@@ -1,6 +1,6 @@
 package com.beust.kobalt.api
 
-import com.beust.kobalt.maven.dependency.IClasspathDependency
+import com.beust.kobalt.api.IClasspathDependency
 
 /**
  * Plugins that export classpath entries need to implement this interface.

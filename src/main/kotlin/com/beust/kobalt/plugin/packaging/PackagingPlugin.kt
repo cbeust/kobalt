@@ -11,7 +11,7 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.dependency.IClasspathDependency
+import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors

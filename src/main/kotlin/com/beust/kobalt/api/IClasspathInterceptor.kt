@@ -1,6 +1,6 @@
 package com.beust.kobalt.api
 
-import com.beust.kobalt.maven.dependency.IClasspathDependency
+import com.beust.kobalt.api.IClasspathDependency
 
 /**
  * Modify a list of dependencies before Kobalt starts using them.

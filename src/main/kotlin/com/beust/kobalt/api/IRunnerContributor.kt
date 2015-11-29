@@ -1,7 +1,7 @@
 package com.beust.kobalt.api
 
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.maven.dependency.IClasspathDependency
+import com.beust.kobalt.api.IClasspathDependency
 
 /**
  * Plugins that can run a project (task "run" or "test") should implement this interface.

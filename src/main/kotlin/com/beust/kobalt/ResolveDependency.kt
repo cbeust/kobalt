@@ -1,7 +1,7 @@
 package com.beust.kobalt
 
 import com.beust.kobalt.maven.*
-import com.beust.kobalt.maven.dependency.IClasspathDependency
+import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.Node
 import com.beust.kobalt.misc.log

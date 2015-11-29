@@ -1,6 +1,7 @@
 package com.beust.kobalt.maven.dependency
 
 import com.beust.kobalt.KobaltException
+import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.DependencyExecutor

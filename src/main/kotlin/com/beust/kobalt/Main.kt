@@ -12,7 +12,7 @@ import com.beust.kobalt.internal.remote.KobaltServer
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.LocalRepo
-import com.beust.kobalt.maven.dependency.IClasspathDependency
+import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.misc.*
 import com.google.inject.Guice
 import java.io.File
