@@ -39,21 +39,7 @@ class KotlinPlugin @Inject constructor(
 
     override fun accept(project: Project) = project is KotlinProject
 
-    override fun doCompile(project: Project, cai: CompilerActionInfo) : TaskResult {
-        val result =
-            if (cai.sourceFiles.size > 0) {
-                compilePrivate(project, cai.dependencies, cai.sourceFiles, cai.outputDir)
-            } else {
-                warn("Couldn't find any source files")
-                TaskResult()
-            }
-
-        lp(project, "Compilation " + if (result.success) "succeeded" else "failed")
-
-        return result
-    }
-
-    override fun doJavadoc(project: Project, cai: CompilerActionInfo) : TaskResult {
+    override fun doJavadoc(project: Project, cai: CompilerActionInfo): TaskResult {
         warn("javadoc task not implemented for Kotlin, call the dokka task instead")
         return TaskResult()
     }
@@ -64,18 +50,18 @@ class KotlinPlugin @Inject constructor(
         val projectDir = File(project.directory)
 
         val sourceFiles = files.findRecursively(projectDir, project.sourceDirectoriesTest.map { File(it) })
-            { it: String -> it.endsWith(project.sourceSuffix) }
-                    .map { File(projectDir, it).absolutePath }
+        { it: String -> it.endsWith(project.sourceSuffix) }
+                .map { File(projectDir, it).absolutePath }
 
         val result =
-            if (sourceFiles.size > 0) {
-                compilePrivate(project, dependencyManager.testDependencies(project, context, projects()),
-                        sourceFiles,
-                        KFiles.makeOutputTestDir(project))
-            } else {
-                warn("Couldn't find any test files")
-                TaskResult()
-            }
+                if (sourceFiles.size > 0) {
+                    compilePrivate(project, dependencyManager.testDependencies(project, context, projects()),
+                            sourceFiles,
+                            KFiles.makeOutputTestDir(project))
+                } else {
+                    warn("Couldn't find any test files")
+                    TaskResult()
+                }
 
         lp(project, "Compilation of tests succeeded")
         return result
@@ -91,7 +77,7 @@ class KotlinPlugin @Inject constructor(
         }.compile(project, context)
     }
 
-    private fun getKotlinCompilerJar(name: String) : String {
+    private fun getKotlinCompilerJar(name: String): String {
         val id = "org.jetbrains.kotlin:$name:${KotlinCompiler.KOTLIN_VERSION}"
         val dep = MavenDependency.create(id, executors.miscExecutor)
         val result = dep.jarFile.get().absolutePath
@@ -100,21 +86,32 @@ class KotlinPlugin @Inject constructor(
 
 
     // interface IClasspathContributor
-    override fun entriesFor(project: Project?) : List<IClasspathDependency> =
-        if (project == null || project is KotlinProject) {
-            // All Kotlin projects automatically get the Kotlin runtime added to their class path
-            listOf(getKotlinCompilerJar("kotlin-stdlib"), getKotlinCompilerJar("kotlin-runtime"))
-                .map { FileDependency(it) }
-        } else {
-            listOf()
-        }
+    override fun entriesFor(project: Project?): List<IClasspathDependency> =
+            if (project == null || project is KotlinProject) {
+                // All Kotlin projects automatically get the Kotlin runtime added to their class path
+                listOf(getKotlinCompilerJar("kotlin-stdlib"), getKotlinCompilerJar("kotlin-runtime"))
+                        .map { FileDependency(it) }
+            } else {
+                listOf()
+            }
 
     // ICompilerContributor
 
     override fun affinity(project: Project, context: KobaltContext) =
             if (project.sourceSuffix == ".kt") 1 else 0
 
-    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) = doCompile(project, info)
+    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
+        val result =
+            if (info.sourceFiles.size > 0) {
+                compilePrivate(project, info.dependencies, info.sourceFiles, info.outputDir)
+            } else {
+                warn("Couldn't find any source files")
+                TaskResult()
+            }
+
+        lp(project, "Compilation " + if (result.success) "succeeded" else "failed")
+        return result
+    }
 }
 
 /**

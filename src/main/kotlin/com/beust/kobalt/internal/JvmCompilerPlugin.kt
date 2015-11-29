@@ -110,8 +110,6 @@ abstract class JvmCompilerPlugin @Inject constructor(
         }
     }
 
-    private val compilerArgs = hashMapOf<String, List<String>>()
-
     protected fun compilerArgsFor(project: Project) : List<String> {
         val result = project.projectProperties.get(COMPILER_ARGS)
         if (result != null) {
@@ -175,7 +173,6 @@ abstract class JvmCompilerPlugin @Inject constructor(
         return result
     }
 
-    abstract fun doCompile(project: Project, cai: CompilerActionInfo) : TaskResult
     abstract fun doJavadoc(project: Project, cai: CompilerActionInfo) : TaskResult
 }
 

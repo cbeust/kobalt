@@ -53,21 +53,10 @@ class JavaPlugin @Inject constructor(
 
     override fun doJavadoc(project: Project, cai: CompilerActionInfo) : TaskResult {
         val result =
-                if (cai.sourceFiles.size > 0) {
-                    javaCompiler.javadoc(project, context, cai.copy(compilerArgs = compilerArgsFor(project)))
-                } else {
-                    warn("Couldn't find any source files to run Javadoc on")
-                    TaskResult()
-                }
-        return result
-    }
-
-    override fun doCompile(project: Project, cai: CompilerActionInfo) : TaskResult {
-        val result =
             if (cai.sourceFiles.size > 0) {
-                javaCompiler.compile(project, context, cai.copy(compilerArgs = compilerArgsFor(project)))
+                javaCompiler.javadoc(project, context, cai.copy(compilerArgs = compilerArgsFor(project)))
             } else {
-                warn("Couldn't find any source files to compile")
+                warn("Couldn't find any source files to run Javadoc on")
                 TaskResult()
             }
         return result
@@ -95,7 +84,16 @@ class JavaPlugin @Inject constructor(
     override fun affinity(project: Project, context: KobaltContext) =
         if (project.sourceSuffix == ".java") 1 else 0
 
-    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) = doCompile(project, info)
+    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
+        val result =
+            if (info.sourceFiles.size > 0) {
+                javaCompiler.compile(project, context, info.copy(compilerArgs = compilerArgsFor(project)))
+            } else {
+                warn("Couldn't find any source files to compile")
+                TaskResult()
+            }
+        return result
+    }
 }
 
 @Directive
