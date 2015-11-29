@@ -20,14 +20,21 @@ class AsciiArt {
                 "           |_|\\_\\  \\___/  |_.__/   \\__,_| |_|  \\__|  "
         )
 
-        val banner : String get() = BANNERS.get(Random().nextInt(BANNERS.size))
+        val banner : String get() = BANNERS[Random().nextInt(BANNERS.size)]
 
-        fun box(s: String) : List<String> = box(listOf(s))
+//        fun box(s: String) : List<String> = box(listOf(s))
+
+        val horizontalSingleLine = "\u2500\u2500\u2500\u2500\u2500"
+        val horizontalDoubleLine = "\u2550\u2550\u2550\u2550\u2550"
+
+//        fun horizontalLine(n: Int) = StringBuffer().apply {
+//                repeat(n, { append("\u2500") })
+//            }.toString()
 
         fun box(strings: List<String>) : List<String> {
             val ul = "\u2554"
             val ur = "\u2557"
-            val h = "\u2550"
+            val h = horizontalDoubleLine
             val v = "\u2551"
             val bl = "\u255a"
             val br = "\u255d"

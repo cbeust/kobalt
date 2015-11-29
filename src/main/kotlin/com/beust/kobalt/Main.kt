@@ -1,6 +1,7 @@
 package com.beust.kobalt
 
 import com.beust.jcommander.JCommander
+import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.PluginInfo
@@ -12,7 +13,6 @@ import com.beust.kobalt.internal.remote.KobaltServer
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.LocalRepo
-import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.misc.*
 import com.google.inject.Guice
 import java.io.File
@@ -180,7 +180,8 @@ private class Main @Inject constructor(
                     val sb = StringBuffer("List of tasks\n")
                     Plugins.plugins.forEach { plugin ->
                         if (plugin.tasks.size > 0) {
-                            sb.append("\n  ===== ${plugin.name} =====\n")
+                            sb.append("\n  " + AsciiArt.horizontalDoubleLine +" ${plugin.name} "
+                                    + AsciiArt.horizontalDoubleLine + "\n")
                             plugin.tasks.distinctBy {
                                 it.name
                             }.forEach { task ->
