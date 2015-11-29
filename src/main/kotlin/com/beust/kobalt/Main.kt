@@ -166,7 +166,7 @@ private class Main @Inject constructor(
                 //
                 // Run all their dependencies through the IDependencyInterceptors
                 //
-                runClasspathInterceptors(allProjects, pluginInfo)
+                runClasspathInterceptors(allProjects)
 
                 log(2, "Final list of repos:\n  " + Kobalt.repos.joinToString("\n  "))
 
@@ -210,7 +210,7 @@ private class Main @Inject constructor(
         return result
     }
 
-    private fun runClasspathInterceptors(allProjects: List<Project>, pluginInfo: PluginInfo) {
+    private fun runClasspathInterceptors(allProjects: List<Project>) {
         allProjects.forEach {
             runClasspathInterceptors(it.compileDependencies)
             runClasspathInterceptors(it.compileProvidedDependencies)
