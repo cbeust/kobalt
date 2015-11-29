@@ -112,13 +112,13 @@ val kobalt = kotlinProject(wrapper) {
         args("-nowarn")
     }
 
-    dokka {
-        outputFormat = "markdown"
-    }
-
-    dokka {
-        outputFormat = "html"
-    }
+//    dokka {
+//        outputFormat = "markdown"
+//    }
+//
+//    dokka {
+//        outputFormat = "html"
+//    }
 
     github {
         file("$buildDirectory/libs/$name-$version.zip", "$name/$version/$name-$version.zip")
