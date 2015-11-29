@@ -4,6 +4,7 @@ import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.internal.ActorUtils
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.IClasspathDependency
@@ -49,7 +50,8 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
 
     @Task(name = "run", description = "Run the main class", runAfter = arrayOf("install"))
     fun taskRun(project: Project): TaskResult {
-        val runContributor = context.pluginInfo.runnerContributors.maxBy { it.affinity(project, context)}
+        val runContributor = ActorUtils.selectAffinityActor(project, context,
+                context.pluginInfo.runnerContributors)
         if (runContributor != null && runContributor.affinity(project, context) > 0) {
             return runContributor.run(project, context, dependencyManager.dependencies(project, context, projects()))
         } else {

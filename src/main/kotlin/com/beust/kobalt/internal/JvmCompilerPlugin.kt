@@ -59,7 +59,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
     fun taskTest(project: Project) : TaskResult {
         lp(project, "Running tests")
 
-        val runContributor = context.pluginInfo.testRunnerContributors.maxBy { it.affinity(project, context)}
+        val runContributor = ActorUtils.selectAffinityActor(project, context,
+                context.pluginInfo.testRunnerContributors)
         if (runContributor != null && runContributor.affinity(project, context) > 0) {
             return runContributor.run(project, context, dependencyManager.testDependencies(project, context,
                     projects()))
@@ -137,16 +138,13 @@ abstract class JvmCompilerPlugin @Inject constructor(
     fun taskCompile(project: Project) : TaskResult {
         context.variant.maybeGenerateBuildConfig(project, context)
         val info = createCompilerActionInfo(project, context)
-        val compiler = selectAffinityActor(project, context.pluginInfo.compilerContributors)
+        val compiler = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.compilerContributors)
         if (compiler != null) {
             return compiler.compile(project, context, info)
         } else {
             throw KobaltException("Couldn't find any compiler for project ${project.name}")
         }
     }
-
-    private fun <T : IAffinity> selectAffinityActor(project: Project, actors: List<T>) : T? =
-            actors.maxBy { it.affinity(project, context) }
 
     @Task(name = JavaPlugin.TASK_JAVADOC, description = "Run Javadoc")
     fun taskJavadoc(project: Project) = doJavadoc(project, createCompilerActionInfo(project, context))
