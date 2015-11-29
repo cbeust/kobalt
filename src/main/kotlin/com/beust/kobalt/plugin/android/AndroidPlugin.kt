@@ -390,7 +390,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     }
 
     // IRunContributor
-    override fun runAffinity(project: Project, context: KobaltContext): Int {
+    override fun affinity(project: Project, context: KobaltContext): Int {
         val manifest = AndroidFiles.manifest(project, context)
         return if (File(manifest).exists()) IRunnerContributor.DEFAULT_POSITIVE_AFFINITY else 0
     }

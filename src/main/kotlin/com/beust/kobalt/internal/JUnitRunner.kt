@@ -9,7 +9,7 @@ public class JUnitRunner() : GenericTestRunner() {
 
     override val mainClass = "org.junit.runner.JUnitCore"
 
-    override fun runAffinity(project: Project, context: KobaltContext) =
+    override fun affinity(project: Project, context: KobaltContext) =
             if (project.testDependencies.any { it.id.contains("junit")}) IRunnerContributor.DEFAULT_POSITIVE_AFFINITY
             else 0
 

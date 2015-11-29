@@ -61,8 +61,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
     fun taskTest(project: Project) : TaskResult {
         lp(project, "Running tests")
 
-        val runContributor = context.pluginInfo.testRunnerContributors.maxBy { it.runAffinity(project, context)}
-        if (runContributor != null && runContributor.runAffinity(project, context) > 0) {
+        val runContributor = context.pluginInfo.testRunnerContributors.maxBy { it.affinity(project, context)}
+        if (runContributor != null && runContributor.affinity(project, context) > 0) {
             return runContributor.run(project, context, dependencyManager.testDependencies(project, context,
                     projects()))
         } else {

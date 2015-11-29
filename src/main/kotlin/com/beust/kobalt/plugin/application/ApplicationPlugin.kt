@@ -49,8 +49,8 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
 
     @Task(name = "run", description = "Run the main class", runAfter = arrayOf("install"))
     fun taskRun(project: Project): TaskResult {
-        val runContributor = context.pluginInfo.runnerContributors.maxBy { it.runAffinity(project, context)}
-        if (runContributor != null && runContributor.runAffinity(project, context) > 0) {
+        val runContributor = context.pluginInfo.runnerContributors.maxBy { it.affinity(project, context)}
+        if (runContributor != null && runContributor.affinity(project, context) > 0) {
             return runContributor.run(project, context, dependencyManager.dependencies(project, context, projects()))
         } else {
             warn("Couldn't find a runner for project ${project.name}")
@@ -73,7 +73,7 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
 
     // IRunContributor
 
-    override fun runAffinity(project: Project, context: KobaltContext): Int {
+    override fun affinity(project: Project, context: KobaltContext): Int {
         return if (configurationFor(project) != null) IRunnerContributor.DEFAULT_POSITIVE_AFFINITY else 0
     }
 

@@ -11,7 +11,7 @@ public class TestNgRunner() : GenericTestRunner() {
 
     override val mainClass = "org.testng.TestNG"
 
-    override fun runAffinity(project: Project, context: KobaltContext) =
+    override fun affinity(project: Project, context: KobaltContext) =
         if (project.testDependencies.any { it.id.contains("testng")}) IRunnerContributor.DEFAULT_POSITIVE_AFFINITY
         else 0
 
