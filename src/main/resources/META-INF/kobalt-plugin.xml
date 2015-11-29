@@ -48,4 +48,8 @@
     <classpath-interceptors>
         <class-name>com.beust.kobalt.plugin.android.AndroidPlugin</class-name>
     </classpath-interceptors>
+    <compiler-contributors>
+        <class-name>com.beust.kobalt.plugin.java.JavaPlugin</class-name>
+        <class-name>com.beust.kobalt.plugin.kotlin.KotlinPlugin</class-name>
+    </compiler-contributors>
 </kobalt-plugin>

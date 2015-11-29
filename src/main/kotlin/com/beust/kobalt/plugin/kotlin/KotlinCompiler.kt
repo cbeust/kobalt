@@ -1,10 +1,10 @@
 package com.beust.kobalt.plugin.kotlin;
 
 import com.beust.kobalt.TaskResult
+import com.beust.kobalt.api.CompilerActionInfo
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.maven.DepFactory

@@ -1,10 +1,8 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.BasePlugin
-import com.beust.kobalt.api.IProjectContributor
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.DepFactory
@@ -138,8 +136,17 @@ abstract class JvmCompilerPlugin @Inject constructor(
     @Task(name = JavaPlugin.TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project) : TaskResult {
         context.variant.maybeGenerateBuildConfig(project, context)
-        return doCompile(project, createCompilerActionInfo(project, context))
+        val info = createCompilerActionInfo(project, context)
+        val compiler = selectAffinityActor(project, context.pluginInfo.compilerContributors)
+        if (compiler != null) {
+            return compiler.compile(project, context, info)
+        } else {
+            throw KobaltException("Couldn't find any compiler for project ${project.name}")
+        }
     }
+
+    private fun <T : IAffinity> selectAffinityActor(project: Project, actors: List<T>) : T? =
+            actors.maxBy { it.affinity(project, context) }
 
     @Task(name = JavaPlugin.TASK_JAVADOC, description = "Run Javadoc")
     fun taskJavadoc(project: Project) = doJavadoc(project, createCompilerActionInfo(project, context))

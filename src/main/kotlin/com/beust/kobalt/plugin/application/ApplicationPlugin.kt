@@ -74,7 +74,7 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
     // IRunContributor
 
     override fun affinity(project: Project, context: KobaltContext): Int {
-        return if (configurationFor(project) != null) IRunnerContributor.DEFAULT_POSITIVE_AFFINITY else 0
+        return if (configurationFor(project) != null) IAffinity.DEFAULT_POSITIVE_AFFINITY else 0
     }
 
     override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>): TaskResult {

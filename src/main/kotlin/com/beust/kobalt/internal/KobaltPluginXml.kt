@@ -70,6 +70,9 @@ class KobaltPluginXml {
 
     @XmlElement(name = "classpath-interceptors") @JvmField
     var classpathInterceptors: ClassNameXml? = null
+
+    @XmlElement(name = "compiler-contributors") @JvmField
+    var compilerContributors: ClassNameXml? = null
 }
 
 class ContributorXml {
@@ -100,6 +103,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val runnerContributors = arrayListOf<IRunnerContributor>()
     val testRunnerContributors = arrayListOf<IRunnerContributor>()
     val classpathInterceptors = arrayListOf<IClasspathInterceptor>()
+    val compilerContributors = arrayListOf<ICompilerContributor>()
 
     // Future contributors:
     // source files
@@ -181,6 +185,9 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         }
         xml.classpathInterceptors?.className?.forEach {
             classpathInterceptors.add(factory.instanceOf(forName(it)) as IClasspathInterceptor)
+        }
+        xml.compilerContributors?.className?.forEach {
+            compilerContributors.add(factory.instanceOf(forName(it)) as ICompilerContributor)
         }
     }
 

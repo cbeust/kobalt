@@ -4,7 +4,6 @@ import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.IClasspathDependency
@@ -129,7 +128,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         val androidJar = Paths.get(androidHome(project), "platforms", "android-$compileSdkVersion", "android.jar")
         val applicationId = configurationFor(project)?.applicationId!!
         val intermediates = AndroidFiles.intermediates(project)
-        val crunchedPngDir = KFiles.joinAndMakeDir(AndroidFiles.intermediates(project).toString(), "res")
 
 //        AaptCommand(project, aapt, "crunch").call(listOf(
 //                "-v",
@@ -392,7 +390,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     // IRunContributor
     override fun affinity(project: Project, context: KobaltContext): Int {
         val manifest = AndroidFiles.manifest(project, context)
-        return if (File(manifest).exists()) IRunnerContributor.DEFAULT_POSITIVE_AFFINITY else 0
+        return if (File(manifest).exists()) IAffinity.DEFAULT_POSITIVE_AFFINITY else 0
     }
 
     override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>): TaskResult {

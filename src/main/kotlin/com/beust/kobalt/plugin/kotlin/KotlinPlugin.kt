@@ -1,16 +1,14 @@
 package com.beust.kobalt.plugin.kotlin
 
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.BasePlugin
-import com.beust.kobalt.api.IClasspathContributor
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
-import com.beust.kobalt.maven.*
+import com.beust.kobalt.maven.DepFactory
+import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.IClasspathDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
@@ -30,7 +28,7 @@ class KotlinPlugin @Inject constructor(
         override val executors: KobaltExecutors,
         override val jvmCompiler: JvmCompiler)
         : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler),
-            IClasspathContributor {
+            IClasspathContributor, ICompilerContributor {
 
     companion object {
         const val PLUGIN_NAME = "Kotlin"
@@ -111,6 +109,13 @@ class KotlinPlugin @Inject constructor(
         } else {
             listOf()
         }
+
+    // ICompilerContributor
+
+    override fun affinity(project: Project, context: KobaltContext) =
+            if (project.sourceSuffix == ".kt") 1 else 0
+
+    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) = doCompile(project, info)
 }
 
 /**

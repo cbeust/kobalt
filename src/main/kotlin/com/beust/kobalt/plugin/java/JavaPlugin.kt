@@ -1,12 +1,9 @@
 package com.beust.kobalt.plugin.java
 
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.BasePlugin
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.internal.CompilerActionInfo
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DepFactory
@@ -30,7 +27,8 @@ class JavaPlugin @Inject constructor(
         override val executors: KobaltExecutors,
         val javaCompiler: JavaCompiler,
         override val jvmCompiler: JvmCompiler)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler) {
+        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler),
+            ICompilerContributor {
     companion object {
         const val PLUGIN_NAME = "Java"
         const val TASK_COMPILE = "compile"
@@ -91,6 +89,13 @@ class JavaPlugin @Inject constructor(
             }
         return result
     }
+
+    // ICompilerContributor
+
+    override fun affinity(project: Project, context: KobaltContext) =
+        if (project.sourceSuffix == ".java") 1 else 0
+
+    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) = doCompile(project, info)
 }
 
 @Directive
