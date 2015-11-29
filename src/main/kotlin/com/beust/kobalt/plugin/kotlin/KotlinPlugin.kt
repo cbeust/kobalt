@@ -11,10 +11,13 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.warn
+import com.beust.kobalt.misc.*
+import com.google.common.collect.ArrayListMultimap
+import org.jetbrains.dokka.DokkaGenerator
+import org.jetbrains.dokka.DokkaLogger
+import org.jetbrains.dokka.SourceLinkDefinition
 import java.io.File
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -40,8 +43,34 @@ class KotlinPlugin @Inject constructor(
     override fun accept(project: Project) = project is KotlinProject
 
     override fun doJavadoc(project: Project, cai: CompilerActionInfo): TaskResult {
-        warn("javadoc task not implemented for Kotlin, call the dokka task instead")
-        return TaskResult()
+        val configs = dokkaConfigurations[project.name]
+        val classpath = context.dependencyManager.calculateDependencies(project, context)
+        val buildDir = project.buildDirectory
+        val classpathList = classpath.map { it.jarFile.get().absolutePath } + listOf(buildDir)
+        var success = true
+        configs.forEach { config ->
+            if (!config.skip) {
+                val outputDir = buildDir + "/" +
+                        if (config.outputDir.isBlank()) "doc" else config.outputDir
+
+                val gen = DokkaGenerator(
+                        KobaltDokkaLogger { success = false },
+                        classpathList,
+                        project.sourceDirectories.filter { File(it).exists() }.toList(),
+                        config.samplesDirs,
+                        config.includeDirs,
+                        config.moduleName,
+                        outputDir,
+                        config.outputFormat,
+                        config.sourceLinks.map { SourceLinkDefinition(it.dir, it.url, it.urlSuffix) }
+                )
+                gen.generate()
+                log(2, "Documentation generated in $outputDir")
+            } else {
+                log(2, "skip is true, not generating the documentation")
+            }
+        }
+        return TaskResult(success)
     }
 
     @Task(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf(TASK_COMPILE))
@@ -112,6 +141,12 @@ class KotlinPlugin @Inject constructor(
         lp(project, "Compilation " + if (result.success) "succeeded" else "failed")
         return result
     }
+
+    private val dokkaConfigurations = ArrayListMultimap.create<String, DokkaConfig>()
+
+    fun addDokkaConfiguration(project: Project, dokkaConfig: DokkaConfig) {
+        dokkaConfigurations.put(project.name, dokkaConfig)
+    }
 }
 
 /**
@@ -134,4 +169,46 @@ class KotlinCompilerConfig(val project: Project) {
 @Directive
 fun Project.kotlinCompiler(init: KotlinCompilerConfig.() -> Unit) = let {
     KotlinCompilerConfig(it).init()
+}
+
+class KobaltDokkaLogger(val onErrorCallback: () -> Unit = {}) : DokkaLogger {
+    override fun error(message: String) {
+        KobaltLogger.logger.error("Dokka", message)
+        onErrorCallback()
+    }
+
+    override fun info(message: String) {
+        KobaltLogger.logger.log(2, message)
+    }
+
+    override fun warn(message: String) {
+        KobaltLogger.logger.warn("Dokka", message)
+    }
+}
+
+class SourceLinkMapItem {
+    var dir: String = ""
+    var url: String = ""
+    var urlSuffix: String? = null
+}
+
+class DokkaConfig(
+        var samplesDirs: List<String> = emptyList(),
+        var includeDirs: List<String> = emptyList(),
+        var outputDir: String = "",
+        var outputFormat: String = "html",
+        var sourceLinks : ArrayList<SourceLinkMapItem> = arrayListOf<SourceLinkMapItem>(),
+        var moduleName: String = "",
+        var skip: Boolean = false) {
+
+    fun sourceLinks(init: SourceLinkMapItem.() -> Unit)
+            = sourceLinks.add(SourceLinkMapItem().apply { init() })
+}
+
+@Directive
+public fun Project.dokka(init: DokkaConfig.() -> Unit) = let { project ->
+    with(DokkaConfig()) {
+        init()
+        (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as KotlinPlugin).addDokkaConfiguration(project, this)
+    }
 }

@@ -3,11 +3,8 @@ import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.plugin.application.application
-import com.beust.kobalt.plugin.dokka.*
-import com.beust.kobalt.plugin.java.javaCompiler
-import com.beust.kobalt.plugin.java.javaProject
-import com.beust.kobalt.plugin.kotlin.kotlinCompiler
-import com.beust.kobalt.plugin.kotlin.kotlinProject
+import com.beust.kobalt.plugin.java.*
+import com.beust.kobalt.plugin.kotlin.*
 import com.beust.kobalt.plugin.packaging.assemble
 import com.beust.kobalt.plugin.publish.github
 import com.beust.kobalt.plugin.publish.jcenter
