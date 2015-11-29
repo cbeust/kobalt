@@ -30,7 +30,7 @@ class KotlinPlugin @Inject constructor(
         override val executors: KobaltExecutors,
         override val jvmCompiler: JvmCompiler)
         : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler),
-            IClasspathContributor, ICompilerContributor {
+            IClasspathContributor, ICompilerContributor, IDocContributor {
 
     companion object {
         const val PLUGIN_NAME = "Kotlin"
@@ -42,7 +42,7 @@ class KotlinPlugin @Inject constructor(
 
     override fun accept(project: Project) = project is KotlinProject
 
-    override fun doJavadoc(project: Project, cai: CompilerActionInfo): TaskResult {
+    override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val configs = dokkaConfigurations[project.name]
         val classpath = context.dependencyManager.calculateDependencies(project, context)
         val buildDir = project.buildDirectory

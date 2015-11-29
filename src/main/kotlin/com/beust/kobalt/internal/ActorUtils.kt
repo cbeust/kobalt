@@ -6,8 +6,10 @@ import com.beust.kobalt.api.Project
 
 class ActorUtils {
     companion object {
-        fun <T : IAffinity> selectAffinityActor(project: Project, context: KobaltContext,
-                actors: List<T>) : T?
+        /**
+         * Return the plug-in actor with the highest affinity.
+         */
+        fun <T : IAffinity> selectAffinityActor(project: Project, context: KobaltContext, actors: List<T>) : T?
             = actors.maxBy { it.affinity(project, context) }
     }
 }

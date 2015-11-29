@@ -51,4 +51,8 @@
         <class-name>com.beust.kobalt.plugin.java.JavaPlugin</class-name>
         <class-name>com.beust.kobalt.plugin.kotlin.KotlinPlugin</class-name>
     </compiler-contributors>
+    <doc-contributors>
+        <class-name>com.beust.kobalt.plugin.java.JavaPlugin</class-name>
+        <class-name>com.beust.kobalt.plugin.kotlin.KotlinPlugin</class-name>
+    </doc-contributors>
 </kobalt-plugin>

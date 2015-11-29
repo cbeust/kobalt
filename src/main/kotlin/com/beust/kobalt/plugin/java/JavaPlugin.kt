@@ -28,11 +28,10 @@ class JavaPlugin @Inject constructor(
         val javaCompiler: JavaCompiler,
         override val jvmCompiler: JvmCompiler)
         : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler),
-            ICompilerContributor {
+            ICompilerContributor, IDocContributor {
     companion object {
         const val PLUGIN_NAME = "Java"
         const val TASK_COMPILE = "compile"
-        const val TASK_JAVADOC = "javadoc"
         const val TASK_COMPILE_TEST = "compileTest"
     }
 
@@ -51,10 +50,15 @@ class JavaPlugin @Inject constructor(
         return dirs
     }
 
-    override fun doJavadoc(project: Project, cai: CompilerActionInfo) : TaskResult {
+    // IDocContributor
+
+    override fun affinity(project: Project, context: KobaltContext) =
+            if (project.sourceSuffix == ".java") 1 else 0
+
+    override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val result =
-            if (cai.sourceFiles.size > 0) {
-                javaCompiler.javadoc(project, context, cai.copy(compilerArgs = compilerArgsFor(project)))
+            if (info.sourceFiles.size > 0) {
+                javaCompiler.javadoc(project, context, info.copy(compilerArgs = compilerArgsFor(project)))
             } else {
                 warn("Couldn't find any source files to run Javadoc on")
                 TaskResult()
@@ -80,9 +84,6 @@ class JavaPlugin @Inject constructor(
     }
 
     // ICompilerContributor
-
-    override fun affinity(project: Project, context: KobaltContext) =
-        if (project.sourceSuffix == ".java") 1 else 0
 
     override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val result =

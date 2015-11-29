@@ -144,8 +144,16 @@ abstract class JvmCompilerPlugin @Inject constructor(
         }
     }
 
-    @Task(name = JavaPlugin.TASK_JAVADOC, description = "Run Javadoc")
-    fun taskJavadoc(project: Project) = doJavadoc(project, createCompilerActionInfo(project, context))
+    @Task(name = "doc", description = "Generate the documentation for the project")
+    fun taskJavadoc(project: Project) : TaskResult {
+        val docGenerator = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.docContributors)
+        if (docGenerator != null) {
+            return docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context))
+        } else {
+            warn("Couldn't find any doc contributor for project ${project.name}")
+            return TaskResult()
+        }
+    }
 
     private fun createCompilerActionInfo(project: Project, context: KobaltContext) : CompilerActionInfo {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
@@ -172,7 +180,5 @@ abstract class JvmCompilerPlugin @Inject constructor(
         })
         return result
     }
-
-    abstract fun doJavadoc(project: Project, cai: CompilerActionInfo) : TaskResult
 }
 

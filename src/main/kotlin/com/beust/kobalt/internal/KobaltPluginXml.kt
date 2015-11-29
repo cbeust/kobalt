@@ -73,6 +73,9 @@ class KobaltPluginXml {
 
     @XmlElement(name = "compiler-contributors") @JvmField
     var compilerContributors: ClassNameXml? = null
+
+    @XmlElement(name = "doc-contributors") @JvmField
+    var docContributors: ClassNameXml? = null
 }
 
 class ContributorXml {
@@ -104,6 +107,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val testRunnerContributors = arrayListOf<IRunnerContributor>()
     val classpathInterceptors = arrayListOf<IClasspathInterceptor>()
     val compilerContributors = arrayListOf<ICompilerContributor>()
+    val docContributors = arrayListOf<IDocContributor>()
 
     // Future contributors:
     // source files
@@ -188,6 +192,9 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         }
         xml.compilerContributors?.className?.forEach {
             compilerContributors.add(factory.instanceOf(forName(it)) as ICompilerContributor)
+        }
+        xml.docContributors?.className?.forEach {
+            docContributors.add(factory.instanceOf(forName(it)) as IDocContributor)
         }
     }
 
