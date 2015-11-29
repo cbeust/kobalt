@@ -1,6 +1,6 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.api.IClasspathDependency
+import com.beust.kobalt.maven.dependency.FileDependency
 import com.google.inject.assistedinject.Assisted
 import java.io.*
 import java.net.HttpURLConnection
@@ -25,8 +25,8 @@ class Kurl @Inject constructor(@Assisted val url: String) {
             val result =
                     if (connection is HttpURLConnection) {
                         (connection as HttpURLConnection).responseCode == 200
-                    } else if (url.startsWith(IClasspathDependency.PREFIX_FILE)) {
-                        val fileName = url.substring(IClasspathDependency.PREFIX_FILE.length)
+                    } else if (url.startsWith(FileDependency.PREFIX_FILE)) {
+                        val fileName = url.substring(FileDependency.PREFIX_FILE.length)
                         File(fileName).exists()
                     } else {
                         false

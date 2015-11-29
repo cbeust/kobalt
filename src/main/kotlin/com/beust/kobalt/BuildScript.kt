@@ -1,12 +1,11 @@
 package com.beust.kobalt
 
+import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.maven.DepFactory
-import com.beust.kobalt.api.IClasspathDependency
+import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.SystemProperties
 import java.io.File
 
 @Directive
@@ -14,7 +13,7 @@ fun homeDir(vararg dirs: String) : String = SystemProperties.homeDir +
         File.separator + dirs.toArrayList().joinToString(File.separator)
 
 @Directive
-fun file(file: String) : String = IClasspathDependency.PREFIX_FILE + file
+fun file(file: String) : String = FileDependency.PREFIX_FILE + file
 
 @Directive
 fun plugins(vararg dependency : IClasspathDependency) {

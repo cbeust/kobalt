@@ -1,8 +1,8 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.KobaltException
-import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.api.IClasspathDependency
+import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KobaltExecutors
 import java.util.concurrent.ExecutorService
@@ -19,8 +19,8 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
      */
     public fun create(id: String, executor: ExecutorService,
             localFirst : Boolean = true) : IClasspathDependency {
-        if (id.startsWith(IClasspathDependency.PREFIX_FILE)) {
-            return FileDependency(id.substring(IClasspathDependency.PREFIX_FILE.length))
+        if (id.startsWith(FileDependency.PREFIX_FILE)) {
+            return FileDependency(id.substring(FileDependency.PREFIX_FILE.length))
         } else {
             val mavenId = MavenId(id)
             var version = mavenId.version

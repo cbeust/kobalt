@@ -6,7 +6,11 @@ import org.apache.maven.model.Dependency
 import java.io.File
 
 open public class FileDependency(open val fileName: String) : IClasspathDependency, Comparable<FileDependency> {
-    override val id = IClasspathDependency.PREFIX_FILE + fileName
+    companion object {
+        val PREFIX_FILE: String = "file://"
+    }
+
+    override val id = PREFIX_FILE + fileName
 
     override val jarFile = CompletedFuture(File(fileName))
 

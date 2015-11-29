@@ -10,10 +10,6 @@ import java.util.concurrent.Future
  * which represents a dependency living in a Maven repo.
  */
 interface IClasspathDependency {
-    companion object {
-        val PREFIX_FILE: String = "file://"
-    }
-
     /** Identifier for this dependency */
     val id: String
 
