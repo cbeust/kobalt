@@ -1,17 +1,19 @@
 package com.beust.kobalt.internal.remote
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.internal.build.BuildFileCompiler
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import java.io.PrintWriter
+import java.net.Socket
 import java.nio.file.Paths
 import javax.inject.Inject
 
@@ -72,4 +74,11 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
     class ProjectData( val name: String, val dependencies: List<DependencyData>)
 
     class GetDependenciesData(val projects: List<ProjectData>)
+}
+
+fun main(argv: Array<String>) {
+    val socket = Socket("localhost", 1234)
+    (PrintWriter(socket.outputStream, true)).use { out ->
+        out.println("""{ "name" : "getDependencies", "buildFile": "/c/users/cbeust/kotlin/kobalt/kobalt/src/Build.kt" }""")
+    }
 }
