@@ -3,16 +3,16 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.JavaInfo
 import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.IRunnerContributor
+import com.beust.kobalt.api.IClasspathDependency
+import com.beust.kobalt.api.ITestRunnerContributor
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import java.io.File
 import java.net.URLClassLoader
 
-abstract class GenericTestRunner : IRunnerContributor {
+abstract class GenericTestRunner : ITestRunnerContributor {
     abstract val mainClass: String
     abstract fun args(project: Project, classpath: List<IClasspathDependency>) : List<String>
 

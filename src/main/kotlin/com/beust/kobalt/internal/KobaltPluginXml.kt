@@ -32,50 +32,11 @@ class KobaltPluginXml {
     @XmlElement @JvmField
     var name: String? = null
 
-    @XmlElement(name = "plugins") @JvmField
-    var plugins : ClassNameXml? = null
+    @XmlElement(name = "plugin-actors") @JvmField
+    var pluginActors : ClassNameXml? = null
 
     @XmlElement(name = "factory-class-name") @JvmField
     var factoryClassName: String? = null
-
-    @XmlElement(name = "classpath-contributors") @JvmField
-    var classpathContributors: ClassNameXml? = null
-
-    @XmlElement(name = "project-contributors") @JvmField
-    var projectContributors: ClassNameXml? = null
-
-    @XmlElement(name = "init-contributors") @JvmField
-    var initContributors: ClassNameXml? = null
-
-    @XmlElement(name = "repo-contributors") @JvmField
-    var repoContributors: ClassNameXml? = null
-
-    @XmlElement(name = "compiler-flag-contributors") @JvmField
-    var compilerFlagContributors: ClassNameXml? = null
-
-    @XmlElement(name = "compiler-interceptors") @JvmField
-    var compilerInterceptors: ClassNameXml? = null
-
-    @XmlElement(name = "source-directories-interceptors") @JvmField
-    var sourceDirectoriesInterceptors: ClassNameXml? = null
-
-    @XmlElement(name = "build-directory-interceptors") @JvmField
-    var buildDirectoryInterceptors: ClassNameXml? = null
-
-    @XmlElement(name = "runner-contributors") @JvmField
-    var runnerContributors: ClassNameXml? = null
-
-    @XmlElement(name = "test-runner-contributors") @JvmField
-    var testRunnerContributors: ClassNameXml? = null
-
-    @XmlElement(name = "classpath-interceptors") @JvmField
-    var classpathInterceptors: ClassNameXml? = null
-
-    @XmlElement(name = "compiler-contributors") @JvmField
-    var compilerContributors: ClassNameXml? = null
-
-    @XmlElement(name = "doc-contributors") @JvmField
-    var docContributors: ClassNameXml? = null
 }
 
 class ContributorXml {
@@ -104,7 +65,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val sourceDirectoriesInterceptors = arrayListOf<ISourceDirectoriesIncerceptor>()
     val buildDirectoryInterceptors = arrayListOf<IBuildDirectoryIncerceptor>()
     val runnerContributors = arrayListOf<IRunnerContributor>()
-    val testRunnerContributors = arrayListOf<IRunnerContributor>()
+    val testRunnerContributors = arrayListOf<ITestRunnerContributor>()
     val classpathInterceptors = arrayListOf<IClasspathInterceptor>()
     val compilerContributors = arrayListOf<ICompilerContributor>()
     val docContributors = arrayListOf<IDocContributor>()
@@ -154,50 +115,32 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
             if (classLoader != null) classLoader.loadClass(className)
             else Class.forName(className)
 
-        xml.plugins?.className?.forEach {
-            plugins.add(factory.instanceOf(forName(it)) as IPlugin)
-        }
-        xml.classpathContributors?.className?.forEach {
-            classpathContributors.add(factory.instanceOf(forName(it)) as IClasspathContributor)
-        }
-        xml.projectContributors?.className?.forEach {
-            projectContributors.add(factory.instanceOf(forName(it)) as IProjectContributor)
-        }
-        xml.initContributors?.className?.forEach {
-            initContributors.add(factory.instanceOf(forName(it)) as IInitContributor)
-        }
-        xml.repoContributors?.className?.forEach {
-            repoContributors.add(factory.instanceOf(forName(it)) as IRepoContributor)
-        }
-        xml.compilerFlagContributors?.className?.forEach {
-            compilerFlagContributors.add(factory.instanceOf(forName(it)) as ICompilerFlagContributor)
-        }
-        xml.compilerInterceptors?.className?.forEach {
-            compilerInterceptors.add(factory.instanceOf(forName(it)) as ICompilerInterceptor)
-        }
-        xml.sourceDirectoriesInterceptors?.className?.forEach {
-            sourceDirectoriesInterceptors.add(factory.instanceOf(forName(it)) as ISourceDirectoriesIncerceptor)
-        }
-        xml.buildDirectoryInterceptors?.className?.forEach {
-            buildDirectoryInterceptors.add(factory.instanceOf(forName(it)) as IBuildDirectoryIncerceptor)
-        }
-        xml.runnerContributors?.className?.forEach {
-            runnerContributors.add(factory.instanceOf(forName(it)) as IRunnerContributor)
-        }
-        xml.testRunnerContributors?.className?.forEach {
-            testRunnerContributors.add(factory.instanceOf(forName(it)) as IRunnerContributor)
-        }
-        xml.classpathInterceptors?.className?.forEach {
-            classpathInterceptors.add(factory.instanceOf(forName(it)) as IClasspathInterceptor)
-        }
-        xml.compilerContributors?.className?.forEach {
-            compilerContributors.add(factory.instanceOf(forName(it)) as ICompilerContributor)
-        }
-        xml.docContributors?.className?.forEach {
-            docContributors.add(factory.instanceOf(forName(it)) as IDocContributor)
+        //
+        // Populate pluginInfo with what was found in Kobalt's own kobalt-plugin.xml
+        //
+        xml.pluginActors?.className?.forEach {
+            with(factory.instanceOf(forName(it))) {
+                if (this is IPlugin) plugins.add(this)
+                if (this is IClasspathContributor) classpathContributors.add(this)
+                if (this is IProjectContributor) projectContributors.add(this)
+                if (this is IInitContributor) initContributors.add(this)
+                if (this is IRepoContributor) repoContributors.add(this)
+                if (this is ICompilerContributor) compilerContributors.add(this)
+                if (this is ICompilerInterceptor) compilerInterceptors.add(this)
+                if (this is ISourceDirectoriesIncerceptor) sourceDirectoriesInterceptors.add(this)
+                if (this is IBuildDirectoryIncerceptor) buildDirectoryInterceptors.add(this)
+                if (this is IRunnerContributor) runnerContributors.add(this)
+                if (this is ITestRunnerContributor) testRunnerContributors.add(this)
+                if (this is IClasspathInterceptor) classpathInterceptors.add(this)
+                if (this is ICompilerContributor) compilerContributors.add(this)
+                if (this is IDocContributor) docContributors.add(this)
+            }
         }
     }
 
+    /**
+     * Populate pluginInfo with what was found in the plug-in's kobalt-plugin.xml
+     */
     fun addPluginInfo(pluginInfo: PluginInfo) {
         log(2, "Found new plug-in, adding it to pluginInfo: $pluginInfo")
 
@@ -206,6 +149,14 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         projectContributors.addAll(pluginInfo.projectContributors)
         initContributors.addAll(pluginInfo.initContributors)
         repoContributors.addAll(pluginInfo.repoContributors)
+        compilerInterceptors.addAll(pluginInfo.compilerInterceptors)
+        sourceDirectoriesInterceptors.addAll(pluginInfo.sourceDirectoriesInterceptors)
+        buildDirectoryInterceptors.addAll(pluginInfo.buildDirectoryInterceptors)
+        runnerContributors.addAll(pluginInfo.runnerContributors)
+        testRunnerContributors.addAll(pluginInfo.testRunnerContributors)
+        classpathInterceptors.addAll(pluginInfo.classpathInterceptors)
+        compilerContributors.addAll(pluginInfo.compilerContributors)
+        docContributors.addAll(pluginInfo.docContributors)
     }
 }
 
