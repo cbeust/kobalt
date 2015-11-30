@@ -34,7 +34,7 @@ class AsciiArt {
         fun box(strings: List<String>) : List<String> {
             val ul = "\u2554"
             val ur = "\u2557"
-            val h = horizontalDoubleLine
+            val h = "\u2550"
             val v = "\u2551"
             val bl = "\u255a"
             val br = "\u255d"
