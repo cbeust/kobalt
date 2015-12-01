@@ -254,8 +254,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         // Call dx to generate classes.dex
         //
         val buildToolsDir = buildToolsVersion(project)
-        val dx = "${androidHome(project)}/build-tools/$buildToolsDir/dx" +
-                if (OperatingSystem.current().isWindows()) ".bat" else ""
         val classesDexDir = KFiles.joinDir(AndroidFiles.intermediates(project), "dex",
                 context.variant.toIntermediateDir())
         File(classesDexDir).mkdirs()
@@ -388,12 +386,12 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 
     // IRunContributor
     override fun affinity(project: Project, context: KobaltContext): Int {
-        val manifest = AndroidFiles.manifest(project, context)
+        val manifest = AndroidFiles.manifest(project)
         return if (File(manifest).exists()) IAffinity.DEFAULT_POSITIVE_AFFINITY else 0
     }
 
     override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>): TaskResult {
-        val manifest = AndroidFiles.manifest(project, context)
+        val manifest = AndroidFiles.manifest(project)
         FileInputStream(File(manifest)).use { ins ->
             // adb shell am start -n com.package.name/com.package.name.ActivityName
             val manifest = AndroidManifest(ins)

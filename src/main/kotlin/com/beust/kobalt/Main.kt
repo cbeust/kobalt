@@ -93,7 +93,7 @@ private class Main @Inject constructor(
 
         var result = 0
         val latestVersionFuture = github.latestKobaltVersion
-        val seconds = benchmark("build", {
+        val seconds = benchmark {
             try {
                 result = runWithArgs(jc, args, argv)
             } catch(ex: KobaltException) {
@@ -102,7 +102,7 @@ private class Main @Inject constructor(
             } finally {
                 executors.shutdown()
             }
-        })
+        }
 
         log(1, if (result != 0) "BUILD FAILED: $result" else "BUILD SUCCESSFUL ($seconds seconds)")
 

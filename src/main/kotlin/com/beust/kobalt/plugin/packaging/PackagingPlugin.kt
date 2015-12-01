@@ -11,7 +11,6 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -171,6 +170,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             log(2, "Creating fat jar")
 
             val seen = hashSetOf<String>()
+            @Suppress("UNCHECKED_CAST")
             val dependentProjects = project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
                     as List<ProjectDescription>
             listOf(dependencyManager.calculateDependencies(project, context, dependentProjects,
@@ -204,7 +204,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 true /* expandJarFiles */, jarFactory)
     }
 
-    private fun buildDir(project: Project) = KFiles.makeDir(project.directory, project.buildDirectory!!)
+    private fun buildDir(project: Project) = KFiles.makeDir(project.directory, project.buildDirectory)
 
     private fun findIncludedFiles(directory: String, files: List<IncludedFile>, excludes: List<IFileSpec.Glob>)
             : List<IncludedFile> {

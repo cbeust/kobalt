@@ -22,7 +22,7 @@ import javax.xml.bind.annotation.XmlValue
  */
 class Merger @Inject constructor() {
     fun merge(project: Project, context: KobaltContext) {
-        File(AndroidFiles.mergedResourcesNoVariant(project, context.variant)).deleteRecursively()
+        File(AndroidFiles.mergedResourcesNoVariant(project)).deleteRecursively()
         mergeResources(project, context.variant)
         mergeAndroidManifest(project, context.variant)
         log(2, "All done merging")

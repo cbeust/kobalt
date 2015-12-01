@@ -29,7 +29,7 @@ class LocalProperties {
 
     fun get(name: String, docUrl: String? = null) : String {
         this.docUrl = docUrl
-        val result = localProperties[name]
+        val result = localProperties.getProperty(name)
                 ?: throw KobaltException("Couldn't find $name in local.properties", docUrl = docUrl)
         return result as String
     }

@@ -92,10 +92,12 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
 
     private fun runJarFile(project: Project, config: ApplicationConfig) : TaskResult {
         val jarName = project.projectProperties.get(PackagingPlugin.JAR_NAME) as String
+        @Suppress("UNCHECKED_CAST")
         val packages = project.projectProperties.get(PackagingPlugin.PACKAGES) as List<PackageConfig>
         val allDeps = arrayListOf(jarName)
         val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
         if (! isFatJar(packages, jarName)) {
+            @Suppress("UNCHECKED_CAST")
             val projDeps = project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
                     as List<ProjectDescription>
             // If the jar file is not fat, we need to add the transitive closure of all dependencies

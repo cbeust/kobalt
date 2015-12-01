@@ -13,6 +13,7 @@ import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
 @Singleton
 public class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGenerator.IFactory,
             val jcenterFactory: JCenterApi.IFactory, val github: GithubApi, val localProperties: LocalProperties)
@@ -100,7 +101,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
             // Upload to Maven
             //
             val trMaven = jcenter.uploadMaven(project, findArtifactFiles(project), configuration)
-            var success = trMaven.success
+            success = trMaven.success
             if (! success) messages.add(trMaven.errorMessage!!)
 
             //
