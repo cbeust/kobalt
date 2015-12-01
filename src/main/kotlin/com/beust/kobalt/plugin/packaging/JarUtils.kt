@@ -1,6 +1,7 @@
 package com.beust.kobalt.plugin.packaging
 
 import com.beust.kobalt.IFileSpec
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.common.io.CharStreams
 import java.io.*
@@ -27,6 +28,11 @@ public class JarUtils {
                 addSingleFile(directory, it, target, expandJarFiles, onError)
             }
         }
+
+        private val DEFAULT_JAR_EXCLUDES = arrayListOf(
+                IFileSpec.Glob("META-INF/*.SF"),
+                IFileSpec.Glob("META-INF/*.DSA"),
+                IFileSpec.Glob("META-INF/*.RSA"))
 
         public fun addSingleFile(directory: String, file: IncludedFile, outputStream: ZipOutputStream,
                 expandJarFiles: Boolean, onError: (Exception) -> Unit = DEFAULT_HANDLER) {
@@ -56,7 +62,7 @@ public class JarUtils {
                             val stream = JarInputStream(FileInputStream(source))
                             var entry = stream.nextEntry
                             while (entry != null) {
-                                if (!entry.isDirectory) {
+                                if (! entry.isDirectory && ! KFiles.isExcluded(entry.name, DEFAULT_JAR_EXCLUDES)) {
                                     val ins = JarFile(source).getInputStream(entry)
                                     addEntry(ins, JarEntry(entry), outputStream, onError)
                                 }

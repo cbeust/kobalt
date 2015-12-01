@@ -20,8 +20,6 @@ import com.beust.kobalt.plugin.java.JavaPlugin
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
-import java.nio.file.FileSystems
-import java.nio.file.PathMatcher
 import java.nio.file.Paths
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipOutputStream
@@ -70,24 +68,6 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             pkg.zips.forEach { generateZip(pkg.project, it) }
         }
         return TaskResult()
-    }
-
-    private fun isExcluded(file: File, excludes: List<Glob>) : Boolean {
-        if (excludes.isEmpty()) {
-            return false
-        } else {
-            val ex = arrayListOf<PathMatcher>()
-            excludes.forEach {
-                ex.add(FileSystems.getDefault().getPathMatcher("glob:${it.spec}"))
-            }
-            ex.forEach {
-                if (it.matches(Paths.get(file.name))) {
-                    log(2, "Excluding $file")
-                    return true
-                }
-            }
-        }
-        return false
     }
 
     private fun generateWar(project: Project, war: War) : File {
@@ -153,7 +133,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
             // Class files
             val files = KFiles.findRecursively(classesDir).map { File(relClassesDir.toFile(), it) }
-            val filesNotExcluded : List<File> = files.filter { ! isExcluded(it, jar.excludes) }
+            val filesNotExcluded : List<File> = files.filter { ! KFiles.isExcluded(it, jar.excludes) }
             val fileSpecs = arrayListOf<IFileSpec>()
             filesNotExcluded.forEach {
                 fileSpecs.add(FileSpec(it.path.toString().substring(prefixPath.toString().length + 1)))
@@ -183,7 +163,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                                 }.forEach { file : File ->
                                     if (! seen.contains(file.name)) {
                                         seen.add(file.name)
-                                        if (!isExcluded(file, jar.excludes)) {
+                                        if (! KFiles.isExcluded(file, jar.excludes)) {
                                             allFiles.add(IncludedFile(arrayListOf(FileSpec(file.path))))
                                         }
                                     }
@@ -221,7 +201,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                             }
                         }
 
-                        if (!isExcluded(file, excludes)) {
+                        if (! KFiles.isExcluded(file, excludes)) {
                             includedSpecs.add(FileSpec(file.path))
                         } else {
                             log(2, "Not adding ${file.path} to jar file because it's excluded")
