@@ -42,7 +42,7 @@ class Args {
     @Parameter(names = arrayOf("--port"), description = "Port, if --server was specified")
     var port: Int = DEFAULT_SERVER_PORT
 
-    @Parameter(names = arrayOf("--profiles"), description = "Comma-separate list of profiles to run")
+    @Parameter(names = arrayOf("--profiles"), description = "Comma-separated list of profiles to run")
     var profiles: String? = null
 
     @Parameter(names = arrayOf("--resolve"), description = "Resolve the given dependency and display its tree")
