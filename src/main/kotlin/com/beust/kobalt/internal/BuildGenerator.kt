@@ -24,7 +24,7 @@ abstract class BuildGenerator : IInitContributor<File> {
         }
     }
 
-    override fun affinity(dir: File) = KFiles.findRecursively(dir, fileMatch).size
+    override fun affinity(arg: File) = KFiles.findRecursively(arg, fileMatch).size
 
     private fun importPom(pomFile: File, mainDeps: ArrayList<Pom.Dependency>, testDeps: ArrayList<Pom.Dependency>,
             map: HashMap<String, Any?>) {

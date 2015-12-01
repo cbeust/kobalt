@@ -17,7 +17,7 @@ abstract class GenericTestRunner : ITestRunnerContributor {
     abstract fun args(project: Project, classpath: List<IClasspathDependency>) : List<String>
 
     override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>)
-            = TaskResult(runTests(project, context, classpath))
+            = TaskResult(runTests(project, classpath))
 
 
     protected fun findTestClasses(project: Project, classpath: List<IClasspathDependency>): List<String> {
@@ -46,7 +46,7 @@ abstract class GenericTestRunner : ITestRunnerContributor {
     /**
      * @return true if all the tests passed
      */
-    fun runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>) : Boolean {
+    fun runTests(project: Project, classpath: List<IClasspathDependency>) : Boolean {
         val jvm = JavaInfo.create(File(SystemProperties.javaBase))
         val java = jvm.javaExecutable
         val args = args(project, classpath)

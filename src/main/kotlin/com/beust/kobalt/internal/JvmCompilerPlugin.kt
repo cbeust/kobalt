@@ -113,6 +113,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
     protected fun compilerArgsFor(project: Project) : List<String> {
         val result = project.projectProperties.get(COMPILER_ARGS)
         if (result != null) {
+            @Suppress("UNCHECKED_CAST")
             return result as List<String>
         } else {
             return emptyList()
