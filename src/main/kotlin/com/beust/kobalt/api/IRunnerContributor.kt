@@ -6,7 +6,7 @@ import com.beust.kobalt.api.IClasspathDependency
 /**
  * Plugins that can run a project (task "run" or "test") should implement this interface.
  */
-interface IRunnerContributor : IContributor, IAffinity {
+interface IRunnerContributor : IContributor, IProjectAffinity {
     /**
      * Run the project.
      */

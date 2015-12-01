@@ -5,7 +5,7 @@ import com.beust.kobalt.TaskResult
 /**
  * Plugins that can run a project (task "run" or "test") should implement this interface.
  */
-interface ITestRunnerContributor : IContributor, IAffinity {
+interface ITestRunnerContributor : IContributor, IProjectAffinity {
     /**
      * Run the project.
      */

@@ -11,7 +11,7 @@ import java.util.*
 /**
  * Abstract base class for the build generators that use build-template.mustache.
  */
-abstract class BuildGenerator : IInitContributor {
+abstract class BuildGenerator : IInitContributor<File> {
     abstract val defaultSourceDirectories : HashSet<String>
     abstract val defaultTestDirectories : HashSet<String>
     abstract val directive : String
@@ -24,7 +24,7 @@ abstract class BuildGenerator : IInitContributor {
         }
     }
 
-    override fun filesManaged(dir: File) = KFiles.findRecursively(dir, fileMatch).size
+    override fun affinity(dir: File) = KFiles.findRecursively(dir, fileMatch).size
 
     private fun importPom(pomFile: File, mainDeps: ArrayList<Pom.Dependency>, testDeps: ArrayList<Pom.Dependency>,
             map: HashMap<String, Any?>) {

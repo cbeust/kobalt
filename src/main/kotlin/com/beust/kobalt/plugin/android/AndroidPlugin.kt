@@ -6,7 +6,6 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.dependency.FileDependency
-import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.*
 import com.beust.kobalt.plugin.java.JavaCompiler

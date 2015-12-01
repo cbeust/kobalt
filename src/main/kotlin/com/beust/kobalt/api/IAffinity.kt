@@ -1,5 +1,8 @@
 package com.beust.kobalt.api
 
+/**
+ * Base interface for affinity interfaces.
+ */
 interface IAffinity {
     companion object {
         /**
@@ -8,10 +11,5 @@ interface IAffinity {
          */
         const val DEFAULT_POSITIVE_AFFINITY = 100
     }
-
-    /**
-     * @return an integer indicating the affinity of your actor for the given project. The actor that returns
-     * the highest affinity gets selected.
-     */
-    fun affinity(project: Project, context: KobaltContext) : Int
 }
+

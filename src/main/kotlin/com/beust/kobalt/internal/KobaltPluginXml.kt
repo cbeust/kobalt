@@ -3,6 +3,7 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.log
 import java.io.ByteArrayInputStream
+import java.io.File
 import java.io.InputStream
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlElement
@@ -58,7 +59,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val plugins = arrayListOf<IPlugin>()
     val projectContributors = arrayListOf<IProjectContributor>()
     val classpathContributors = arrayListOf<IClasspathContributor>()
-    val initContributors = arrayListOf<IInitContributor>()
+    val initContributors = arrayListOf<IInitContributor<File>>()
     val repoContributors = arrayListOf<IRepoContributor>()
     val compilerFlagContributors = arrayListOf<ICompilerFlagContributor>()
     val compilerInterceptors = arrayListOf<ICompilerInterceptor>()
@@ -123,7 +124,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
                 if (this is IPlugin) plugins.add(this)
                 if (this is IClasspathContributor) classpathContributors.add(this)
                 if (this is IProjectContributor) projectContributors.add(this)
-                if (this is IInitContributor) initContributors.add(this)
+                if (this is IInitContributor<*>) initContributors.add(this as IInitContributor<File>)
                 if (this is IRepoContributor) repoContributors.add(this)
                 if (this is ICompilerContributor) compilerContributors.add(this)
                 if (this is ICompilerInterceptor) compilerInterceptors.add(this)
