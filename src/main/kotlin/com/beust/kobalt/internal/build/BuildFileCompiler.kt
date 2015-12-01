@@ -8,14 +8,12 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.PluginProperties
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.PluginInfo
-import com.beust.kobalt.internal.build.VersionFile
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import com.google.inject.assistedinject.Assisted
-import rx.subjects.PublishSubject
 import java.io.File
 import java.net.URL
 import java.nio.file.Paths
@@ -34,8 +32,6 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
     interface IFactory {
         fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>, pluginInfo: PluginInfo) : BuildFileCompiler
     }
-
-    val observable = PublishSubject.create<List<Project>>()
 
     private val SCRIPT_JAR = "buildScript.jar"
 
@@ -115,12 +111,6 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
      * - the source code for the modified Build.kt (after profiles are applied)
      * - the URL's of all the plug-ins that were found.
      */
-    private fun parseBuildFile(context: KobaltContext, buildFile: BuildFile) : ParsedBuildFile {
-        // Parse the build file so we can generate preBuildScript and buildScript from it.
-        with(ParsedBuildFile(buildFile, context, buildScriptUtil, dependencyManager, files)) {
-            // Notify possible listeners (e.g. KobaltServer) we now have all the projects
-            observable.onNext(projects)
-            return this
-        }
-    }
+    private fun parseBuildFile(context: KobaltContext, buildFile: BuildFile) =
+            ParsedBuildFile(buildFile, context, buildScriptUtil, dependencyManager, files)
 }
