@@ -1,17 +1,18 @@
 package com.beust.kobalt.plugin.android
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.Variant
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.inject.Inject
-import java.io.*
+import java.io.File
+import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 import javax.xml.bind.JAXBContext
-import javax.xml.bind.Marshaller
 import javax.xml.bind.annotation.XmlAttribute
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
@@ -21,17 +22,17 @@ import javax.xml.bind.annotation.XmlValue
  * Merges manifests and resources.
  */
 class Merger @Inject constructor() {
-    fun merge(project: Project, context: KobaltContext) {
+    fun merge(project: Project, context: KobaltContext, explodedLocations: List<File>) {
         File(AndroidFiles.mergedResourcesNoVariant(project)).deleteRecursively()
-        mergeResources(project, context.variant)
-        mergeAndroidManifest(project, context.variant)
+        mergeResources(project, context.variant, explodedLocations)
+        mergeAndroidManifest(project, context.variant, explodedLocations)
         log(2, "All done merging")
     }
 
     /**
      * TODO: not implemented yet, just copying the manifest to where the merged manifest should be.
      */
-    private fun mergeAndroidManifest(project: Project, variant: Variant) {
+    private fun mergeAndroidManifest(project: Project, variant: Variant, explodedLocations: List<File>) {
         val dest = AndroidFiles.mergedManifest(project, variant)
         log(2, "----- Merging manifest (not implemented, copying it to $dest)")
         KFiles.copy(Paths.get(project.directory, "src/main/AndroidManifest.xml"), Paths.get(dest))
@@ -42,43 +43,91 @@ class Merger @Inject constructor() {
         fun doMerge(fromFile: File, toFile: File)
     }
 
-    /**
-     * Merge files found in values/, e.g. values/strings.xml.
-     * All the files are enumerated for each one, look if a file by the same name is present in the merged
-     * directory. If not, copy it. If there is, look for a merger for this file and run it.
-     */
-    class ValuesFileMerger : IFileMerger {
-        override fun canMerge(fromFile: File, toFile: File) : Boolean {
-            return fromFile.parentFile.name == "values"
+    class ValueFile(file: File) {
+        private var header = ""
+        private var footer = ""
+        private val lines = arrayListOf<String>()
+        private val lineSet = hashSetOf<String>()
+
+        init {
+            file.forEachLine { line ->
+                if (line.contains("<resources>") && header.isNullOrBlank()) {
+                    lineSet.add(line)
+                    header = line
+                } else if (line.contains("</resources>") && footer.isNullOrBlank()) {
+                    lineSet.add(line)
+                    footer = line
+                } else {
+                    if (footer.isNullOrBlank()) {
+                        lines.add(line)
+                        lineSet.add(line)
+                    } else {
+                        throw KobaltException("Extra text after the footer")
+                    }
+                }
+            }
         }
 
-        override fun doMerge(fromFile: File, toFile: File) {
-            FileInputStream(toFile).use { toInputStream ->
-                val toXml = readValuesXml(toInputStream)
-                FileInputStream(fromFile).use { fromInputStream ->
-                    val fromXml = readValuesXml(fromInputStream)
-                    val seen = toXml.strings.map { it.name!! }.toHashSet<String>()
-                    fromXml.strings.forEach {
-                        if (!seen.contains(it.name!!)) {
-                            log(3, "      Unconflicted string: ${it.name}")
-                            toXml.strings.add(it)
-                        } else {
-                            log(3, "      String ${it.name} already present, ignoring")
-                        }
-                    }
-                }
-                val mergedText = StringWriter()
-                val pw = PrintWriter(mergedText)
-
-                JAXBContext.newInstance(ValuesXml::class.java).createMarshaller().let { marshaller ->
-                    with(marshaller) {
-                        setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
-                        setProperty(Marshaller.JAXB_ENCODING, "UTF-8")
-                        marshal(toXml, pw)
-                    }
-                }
-                KFiles.saveFile(toFile, mergedText.toString())
+        fun merge(file: File) : ValueFile {
+            fun log(s: String) {
+                log(3, "      Merge(${file.name}): $s")
             }
+            file.forEachLine { line ->
+                if (! lineSet.contains(line)) {
+                    lines.add(line)
+                    lineSet.add(line)
+                    log("Unconflicted: $line")
+                } else {
+                    log("Already present, ignoring: $line")
+                }
+            }
+            return this
+        }
+
+        fun toXml() = (listOf(header) + lines + listOf(footer)).joinToString("\n")
+    }
+
+    /**
+     * Merge files found in values/, e.g. values/strings.xml.
+     * All the files are enumerated. If a file by the same name is present in the merged
+     * directory, merge it. Otherwise, copy it.
+     */
+    class ValuesFileMerger : IFileMerger {
+        override fun canMerge(fromFile: File, toFile: File) = fromFile.parentFile.name == "values"
+
+        override fun doMerge(fromFile: File, toFile: File) {
+            if (toFile.path.endsWith("values.xml")) {
+                println("DONOTCOMMIT VALUES.XML")
+            }
+
+            val mergedXml = ValueFile(fromFile).merge(toFile).toXml()
+            KFiles.saveFile(toFile, mergedXml.toString())
+//            FileInputStream(toFile).use { toInputStream ->
+//                val toXml = readValuesXml(toInputStream)
+//                FileInputStream(fromFile).use { fromInputStream ->
+//                    val fromXml = readValuesXml(fromInputStream)
+//                    val seen = toXml.strings.map { it.name!! }.toHashSet<String>()
+//                    fromXml.strings.forEach {
+//                        if (!seen.contains(it.name!!)) {
+//                            log(3, "      Unconflicted string: ${it.name}")
+//                            toXml.strings.add(it)
+//                        } else {
+//                            log(3, "      String ${it.name} already present, ignoring")
+//                        }
+//                    }
+//                }
+//                val mergedText = StringWriter()
+//                val pw = PrintWriter(mergedText)
+//
+//                JAXBContext.newInstance(ValuesXml::class.java).createMarshaller().let { marshaller ->
+//                    with(marshaller) {
+//                        setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
+//                        setProperty(Marshaller.JAXB_ENCODING, "UTF-8")
+//                        marshal(toXml, pw)
+//                    }
+//                }
+//                KFiles.saveFile(toFile, mergedText.toString())
+//            }
         }
 
 
@@ -109,13 +158,18 @@ class Merger @Inject constructor() {
     /**
      * Spec: http://developer.android.com/sdk/installing/studio-build.html
      */
-    private fun mergeResources(project: Project, variant: Variant) {
+    private fun mergeResources(project: Project, variant: Variant, explodedLocations: List<File>) {
         val dest = AndroidFiles.Companion.mergedResources(project, variant)
         log(2, "----- Merging res/ directory to $dest")
-        listOf(variant.buildType.name, variant.productFlavor.name, "main").forEach {
-            log(3, "  Current variant: $it")
-
-            val fromDir = File(project.directory, "src/$it/res")
+        val srcFromDirs = listOf(variant.buildType.name, variant.productFlavor.name, "main").map {
+            File(project.directory, "src/$it/res")
+        }
+        val fromDirs = explodedLocations.map { File(it, "res") } + srcFromDirs
+//        listOf(variant.buildType.name, variant.productFlavor.name, "main").forEach {
+//            log(3, "  Current variant: $it")
+//
+//            val fromDir = File(project.directory, "src/$it/res")
+        fromDirs.filter { it.exists() }.forEach { fromDir ->
             KFiles.findRecursively(fromDir).forEach {
                 val fromFile = File(fromDir, it)
                 val toFile = File(dest, it)
@@ -131,6 +185,7 @@ class Merger @Inject constructor() {
 
             }
         }
+        println("DONE MERGING")
     }
 }
 

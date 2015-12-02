@@ -15,7 +15,6 @@ import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
 import java.io.FileInputStream
-import java.net.URI
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -98,11 +97,11 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
             runBefore = arrayOf("compile"), runAfter = arrayOf("clean"))
     fun taskGenerateRFile(project: Project): TaskResult {
 
-        merger.merge(project, context)
 
         val intermediates = AndroidFiles.intermediates(project)
-        val resDir = "temporaryBogusResDir"
-        explodeAarFiles(project, intermediates, File(resDir))
+        val resDir = AndroidFiles.mergedResources(project, context.variant)
+        val explodedLocations = explodeAarFiles(project, intermediates)
+        merger.merge(project, context, explodedLocations)
         val generated = AndroidFiles.generated(project)
         val success = generateR(project, generated, aapt(project))
         return TaskResult(success)
@@ -166,7 +165,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
      * Extract all the .aar files found in the dependencies and add the android.jar to classpathEntries,
      * which will be added to the classpath at compile time
      */
-    private fun explodeAarFiles(project: Project, outputDir: String, resDir: File) {
+    private fun explodeAarFiles(project: Project, outputDir: String) : List<File> {
+        val result = arrayListOf<File>()
         project.compileDependencies.filter {
             it.jarFile.get().name.endsWith(".aar")
         }.forEach {
@@ -189,10 +189,9 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
                 }
             }
 
-            // Copy all the resources from this aar into the same intermediate directory
-            log(2, "Copying the resources to $resDir")
-            KFiles.copyRecursively(destDir.resolve("res"), resDir, deleteFirst = false)
+            result.add(destDir)
         }
+        return result
     }
 
     private fun compile(project: Project, rDirectory: String): File {
@@ -350,10 +349,11 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     }
 
     // IRepoContributor
-    override fun reposFor(project: Project?): List<URI> {
+    override fun reposFor(project: Project?): List<HostInfo> {
         val home = androidHomeNoThrows(project)
         return if (home != null) {
-            listOf(Paths.get(KFiles.joinDir(home, "extras", "android", "m2repository")).toUri())
+            val uri = Paths.get(KFiles.joinDir(home, "extras", "android", "m2repository")).toUri()
+            listOf(HostInfo(uri.toString()))
         } else {
             emptyList()
         }

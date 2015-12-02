@@ -128,6 +128,8 @@ private class Main @Inject constructor(
     //    }
 
     private fun runWithArgs(jc: JCommander, args: Args, argv: Array<String>): Int {
+        //@@
+//        AndroidBuild().run()
 //        val file = File("/Users/beust/.kobalt/repository/com/google/guava/guava/19.0-rc2/guava-19.0-rc2.pom")
 //        val md5 = Md5.toMd5(file)
 //        val md52 = MessageDigest.getInstance("MD5").digest(file.readBytes()).toHexString()
