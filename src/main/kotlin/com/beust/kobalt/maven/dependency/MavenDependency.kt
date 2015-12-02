@@ -1,5 +1,6 @@
 package com.beust.kobalt.maven.dependency
 
+import com.beust.kobalt.HostInfo
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
@@ -36,12 +37,13 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
             if (repoResult.found) {
                 jarFile =
                     if (repoResult.hasJar) {
-                        downloadManager.download(repoResult.repoUrl + toJarFile(repoResult), jar.absolutePath, executor)
+                        downloadManager.download(HostInfo(url = repoResult.repoHostInfo.url + toJarFile(repoResult)),
+                                jar.absolutePath, executor)
                     } else {
                         CompletedFuture(File("nonexistentFile")) // will be filtered out
                 }
-                pomFile = downloadManager.download(repoResult.repoUrl + toPomFile(repoResult), pom.absolutePath,
-                        executor)
+                pomFile = downloadManager.download(HostInfo(url = repoResult.repoHostInfo.url + toPomFile(repoResult)),
+                        pom.absolutePath, executor)
             } else {
                 throw KobaltException("Couldn't resolve ${mavenId.toId}")
             }

@@ -1,5 +1,6 @@
 package com.beust.kobalt.maven
 
+import com.beust.kobalt.HostInfo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
@@ -19,49 +20,50 @@ import javax.inject.Singleton
 
 @Singleton
 class DownloadManager @Inject constructor(val factory: ArtifactFetcher.IFactory) {
-    class Key(val url: String, val fileName: String, val executor: ExecutorService) {
+    class Key(val hostInfo: HostInfo, val fileName: String, val executor: ExecutorService) {
         override fun equals(other: Any?): Boolean {
-            return (other as Key).url == url
+            return (other as Key).hostInfo.url == hostInfo.url
         }
 
         override fun hashCode(): Int {
-            return url.hashCode()
+            return hostInfo.url.hashCode()
         }
     }
 
     private val CACHE : LoadingCache<Key, Future<File>> = CacheBuilder.newBuilder()
         .build(object : CacheLoader<Key, Future<File>>() {
             override fun load(key: Key): Future<File> {
-                return key.executor.submit(factory.create(key.url, key.fileName))
+                return key.executor.submit(factory.create(key.hostInfo, key.fileName))
             }
         })
 
-    fun download(url: String, fileName: String, executor: ExecutorService)
-            : Future<File> = CACHE.get(Key(url, fileName, executor))
+    fun download(hostInfo: HostInfo, fileName: String, executor: ExecutorService)
+            : Future<File> = CACHE.get(Key(hostInfo, fileName, executor))
 }
 
 /**
  * Fetches an artifact (a file in a Maven repo, .jar, -javadoc.jar, ...) to the given local file.
  */
-class ArtifactFetcher @Inject constructor(@Assisted("url") val url: String,
+class ArtifactFetcher @Inject constructor(@Assisted("hostInfo") val hostInfo: HostInfo,
         @Assisted("fileName") val fileName: String,
-        val files: KFiles, val urlFactory: Kurl.IFactory) : Callable<File> {
+        val files: KFiles) : Callable<File> {
     interface IFactory {
-        fun create(@Assisted("url") url: String, @Assisted("fileName") fileName: String) : ArtifactFetcher
+        fun create(@Assisted("hostInfo") hostInfo: HostInfo, @Assisted("fileName") fileName: String) : ArtifactFetcher
     }
 
     override fun call() : File {
-        val k = urlFactory.create(url + ".md5")
+        val k = Kurl(hostInfo.copy(url = hostInfo.url + ".md5"))
         val remoteMd5 =
             if (k.exists) k.string.trim(' ', '\t', '\n').substring(0, 32)
             else null
 
         val tmpFile = Paths.get(fileName + ".tmp")
         val file = Paths.get(fileName)
+        val url = hostInfo.url
         if (! Files.exists(file)) {
             with(tmpFile.toFile()) {
                 parentFile.mkdirs()
-                urlFactory.create(url).toFile(this)
+                Kurl(hostInfo).toFile(this)
             }
             log(2, "Done downloading, renaming $tmpFile to $file")
             Files.move(tmpFile, file, StandardCopyOption.REPLACE_EXISTING)

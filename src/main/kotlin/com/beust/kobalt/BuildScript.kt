@@ -29,9 +29,29 @@ fun plugins(vararg dependencies : String) {
     }
 }
 
+data class HostInfo(val url: String, var keyUsername: String? = null, var keyPassword: String? = null) {
+    fun hasAuth() : Boolean {
+        return (! keyUsername.isNullOrBlank()) && (! keyPassword.isNullOrBlank())
+    }
+}
+
 @Directive
 fun repos(vararg repos : String) {
+    repos.forEach { Kobalt.addRepo(HostInfo(it)) }
+}
+
+@Directive
+fun repos(vararg repos : HostInfo) {
     repos.forEach { Kobalt.addRepo(it) }
+}
+
+class HostConfig(var keyUsername: String? = null, var keyPassword: String? = null)
+
+@Directive
+fun authRepo(url: String, init: HostConfig.() -> Unit) : HostInfo {
+    val r = HostConfig()
+    r.init()
+    return HostInfo(url, r.keyUsername, r.keyPassword)
 }
 
 @Directive

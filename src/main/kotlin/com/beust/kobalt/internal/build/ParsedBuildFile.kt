@@ -3,9 +3,6 @@ package com.beust.kobalt.internal.build
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.internal.build.VersionFile
-import com.beust.kobalt.internal.build.BuildFile
-import com.beust.kobalt.internal.build.BuildScriptUtil
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.countChar
@@ -41,17 +38,20 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
 
     private fun parseBuildFile() {
         var parenCount = 0
+        var current: ArrayList<String>? = null
         buildFile.path.toFile().forEachLine(Charset.defaultCharset()) { line ->
-            var current: ArrayList<String>? = null
             var index = line.indexOf("plugins(")
-            if (index >= 0) {
-                current = pluginList
-            } else {
-                index = line.indexOf("repos(")
+            if (current == null) {
                 if (index >= 0) {
-                    current = repos
+                    current = pluginList
+                } else {
+                    index = line.indexOf("repos(")
+                    if (index >= 0) {
+                        current = repos
+                    }
                 }
             }
+
             if (parenCount > 0 || current != null) {
                 if (index == -1) index = 0
                 with(line.substring(index)) {
@@ -61,6 +61,10 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
                     }
                     parenCount -= line countChar ')'
                 }
+            }
+
+            if (parenCount == 0) {
+                current = null
             }
 
             /**

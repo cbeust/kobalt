@@ -1,5 +1,6 @@
 package com.beust.kobalt.maven
 
+import com.beust.kobalt.HostInfo
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.Strings
@@ -8,6 +9,7 @@ import com.beust.kobalt.misc.warn
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
+import kotlinx.dom.parseXml
 import java.io.File
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorCompletionService
@@ -15,19 +17,18 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
-import kotlinx.dom.parseXml
 
 /**
  * Find the repo that contains the given dependency among a list of repos. Searches are performed in parallel and
  * cached so we never make a network call for the same dependency more than once.
  */
-public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val executors: KobaltExecutors) {
+public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
     public fun findCorrectRepo(id: String): RepoResult {
         return FOUND_REPOS.get(id)
     }
 
-    data class RepoResult(val repoUrl: String, val found: Boolean, val version: String, val hasJar: Boolean = true,
-            val snapshotVersion: String = "")
+    data class RepoResult(val repoHostInfo: HostInfo, val found: Boolean, val version: String,
+            val hasJar: Boolean = true, val snapshotVersion: String = "")
 
     private val FOUND_REPOS: LoadingCache<String, RepoResult> = CacheBuilder.newBuilder()
             .build(object : CacheLoader<String, RepoResult>() {
@@ -50,14 +51,14 @@ public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val e
                     val result = cs.take().get(2000, TimeUnit.MILLISECONDS)
                     log(2, "Result for repo #$i: $result")
                     if (result.found) {
-                        log(2, "Located $id in ${result.repoUrl}")
+                        log(2, "Located $id in ${result.repoHostInfo.url}")
                         return result
                     }
                 } catch(ex: Exception) {
                     warn("Error: $ex")
                 }
             }
-            return RepoResult("", false, id)
+            return RepoResult(HostInfo(""), false, id)
         } finally {
             executor.shutdownNow()
         }
@@ -66,8 +67,9 @@ public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val e
     /**
      * Execute a single HTTP request to one repo.
      */
-    inner class RepoFinderCallable(val id: String, val repoUrl: String) : Callable<RepoResult> {
+    inner class RepoFinderCallable(val id: String, val repo: HostInfo) : Callable<RepoResult> {
         override fun call(): RepoResult {
+            val repoUrl = repo.url
             log(2, "Checking $repoUrl for $id")
 
             val mavenId = MavenId(id)
@@ -78,9 +80,9 @@ public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val e
                 val ud = UnversionedDep(groupId, artifactId)
                 val foundVersion = findCorrectVersionRelease(ud.toMetadataXmlPath(false), repoUrl)
                 if (foundVersion != null) {
-                    return RepoResult(repoUrl, true, foundVersion)
+                    return RepoResult(repo, true, foundVersion)
                 } else {
-                    return RepoResult(repoUrl, false, "")
+                    return RepoResult(repo, false, "")
                 }
             } else {
                 val version = mavenId.version
@@ -88,26 +90,27 @@ public class RepoFinder @Inject constructor(val urlFactory: Kurl.IFactory, val e
                     val dep = SimpleDep(mavenId)
                     val snapshotVersion = findSnapshotVersion(dep.toMetadataXmlPath(false), repoUrl)
                     if (snapshotVersion != null) {
-                        return RepoResult(repoUrl, true, version, true /* hasJar, potential bug here */,
+                        return RepoResult(repo, true, version, true /* hasJar, potential bug here */,
                                 snapshotVersion)
                     } else {
-                        return RepoResult(repoUrl, false, "")
+                        return RepoResult(repo, false, "")
                     }
                 } else {
                     val dep = SimpleDep(mavenId)
                     // Try to find the jar file
-                    val urlJar = repoUrl + dep.toJarFile(dep.version)
-                    val hasJar = urlFactory.create(urlJar).exists
+                    val urlJar = repo.copy(url = repo.url + dep.toJarFile(dep.version))
+                    val hasJar = Kurl(urlJar).exists
                     val found =
                         if (! hasJar) {
                             // No jar, try to find the directory
-                            val url = repoUrl + File(dep.toJarFile(dep.version)).parentFile.path.replace("\\", "/")
-                            urlFactory.create(url).exists
+                            val url = repo.copy(url = repoUrl
+                                    + File(dep.toJarFile(dep.version)).parentFile.path.replace("\\", "/"))
+                            Kurl(url).exists
                         } else {
                             true
                         }
                     log(2, "Result for $repoUrl for $id: $found")
-                    return RepoResult(repoUrl, found, dep.version, hasJar)
+                    return RepoResult(repo, found, dep.version, hasJar)
                 }
             }
         }
