@@ -1,6 +1,6 @@
 package com.beust.kobalt.api
 
-import com.beust.kobalt.HostInfo
+import com.beust.kobalt.HostConfig
 
 /**
  * Plugins that add their own repos.
@@ -11,6 +11,6 @@ interface IRepoContributor : IContributor {
      * before the build file gets parsed (so we don't have any projects yet) and after the
      * build file has been parsed (then it gets called once for each project discovered).
      */
-    fun reposFor(project: Project?) : List<HostInfo>
+    fun reposFor(project: Project?) : List<HostConfig>
 }
 

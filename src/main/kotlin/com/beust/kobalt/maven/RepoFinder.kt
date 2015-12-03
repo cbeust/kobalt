@@ -1,6 +1,6 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.HostInfo
+import com.beust.kobalt.HostConfig
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.Strings
@@ -27,7 +27,7 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
         return FOUND_REPOS.get(id)
     }
 
-    data class RepoResult(val repoHostInfo: HostInfo, val found: Boolean, val version: String,
+    data class RepoResult(val hostConfig: HostConfig, val found: Boolean, val version: String,
             val hasJar: Boolean = true, val snapshotVersion: String = "")
 
     private val FOUND_REPOS: LoadingCache<String, RepoResult> = CacheBuilder.newBuilder()
@@ -51,14 +51,14 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                     val result = cs.take().get(2000, TimeUnit.MILLISECONDS)
                     log(2, "Result for repo #$i: $result")
                     if (result.found) {
-                        log(2, "Located $id in ${result.repoHostInfo.url}")
+                        log(2, "Located $id in ${result.hostConfig.url}")
                         return result
                     }
                 } catch(ex: Exception) {
                     warn("Error: $ex")
                 }
             }
-            return RepoResult(HostInfo(""), false, id)
+            return RepoResult(HostConfig(""), false, id)
         } finally {
             executor.shutdownNow()
         }
@@ -67,7 +67,7 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
     /**
      * Execute a single HTTP request to one repo.
      */
-    inner class RepoFinderCallable(val id: String, val repo: HostInfo) : Callable<RepoResult> {
+    inner class RepoFinderCallable(val id: String, val repo: HostConfig) : Callable<RepoResult> {
         override fun call(): RepoResult {
             val repoUrl = repo.url
             log(2, "Checking $repoUrl for $id")

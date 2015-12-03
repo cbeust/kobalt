@@ -29,30 +29,24 @@ fun plugins(vararg dependencies : String) {
     }
 }
 
-data class HostInfo(val url: String, var keyUsername: String? = null, var keyPassword: String? = null) {
+data class HostConfig(var url: String = "", var username: String? = null, var password: String? = null) {
     fun hasAuth() : Boolean {
-        return (! keyUsername.isNullOrBlank()) && (! keyPassword.isNullOrBlank())
+        return (! username.isNullOrBlank()) && (! password.isNullOrBlank())
     }
 }
 
 @Directive
 fun repos(vararg repos : String) {
-    repos.forEach { Kobalt.addRepo(HostInfo(it)) }
+    repos.forEach { Kobalt.addRepo(HostConfig(it)) }
 }
 
 @Directive
-fun repos(vararg repos : HostInfo) {
+fun authRepos(vararg repos : HostConfig) {
     repos.forEach { Kobalt.addRepo(it) }
 }
 
-class HostConfig(var keyUsername: String? = null, var keyPassword: String? = null)
-
 @Directive
-fun authRepo(url: String, init: HostConfig.() -> Unit) : HostInfo {
-    val r = HostConfig()
-    r.init()
-    return HostInfo(url, r.keyUsername, r.keyPassword)
-}
+fun authRepo(init: HostConfig.() -> Unit) = HostConfig().apply { init() }
 
 @Directive
 fun glob(g: String) : IFileSpec.Glob = IFileSpec.Glob(g)

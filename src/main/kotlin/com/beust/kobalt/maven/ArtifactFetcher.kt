@@ -1,6 +1,6 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.HostInfo
+import com.beust.kobalt.HostConfig
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
@@ -20,7 +20,7 @@ import javax.inject.Singleton
 
 @Singleton
 class DownloadManager @Inject constructor(val factory: ArtifactFetcher.IFactory) {
-    class Key(val hostInfo: HostInfo, val fileName: String, val executor: ExecutorService) {
+    class Key(val hostInfo: HostConfig, val fileName: String, val executor: ExecutorService) {
         override fun equals(other: Any?): Boolean {
             return (other as Key).hostInfo.url == hostInfo.url
         }
@@ -37,18 +37,18 @@ class DownloadManager @Inject constructor(val factory: ArtifactFetcher.IFactory)
             }
         })
 
-    fun download(hostInfo: HostInfo, fileName: String, executor: ExecutorService)
+    fun download(hostInfo: HostConfig, fileName: String, executor: ExecutorService)
             : Future<File> = CACHE.get(Key(hostInfo, fileName, executor))
 }
 
 /**
  * Fetches an artifact (a file in a Maven repo, .jar, -javadoc.jar, ...) to the given local file.
  */
-class ArtifactFetcher @Inject constructor(@Assisted("hostInfo") val hostInfo: HostInfo,
+class ArtifactFetcher @Inject constructor(@Assisted("hostInfo") val hostInfo: HostConfig,
         @Assisted("fileName") val fileName: String,
         val files: KFiles) : Callable<File> {
     interface IFactory {
-        fun create(@Assisted("hostInfo") hostInfo: HostInfo, @Assisted("fileName") fileName: String) : ArtifactFetcher
+        fun create(@Assisted("hostInfo") hostInfo: HostConfig, @Assisted("fileName") fileName: String) : ArtifactFetcher
     }
 
     override fun call() : File {

@@ -1,8 +1,8 @@
 package com.beust.kobalt.api
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.HostConfig
 import com.beust.kobalt.Plugins
-import com.beust.kobalt.HostInfo
 import com.beust.kobalt.misc.MainModule
 import com.google.inject.Guice
 import com.google.inject.Injector
@@ -24,9 +24,9 @@ public class Kobalt {
             "https://jcenter.bintray.com/"
         )
 
-        val repos = HashSet<HostInfo>(DEFAULT_REPOS.map { HostInfo(it) })
+        val repos = HashSet<HostConfig>(DEFAULT_REPOS.map { HostConfig(it) })
 
-        fun addRepo(repo: HostInfo) = repos.add(
+        fun addRepo(repo: HostConfig) = repos.add(
                 if (repo.url.endsWith("/")) repo
                 else repo.copy(url = (repo.url + "/")))
 

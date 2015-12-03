@@ -1,7 +1,9 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.HostInfo
+import com.beust.kobalt.HostConfig
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.maven.dependency.FileDependency
+import com.beust.kobalt.misc.LocalProperties
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
@@ -11,14 +13,38 @@ import java.util.*
 /**
  * Abstracts a URL so that it works transparently on either http:// or file://
  */
-class Kurl(val hostInfo: HostInfo) {
-//    constructor(url: String) : this(HostInfo(url))
+class Kurl(val hostInfo: HostConfig) {
+    companion object {
+        const val KEY = "authUrl"
+        const val VALUE_USER = "username"
+        const val VALUE_PASSWORD = "password"
+    }
+
+    init {
+        // See if the URL needs to be authenticated. Look in local.properties for keys
+        // of the format authUrl.<host>.user=xxx and authUrl.<host>.password=xxx
+        val properties = LocalProperties().localProperties
+        val host = java.net.URL(hostInfo.url).host
+        properties.entries.forEach {
+            val key = it.key.toString()
+            if (key == "$KEY.$host.$VALUE_USER") {
+                hostInfo.username = properties.getProperty(key)
+            } else if (key == "$KEY.$host.$VALUE_PASSWORD") {
+                hostInfo.password = properties.getProperty(key)
+            }
+        }
+        if (! hostInfo.username.isNullOrBlank() && hostInfo.password.isNullOrBlank()) {
+            throw KobaltException("Found \"username\" but not \"password\" in local.properties for $KEY.$host")
+        } else if(hostInfo.username.isNullOrBlank() && ! hostInfo.password.isNullOrBlank()) {
+            throw KobaltException("Found \"password\" but not \"username\" in local.properties for $KEY.$host")
+        }
+    }
 
     val connection : URLConnection
         get() {
             val result = URL(hostInfo.url).openConnection()
             if (hostInfo.hasAuth()) {
-                val userPass = hostInfo.keyUsername + ":" + hostInfo.keyPassword
+                val userPass = hostInfo.username + ":" + hostInfo.password
                 val basicAuth = "Basic " + String(Base64.getEncoder().encode(userPass.toByteArray()))
                 result.setRequestProperty("Authorization", basicAuth)
             }
@@ -31,9 +57,6 @@ class Kurl(val hostInfo: HostInfo) {
 
     val exists : Boolean
         get() {
-            if (hostInfo.url.contains("localhost")) {
-                println("DONOTCOMMIT")
-            }
             val url = hostInfo.url
             val result =
                     if (connection is HttpURLConnection) {

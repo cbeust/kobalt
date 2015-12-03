@@ -351,11 +351,11 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     }
 
     // IRepoContributor
-    override fun reposFor(project: Project?): List<HostInfo> {
+    override fun reposFor(project: Project?): List<HostConfig> {
         val home = androidHomeNoThrows(project)
         return if (home != null) {
             val path = Paths.get(KFiles.joinDir(home, "extras", "android", "m2repository"))
-            listOf(HostInfo(path.toUri().toString()))
+            listOf(HostConfig(path.toUri().toString()))
         } else {
             emptyList()
         }
