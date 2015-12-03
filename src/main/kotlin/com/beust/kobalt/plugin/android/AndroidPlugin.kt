@@ -15,7 +15,6 @@ import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
 import java.io.FileInputStream
-import java.net.URI
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -352,10 +351,11 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     }
 
     // IRepoContributor
-    override fun reposFor(project: Project?): List<URI> {
+    override fun reposFor(project: Project?): List<HostInfo> {
         val home = androidHomeNoThrows(project)
         return if (home != null) {
-            listOf(Paths.get(KFiles.joinDir(home, "extras", "android", "m2repository")).toUri())
+            val path = Paths.get(KFiles.joinDir(home, "extras", "android", "m2repository"))
+            listOf(HostInfo(path.toUri().toString()))
         } else {
             emptyList()
         }
