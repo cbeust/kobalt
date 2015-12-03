@@ -67,6 +67,8 @@ val kobalt = kotlinProject(wrapper) {
                 "org.jetbrains.dokka:dokka-fatjar:0.9.2",
                 "org.jetbrains.kotlinx:kotlinx.dom:0.0.4",
 
+                "com.android.tools.build:builder:1.5.0",
+
                 "com.beust:jcommander:1.48",
                 "com.squareup.okhttp:okhttp:2.5.0",
                 "org.jsoup:jsoup:1.8.3",
