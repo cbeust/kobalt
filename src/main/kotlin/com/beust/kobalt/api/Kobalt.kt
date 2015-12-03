@@ -20,6 +20,7 @@ public class Kobalt {
 
         private val DEFAULT_REPOS = arrayListOf(
             "http://repo1.maven.org/maven2/",
+            "https://maven-central.storage.googleapis.com/",
             "https://repository.jboss.org/nexus/content/repositories/root_repository/",
             "https://jcenter.bintray.com/"
         )
