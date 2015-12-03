@@ -2,13 +2,14 @@ package com.beust.kobalt.plugin.android
 
 import com.android.builder.core.AndroidBuilder
 import com.android.builder.core.ErrorReporter
+import com.android.builder.core.LibraryRequest
 import com.android.builder.model.SyncIssue
 import com.android.builder.sdk.DefaultSdkLoader
 import com.android.builder.sdk.SdkLoader
 import com.android.ide.common.blame.Message
 import com.android.ide.common.process.*
-import com.android.ide.common.res2.MergedResourceWriter
-import com.android.ide.common.res2.NoOpResourcePreprocessor
+import com.android.ide.common.res2.*
+import com.android.sdklib.repository.FullRevision
 import com.android.utils.StdLogger
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.misc.KFiles
@@ -68,22 +69,30 @@ class AndroidBuild {
         val javaProcessExecutor = KobaltJavaProcessExecutor()
         val sdkLoader : SdkLoader = DefaultSdkLoader.getLoader(File("/Users/beust/adt-bundle-mac-x86_64-20140702/sdk"))
         val repositories = sdkLoader.repositories
+        val sdkInfo = sdkLoader.getSdkInfo(logger)
         val androidBuilder = AndroidBuilder("com.beust.kobalt", "Cedric Beust",
                 processExecutor,
                 javaProcessExecutor,
                 KobaltErrorReporter(),
-                StdLogger(StdLogger.Level.VERBOSE),
+                logger,
                 true /* verbose */)
-        val sdkInfo = androidBuilder.sdkInfo
-        val target = androidBuilder.target
-        val dxJar = androidBuilder.dxJar
 
         val processOutputHandler = KobaltProcessOutputHandler()
         val dir : String = KFiles.joinDir(homeDir("kotlin/kobalt-examples/android-flavors"))
+        val outputDir = KFiles.joinDir(dir, "kobaltBuild", "intermediates", "res", "merged", "pro",
+                "debug")
         val layout = ProjectLayout()
         val preprocessor = NoOpResourcePreprocessor()
 
-        val writer = MergedResourceWriter(File(dir),
+        // AndroidTargetHash.getTargetHashString(target))
+        val targetHash = "android-22"
+        val buildToolsRevision = FullRevision(23, 0, 1)
+        val libraryRequests = arrayListOf<LibraryRequest>()
+        androidBuilder.setTargetInfo(sdkLoader.getSdkInfo(logger),
+                sdkLoader.getTargetInfo(targetHash, buildToolsRevision, logger),
+                libraryRequests)
+
+        val writer = MergedResourceWriter(File(outputDir),
                 androidBuilder.getAaptCruncher(processOutputHandler),
                 false /* don't crunch */,
                 false /* don't process 9patch */,
@@ -91,6 +100,27 @@ class AndroidBuild {
                 layout.mergeBlame,
                 preprocessor)
         println("Repositories: $repositories")
+        val target = androidBuilder.target
+        val dxJar = androidBuilder.dxJar
+        val resourceMerger = ResourceMerger()
+
+        //
+        // Resources
+        //
+        listOf("main", "pro", "release").forEach {
+            val path = dir + "/src/$it/res"
+            val set = ResourceSet(path)
+            set.addSource(File(path))
+            set.loadFromFiles(logger)
+
+            val generated = GeneratedResourceSet(set)
+            set.setGeneratedSet(generated)
+
+            resourceMerger.addDataSet(set)
+        }
+
+
+        resourceMerger.mergeData(writer, true)
         println("")
     }
 }
