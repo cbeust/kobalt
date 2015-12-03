@@ -52,7 +52,7 @@ public class PomGenerator @Inject constructor(@Assisted val project: Project) {
         val s = StringWriter()
         MavenXpp3Writer().write(s, m)
 
-        val buildDir = KFiles.makeDir(project.directory, project.buildDirectory!!)
+        val buildDir = KFiles.makeDir(project.directory, project.buildDirectory)
         val outputDir = KFiles.makeDir(buildDir.path, "libs")
         val mavenId = MavenId.create(project.group!!, project.artifactId!!, project.packaging, project.version!!)
         val pomFile = SimpleDep(mavenId).toPomFileName()

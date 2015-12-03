@@ -30,12 +30,8 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
     override fun run(sender: ICommandSender, received: JsonObject) {
         val buildFile = BuildFile(Paths.get(received.get("buildFile").asString), "GetDependenciesCommand")
         val scriptCompiler = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
-        scriptCompiler.observable.subscribe {
-            projects -> if (projects.size > 0) {
-                sender.sendData(toData(projects))
-            }
-        }
-        scriptCompiler.compileBuildFiles(args)
+        val projects = scriptCompiler.compileBuildFiles(args)
+        sender.sendData(toData(projects))
     }
 
     private fun toData(projects: List<Project>) : CommandData {
