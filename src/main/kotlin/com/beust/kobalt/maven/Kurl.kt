@@ -33,10 +33,14 @@ class Kurl(val hostInfo: HostConfig) {
                 hostInfo.password = properties.getProperty(key)
             }
         }
+        fun error(s1: String, s2: String) {
+            throw KobaltException("Found \"$s1\" but not \"$s2\" in local.properties for $KEY.$host",
+                    docUrl = "http://beust.com/kobalt/documentation/index.html#maven-repos-authenticated")
+        }
         if (! hostInfo.username.isNullOrBlank() && hostInfo.password.isNullOrBlank()) {
-            throw KobaltException("Found \"username\" but not \"password\" in local.properties for $KEY.$host")
+            error("username", "password")
         } else if(hostInfo.username.isNullOrBlank() && ! hostInfo.password.isNullOrBlank()) {
-            throw KobaltException("Found \"password\" but not \"username\" in local.properties for $KEY.$host")
+            error("password", "username")
         }
     }
 
