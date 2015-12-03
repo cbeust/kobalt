@@ -1,7 +1,9 @@
 package com.beust.kobalt
 
-import com.beust.kobalt.maven.*
 import com.beust.kobalt.api.IClasspathDependency
+import com.beust.kobalt.maven.MavenId
+import com.beust.kobalt.maven.RepoFinder
+import com.beust.kobalt.maven.SimpleDep
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.Node
 import com.beust.kobalt.misc.log
@@ -29,7 +31,7 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder) {
         val repoResult = repoFinder.findCorrectRepo(id)
 
         val simpleDep = SimpleDep(MavenId(id))
-        val url = repoResult.repoUrl + simpleDep.toJarFile(repoResult)
+        val url = repoResult.repoHostInfo.url + simpleDep.toJarFile(repoResult)
         AsciiArt.logBox(listOf(id, url).map { "          $it" }, {s -> println(s) })
 
         display(root.children)

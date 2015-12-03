@@ -67,7 +67,7 @@ private class Main @Inject constructor(
     private fun addReposFromContributors(project: Project?) =
             pluginInfo.repoContributors.forEach {
                 it.reposFor(project).forEach {
-                    Kobalt.addRepo(it.toString())
+                    Kobalt.addRepo(it)
                 }
             }
 
