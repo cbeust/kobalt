@@ -97,7 +97,7 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
          */
         private fun compilerFirst(list: List<File>): List<File> {
             val result = arrayListOf<File>()
-            list.forEach { it
+            list.forEach {
                 if (it.name.startsWith("kotlin-")) result.add(0, it)
                 else result.add(it)
             }
