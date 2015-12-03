@@ -4,7 +4,6 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.warn
 import com.google.common.collect.ArrayListMultimap
 import java.util.*
 import javax.inject.Inject
@@ -98,12 +97,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
             it.project.name == project?.name
         }.forEach { pd ->
             pd.dependsOn.forEach { p ->
-                val classesDir = p.classesDir(context)
-                if (classesDir != null) {
-                    result.add(FileDependency(KFiles.joinDir(p.directory, classesDir)))
-                } else {
-                    warn("Couldn't find any classes dir for project depended on ${p.name}")
-                }
+                result.add(FileDependency(KFiles.joinDir(p.directory, p.classesDir(context))))
                 val otherDependencies = calculateDependencies(p, context, projectDescriptions,
                         p.compileDependencies)
                 result.addAll(otherDependencies)
