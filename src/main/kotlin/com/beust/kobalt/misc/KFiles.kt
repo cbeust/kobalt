@@ -1,5 +1,6 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
@@ -7,10 +8,10 @@ import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.build.BuildFile
 import java.io.File
 import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
+import java.nio.file.*
+import kotlin.io.FileAlreadyExistsException
+import kotlin.io.FileSystemException
+import kotlin.io.NoSuchFileException
 
 class KFiles {
     val kobaltJar : String
@@ -102,7 +103,7 @@ class KFiles {
                 allDirs.addAll(directories.map { File(rootDir, it.path) })
             }
 
-            val seen = hashSetOf<Path>()
+            val seen = hashSetOf<java.nio.file.Path>()
             allDirs.forEach { dir ->
                 if (! dir.exists()) {
                     log(2, "Couldn't find directory $dir")
@@ -248,6 +249,27 @@ class KFiles {
         fun makeOutputDir(project: Project) : File = makeDir(project, KFiles.CLASSES_DIR)
 
         fun makeOutputTestDir(project: Project) : File = makeDir(project, KFiles.TEST_CLASSES_DIR)
+
+        fun isExcluded(file: File, excludes: List<IFileSpec.Glob>) = isExcluded(file.path, excludes)
+
+        fun isExcluded(file: String, excludes: List<IFileSpec.Glob>) : Boolean {
+            if (excludes.isEmpty()) {
+                return false
+            } else {
+                val ex = arrayListOf<PathMatcher>()
+                excludes.forEach {
+                    ex.add(FileSystems.getDefault().getPathMatcher("glob:${it.spec}"))
+                }
+                ex.forEach {
+                    if (it.matches(Paths.get(file))) {
+                        log(2, "Excluding $file")
+                        return true
+                    }
+                }
+            }
+            return false
+        }
+
     }
 
     fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {
