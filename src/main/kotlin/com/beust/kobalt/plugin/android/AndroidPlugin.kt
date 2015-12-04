@@ -85,13 +85,13 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
             runBefore = arrayOf("compile"), runAfter = arrayOf("clean"))
     fun taskGenerateRFile(project: Project): TaskResult {
 
-        AndroidBuild().run(project, context.variant, configurationFor(project)!!)
-//        merger.merge(project, context)
-
         val intermediates = AndroidFiles.intermediates(project)
         val resDir = "temporaryBogusResDir"
+        val aarDependencies= explodeAarFiles(project, intermediates, File(resDir))
+        AndroidBuild().run(project, context.variant, configurationFor(project)!!, aarDependencies)
+//        merger.merge(project, context)
+
         val notUsed = ""
-        explodeAarFiles(project, intermediates, File(resDir))
         val generated = AndroidFiles.generated(project)
         val success = generateR(project, generated, aapt(project))
         return TaskResult(success)
@@ -155,7 +155,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
      * Extract all the .aar files found in the dependencies and add the android.jar to classpathEntries,
      * which will be added to the classpath at compile time
      */
-    private fun explodeAarFiles(project: Project, outputDir: String, resDir: File) {
+    private fun explodeAarFiles(project: Project, outputDir: String, resDir: File) : List<File> {
+        val result = arrayListOf<File>()
         project.compileDependencies.filter {
             it.jarFile.get().name.endsWith(".aar")
         }.forEach {
@@ -180,8 +181,10 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 
             // Copy all the resources from this aar into the same intermediate directory
             log(2, "Copying the resources to $resDir")
+            result.add(destDir)
             KFiles.copyRecursively(destDir.resolve("res"), resDir, deleteFirst = false)
         }
+        return result
     }
 
     private fun compile(project: Project, rDirectory: String): File {

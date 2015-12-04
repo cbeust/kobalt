@@ -67,7 +67,7 @@ class AndroidBuild {
 //    val annotationsJar = File("/Users/beust/adt-bundle-mac-x86_64-20140702/sdk/tools/lib/annotations.jar")
 //    val adb = File("/Users/beust/adt-bundle-mac-x86_64-20140702/sdk/platform-tools/adb")
 
-    fun run(project: Project, variant: Variant, config: AndroidConfig) {
+    fun run(project: Project, variant: Variant, config: AndroidConfig, aarDependencies: List<File>) {
         val logger = StdLogger(StdLogger.Level.VERBOSE)
         val processExecutor = DefaultProcessExecutor(logger)
         val javaProcessExecutor = KobaltJavaProcessExecutor()
@@ -112,7 +112,11 @@ class AndroidBuild {
         val mainManifest = File("src/main/AndroidManifest.xml")
 
         val appInfo = AppInfo(mainManifest, config)
-        val manifestOverlays = listOf<File>()
+        val manifestOverlays = listOf(
+                File("src/${variant.productFlavor.name}/AndroidManifest.xml"),
+                File("src/${variant.buildType.name}/AndroidManifest.xml")).filter {
+                    it.exists()
+                }
         val libraries = listOf<ManifestDependency>()
         val outManifest = AndroidFiles.mergedManifest(project, variant)
         val outAaptSafeManifestLocation = KFiles.joinDir(project.directory, project.buildDirectory, "generatedSafeAapt")
@@ -133,8 +137,12 @@ class AndroidBuild {
         //
         // Resources
         //
-        listOf("main", variant.productFlavor.name, variant.buildType.name).forEach {
-            val path = "$dir/src/$it/res"
+        val fullVariantDir = File(variant.toCamelcaseDir())
+        val srcList = listOf("main", variant.productFlavor.name, variant.buildType.name, fullVariantDir.path)
+            .map { "src" + File.separator + it}
+
+        val aarList = aarDependencies.map { it.path + File.separator}
+        (aarList + srcList).map { it + File.separator + "res" }.forEach { path ->
             val set = ResourceSet(path)
             set.addSource(File(path))
             set.loadFromFiles(logger)
