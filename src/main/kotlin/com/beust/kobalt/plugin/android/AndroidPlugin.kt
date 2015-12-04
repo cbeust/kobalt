@@ -206,13 +206,36 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     override fun flagsFor(project: Project, currentFlags: List<String>) : List<String> {
         if (isAndroid(project)) {
             val result = arrayListOf<String>()
+            var foundSource = false
+            var foundTarget = false
             var noWarn = false
-            if (! currentFlags.contains("-source")) with(result) {
-                addAll(listOf("-source", "1.6"))
+            var i = 0
+            while (i < currentFlags.size) {
+                with(currentFlags[i]) {
+                    if (this == "-source") {
+                        result.add(this)
+                        result.add(currentFlags[i + 1])
+                        i++
+                        foundSource = true
+                    } else if (this == "-target") {
+                        result.add(this)
+                        result.add(currentFlags[i + 1])
+                        i++
+                        foundTarget = true
+                    } else {
+                        result.add(this)
+                    }
+                }
+                i++
+            }
+            if (! foundSource) {
+                result.add("-source")
+                result.add("1.6")
                 noWarn = true
             }
-            if (!currentFlags.contains("-target")) with(result) {
-                addAll(listOf("-target", "1.6"))
+            if (! foundTarget) {
+                result.add("-target")
+                result.add("1.6")
                 noWarn = true
             }
             if (noWarn) {
