@@ -13,7 +13,7 @@ class LocalProperties {
         val result = Properties()
         val filePath = Paths.get("local.properties")
         if (! Files.exists(filePath)) {
-            throw KobaltException("Couldn't find a local.properties file", docUrl = docUrl)
+            warn("Couldn't find a local.properties file")
         }
 
         filePath.let { path ->
