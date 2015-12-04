@@ -66,19 +66,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
             return version as String
     }
 
-    fun androidHomeNoThrows(project: Project?): String? {
-        var result = System.getenv("ANDROID_HOME")
-        if (project != null) {
-            configurationFor(project)?.androidHome?.let {
-                result = it
-            }
-        }
-
-        return result
-    }
-
-    fun androidHome(project: Project?) = androidHomeNoThrows(project) ?:
-            throw IllegalArgumentException("Neither androidHome nor \$ANDROID_HOME were defined")
+    inline fun androidHome(project: Project?) = AndroidFiles.androidHome(project, configurationFor(project)!!)
 
     fun androidJar(project: Project): Path =
             Paths.get(androidHome(project), "platforms", "android-${compileSdkVersion(project)}", "android.jar")
@@ -97,10 +85,12 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
             runBefore = arrayOf("compile"), runAfter = arrayOf("clean"))
     fun taskGenerateRFile(project: Project): TaskResult {
 
-        merger.merge(project, context)
+        AndroidBuild().run(project, context.variant, configurationFor(project)!!)
+//        merger.merge(project, context)
 
         val intermediates = AndroidFiles.intermediates(project)
         val resDir = "temporaryBogusResDir"
+        val notUsed = ""
         explodeAarFiles(project, intermediates, File(resDir))
         val generated = AndroidFiles.generated(project)
         val success = generateR(project, generated, aapt(project))
@@ -352,7 +342,12 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 
     // IRepoContributor
     override fun reposFor(project: Project?): List<HostConfig> {
-        val home = androidHomeNoThrows(project)
+        val config = configurationFor(project)
+        var home: String? = null
+        if (config != null) {
+            home = AndroidFiles.androidHomeNoThrows(project, config)
+        }
+
         return if (home != null) {
             val path = Paths.get(KFiles.joinDir(home, "extras", "android", "m2repository"))
             listOf(HostConfig(path.toUri().toString()))

@@ -3,15 +3,18 @@ package com.beust.kobalt.plugin.android
 import com.android.builder.core.AndroidBuilder
 import com.android.builder.core.ErrorReporter
 import com.android.builder.core.LibraryRequest
+import com.android.builder.dependency.ManifestDependency
 import com.android.builder.model.SyncIssue
 import com.android.builder.sdk.DefaultSdkLoader
 import com.android.builder.sdk.SdkLoader
 import com.android.ide.common.blame.Message
 import com.android.ide.common.process.*
 import com.android.ide.common.res2.*
+import com.android.manifmerger.ManifestMerger2
 import com.android.sdklib.repository.FullRevision
 import com.android.utils.StdLogger
-import com.beust.kobalt.homeDir
+import com.beust.kobalt.Variant
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import java.io.File
@@ -60,27 +63,24 @@ class ProjectLayout {
 }
 
 class AndroidBuild {
-    val annotationsJar = File("/Users/beust/adt-bundle-mac-x86_64-20140702/sdk/tools/lib/annotations.jar")
-    val adb = File("/Users/beust/adt-bundle-mac-x86_64-20140702/sdk/platform-tools/adb")
+//    val annotationsJar = File("/Users/beust/adt-bundle-mac-x86_64-20140702/sdk/tools/lib/annotations.jar")
+//    val adb = File("/Users/beust/adt-bundle-mac-x86_64-20140702/sdk/platform-tools/adb")
 
-    fun run() {
+    fun run(project: Project, variant: Variant, config: AndroidConfig) {
         val logger = StdLogger(StdLogger.Level.VERBOSE)
         val processExecutor = DefaultProcessExecutor(logger)
         val javaProcessExecutor = KobaltJavaProcessExecutor()
-        val sdkLoader : SdkLoader = DefaultSdkLoader.getLoader(File("/Users/beust/adt-bundle-mac-x86_64-20140702/sdk"))
-        val repositories = sdkLoader.repositories
-        val sdkInfo = sdkLoader.getSdkInfo(logger)
-        val androidBuilder = AndroidBuilder("com.beust.kobalt", "Cedric Beust",
+        val sdkLoader : SdkLoader = DefaultSdkLoader.getLoader(File(AndroidFiles.androidHome(project, config)))
+        val androidBuilder = AndroidBuilder(project.name, "kobalt-android-plugin",
                 processExecutor,
                 javaProcessExecutor,
                 KobaltErrorReporter(),
                 logger,
-                true /* verbose */)
+                false /* verbose */)
 
         val processOutputHandler = KobaltProcessOutputHandler()
-        val dir : String = KFiles.joinDir(homeDir("kotlin/kobalt-examples/android-flavors"))
-        val outputDir = KFiles.joinDir(dir, "kobaltBuild", "intermediates", "res", "merged", "pro",
-                "debug")
+        val dir : String = project.directory
+        val outputDir = AndroidFiles.mergedResources(project, variant)
         val layout = ProjectLayout()
         val preprocessor = NoOpResourcePreprocessor()
 
@@ -99,15 +99,36 @@ class AndroidBuild {
                 layout.publicText,
                 layout.mergeBlame,
                 preprocessor)
-        println("Repositories: $repositories")
         val target = androidBuilder.target
         val dxJar = androidBuilder.dxJar
         val resourceMerger = ResourceMerger()
 
         //
+        // Manifest
+        //
+        val mainManifest = File("src/main/AndroidManifest.xml")
+        val manifestOverlays = listOf<File>()
+        val libraries = listOf<ManifestDependency>()
+        val outManifest = AndroidFiles.mergedManifest(project, variant)
+        val outAaptSafeManifestLocation = KFiles.joinDir(project.directory, project.buildDirectory, "generatedSafeAapt")
+        val reportFile = File(KFiles.joinDir(project.directory, project.buildDirectory, "manifest-merger-report.txt"))
+        androidBuilder.mergeManifests(mainManifest, manifestOverlays, libraries,
+                null /* package override */,
+                23 /* versionCode */,
+                "23", /* versionName */
+                "16", /* minSdk */
+                "23" /* targetSdkVersion */,
+                23 /* maxSdkVersion */,
+                outManifest,
+                outAaptSafeManifestLocation,
+                ManifestMerger2.MergeType.APPLICATION,
+                emptyMap(),
+                reportFile)
+
+        //
         // Resources
         //
-        listOf("main", "free", "release").forEach {
+        listOf("main", variant.productFlavor.name, variant.buildType.name).forEach {
             val path = "$dir/src/$it/res"
             val set = ResourceSet(path)
             set.addSource(File(path))
@@ -121,6 +142,7 @@ class AndroidBuild {
 
 
         resourceMerger.mergeData(writer, true)
+
         println("")
     }
 }
