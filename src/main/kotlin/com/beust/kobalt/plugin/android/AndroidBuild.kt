@@ -11,7 +11,8 @@ import com.android.ide.common.blame.Message
 import com.android.ide.common.process.*
 import com.android.ide.common.res2.*
 import com.android.manifmerger.ManifestMerger2
-import com.android.sdklib.repository.FullRevision
+import com.android.sdklib.AndroidTargetHash
+import com.android.sdklib.SdkManager
 import com.android.utils.StdLogger
 import com.beust.kobalt.Variant
 import com.beust.kobalt.api.Project
@@ -70,7 +71,8 @@ class AndroidBuild {
         val logger = StdLogger(StdLogger.Level.VERBOSE)
         val processExecutor = DefaultProcessExecutor(logger)
         val javaProcessExecutor = KobaltJavaProcessExecutor()
-        val sdkLoader : SdkLoader = DefaultSdkLoader.getLoader(File(AndroidFiles.androidHome(project, config)))
+        val androidHome = File(AndroidFiles.androidHome(project, config))
+        val sdkLoader : SdkLoader = DefaultSdkLoader.getLoader(androidHome)
         val androidBuilder = AndroidBuilder(project.name, "kobalt-android-plugin",
                 processExecutor,
                 javaProcessExecutor,
@@ -83,13 +85,14 @@ class AndroidBuild {
         val outputDir = AndroidFiles.mergedResources(project, variant)
         val layout = ProjectLayout()
         val preprocessor = NoOpResourcePreprocessor()
-
-        // AndroidTargetHash.getTargetHashString(target))
-        val targetHash = "android-22"
-        val buildToolsRevision = FullRevision(23, 0, 1)
         val libraryRequests = arrayListOf<LibraryRequest>()
-        androidBuilder.setTargetInfo(sdkLoader.getSdkInfo(logger),
-                sdkLoader.getTargetInfo(targetHash, buildToolsRevision, logger),
+        val sdk = sdkLoader.getSdkInfo(logger)
+        val sdkManager = SdkManager.createManager(androidHome.absolutePath, logger)
+        val maxPlatformTarget = sdkManager.targets.filter { it.isPlatform }.last()
+        val maxPlatformTargetHash = AndroidTargetHash.getPlatformHashString(maxPlatformTarget.version)
+
+        androidBuilder.setTargetInfo(sdk,
+                sdkLoader.getTargetInfo(maxPlatformTargetHash, maxPlatformTarget.buildToolInfo.revision, logger),
                 libraryRequests)
 
         val writer = MergedResourceWriter(File(outputDir),
@@ -107,6 +110,8 @@ class AndroidBuild {
         // Manifest
         //
         val mainManifest = File("src/main/AndroidManifest.xml")
+
+        val appInfo = AppInfo(mainManifest, config)
         val manifestOverlays = listOf<File>()
         val libraries = listOf<ManifestDependency>()
         val outManifest = AndroidFiles.mergedManifest(project, variant)
@@ -114,11 +119,11 @@ class AndroidBuild {
         val reportFile = File(KFiles.joinDir(project.directory, project.buildDirectory, "manifest-merger-report.txt"))
         androidBuilder.mergeManifests(mainManifest, manifestOverlays, libraries,
                 null /* package override */,
-                23 /* versionCode */,
-                "23", /* versionName */
-                "16", /* minSdk */
-                "23" /* targetSdkVersion */,
-                23 /* maxSdkVersion */,
+                appInfo.versionCode,
+                appInfo.versionName,
+                appInfo.minSdkVersion,
+                appInfo.targetSdkVersion,
+                23,
                 outManifest,
                 outAaptSafeManifestLocation,
                 ManifestMerger2.MergeType.APPLICATION,

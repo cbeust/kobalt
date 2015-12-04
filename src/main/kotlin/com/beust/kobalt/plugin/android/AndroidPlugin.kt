@@ -321,12 +321,20 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 
     @Task(name = TASK_INSTALL, description = "Install the apk file", runAfter = arrayOf(TASK_GENERATE_DEX, "assemble"))
     fun taskInstall(project: Project): TaskResult {
+
+        /**
+         * adb has weird ways of signaling errors, that's the best I've found so far.
+         */
+        class AdbInstall : RunCommand(adb(project)) {
+            override fun isSuccess(callSucceeded: Boolean, input: List<String>, error: List<String>)
+                = input.filter { it.contains("Success")}.size > 0
+        }
+
         val apk = apk(project, context.variant.shortArchiveName)
-        RunCommand(adb(project)).useErrorStreamAsErrorIndicator(false).run(args = listOf(
-                "install", "-r",
-                apk))
+        val result = AdbInstall().useErrorStreamAsErrorIndicator(true).run(
+                args = listOf("install", "-r", apk))
         log(1, "Installed $apk")
-        return TaskResult()
+        return TaskResult(result == 0)
     }
 
     private val classpathEntries = HashMultimap.create<String, IClasspathDependency>()
@@ -417,8 +425,12 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 
 }
 
-class AndroidConfig(val project: Project, var compileSdkVersion : String = "23",
-        var buildToolsVersion : String = "23.0.1",
+class AndroidConfig(val project: Project,
+        var compileSdkVersion : String? = null,
+        var buildToolsVersion: String? = null,
+        var minSdkVersion: String? = null,
+        var versionCode: Int? = null,
+        var targetSdkVersion: String? = null,
         var applicationId: String? = null,
         val androidHome: String? = null) {
 

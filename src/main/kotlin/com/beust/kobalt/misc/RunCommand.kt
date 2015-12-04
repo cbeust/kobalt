@@ -10,8 +10,8 @@ open class RunCommand(val command: String) {
     val DEFAULT_SUCCESS = { output: List<String> -> }
 //    val DEFAULT_SUCCESS_VERBOSE = { output: List<String> -> log(2, "Success:\n " + output.joinToString("\n"))}
     val defaultSuccess = DEFAULT_SUCCESS
-    val defaultError = {
-        output: List<String> -> error("Error:\n " + output.joinToString("\n"))
+    val DEFAULT_ERROR = {
+        output: List<String> -> error(output.joinToString("\n       "))
     }
 
     var directory = File(".")
@@ -30,8 +30,8 @@ open class RunCommand(val command: String) {
         return this
     }
 
-    fun run(args: List<String>,
-            errorCallback: Function1<List<String>, Unit> = defaultError,
+    open fun run(args: List<String>,
+            errorCallback: Function1<List<String>, Unit> = DEFAULT_ERROR,
             successCallback: Function1<List<String>, Unit> = defaultSuccess) : Int {
         val allArgs = arrayListOf<String>()
         allArgs.add(command)
@@ -48,27 +48,31 @@ open class RunCommand(val command: String) {
             }
         }
         val callSucceeded = process.waitFor(30, TimeUnit.SECONDS)
-        val hasErrorStream = process.errorStream.available() > 0
-        var hasErrors = ! callSucceeded
-        if (useErrorStreamAsErrorIndicator && ! hasErrors) {
-            hasErrors = hasErrors || hasErrorStream
-        }
-        if (useInputStreamAsErrorIndicator && ! hasErrors) {
-            hasErrors = hasErrors || process.inputStream.available() > 0
-        }
+        val input = if (process.inputStream.available() > 0) fromStream(process.inputStream)
+            else listOf()
+        val error = if (process.errorStream.available() > 0) fromStream(process.errorStream)
+            else listOf()
+        val isSuccess = isSuccess(callSucceeded, input, error)
 
-        if (! hasErrors) {
+        if (isSuccess) {
             successCallback(fromStream(process.inputStream))
         } else {
-            val stream = if (hasErrorStream) process.errorStream
-                else if (process.inputStream.available() > 0) process.inputStream
-                else null
-            val errorString =
-                if (stream != null) fromStream(stream).joinToString("\n")
-                else "<no output>"
-            errorCallback(listOf("$command failed") + errorString)
+            errorCallback(error + input)
         }
-        return if (hasErrors) 1 else 0
+
+        return if (isSuccess) 0 else 1
+    }
+
+    open protected fun isSuccess(callSucceeded: Boolean, input: List<String>, error: List<String>) : Boolean {
+        var hasErrors = ! callSucceeded
+        if (useErrorStreamAsErrorIndicator && ! hasErrors) {
+            hasErrors = hasErrors || error.size > 0
+        }
+        if (useInputStreamAsErrorIndicator && ! hasErrors) {
+            hasErrors = hasErrors || input.size > 0
+        }
+
+        return ! hasErrors
     }
 
     private fun fromStream(ins: InputStream) : List<String> {
