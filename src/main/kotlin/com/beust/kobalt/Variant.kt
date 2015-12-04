@@ -25,23 +25,48 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
 
     fun toTask(taskName: String) = taskName + productFlavor.name.capitalize() + buildType.name.capitalize()
 
-    fun sourceDirectories(project: Project) : List<File> {
+    /**
+     * for {internal, release}, return [internal, release, internalRelease]
+     */
+    fun allDirectories(project: Project): List<String> {
+        val result = arrayListOf<String>()
+        if (productFlavor != null) result.add(productFlavor.name)
+        if (buildType != null) result.add(buildType.name)
+        result.add(toCamelcaseDir())
+        return result
+    }
+
+    fun resDirectories(project: Project) : List<File> = sourceDirectories(project, "res")
+
+    fun sourceDirectories(project: Project) : List<File> =
+            sourceDirectories(project, project.projectInfo.sourceDirectory)
+
+    /**
+     * suffix is either "java" (to find source files) or "res" (to find resources)
+     */
+    private fun sourceDirectories(project: Project, suffix: String) : List<File> {
         val result = arrayListOf<File>()
         val sourceDirectories = project.sourceDirectories.map { File(it) }
         if (isDefault) {
             result.addAll(sourceDirectories)
         } else {
-            // The ordering of files is: 1) build type 2) product flavor 3) default
-            buildType.let {
-                val dir = File(KFiles.joinDir("src", it.name, project.projectInfo.sourceDirectory))
-                log(2, "Adding source for build type ${it.name}: ${dir.path}")
-                result.add(dir)
-            }
-            productFlavor.let {
-                val dir = File(KFiles.joinDir("src", it.name, project.projectInfo.sourceDirectory))
-                log(2, "Adding source for product flavor ${it.name}: ${dir.path}")
-                result.add(dir)
-            }
+            result.addAll(allDirectories(project).map {
+                File(KFiles.joinDir("src", it, suffix))
+                }.filter {
+                    it.exists()
+                })
+
+//            // The ordering of files is: 1) build type 2) product flavor 3) default
+//            buildType.let {
+//                val dir = File(KFiles.joinDir("src", it.name, project.projectInfo.sourceDirectory))
+//                log(2, "Adding source for build type ${it.name}: ${dir.path}")
+//                result.add(dir)
+//            }
+//            productFlavor.let {
+//                val dir = File(KFiles.joinDir("src", it.name, project.projectInfo.sourceDirectory))
+//                log(2, "Adding source for product flavor ${it.name}: ${dir.path}")
+//                result.add(dir)
+//            }
 
             // Now that all the variant source directories have been added, add the project's default ones
             result.addAll(sourceDirectories)
@@ -101,10 +126,10 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     /**
      * Generate BuildConfig.java if requested. Also look up if any BuildConfig is defined on the current build type,
      * product flavor or main project, and use them to generate any additional field (in that order to
-     * respect the priorities).
+     * respect the priorities). Return the generated file if it was generated, null otherwise.
      */
-    fun maybeGenerateBuildConfig(project: Project, context: KobaltContext) {
-        fun generated(project: Project) = KFiles.joinDir(AndroidFiles.generated(project), "source")
+    fun maybeGenerateBuildConfig(project: Project, context: KobaltContext) : File? {
+        fun generated(project: Project) = AndroidFiles.generatedSourceDir(project)
 
         val buildConfigs = findBuildConfigs(project, context.variant)
 
@@ -115,15 +140,18 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
                     ?: throw KobaltException(
                     "packageName needs to be defined on the project in order to generate BuildConfig")
 
-            val code = project.projectInfo.generateBuildConfig(pkg, context.variant, buildConfigs)
-            val g = KFiles.makeDir(generated(project))
+            val code = project.projectInfo.generateBuildConfig(project, context, pkg, context.variant, buildConfigs)
+            val result = KFiles.makeDir(generated(project))
             // Make sure the generatedSourceDirectory doesn't contain the project.directory since
             // that directory will be added when trying to find recursively all the sources in it
-            generatedSourceDirectory = File(g.relativeTo(File(project.directory)))
-            val outputGeneratedSourceDirectory = File(g, pkg.replace('.', File.separatorChar))
-            val outputFile = File(outputGeneratedSourceDirectory, "BuildConfig" + project.sourceSuffix)
-            KFiles.saveFile(outputFile, code)
-            log(2, "Generated ${outputFile.path}")
+            generatedSourceDirectory = File(result.relativeTo(File(project.directory)))
+            val outputGeneratedSourceDirectory = File(result, pkg.replace('.', File.separatorChar))
+            val outputDir = File(outputGeneratedSourceDirectory, "BuildConfig" + project.sourceSuffix)
+            KFiles.saveFile(outputDir, code)
+            log(2, "Generated ${outputDir.path}")
+            return result
+        } else {
+            return null
         }
     }
 

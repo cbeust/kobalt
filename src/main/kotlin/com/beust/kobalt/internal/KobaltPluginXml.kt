@@ -70,6 +70,8 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val classpathInterceptors = arrayListOf<IClasspathInterceptor>()
     val compilerContributors = arrayListOf<ICompilerContributor>()
     val docContributors = arrayListOf<IDocContributor>()
+    val sourceDirContributors = arrayListOf<ISourceDirectoryContributor>()
+    val buildConfigFieldContributors = arrayListOf<IBuildConfigFieldContributor>()
 
     // Future contributors:
     // source files
@@ -135,6 +137,8 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
                 if (this is IClasspathInterceptor) classpathInterceptors.add(this)
                 if (this is ICompilerContributor) compilerContributors.add(this)
                 if (this is IDocContributor) docContributors.add(this)
+                if (this is ISourceDirectoryContributor) sourceDirContributors.add(this)
+                if (this is IBuildConfigFieldContributor) buildConfigFieldContributors.add(this)
             }
         }
     }
@@ -158,6 +162,8 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         classpathInterceptors.addAll(pluginInfo.classpathInterceptors)
         compilerContributors.addAll(pluginInfo.compilerContributors)
         docContributors.addAll(pluginInfo.docContributors)
+        sourceDirContributors.addAll(pluginInfo.sourceDirContributors)
+        buildConfigFieldContributors.addAll(pluginInfo.buildConfigFieldContributors)
     }
 }
 

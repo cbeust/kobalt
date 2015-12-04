@@ -22,7 +22,8 @@ import java.nio.file.Paths
 public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, val merger: Merger,
         val executors: KobaltExecutors)
             : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
-                ICompilerInterceptor, IBuildDirectoryIncerceptor, IRunnerContributor, IClasspathInterceptor {
+                ICompilerInterceptor, IBuildDirectoryIncerceptor, IRunnerContributor, IClasspathInterceptor,
+                ISourceDirectoryContributor, IBuildConfigFieldContributor {
     companion object {
         const val PLUGIN_NAME = "Android"
         const val TASK_GENERATE_DEX = "generateDex"
@@ -354,10 +355,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     // IRepoContributor
     override fun reposFor(project: Project?): List<HostConfig> {
         val config = configurationFor(project)
-        var home: String? = null
-        if (config != null) {
-            home = AndroidFiles.androidHomeNoThrows(project, config)
-        }
+        var home = AndroidFiles.androidHomeNoThrows(project, config)
 
         return if (home != null) {
             val path = Paths.get(KFiles.joinDir(home, "extras", "android", "m2repository"))
@@ -426,6 +424,22 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         return result
     }
 
+    private val extraSourceDirectories = arrayListOf<File>()
+
+    // ISourceDirectoryContributor
+    override fun sourceDirectoriesFor(project: Project, context: KobaltContext): List<File> = extraSourceDirectories
+
+    // IBuildConfigFieldContributor
+    override fun fieldsFor(project: Project, context: KobaltContext): List<BuildConfigField> {
+        val result = arrayListOf<BuildConfigField>()
+        configurationFor(project)?.let { config ->
+            result.add(BuildConfigField("String", "VERSION_NAME", "\"${config.versionName}\""))
+            result.add(BuildConfigField("int", "VERSION_CODE", "${config.versionCode}"))
+        }
+        return result
+    }
+
+
 }
 
 class AndroidConfig(val project: Project,
@@ -433,6 +447,7 @@ class AndroidConfig(val project: Project,
         var buildToolsVersion: String? = null,
         var minSdkVersion: String? = null,
         var versionCode: Int? = null,
+        var versionName: String? = null,
         var targetSdkVersion: String? = null,
         var applicationId: String? = null,
         val androidHome: String? = null) {

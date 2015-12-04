@@ -30,12 +30,10 @@ class AndroidFiles {
         /**
          * Use the android home define on the project if any, otherwise use the environment variable.
          */
-        fun androidHomeNoThrows(project: Project?, config: AndroidConfig): String? {
+        fun androidHomeNoThrows(project: Project?, config: AndroidConfig?): String? {
             var result = System.getenv("ANDROID_HOME")
-            if (project != null) {
-                if (config.androidHome != null) {
-                    result = config.androidHome
-                }
+            if (project != null && config?.androidHome != null) {
+                result = config?.androidHome
             }
 
             return result
@@ -43,5 +41,7 @@ class AndroidFiles {
 
         fun androidHome(project: Project?, config: AndroidConfig) = androidHomeNoThrows(project, config) ?:
                 throw IllegalArgumentException("Neither androidHome nor \$ANDROID_HOME were defined")
+
+        fun generatedSourceDir(project: Project) = KFiles.joinDir(AndroidFiles.generated(project), "source")
     }
 }

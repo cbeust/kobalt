@@ -124,19 +124,25 @@ abstract class JvmCompilerPlugin @Inject constructor(
         project.projectProperties.put(COMPILER_ARGS, arrayListOf(*args))
     }
 
-    fun findSourceFiles(dir: String, sourceDirectories: Collection<String>): List<String> {
+    fun findSourceFiles(project: Project, context: KobaltContext, dir: String,
+            sourceDirectories: Collection<String>): List<String> {
         val projectDir = File(dir)
-        return files.findRecursively(projectDir,
-                sourceDirectories.map { File(it) }) { it: String -> it.endsWith(".java") }
-                .map { File(projectDir, it).absolutePath }
+        val allSourceDirectories = arrayListOf<File>()
+        allSourceDirectories.addAll(sourceDirectories.map { File(it) })
+        context.pluginInfo.sourceDirContributors.forEach {
+            allSourceDirectories.addAll(it.sourceDirectoriesFor(project, context))
+        }
+        return files.findRecursively(projectDir, allSourceDirectories) {
+                it: String -> it.endsWith(".java")
+            }.map { File(projectDir, it).absolutePath }
     }
 
     override fun projects() = projects
 
     @Task(name = JavaPlugin.TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project) : TaskResult {
-        context.variant.maybeGenerateBuildConfig(project, context)
-        val info = createCompilerActionInfo(project, context)
+        val generatedDir = context.variant.maybeGenerateBuildConfig(project, context)
+        val info = createCompilerActionInfo(project, context, generatedDir)
         val compiler = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.compilerContributors)
         if (compiler != null) {
             return compiler.compile(project, context, info)
@@ -149,14 +155,15 @@ abstract class JvmCompilerPlugin @Inject constructor(
     fun taskJavadoc(project: Project) : TaskResult {
         val docGenerator = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.docContributors)
         if (docGenerator != null) {
-            return docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context))
+            return docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context, null))
         } else {
             warn("Couldn't find any doc contributor for project ${project.name}")
             return TaskResult()
         }
     }
 
-    private fun createCompilerActionInfo(project: Project, context: KobaltContext) : CompilerActionInfo {
+    private fun createCompilerActionInfo(project: Project, context: KobaltContext, generatedSourceDir: File?)
+            : CompilerActionInfo {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
 
         val classpath = dependencyManager.calculateDependencies(project, context, projects,
@@ -166,10 +173,26 @@ abstract class JvmCompilerPlugin @Inject constructor(
         val buildDirectory = File(project.classesDir(context))
         buildDirectory.mkdirs()
 
-        val initialSourceDirectories = context.variant.sourceDirectories(project)
-        val sourceDirectories = context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories,
+        val initialSourceDirectories = arrayListOf<File>()
+
+        // Add the generated source dir if any
+        generatedSourceDir?.let {
+            initialSourceDirectories.add(it)
+        }
+
+        // Source directories from the project and variants
+        initialSourceDirectories.addAll(context.variant.sourceDirectories(project))
+
+        // Source directories from the contributors
+        context.pluginInfo.sourceDirContributors.forEach {
+            initialSourceDirectories.addAll(it.sourceDirectoriesFor(project, context))
+        }
+
+        // Transform them with the interceptors, if any
+        val sourceDirectories = context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories.toList(),
                 { sd, interceptor -> interceptor.intercept(project, context, sd) })
 
+        // Now that we have the final list of source dirs, find source files in them
         val sourceFiles = files.findRecursively(projectDirectory, sourceDirectories,
                 { it .endsWith(project.sourceSuffix) })
                 .map { File(projectDirectory, it).path }

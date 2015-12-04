@@ -141,6 +141,8 @@ class AndroidBuild {
         val srcList = listOf("main", variant.productFlavor.name, variant.buildType.name, fullVariantDir.path)
             .map { "src" + File.separator + it}
 
+        // TODO: figure out why the badSrcList is bad. All this information should be coming from the Variant
+        val badSrcList = variant.resDirectories(project).map { it.path }
         val aarList = aarDependencies.map { it.path + File.separator}
         (aarList + srcList).map { it + File.separator + "res" }.forEach { path ->
             val set = ResourceSet(path)
