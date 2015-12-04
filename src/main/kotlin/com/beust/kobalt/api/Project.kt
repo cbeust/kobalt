@@ -3,7 +3,6 @@ package com.beust.kobalt.api
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.IProjectInfo
-import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.plugin.android.AndroidPlugin
