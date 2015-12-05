@@ -2,14 +2,11 @@ package com.beust.kobalt.api
 
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.internal.TaskManager
-import kotlin.properties.Delegates
 
 abstract public class BasePlugin : IPlugin {
-    override var taskManager: TaskManager by Delegates.notNull()
-    override fun accept(project: Project) = true
-    var plugins: Plugins by Delegates.notNull()
+    lateinit var context: KobaltContext
 
-    var context: KobaltContext by Delegates.notNull()
+    override fun accept(project: Project) = true
 
     override fun apply(project: Project, context: KobaltContext) {
         this.context = context
@@ -17,7 +14,9 @@ abstract public class BasePlugin : IPlugin {
 
     protected val projects = arrayListOf<ProjectDescription>()
 
-    fun addProject(project: Project, dependsOn: Array<out Project>) {
-        projects.add(ProjectDescription(project, dependsOn.toList()))
-    }
+    fun addProject(project: Project, dependsOn: Array<out Project>) =
+            projects.add(ProjectDescription(project, dependsOn.toList()))
+
+    override lateinit var taskManager: TaskManager
+    lateinit var plugins: Plugins
 }
