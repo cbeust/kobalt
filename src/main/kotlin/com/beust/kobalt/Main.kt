@@ -178,18 +178,14 @@ private class Main @Inject constructor(
                     // List of tasks
                     //
                     val sb = StringBuffer("List of tasks\n")
-                    Plugins.plugins.forEach { plugin ->
-                        if (plugin.tasks.size > 0) {
-                            sb.append("\n  " + AsciiArt.horizontalDoubleLine +" ${plugin.name} "
-                                    + AsciiArt.horizontalDoubleLine + "\n")
-                            plugin.tasks.distinctBy {
-                                it.name
-                            }.forEach { task ->
-                                sb.append("    ${task.name}\t\t${task.doc}\n")
-                            }
-                        }
+                    taskManager.tasks.distinctBy {
+                        it.name
+                    }.forEach { task ->
+                        sb.append("\n  " + AsciiArt.horizontalDoubleLine +" ${task.plugin.name} "
+                                + AsciiArt.horizontalDoubleLine + "\n")
+                        sb.append("    ${task.name}\t\t${task.doc}\n")
+                        println(sb.toString())
                     }
-                    println(sb.toString())
                 } else if (args.checkVersions) {
                     checkVersions.run(allProjects)
                 } else if (args.download) {

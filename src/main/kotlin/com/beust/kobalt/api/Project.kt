@@ -26,7 +26,7 @@ open public class Project(
         @Directive open var packageName: String? = group,
         val projectInfo: IProjectInfo) : IBuildConfig {
 
-    override var buildConfig = BuildConfig()
+    override var buildConfig : BuildConfig? = null //BuildConfig()
 
     val testArgs = arrayListOf<String>()
     val testJvmArgs = arrayListOf<String>()
@@ -171,7 +171,7 @@ class BuildConfig {
 }
 
 interface IBuildConfig {
-    var buildConfig: BuildConfig
+    var buildConfig: BuildConfig?
 
     fun buildConfig(init: BuildConfig.() -> Unit) {
         buildConfig = BuildConfig().apply {
@@ -181,7 +181,7 @@ interface IBuildConfig {
 }
 
 class ProductFlavorConfig(val name: String) : IBuildConfig {
-    override var buildConfig = BuildConfig()
+    override var buildConfig : BuildConfig? = BuildConfig()
 }
 
 @Directive
@@ -199,7 +199,7 @@ class BuildTypeConfig(val project: Project?, val name: String) : IBuildConfig {
         return Proguard(androidPlugin.androidHome(project)).getDefaultProguardFile(name)
     }
 
-    override var buildConfig = BuildConfig()
+    override var buildConfig : BuildConfig? = BuildConfig()
 }
 
 @Directive
