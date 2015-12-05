@@ -239,7 +239,7 @@ public class TaskManager @Inject constructor(val args: Args) {
         dynamicTasks.forEach { dynamicTask ->
             val task = dynamicTask.task
             projects.filter { dynamicTask.plugin.accept(it) }.forEach { project ->
-                addTask(dynamicTask.plugin, project, task.taskName, task.taskDescription, task.runBefore, task.runAfter,
+                addTask(dynamicTask.plugin, project, task.name, task.description, task.runBefore, task.runAfter,
                         task.alwaysRunAfter, task.closure)
             }
         }
