@@ -1,18 +1,21 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.*
+import com.beust.kobalt.api.IPlugin
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
 import com.google.common.collect.TreeMultimap
+import java.lang.reflect.Method
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-public class TaskManager @Inject constructor(val plugins: Plugins, val args: Args) {
+public class TaskManager @Inject constructor(val args: Args) {
     private val runBefore = TreeMultimap.create<String, String>()
     private val alwaysRunAfter = TreeMultimap.create<String, String>()
 
@@ -48,7 +51,7 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
             // There can be multiple tasks by the same name (e.g. PackagingPlugin and AndroidPlugin both
             // define "install"), so use a multimap
             val tasksByNames = ArrayListMultimap.create<String, PluginTask>()
-            plugins.allTasks.filter {
+            tasks.filter {
                 it.project.name == project.name
             }.forEach {
                 tasksByNames.put(it.name, it)
@@ -211,6 +214,87 @@ public class TaskManager @Inject constructor(val plugins: Plugins, val args: Arg
 
         return transitiveClosure
     }
+
+    /////
+    // Manage the tasks
+    //
+
+    class StaticTask(val plugin: IPlugin, val method: Method, val taskAnnotation: Task)
+    class DynamicTask(val plugin: IPlugin, val name: String, val description: String,
+            val runBefore: List<String> = listOf<String>(),
+            val runAfter: List<String> = listOf<String>(),
+            val alwaysRunAfter: List<String> = listOf<String>(),
+            val closure: (Project) -> TaskResult)
+
+    val tasks = arrayListOf<PluginTask>()
+    val staticTasks = arrayListOf<StaticTask>()
+    val dynamicTasks = arrayListOf<DynamicTask>()
+
+    /**
+     * Turn all the static and dynamic tasks into plug-in tasks, which are then suitable to be executed.
+     */
+    fun computePluginTasks(plugins: List<IPlugin>, projects: List<Project>) {
+        addStaticTasks(projects)
+        addDynamicTasks(projects)
+    }
+
+    private fun addDynamicTasks(projects: List<Project>) {
+        dynamicTasks.forEach { task ->
+            projects.filter { task.plugin.accept(it) }.forEach { project ->
+                addTask(task.plugin, project, task.name, task.description, task.runBefore, task.runAfter,
+                        task.alwaysRunAfter, task.closure)
+            }
+        }
+    }
+
+    private fun addStaticTasks(projects: List<Project>) {
+        staticTasks.forEach { staticTask ->
+            val method = staticTask.method
+            val annotation = staticTask.taskAnnotation
+
+            val methodName = method.declaringClass.toString() + "." + method.name
+            log(3, "    Found task:${annotation.name} method: $methodName")
+
+            fun toTask(m: Method, project: Project, plugin: IPlugin): (Project) -> TaskResult {
+                val result: (Project) -> TaskResult = {
+                    m.invoke(plugin, project) as TaskResult
+                }
+                return result
+            }
+
+            val plugin = staticTask.plugin
+            projects.filter { plugin.accept(it) }.forEach { project ->
+                addStaticTask(plugin, project, staticTask.taskAnnotation, toTask(method, project, plugin))
+            }
+        }
+    }
+
+    private fun addStaticTask(plugin: IPlugin, project: Project, annotation: Task, task: (Project) -> TaskResult) {
+        addTask(plugin, project, annotation.name, annotation.description, annotation.runBefore.toList(),
+                annotation.runAfter.toList(), annotation.alwaysRunAfter.toList(), task)
+    }
+
+    fun addTask(plugin: IPlugin, project: Project, name: String, description: String = "",
+            runBefore: List<String> = listOf<String>(),
+            runAfter: List<String> = listOf<String>(),
+            alwaysRunAfter: List<String> = listOf<String>(),
+            task: (Project) -> TaskResult) {
+        tasks.add(
+                object : BasePluginTask(plugin, name, description, project) {
+                    override fun call(): TaskResult2<PluginTask> {
+                        val taskResult = task(project)
+                        return TaskResult2(taskResult.success, this)
+                    }
+                })
+        runBefore.forEach { runBefore(it, name) }
+        runAfter.forEach { runBefore(name, it) }
+        alwaysRunAfter.forEach { alwaysRunAfter(it, name)}
+    }
+
+    //
+    //
+    /////
+
 }
 
 class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean) : IWorker<PluginTask> {

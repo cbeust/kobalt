@@ -2,11 +2,10 @@ package com.beust.kobalt.internal.build
 
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.Plugins
-import com.beust.kobalt.api.IPlugin
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Topological
 import com.beust.kobalt.misc.log
@@ -20,7 +19,8 @@ import java.net.URLClassLoader
 import java.util.*
 import java.util.jar.JarInputStream
 
-class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFiles){
+class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFiles,
+        val taskManager: TaskManager) {
     val projects = arrayListOf<Project>()
 
     /**
@@ -82,7 +82,8 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
                     } else {
                         val taskAnnotation = method.getAnnotation(Task::class.java)
                         if (taskAnnotation != null) {
-                            Plugins.defaultPlugin.methodTasks.add(IPlugin.MethodTask(method, taskAnnotation))
+                            taskManager.staticTasks.add(TaskManager.StaticTask(Plugins.defaultPlugin,
+                                    method, taskAnnotation))
                         }
 
                     }}

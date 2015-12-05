@@ -5,7 +5,6 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.maven.DepFactory
-import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -26,7 +25,8 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
         val depFactory: DepFactory,
         val localRepo: LocalRepo,
         val executors: KobaltExecutors,
-        val pluginInfo: PluginInfo) {
+        val pluginInfo: PluginInfo,
+        val taskManager: TaskManager) {
 
     companion object {
         private var pluginMap = hashMapOf<String, IPlugin>()
@@ -84,33 +84,15 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
                     }
                     val annotation = it.second
 
-                    plugin.methodTasks.add(IPlugin.MethodTask(it.first, annotation))
+                    taskManager.staticTasks.add(TaskManager.StaticTask(plugin, it.first, annotation))
                 }
 
                 currentClass = currentClass.superclass
             }
-
-            // Now plugin.methodTasks contains both tasks from the build file and the plug-ins, we
-            // can create the whole set of tasks and set up their dependencies
-            plugin.methodTasks.forEach { methodTask ->
-                val method = methodTask.method
-                val annotation = methodTask.taskAnnotation
-
-                val methodName = method.declaringClass.toString() + "." + method.name
-                log(3, "    Found task:${annotation.name} method: $methodName")
-
-                fun toTask(m: Method, project: Project, plugin: IPlugin): (Project) -> TaskResult {
-                    val result: (Project) -> TaskResult = {
-                        m.invoke(plugin, project) as TaskResult
-                    }
-                    return result
-                }
-
-                projects.filter { plugin.accept(it) }.forEach { project ->
-                    plugin.addStaticTask(annotation, project, toTask(method, project, plugin))
-                }
-            }
         }
+
+        // Now that we have collected all static and dynamic tasks, turn them all into plug-in tasks
+        taskManager.computePluginTasks(plugins, projects)
     }
 
     /**
@@ -135,9 +117,6 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
     }
 
     val dependencies = arrayListOf<IClasspathDependency>()
-
-    val allTasks : List<PluginTask>
-        get() = Plugins.plugins.flatMap { it.tasks }
 
     fun installPlugins(dependencies: List<IClasspathDependency>, classLoader: ClassLoader) {
         val executor = executors.newExecutor("Plugins", 5)
