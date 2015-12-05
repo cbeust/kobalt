@@ -1,6 +1,7 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.*
+import com.beust.kobalt.api.DynamicTask
 import com.beust.kobalt.api.IPlugin
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
@@ -220,15 +221,11 @@ public class TaskManager @Inject constructor(val args: Args) {
     //
 
     class StaticTask(val plugin: IPlugin, val method: Method, val taskAnnotation: Task)
-    class DynamicTask(val plugin: IPlugin, val name: String, val description: String,
-            val runBefore: List<String> = listOf<String>(),
-            val runAfter: List<String> = listOf<String>(),
-            val alwaysRunAfter: List<String> = listOf<String>(),
-            val closure: (Project) -> TaskResult)
+    class PluginDynamicTask(val plugin: IPlugin, val task: DynamicTask)
 
     val tasks = arrayListOf<PluginTask>()
     val staticTasks = arrayListOf<StaticTask>()
-    val dynamicTasks = arrayListOf<DynamicTask>()
+    val dynamicTasks = arrayListOf<PluginDynamicTask>()
 
     /**
      * Turn all the static and dynamic tasks into plug-in tasks, which are then suitable to be executed.
@@ -239,9 +236,10 @@ public class TaskManager @Inject constructor(val args: Args) {
     }
 
     private fun addDynamicTasks(projects: List<Project>) {
-        dynamicTasks.forEach { task ->
-            projects.filter { task.plugin.accept(it) }.forEach { project ->
-                addTask(task.plugin, project, task.name, task.description, task.runBefore, task.runAfter,
+        dynamicTasks.forEach { dynamicTask ->
+            val task = dynamicTask.task
+            projects.filter { dynamicTask.plugin.accept(it) }.forEach { project ->
+                addTask(dynamicTask.plugin, project, task.taskName, task.taskDescription, task.runBefore, task.runAfter,
                         task.alwaysRunAfter, task.closure)
             }
         }

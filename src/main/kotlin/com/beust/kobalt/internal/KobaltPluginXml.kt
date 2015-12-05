@@ -72,6 +72,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val docContributors = arrayListOf<IDocContributor>()
     val sourceDirContributors = arrayListOf<ISourceDirectoryContributor>()
     val buildConfigFieldContributors = arrayListOf<IBuildConfigFieldContributor>()
+    val taskContributors = arrayListOf<ITaskContributor>()
 
     // Future contributors:
     // source files
@@ -169,6 +170,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         docContributors.addAll(pluginInfo.docContributors)
         sourceDirContributors.addAll(pluginInfo.sourceDirContributors)
         buildConfigFieldContributors.addAll(pluginInfo.buildConfigFieldContributors)
+        taskContributors.addAll(pluginInfo.taskContributors)
     }
 }
 

@@ -34,7 +34,8 @@ fun Project.application(init: ApplicationConfig.() -> Unit) {
 
 @Singleton
 class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
-        val dependencyManager: DependencyManager) : ConfigPlugin<ApplicationConfig>(), IRunnerContributor {
+        val dependencyManager: DependencyManager)
+            : ConfigPlugin<ApplicationConfig>(), IRunnerContributor, ITaskContributor {
 
     companion object {
         const val PLUGIN_NAME = "Application"
@@ -42,9 +43,12 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
 
     override val name = PLUGIN_NAME
 
+    val taskContributor : TaskContributor = TaskContributor()
+
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        addVariantTasks(project, "run", runAfter = listOf("install"), runTask = { taskRun(project) })
+        taskContributor.addVariantTasks(project, context, "run", runAfter = listOf("install"),
+                runTask = { taskRun(project) })
     }
 
     @Task(name = "run", description = "Run the main class", runAfter = arrayOf("install"))
@@ -121,5 +125,7 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
         return TaskResult(exitCode == 0)
     }
 
+    //ITaskContributor
+    override fun tasksFor(context: KobaltContext): List<DynamicTask> = taskContributor.dynamicTasks
 }
 

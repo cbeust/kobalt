@@ -23,7 +23,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         val executors: KobaltExecutors)
             : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
                 ICompilerInterceptor, IBuildDirectoryIncerceptor, IRunnerContributor, IClasspathInterceptor,
-                ISourceDirectoryContributor, IBuildConfigFieldContributor {
+                ISourceDirectoryContributor, IBuildConfigFieldContributor, ITaskContributor {
     companion object {
         const val PLUGIN_NAME = "Android"
         const val TASK_GENERATE_DEX = "generateDex"
@@ -35,20 +35,25 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 
     fun isAndroid(project: Project) = configurationFor(project) != null
 
+    val taskContributor : TaskContributor = TaskContributor()
+
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
         if (accept(project)) {
             project.compileDependencies.add(FileDependency(androidJar(project).toString()))
 
-            addVariantTasks(project, "generateR", runBefore = listOf("compile"),
+            taskContributor.addVariantTasks(project, context, "generateR", runBefore = listOf("compile"),
                     runTask = { taskGenerateRFile(project) })
-            addVariantTasks(project, "generateDex", runAfter = listOf("compile"), runBefore = listOf("assemble"),
+            taskContributor.addVariantTasks(project, context, "generateDex", runAfter = listOf("compile"),
+                    runBefore = listOf("assemble"),
                     runTask = { taskGenerateDex(project) })
-            addVariantTasks(project, "signApk", runAfter = listOf("generateDex"), runBefore = listOf("assemble"),
+            taskContributor.addVariantTasks(project, context, "signApk", runAfter = listOf("generateDex"),
+                    runBefore = listOf("assemble"),
                     runTask = { taskSignApk(project) })
-            addVariantTasks(project, "install", runAfter = listOf("signApk"),
+            taskContributor.addVariantTasks(project, context, "install", runAfter = listOf("signApk"),
                     runTask = { taskInstall(project) })
-            addVariantTasks(project, "proguard", runBefore = listOf("install"), runAfter = listOf("compile"),
+            taskContributor.addVariantTasks(project, context, "proguard", runBefore = listOf("install"),
+                    runAfter = listOf("compile"),
                     runTask = { taskProguard(project) })
         }
         context.pluginInfo.classpathContributors.add(this)
@@ -462,7 +467,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         return result
     }
 
-
+    //ITaskContributor
+    override fun tasksFor(context: KobaltContext): List<DynamicTask> = taskContributor.dynamicTasks
 }
 
 class AndroidConfig(val project: Project,
