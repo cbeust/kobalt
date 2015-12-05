@@ -10,7 +10,7 @@ interface ITaskContributor : IContributor {
     fun tasksFor(context: KobaltContext) : List<DynamicTask>
 }
 
-class DynamicTask(val taskName: String, val taskDescription: String = "",
+class DynamicTask(val name: String, val description: String = "",
         val runBefore: List<String> = listOf<String>(),
         val runAfter: List<String> = listOf<String>(),
         val alwaysRunAfter: List<String> = listOf<String>(),
