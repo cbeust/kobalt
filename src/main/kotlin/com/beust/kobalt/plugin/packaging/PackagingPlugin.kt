@@ -28,7 +28,8 @@ import javax.inject.Singleton
 
 @Singleton
 class PackagingPlugin @Inject constructor(val dependencyManager : DependencyManager,
-        val executors: KobaltExecutors, val localRepo: LocalRepo) : ConfigPlugin<InstallConfig>() {
+        val executors: KobaltExecutors, val localRepo: LocalRepo)
+            : ConfigPlugin<InstallConfig>(), ITaskContributor {
 
     companion object {
         const val PLUGIN_NAME = "Packaging"
@@ -51,10 +52,13 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
     private val packages = arrayListOf<PackageConfig>()
 
+    val taskContributor : TaskContributor = TaskContributor()
+
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
         project.projectProperties.put(LIBS_DIR, libsDir(project))
-        addVariantTasks(project, "assemble", runAfter = listOf("compile"), runTask = { taskAssemble(project) })
+        taskContributor.addVariantTasks(project, context, "assemble", runAfter = listOf("compile"),
+                runTask = { taskAssemble(project) })
     }
 
     private fun libsDir(project: Project) = KFiles.makeDir(buildDir(project).path, "libs").path
@@ -269,6 +273,9 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
         return TaskResult()
     }
+
+    //ITaskContributor
+    override fun tasksFor(context: KobaltContext): List<DynamicTask> = taskContributor.dynamicTasks
 }
 
 @Directive

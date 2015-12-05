@@ -25,7 +25,9 @@ abstract class JvmCompilerPlugin @Inject constructor(
         open val depFactory: DepFactory,
         open val dependencyManager: DependencyManager,
         open val executors: KobaltExecutors,
-        open val jvmCompiler: JvmCompiler) : BasePlugin(), IProjectContributor {
+        open val jvmCompiler: JvmCompiler,
+        val taskContributor : TaskContributor = TaskContributor())
+            : BasePlugin(), IProjectContributor, ITaskContributor by taskContributor {
 
     companion object {
         @ExportedProjectProperty(doc = "Projects this project depends on", type = "List<ProjectDescription>")
@@ -52,7 +54,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
         project.projectProperties.put(DEPENDENT_PROJECTS, projects())
-        addVariantTasks(project, "compile", runTask = { taskCompile(project) })
+        taskContributor.addVariantTasks(project, context, "compile", runTask = { taskCompile(project) })
     }
 
     @Task(name = TASK_TEST, description = "Run the tests", runAfter = arrayOf("compile", "compileTest"))
