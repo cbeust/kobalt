@@ -13,8 +13,6 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.warn
 import java.io.File
-import java.nio.file.Paths
-import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,19 +35,7 @@ class JavaPlugin @Inject constructor(
 
     override fun accept(project: Project) = project is JavaProject
 
-    /**
-     * Replace all the .java files with their directories + *.java in order to limit the
-     * size of the command line (which blows up on Windows if there are a lot of files).
-     */
-    private fun sourcesToDirectories(sources: List<String>, suffix: String) : Collection<String> {
-        val dirs = HashSet(sources.map {
-            Paths.get(it).parent.toFile().path + File.separator + "*$suffix"
-        })
-        return dirs
-    }
-
     // IDocContributor
-
     override fun affinity(project: Project, context: KobaltContext) =
             if (project.sourceSuffix == ".java") 1 else 0
 
