@@ -32,7 +32,9 @@ class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyMan
     }
 
     // IClasspathContributor
-    override fun entriesFor(project: Project?) = listOf(JAR)
+    override fun entriesFor(project: Project?) =
+            if (project != null && configurationFor(project) != null) listOf(JAR)
+            else emptyList()
 
     @Task(name = "retrolambda", description = "Run Retrolambda",
             alwaysRunAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))

@@ -8,6 +8,7 @@ import com.beust.kobalt.plugin.kotlin.*
 import com.beust.kobalt.plugin.packaging.assemble
 import com.beust.kobalt.plugin.publish.github
 import com.beust.kobalt.plugin.publish.jcenter
+import com.beust.kobalt.plugin.retrolambda.*
 import com.beust.kobalt.test
 import java.io.File
 import java.nio.file.Files
@@ -33,6 +34,9 @@ val wrapper = javaProject {
             }
         }
     }
+
+//    retrolambda {
+//    }
 
     productFlavor("dev") {
     }
