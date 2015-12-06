@@ -9,7 +9,7 @@ import com.beust.kobalt.plugin.android.AndroidPlugin
 import com.beust.kobalt.plugin.android.Proguard
 import java.util.*
 
-open public class Project(
+open class Project(
         @Directive open var name: String,
         @Directive open var version: String? = null,
         @Directive open var directory: String = ".",
@@ -46,7 +46,7 @@ open public class Project(
     //
 
     @Directive
-    public fun sourceDirectories(init: Sources.() -> Unit) : Sources {
+    fun sourceDirectories(init: Sources.() -> Unit) : Sources {
         val sources = Sources(this, sourceDirectories)
         sources.init()
         return sources
@@ -59,7 +59,7 @@ open public class Project(
         }
 
     @Directive
-    public fun sourceDirectoriesTest(init: Sources.() -> Unit) : Sources {
+    fun sourceDirectoriesTest(init: Sources.() -> Unit) : Sources {
         val sources = Sources(this, sourceDirectoriesTest)
         sources.init()
         return sources
@@ -77,7 +77,7 @@ open public class Project(
     //
 
     @Directive
-    public fun dependencies(init: Dependencies.() -> Unit) : Dependencies {
+    fun dependencies(init: Dependencies.() -> Unit) : Dependencies {
         dependencies = Dependencies(this, compileDependencies, compileProvidedDependencies, compileRuntimeDependencies)
         dependencies!!.init()
         return dependencies!!
@@ -88,7 +88,7 @@ open public class Project(
     val compileRuntimeDependencies : ArrayList<IClasspathDependency> = arrayListOf()
 
     @Directive
-    public fun dependenciesTest(init: Dependencies.() -> Unit) : Dependencies {
+    fun dependenciesTest(init: Dependencies.() -> Unit) : Dependencies {
         dependencies = Dependencies(this, testDependencies, testProvidedDependencies, compileRuntimeDependencies)
         dependencies!!.init()
         return dependencies!!
@@ -122,14 +122,14 @@ open public class Project(
     }
 }
 
-public class Sources(val project: Project, val sources: HashSet<String>) {
+class Sources(val project: Project, val sources: HashSet<String>) {
     @Directive
-    public fun path(vararg paths: String) {
+    fun path(vararg paths: String) {
         sources.addAll(paths)
     }
 }
 
-public class Dependencies(val project: Project, val dependencies: ArrayList<IClasspathDependency>,
+class Dependencies(val project: Project, val dependencies: ArrayList<IClasspathDependency>,
         val providedDependencies: ArrayList<IClasspathDependency>,
         val runtimeDependencies: ArrayList<IClasspathDependency>) {
     @Directive
@@ -148,9 +148,9 @@ public class Dependencies(val project: Project, val dependencies: ArrayList<ICla
     }
 }
 
-public class Scm(val connection: String, val developerConnection: String, val url: String)
+class Scm(val connection: String, val developerConnection: String, val url: String)
 
-public class License(val name: String, val url: String) {
+class License(val name: String, val url: String) {
     fun toMavenLicense() : org.apache.maven.model.License {
         val result = org.apache.maven.model.License()
         result.name = name
