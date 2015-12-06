@@ -60,7 +60,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
         project.projectProperties.put(DEPENDENT_PROJECTS, projects())
-        taskContributor.addVariantTasks(project, context, "compile", runTask = { taskCompile(project) })
+        taskContributor.addVariantTasks(this, project, context, "compile", runTask = { taskCompile(project) })
     }
 
     @Task(name = TASK_TEST, description = "Run the tests",

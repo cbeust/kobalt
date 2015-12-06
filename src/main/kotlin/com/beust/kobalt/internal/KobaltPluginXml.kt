@@ -137,6 +137,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
                 if (this is IRunnerContributor) runnerContributors.add(this)
                 if (this is ISourceDirectoryContributor) sourceDirContributors.add(this)
                 if (this is ISourceDirectoryIncerceptor) sourceDirectoriesInterceptors.add(this)
+                if (this is ITaskContributor) taskContributors.add(this)
                 if (this is ITestRunnerContributor) testRunnerContributors.add(this)
 
                 // Not documented yet

@@ -56,7 +56,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
         project.projectProperties.put(LIBS_DIR, libsDir(project))
-        taskContributor.addVariantTasks(project, context, "assemble", runAfter = listOf("compile"),
+        taskContributor.addVariantTasks(this, project, context, "assemble", runAfter = listOf("compile"),
                 runTask = { taskAssemble(project) })
     }
 

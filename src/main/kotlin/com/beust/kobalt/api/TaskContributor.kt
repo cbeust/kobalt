@@ -14,13 +14,13 @@ class TaskContributor : ITaskContributor {
      * Register dynamic tasks corresponding to the variants found in the project,e.g. assembleDevDebug,
      * assembleDevRelease, etc...
      */
-    fun addVariantTasks(project: Project, context: KobaltContext, taskName: String,
+    fun addVariantTasks(plugin: IPlugin, project: Project, context: KobaltContext, taskName: String,
             runBefore : List<String> = emptyList(),
             runAfter : List<String> = emptyList(),
             runTask: (Project) -> TaskResult) {
         Variant.allVariants(project).forEach { variant ->
             val variantTaskName = variant.toTask(taskName)
-            dynamicTasks.add(DynamicTask(variantTaskName, variantTaskName,
+            dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName,
                     runBefore = runBefore.map { variant.toTask(it) },
                     runAfter = runAfter.map { variant.toTask(it) },
                     closure = { p: Project ->

@@ -42,17 +42,17 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         if (accept(project)) {
             project.compileDependencies.add(FileDependency(androidJar(project).toString()))
 
-            taskContributor.addVariantTasks(project, context, "generateR", runBefore = listOf("compile"),
+            taskContributor.addVariantTasks(this, project, context, "generateR", runBefore = listOf("compile"),
                     runTask = { taskGenerateRFile(project) })
-            taskContributor.addVariantTasks(project, context, "generateDex", runAfter = listOf("compile"),
+            taskContributor.addVariantTasks(this, project, context, "generateDex", runAfter = listOf("compile"),
                     runBefore = listOf("assemble"),
                     runTask = { taskGenerateDex(project) })
-            taskContributor.addVariantTasks(project, context, "signApk", runAfter = listOf("generateDex"),
+            taskContributor.addVariantTasks(this, project, context, "signApk", runAfter = listOf("generateDex"),
                     runBefore = listOf("assemble"),
                     runTask = { taskSignApk(project) })
-            taskContributor.addVariantTasks(project, context, "install", runAfter = listOf("signApk"),
+            taskContributor.addVariantTasks(this, project, context, "install", runAfter = listOf("signApk"),
                     runTask = { taskInstall(project) })
-            taskContributor.addVariantTasks(project, context, "proguard", runBefore = listOf("install"),
+            taskContributor.addVariantTasks(this, project, context, "proguard", runBefore = listOf("install"),
                     runAfter = listOf("compile"),
                     runTask = { taskProguard(project) })
         }
