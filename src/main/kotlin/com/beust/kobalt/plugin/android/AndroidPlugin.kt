@@ -107,15 +107,12 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
      * aapt returns 0 even if it fails, so in order to detect whether it failed, we are checking
      * if its error stream contains anything.
      */
-    inner class AaptCommand(project: Project, aapt: String, val aaptCommand: String,
-            cwd: File = File(".")) : AndroidCommand(project, androidHome(project), aapt) {
-        init {
-            directory = cwd
-            useErrorStreamAsErrorIndicator = true
-        }
-
-        override fun call(args: List<String>) = super.run(arrayListOf(aaptCommand) + args)
-    }
+    inner class AaptCommand(project: Project, aapt: String, val aaptCommand: String, cwd: File = File("."),
+            args: List<String>)
+        : AndroidCommand(project, androidHome(project), aapt,
+                directory = cwd,
+                useErrorStreamAsErrorIndicator = true,
+                args = arrayListOf(aaptCommand) + args)
 
     private fun generateR(project: Project, generated: String, aapt: String) : Boolean {
         val compileSdkVersion = compileSdkVersion(project)
@@ -132,7 +129,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         val variantDir = context.variant.toIntermediateDir()
 
         val rDirectory = KFiles.joinAndMakeDir(generated, "source", "r", variantDir).toString()
-        val result = AaptCommand(project, aapt, "package").call(listOf(
+        val result = AaptCommand(project, aapt, "package", args = listOf(
                 "-f",
                 "--no-crunch",
                 "-I", androidJar.toString(),
@@ -358,7 +355,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
          * adb has weird ways of signaling errors, that's the best I've found so far.
          */
         class AdbInstall : RunCommand(adb(project)) {
-            override fun isSuccess(callSucceeded: Boolean, input: List<String>, error: List<String>)
+            override fun isSuccess(isSuccess: Boolean, input: List<String>, error: List<String>)
                 = input.filter { it.contains("Success")}.size > 0
         }
 

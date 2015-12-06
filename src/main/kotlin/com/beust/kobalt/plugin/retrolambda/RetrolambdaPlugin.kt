@@ -55,9 +55,10 @@ class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyMan
                         "-Dretrolambda.bytecodeVersion=${config.byteCodeVersion}",
                         "-jar", JAR.jarFile.get().path)
 
-                val result = RunCommand("java").apply {
-                    directory = File(project.directory)
-                }.run(args)
+                val result = RunCommand("java",
+                        directory = File(project.directory),
+                        args = args)
+                    .run()
                 TaskResult(result == 0)
             } else {
                 TaskResult()
