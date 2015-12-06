@@ -1,6 +1,7 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.KobaltTest
+import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.warn
 import org.testng.Assert
@@ -71,8 +72,9 @@ public class DownloadTest @Inject constructor(
         }
     }
 
-    @Test(dependsOnMethods = arrayOf("shouldDownloadWithVersion"))
+    @Test
     public fun shouldFindLocalJar() {
+        MavenDependency.create("$idNoVersion$version")
         val dep = depFactory.create("$idNoVersion$version", executor)
         val future = dep.jarFile
 //        Assert.assertTrue(future is CompletedFuture)
@@ -80,8 +82,9 @@ public class DownloadTest @Inject constructor(
         Assert.assertTrue(file.exists())
     }
 
-    @Test(dependsOnMethods = arrayOf("shouldDownloadWithVersion"))
+    @Test
     public fun shouldFindLocalJarNoVersion() {
+        MavenDependency.create("$idNoVersion$version")
         val dep = depFactory.create(idNoVersion, executor, localFirst = false)
         val future = dep.jarFile
         val file = future.get()
