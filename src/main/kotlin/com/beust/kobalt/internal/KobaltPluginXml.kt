@@ -71,6 +71,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val compilerContributors = arrayListOf<ICompilerContributor>()
     val docContributors = arrayListOf<IDocContributor>()
     val sourceDirContributors = arrayListOf<ISourceDirectoryContributor>()
+    val testSourceDirContributors = arrayListOf<ITestSourceDirectoryContributor>()
     val buildConfigFieldContributors = arrayListOf<IBuildConfigFieldContributor>()
     val taskContributors = arrayListOf<ITaskContributor>()
 
@@ -138,6 +139,8 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
                 if (this is ISourceDirectoryIncerceptor) sourceDirectoriesInterceptors.add(this)
                 if (this is ITestRunnerContributor) testRunnerContributors.add(this)
 
+                // Not documented yet
+                if (this is ITestSourceDirectoryContributor) testSourceDirContributors.add(this)
             }
         }
     }
@@ -165,6 +168,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         sourceDirContributors.addAll(pluginInfo.sourceDirContributors)
         buildConfigFieldContributors.addAll(pluginInfo.buildConfigFieldContributors)
         taskContributors.addAll(pluginInfo.taskContributors)
+        testSourceDirContributors.addAll(pluginInfo.testSourceDirContributors)
     }
 }
 

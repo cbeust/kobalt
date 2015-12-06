@@ -16,7 +16,6 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.toString
-import com.beust.kobalt.plugin.java.JavaPlugin
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -63,7 +62,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
     private fun libsDir(project: Project) = KFiles.makeDir(buildDir(project).path, "libs").path
 
-    @Task(name = TASK_ASSEMBLE, description = "Package the artifacts", runAfter = arrayOf(JavaPlugin.TASK_COMPILE))
+    @Task(name = TASK_ASSEMBLE, description = "Package the artifacts",
+            runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
     fun taskAssemble(project: Project) : TaskResult {
         project.projectProperties.put(PACKAGES, packages)
         packages.filter { it.project.name == project.name }.forEach { pkg ->

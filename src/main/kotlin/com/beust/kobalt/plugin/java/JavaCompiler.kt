@@ -10,6 +10,7 @@ import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.warn
 import com.beust.kobalt.plugin.android.forward
 import com.google.inject.Inject
 import com.google.inject.Singleton
@@ -19,6 +20,11 @@ import java.io.File
 class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
     fun compilerAction(executable: File) = object : ICompilerAction {
         override fun compile(info: CompilerActionInfo): TaskResult {
+            if (info.sourceFiles.isEmpty()) {
+                warn("No source files to compile")
+                return TaskResult()
+            }
+
             info.outputDir.mkdirs()
 
             val allArgs = arrayListOf(

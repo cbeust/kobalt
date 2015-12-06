@@ -28,11 +28,9 @@ class JavaPlugin @Inject constructor(
         val javaCompiler: JavaCompiler,
         override val jvmCompiler: JvmCompiler)
         : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler),
-            ICompilerContributor, IDocContributor {
+            ICompilerContributor, IDocContributor, ITestSourceDirectoryContributor {
     companion object {
         const val PLUGIN_NAME = "Java"
-        const val TASK_COMPILE = "compile"
-        const val TASK_COMPILE_TEST = "compileTest"
     }
 
     override val name = PLUGIN_NAME
@@ -66,25 +64,16 @@ class JavaPlugin @Inject constructor(
         return result
     }
 
-    @Task(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf("compile"))
+    @Task(name = TASK_COMPILE_TEST, description = "Compile the tests",
+            runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
     fun taskCompileTest(project: Project): TaskResult {
-        val sourceFiles = findSourceFiles(project, context, project.directory, project.sourceDirectoriesTest)
-        val result =
-            if (sourceFiles.size > 0) {
-                copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
-                val buildDir = KFiles.makeOutputTestDir(project)
-                javaCompiler.compile(project, context, CompilerActionInfo(project.directory,
-                        dependencyManager.testDependencies(project, context, projects()),
-                        sourceFiles, buildDir, compilerArgsFor(project)))
-            } else {
-                warn("Couldn't find any tests to compile")
-                TaskResult()
-            }
+        copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
+        val compilerActionInfo = createCompilerActionInfo(project, context, null, isTest = true)
+        val result = javaCompiler.compile(project, context, compilerActionInfo)
         return result
     }
 
     // ICompilerContributor
-
     override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val result =
             if (info.sourceFiles.size > 0) {
@@ -95,6 +84,10 @@ class JavaPlugin @Inject constructor(
             }
         return result
     }
+
+    // ITestSourceDirectoryContributor
+    override fun testSourceDirectoriesFor(project: Project, context: KobaltContext)
+        = project.sourceDirectoriesTest.map { File(it) }.toList()
 }
 
 @Directive
