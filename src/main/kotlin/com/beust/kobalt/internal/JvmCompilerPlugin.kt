@@ -26,7 +26,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         open val executors: KobaltExecutors,
         open val jvmCompiler: JvmCompiler,
         val taskContributor : TaskContributor = TaskContributor())
-            : BasePlugin(), IProjectContributor, ITaskContributor by taskContributor {
+            : BasePlugin(), ISourceDirectoryContributor, IProjectContributor, ITaskContributor by taskContributor {
 
     companion object {
         @ExportedProjectProperty(doc = "Projects this project depends on", type = "List<ProjectDescription>")
@@ -154,6 +154,10 @@ abstract class JvmCompilerPlugin @Inject constructor(
         }
     }
 
+    /**
+     * Create a CompilerActionInfo (all the information that a compiler needs to know) for the given parameters.
+     * Runs all the contributors and interceptors relevant to that task.
+     */
     protected fun createCompilerActionInfo(project: Project, context: KobaltContext, generatedSourceDir: File?,
             isTest: Boolean) : CompilerActionInfo {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
@@ -172,11 +176,6 @@ abstract class JvmCompilerPlugin @Inject constructor(
         // Add the generated source dir if any
         generatedSourceDir?.let {
             initialSourceDirectories.add(it)
-        }
-
-        // Source directories from the project and variants
-        if (! isTest) {
-            initialSourceDirectories.addAll(context.variant.sourceDirectories(project))
         }
 
         // Source directories from the contributors
@@ -208,5 +207,9 @@ abstract class JvmCompilerPlugin @Inject constructor(
         })
         return result
     }
+
+    // ISourceDirectoryContributor
+    override fun sourceDirectoriesFor(project: Project, context: KobaltContext)
+            = if (accept(project)) context.variant.sourceDirectories(project) else listOf()
 }
 
