@@ -2,9 +2,7 @@ package com.beust.kobalt.plugin.retrolambda
 
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.ConfigPlugin
-import com.beust.kobalt.api.IClasspathContributor
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.JvmCompilerPlugin
@@ -21,7 +19,7 @@ import java.io.File
  */
 @Singleton
 class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyManager)
-        : ConfigPlugin<RetrolambdaConfig>(), IClasspathContributor {
+        : ConfigPlugin<RetrolambdaConfig>(), IClasspathContributor, ITaskContributor {
 
     override val name = PLUGIN_NAME
 
@@ -31,6 +29,12 @@ class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyMan
         // we will always be using the latest version of the Retrolambda jar
         const val ID = "net.orfjackal.retrolambda:retrolambda:"
         val JAR = MavenDependency.create(ID)
+    }
+
+    override fun apply(project: Project, context: KobaltContext) {
+        super.apply(project, context)
+        taskContributor.addVariantTasks(this, project, context, "retrolambda", runTask = { taskRetrolambda(project) },
+                alwaysRunAfter = listOf("compile"))
     }
 
     // IClasspathContributor
@@ -45,12 +49,13 @@ class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyMan
         val config = configurationFor(project)
         val result =
             if (config != null) {
-                val classpath = dependencyManager.transitiveClosure(project.compileDependencies).map {
+                val classesDir = project.classesDir(context)
+                val classpath = (dependencyManager.transitiveClosure(project.compileDependencies).map {
                     it.jarFile.get()
-                }.joinToString(File.separator)
+                } + classesDir).joinToString(File.pathSeparator)
 
                 val args = listOf(
-                        "-Dretrolambda.inputDir=" + project.classesDir(context),
+                        "-Dretrolambda.inputDir=" + classesDir,
                         "-Dretrolambda.classpath=" + classpath,
                         "-Dretrolambda.bytecodeVersion=${config.byteCodeVersion}",
                         "-jar", JAR.jarFile.get().path)
@@ -65,6 +70,11 @@ class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyMan
 
         return result
     }
+
+    val taskContributor : TaskContributor = TaskContributor()
+
+    // ITaskContributor
+    override fun tasksFor(context: KobaltContext) : List<DynamicTask> = taskContributor.dynamicTasks
 }
 
 class RetrolambdaConfig(var byteCodeVersion: Int = 50) {
