@@ -124,26 +124,23 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         //
         xml.pluginActors?.className?.forEach {
             with(factory.instanceOf(forName(it))) {
-                when(this) {
-                    is IBuildConfigFieldContributor -> buildConfigFieldContributors.add(this)
-                    is IBuildConfigFieldContributor -> buildConfigFieldContributors.add(this)
-                    is IBuildDirectoryIncerceptor -> buildDirectoryInterceptors.add(this)
-                    is IClasspathContributor -> classpathContributors.add(this)
-                    is IClasspathInterceptor->classpathInterceptors.add(this)
-                    is ICompilerContributor->compilerContributors.add(this)
-                    is ICompilerFlagContributor->compilerFlagContributors.add(this)
-                    is ICompilerInterceptor->compilerInterceptors.add(this)
-                    is IDocContributor->docContributors.add(this)
-                    is IInitContributor<*>->initContributors.add(this as IInitContributor<File>)
-                    is IPlugin->plugins.add(this)
-                    is IProjectContributor->projectContributors.add(this)
-                    is IRepoContributor->repoContributors.add(this)
-                    is IRunnerContributor->runnerContributors.add(this)
-                    is ISourceDirectoryContributor->sourceDirContributors.add(this)
-                    is ISourceDirectoryIncerceptor->sourceDirectoriesInterceptors.add(this)
-                    is ITestRunnerContributor->testRunnerContributors.add(this)
-                    else -> {}
-                }
+                if (this is IBuildConfigFieldContributor) buildConfigFieldContributors.add(this)
+                if (this is IBuildDirectoryIncerceptor) buildDirectoryInterceptors.add(this)
+                if (this is IClasspathContributor) classpathContributors.add(this)
+                if (this is IClasspathInterceptor) classpathInterceptors.add(this)
+                if (this is ICompilerContributor) compilerContributors.add(this)
+                if (this is ICompilerFlagContributor) compilerFlagContributors.add(this)
+                if (this is ICompilerInterceptor) compilerInterceptors.add(this)
+                if (this is IDocContributor) docContributors.add(this)
+                if (this is IInitContributor<*>) initContributors.add(this as IInitContributor<File>)
+                if (this is IPlugin) plugins.add(this)
+                if (this is IProjectContributor) projectContributors.add(this)
+                if (this is IRepoContributor) repoContributors.add(this)
+                if (this is IRunnerContributor) runnerContributors.add(this)
+                if (this is ISourceDirectoryContributor) sourceDirContributors.add(this)
+                if (this is ISourceDirectoryIncerceptor) sourceDirectoriesInterceptors.add(this)
+                if (this is ITestRunnerContributor) testRunnerContributors.add(this)
+
             }
         }
     }
