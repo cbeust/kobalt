@@ -31,6 +31,7 @@ class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyMan
         val JAR = MavenDependency.create(ID)
     }
 
+    // IClasspathContributor
     override fun entriesFor(project: Project?) = listOf(JAR)
 
     @Task(name = "retrolambda", description = "Run Retrolambda",
