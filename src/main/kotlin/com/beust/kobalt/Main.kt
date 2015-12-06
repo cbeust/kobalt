@@ -3,6 +3,7 @@ package com.beust.kobalt
 import com.beust.jcommander.JCommander
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
@@ -14,6 +15,7 @@ import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.*
+import com.google.common.collect.HashMultimap
 import com.google.inject.Guice
 import java.io.File
 import java.nio.file.Paths
@@ -174,23 +176,16 @@ private class Main @Inject constructor(
                     // --resolve
                     resolveDependency.run(args.dependency as String)
                 } else if (args.tasks) {
-                    //
-                    // List of tasks
-                    //
-                    val sb = StringBuffer("List of tasks\n")
-                    taskManager.tasks.distinctBy {
-                        it.name
-                    }.forEach { task ->
-                        sb.append("\n  " + AsciiArt.horizontalDoubleLine +" ${task.plugin.name} "
-                                + AsciiArt.horizontalDoubleLine + "\n")
-                        sb.append("    ${task.name}\t\t${task.doc}\n")
-                        println(sb.toString())
-                    }
+                    // --tasks
+                    displayTasks()
                 } else if (args.checkVersions) {
+                    // --checkVersions
                     checkVersions.run(allProjects)
                 } else if (args.download) {
+                    // -- download
                     updateKobalt.downloadKobalt()
                 } else if (args.update) {
+                    // --update
                     updateKobalt.updateKobalt()
                 } else {
                     //
@@ -204,6 +199,30 @@ private class Main @Inject constructor(
             }
         }
         return result
+    }
+
+    private fun displayTasks() {
+        //
+        // List of tasks, --tasks
+        //
+        val tasksByPlugins = HashMultimap.create<String, PluginTask>()
+        taskManager.tasks.forEach {
+            tasksByPlugins.put(it.plugin.name, it)
+        }
+        val sb = StringBuffer("List of tasks\n")
+        tasksByPlugins.keySet().forEach { name ->
+            sb.append("\n  " + AsciiArt.horizontalDoubleLine + " $name "
+                    + AsciiArt.horizontalDoubleLine + "\n")
+            tasksByPlugins[name].distinctBy {
+                it.name
+            }.sortedBy {
+                it.name
+            }.forEach { task ->
+                sb.append("    ${task.name}\t\t${task.doc}\n")
+            }
+        }
+
+        println(sb.toString())
     }
 
     private fun runClasspathInterceptors(allProjects: List<Project>) {
