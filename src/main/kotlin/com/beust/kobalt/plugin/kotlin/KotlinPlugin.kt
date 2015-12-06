@@ -34,8 +34,6 @@ class KotlinPlugin @Inject constructor(
 
     companion object {
         const val PLUGIN_NAME = "Kotlin"
-        const val TASK_COMPILE: String = "compile"
-        const val TASK_COMPILE_TEST: String = "compileTest"
     }
 
     override val name = PLUGIN_NAME
