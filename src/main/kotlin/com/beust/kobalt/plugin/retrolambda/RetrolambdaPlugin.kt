@@ -27,11 +27,14 @@ class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyMan
 
     companion object {
         const val PLUGIN_NAME = "Retrolambda"
+        // Note the use of the versionless id here (no version number specified, ends with ":") so that
+        // we will always be using the latest version of the Retrolambda jar
         const val ID = "net.orfjackal.retrolambda:retrolambda:"
         val JAR = MavenDependency.create(ID)
     }
 
     // IClasspathContributor
+    // Only add the Retrolambda jar file if the user specified a `retrolambda{}` directive in their build file
     override fun entriesFor(project: Project?) =
             if (project != null && configurationFor(project) != null) listOf(JAR)
             else emptyList()
@@ -40,24 +43,25 @@ class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyMan
             alwaysRunAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
     fun taskRetrolambda(project: Project): TaskResult {
         val config = configurationFor(project)
-        val result = if (config != null) {
-            val classpath = dependencyManager.transitiveClosure(project.compileDependencies).map {
-                it.jarFile.get()
-            }.joinToString(File.separator)
+        val result =
+            if (config != null) {
+                val classpath = dependencyManager.transitiveClosure(project.compileDependencies).map {
+                    it.jarFile.get()
+                }.joinToString(File.separator)
 
-            val args = listOf(
-                    "-Dretrolambda.inputDir=" + project.classesDir(context),
-                    "-Dretrolambda.classpath=" + classpath,
-                    "-Dretrolambda.bytecodeVersion=${config.byteCodeVersion}",
-                    "-jar", JAR.jarFile.get().path)
+                val args = listOf(
+                        "-Dretrolambda.inputDir=" + project.classesDir(context),
+                        "-Dretrolambda.classpath=" + classpath,
+                        "-Dretrolambda.bytecodeVersion=${config.byteCodeVersion}",
+                        "-jar", JAR.jarFile.get().path)
 
-            val result = RunCommand("java").apply {
-                directory = File(project.directory)
-            }.run(args)
-            TaskResult(result == 0)
-        } else {
-            TaskResult()
-        }
+                val result = RunCommand("java").apply {
+                    directory = File(project.directory)
+                }.run(args)
+                TaskResult(result == 0)
+            } else {
+                TaskResult()
+            }
 
         return result
     }
