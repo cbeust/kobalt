@@ -17,6 +17,11 @@ import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Base classes for plug-ins that compile files on the JVM. This base class requires the bare minimum
+ * contributors (source files, projects and tasks). Subclasses can add more as they see fit (e.g. test
+ * source directory, etc...).
+ */
 @Singleton
 abstract class JvmCompilerPlugin @Inject constructor(
         open val localRepo: LocalRepo,
