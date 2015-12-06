@@ -124,6 +124,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         //
         xml.pluginActors?.className?.forEach {
             with(factory.instanceOf(forName(it))) {
+                // Note: can't use "when" here since the same instance can implement multiple interfaces
                 if (this is IBuildConfigFieldContributor) buildConfigFieldContributors.add(this)
                 if (this is IBuildDirectoryIncerceptor) buildDirectoryInterceptors.add(this)
                 if (this is IClasspathContributor) classpathContributors.add(this)
