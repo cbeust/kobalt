@@ -74,10 +74,6 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val buildConfigFieldContributors = arrayListOf<IBuildConfigFieldContributor>()
     val taskContributors = arrayListOf<ITaskContributor>()
 
-    // Future contributors:
-    // source files
-    // compilers
-
     companion object {
         val PLUGIN_XML = "META-INF/kobalt-plugin.xml" // Plugins.PLUGIN_XML)
 
