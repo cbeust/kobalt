@@ -4,6 +4,7 @@ import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
@@ -20,7 +21,7 @@ import java.nio.file.Paths
 
 @Singleton
 public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, val merger: Merger,
-        val executors: KobaltExecutors)
+        val executors: KobaltExecutors, val dependencyManager: DependencyManager)
             : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
                 ICompilerInterceptor, IBuildDirectoryIncerceptor, IRunnerContributor, IClasspathInterceptor,
                 ISourceDirectoryContributor, IBuildConfigFieldContributor, ITaskContributor {
@@ -72,7 +73,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
             return version as String
     }
 
-    inline fun androidHome(project: Project?) = AndroidFiles.androidHome(project, configurationFor(project)!!)
+    fun androidHome(project: Project?) = AndroidFiles.androidHome(project, configurationFor(project)!!)
 
     fun androidJar(project: Project): Path =
             Paths.get(androidHome(project), "platforms", "android-${compileSdkVersion(project)}", "android.jar")
@@ -91,9 +92,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
             runBefore = arrayOf("compile"), runAfter = arrayOf("clean"))
     fun taskGenerateRFile(project: Project): TaskResult {
 
-        val intermediates = AndroidFiles.intermediates(project)
         val resDir = "temporaryBogusResDir"
-        val aarDependencies= explodeAarFiles(project, intermediates, File(resDir))
+        val aarDependencies = explodeAarFiles(project, File(resDir))
         AndroidBuild().run(project, context.variant, configurationFor(project)!!, aarDependencies)
 //        merger.merge(project, context)
 
@@ -151,31 +151,32 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
          //       "--output-text-symbols", KFiles.joinAndMakeDir(intermediates(project).toString(), "symbol", flavor)
         ))
 
-        val rOutputDirectory = KFiles.joinDir(rDirectory, applicationId.replace(".", File.separator))
-        val generatedBuildDir = compile(project, rOutputDirectory)
-        project.compileDependencies.add(FileDependency(generatedBuildDir.path))
+//        val rOutputDirectory = KFiles.joinDir(rDirectory, applicationId.replace(".", File.separator))
+//        val generatedBuildDir = compile(project, rOutputDirectory)
+//        project.compileDependencies.add(FileDependency(generatedBuildDir.path))
         return result == 0
     }
 
     /**
-     * Extract all the .aar files found in the dependencies and add the android.jar to classpathEntries,
-     * which will be added to the classpath at compile time
+     * Extract all the .aar files found in the dependencies and add their android.jar to classpathEntries,
+     * which will be added to the classpath at compile time via the classpath interceptor.
      */
-    private fun explodeAarFiles(project: Project, outputDir: String, resDir: File) : List<File> {
+    private fun explodeAarFiles(project: Project, resDir: File) : List<File> {
         val result = arrayListOf<File>()
         project.compileDependencies.filter {
             it.jarFile.get().name.endsWith(".aar")
         }.forEach {
             val mavenId = MavenId(it.id)
+            val outputDir = AndroidFiles.intermediates(project)
             val destDir = Paths.get(outputDir, "exploded-aar", mavenId.groupId,
                     mavenId.artifactId, mavenId.version)
                     .toFile()
             log(2, "Exploding ${it.jarFile.get()} to $destDir")
             JarUtils.extractJarFile(it.jarFile.get(), destDir)
-            val classesJar = Paths.get(destDir.absolutePath, "classes.jar")
+            val classesJar = AndroidFiles.classesJar(project, mavenId)
 
             // Add the classses.jar of this .aar to the classpath entries (which are returned via IClasspathContributor)
-            classpathEntries.put(project.name, FileDependency(classesJar.toFile().absolutePath))
+            classpathEntries.put(project.name, FileDependency(classesJar))
             // Also add all the jar files found in the libs/ directory
             File(destDir, "libs").let { libsDir ->
                 if (libsDir.exists()) {
@@ -188,7 +189,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
             // Copy all the resources from this aar into the same intermediate directory
             log(2, "Copying the resources to $resDir")
             result.add(destDir)
-            KFiles.copyRecursively(destDir.resolve("res"), resDir, deleteFirst = false)
+            KFiles.copyRecursively(destDir.resolve("res"), resDir)
         }
         return result
     }
@@ -210,40 +211,13 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
      */
     override fun flagsFor(project: Project, currentFlags: List<String>) : List<String> {
         if (isAndroid(project)) {
-            val result = arrayListOf<String>()
-            var foundSource = false
-            var foundTarget = false
-            var noWarn = false
-            var i = 0
-            while (i < currentFlags.size) {
-                with(currentFlags[i]) {
-                    if (this == "-source") {
-                        result.add(this)
-                        result.add(currentFlags[i + 1])
-                        i++
-                        foundSource = true
-                    } else if (this == "-target") {
-                        result.add(this)
-                        result.add(currentFlags[i + 1])
-                        i++
-                        foundTarget = true
-                    } else {
-                        result.add(this)
-                    }
-                }
-                i++
-            }
-            if (! foundSource) {
+            var found = currentFlags.any { it == "-source" || it == "-target" }
+            val result = arrayListOf<String>().apply { addAll(currentFlags) }
+            if (! found) {
                 result.add("-source")
                 result.add("1.6")
-                noWarn = true
-            }
-            if (! foundTarget) {
                 result.add("-target")
                 result.add("1.6")
-                noWarn = true
-            }
-            if (noWarn) {
                 result.add("-nowarn")
             }
             return result
@@ -286,12 +260,27 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         // java.exe -Xmx1024M -Dfile.encoding=windows-1252 -Duser.country=US -Duser.language=en -Duser.variant -cp D:\android\adt-bundle-windows-x86_64-20140321\sdk\build-tools\23.0.1\lib\dx.jar com.android.dx.command.Main --dex --verbose --num-threads=4 --output C:\Users\cbeust\android\android_hello_world\app\build\intermediates\dex\pro\debug C:\Users\cbeust\android\android_hello_world\app\build\intermediates\classes\pro\debug
 
         val javaExecutable = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
-        RunCommand(javaExecutable.absolutePath).run(listOf(
+
+        val dependencies = dependencyManager.calculateDependencies(project, context, projects,
+            project.compileDependencies).map {
+                it.jarFile.get().path
+            }.filterNot {
+                it.contains("android.jar") || it.endsWith(".aar") || it.contains("com.android.support")
+                    || it.contains("retrolambda")
+            }.toHashSet().toTypedArray()
+
+        class DexCommand : RunCommand(javaExecutable.absolutePath) {
+            override fun isSuccess(callSucceeded: Boolean, input: List<String>, error: List<String>) =
+                    error.size == 0
+        }
+
+        DexCommand().run(listOf(
                 "-cp", KFiles.joinDir(androidHome(project), "build-tools", buildToolsVersion(project), "lib", "dx.jar"),
                 "com.android.dx.command.Main",
                 "--dex", "--verbose", "--num-threads=4",
                 "--output", outClassesDex,
-                   //KFiles.joinDir(intermediates(project), "dex", context.variant.toIntermediateDir()),
+                *dependencies,
+//                KFiles.joinDir(AndroidFiles.intermediates(project), "dex", context.variant.toIntermediateDir()),
                 project.classesDir(context)
         ))
 
@@ -439,12 +428,14 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
      * Automatically add the "aar" packaging for support libraries.
      */
     // IClasspathInterceptor
-    override fun intercept(dependencies: List<IClasspathDependency>): List<IClasspathDependency> {
+    override fun intercept(project: Project, dependencies: List<IClasspathDependency>): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         dependencies.forEach {
-            if (it is MavenDependency && it.groupId == "com.android.support") {
+            if (it is MavenDependency && (it.groupId == "com.android.support" || it.mavenId.packaging == "aar")) {
+                val newDep = FileDependency(AndroidFiles.classesJar(project, it.mavenId))
+                result.add(newDep)
                 val id = MavenId.create(it.groupId, it.artifactId, "aar", it.version)
-                result.add(MavenDependency.create(id, executors.miscExecutor))
+                result.add(MavenDependency.create(id))
             } else {
                 result.add(it)
             }

@@ -137,7 +137,7 @@ class KFiles {
             return result
         }
 
-        fun copyRecursively(from: File, to: File, replaceExisting: Boolean = true, deleteFirst: Boolean = true,
+        fun copyRecursively(from: File, to: File, replaceExisting: Boolean = true, deleteFirst: Boolean = false,
                 onError: (File, IOException) -> OnErrorAction = { file, exception -> throw exception }) {
             // Need to wait until copyRecursively supports an overwrite: Boolean = false parameter
             // Until then, wipe everything first

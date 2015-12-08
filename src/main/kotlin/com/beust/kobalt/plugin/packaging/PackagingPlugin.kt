@@ -91,7 +91,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         // The transitive closure of libraries goes into WEB-INF/libs.
         // Copy them all in kobaltBuild/war/WEB-INF/libs and create one IncludedFile out of that directory
         //
-        val allDependencies = dependencyManager.transitiveClosure(project.compileDependencies)
+        val allDependencies = dependencyManager.calculateDependencies(project, context, projects,
+                project.compileDependencies)
 
         val WEB_INF = "WEB-INF/lib"
         val outDir = project.buildDirectory + "/war"
@@ -268,7 +269,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             log(1, "Installing from $buildDir to ${config.libDir}")
 
             val toDir = KFiles.makeDir(config.libDir)
-            KFiles.copyRecursively(buildDirFile, toDir)
+            KFiles.copyRecursively(buildDirFile, toDir, deleteFirst = true)
         }
 
         return TaskResult()

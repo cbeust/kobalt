@@ -227,25 +227,26 @@ private class Main @Inject constructor(
 
     private fun runClasspathInterceptors(allProjects: List<Project>) {
         allProjects.forEach {
-            runClasspathInterceptors(it.compileDependencies)
-            runClasspathInterceptors(it.compileProvidedDependencies)
-            runClasspathInterceptors(it.compileRuntimeDependencies)
-            runClasspathInterceptors(it.testProvidedDependencies)
-            runClasspathInterceptors(it.testDependencies)
+            runClasspathInterceptors(it, it.compileDependencies)
+            runClasspathInterceptors(it, it.compileProvidedDependencies)
+            runClasspathInterceptors(it, it.compileRuntimeDependencies)
+            runClasspathInterceptors(it, it.testProvidedDependencies)
+            runClasspathInterceptors(it, it.testDependencies)
         }
     }
 
-    private fun runClasspathInterceptors(dependencies: ArrayList<IClasspathDependency>) = with(dependencies) {
-        val deps = interceptDependencies(pluginInfo, this)
-        clear()
-        addAll(deps)
-    }
+    private fun runClasspathInterceptors(project: Project, dependencies: ArrayList<IClasspathDependency>)
+            = with(dependencies) {
+                val deps = interceptDependencies(project, pluginInfo, this)
+                clear()
+                addAll(deps)
+            }
 
-    private fun interceptDependencies(pluginInfo: PluginInfo, dependencies: ArrayList<IClasspathDependency>)
-            : ArrayList<IClasspathDependency> {
+    private fun interceptDependencies(project: Project, pluginInfo: PluginInfo,
+            dependencies: ArrayList<IClasspathDependency>) : ArrayList<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         pluginInfo.classpathInterceptors.forEach {
-            result.addAll(it.intercept(dependencies))
+            result.addAll(it.intercept(project, dependencies))
         }
         return result
     }

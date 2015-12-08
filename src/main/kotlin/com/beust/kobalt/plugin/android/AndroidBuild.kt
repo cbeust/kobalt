@@ -107,6 +107,19 @@ class AndroidBuild {
         val resourceMerger = ResourceMerger()
 
         //
+        // Assets
+        //
+        val intermediates = File(
+                KFiles.joinDir(AndroidFiles.intermediates(project), "assets", variant.toIntermediateDir()))
+        aarDependencies.forEach {
+            val assetDir = File(it, "assets")
+            if (assetDir.exists()) {
+                println("COPY FROM $assetDir TO $intermediates")
+                KFiles.copyRecursively(assetDir, intermediates)
+            }
+        }
+
+        //
         // Manifest
         //
         val mainManifest = File("src/main/AndroidManifest.xml")
@@ -143,8 +156,8 @@ class AndroidBuild {
 
         // TODO: figure out why the badSrcList is bad. All this information should be coming from the Variant
         val badSrcList = variant.resDirectories(project).map { it.path }
-        val aarList = aarDependencies.map { it.path + File.separator}
-        (aarList + srcList).map { it + File.separator + "res" }.forEach { path ->
+        val goodAarList = aarDependencies.map { it.path + File.separator}
+        (goodAarList + srcList).map { it + File.separator + "res" }.forEach { path ->
             val set = ResourceSet(path)
             set.addSource(File(path))
             set.loadFromFiles(logger)
@@ -157,7 +170,5 @@ class AndroidBuild {
 
 
         resourceMerger.mergeData(writer, true)
-
-        println("")
     }
 }

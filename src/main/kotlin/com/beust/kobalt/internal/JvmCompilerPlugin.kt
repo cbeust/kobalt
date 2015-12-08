@@ -112,7 +112,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
                 it.exists()
             } .forEach {
                 log(2, "Copying from $sourceDirs to $absOutputDir")
-                KFiles.copyRecursively(it, absOutputDir)
+                KFiles.copyRecursively(it, absOutputDir, deleteFirst = true)
             }
         } else {
             lp(project, "No resources to copy for $sourceSet")

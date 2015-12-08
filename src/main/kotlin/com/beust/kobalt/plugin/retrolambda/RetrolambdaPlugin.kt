@@ -34,7 +34,7 @@ class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyMan
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
         taskContributor.addVariantTasks(this, project, context, "retrolambda", runTask = { taskRetrolambda(project) },
-                alwaysRunAfter = listOf("compile"))
+                runBefore = listOf("generateDex"), alwaysRunAfter = listOf("compile"))
     }
 
     // IClasspathContributor
@@ -43,14 +43,16 @@ class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyMan
             if (project != null && configurationFor(project) != null) listOf(JAR)
             else emptyList()
 
-    @Task(name = "retrolambda", description = "Run Retrolambda",
+    @Task(name = "retrolambda", description = "Run Retrolambda", runBefore = arrayOf("generateDex"),
             alwaysRunAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
     fun taskRetrolambda(project: Project): TaskResult {
         val config = configurationFor(project)
         val result =
             if (config != null) {
                 val classesDir = project.classesDir(context)
-                val classpath = (dependencyManager.transitiveClosure(project.compileDependencies).map {
+                val classpath = (dependencyManager.calculateDependencies(project, context, projects,
+                        project.compileDependencies)
+                        .map {
                     it.jarFile.get()
                 } + classesDir).joinToString(File.pathSeparator)
 
