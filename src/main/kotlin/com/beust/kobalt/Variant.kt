@@ -56,16 +56,16 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
                 })
 
 //            // The ordering of files is: 1) build type 2) product flavor 3) default
-//            buildType.let {
-//                val dir = File(KFiles.joinDir("src", it.name, project.projectInfo.sourceDirectory))
-//                log(2, "Adding source for build type ${it.name}: ${dir.path}")
-//                result.add(dir)
-//            }
-//            productFlavor.let {
-//                val dir = File(KFiles.joinDir("src", it.name, project.projectInfo.sourceDirectory))
-//                log(2, "Adding source for product flavor ${it.name}: ${dir.path}")
-//                result.add(dir)
-//            }
+            buildType.let {
+                val dir = File(KFiles.joinDir("src", it.name, project.projectInfo.sourceDirectory))
+                log(2, "Adding source for build type ${it.name}: ${dir.path}")
+                result.add(dir)
+            }
+            productFlavor.let {
+                val dir = File(KFiles.joinDir("src", it.name, project.projectInfo.sourceDirectory))
+                log(2, "Adding source for product flavor ${it.name}: ${dir.path}")
+                result.add(dir)
+            }
 
             // Now that all the variant source directories have been added, add the project's default ones
             result.addAll(sourceDirectories)
