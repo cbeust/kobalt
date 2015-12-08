@@ -61,7 +61,6 @@ abstract class JvmCompilerPlugin @Inject constructor(
         super.apply(project, context)
         project.projectProperties.put(DEPENDENT_PROJECTS, projects())
         taskContributor.addVariantTasks(this, project, context, "compile", runTask = { taskCompile(project) })
-        sourceDirectories.addAll(context.variant.sourceDirectories(project))
     }
 
     @Task(name = TASK_TEST, description = "Run the tests",
@@ -136,6 +135,9 @@ abstract class JvmCompilerPlugin @Inject constructor(
 
     @Task(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project) : TaskResult {
+        // Set up the source files now that we have the variant
+        sourceDirectories.addAll(context.variant.sourceDirectories(project))
+
         val sourceDirectory = context.variant.maybeGenerateBuildConfig(project, context)
         if (sourceDirectory != null) {
             sourceDirectories.add(sourceDirectory)
