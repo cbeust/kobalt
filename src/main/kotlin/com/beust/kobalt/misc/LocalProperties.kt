@@ -12,10 +12,6 @@ class LocalProperties {
     val localProperties: Properties by lazy {
         val result = Properties()
         val filePath = Paths.get("local.properties")
-        if (! Files.exists(filePath)) {
-            warn("Couldn't find a local.properties file")
-        }
-
         filePath.let { path ->
             if (Files.exists(path)) {
                 Files.newInputStream(path).use {
