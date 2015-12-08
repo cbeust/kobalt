@@ -107,6 +107,8 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
 
     /**
      * Create an ICompilerAction based on the parameters and send it to JvmCompiler.doCompile().
+     * TODO: This needs to be removed because it doesn't use contributors. Call
+     * JvmCompilerPlugin#createCompilerActionInfo instead
      */
     fun compile(project: Project?, context: KobaltContext?, compileDependencies: List<IClasspathDependency>,
             otherClasspath: List<String>, sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult {
