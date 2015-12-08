@@ -3,7 +3,6 @@ package com.beust.kobalt
 import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.plugin.android.AndroidFiles
 import com.beust.kobalt.plugin.android.AndroidPlugin
 import java.io.File
 
@@ -129,8 +128,6 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
      * respect the priorities). Return the generated file if it was generated, null otherwise.
      */
     fun maybeGenerateBuildConfig(project: Project, context: KobaltContext) : File? {
-        fun generated(project: Project) = AndroidFiles.generatedSourceDir(project)
-
         val buildConfigs = findBuildConfigs(project, context.variant)
 
         if (buildConfigs.size > 0) {
@@ -141,7 +138,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
                     "packageName needs to be defined on the project in order to generate BuildConfig")
 
             val code = project.projectInfo.generateBuildConfig(project, context, pkg, context.variant, buildConfigs)
-            val result = KFiles.makeDir(generated(project))
+            val result = KFiles.makeDir(KFiles.generatedSourceDir(project, context.variant, "buildConfig"))
             // Make sure the generatedSourceDirectory doesn't contain the project.directory since
             // that directory will be added when trying to find recursively all the sources in it
             generatedSourceDirectory = File(result.relativeTo(File(project.directory)))

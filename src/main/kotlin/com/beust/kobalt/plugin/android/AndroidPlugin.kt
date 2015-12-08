@@ -82,9 +82,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 
     private fun adb(project: Project) = "${androidHome(project)}/platform-tools/adb"
 
-    private fun temporaryApk(project: Project, flavor: String)
-            = KFiles.joinFileAndMakeDir(AndroidFiles.intermediates(project), "res", "resources$flavor.ap_")
-
     private fun apk(project: Project, flavor: String)
             = KFiles.joinFileAndMakeDir(project.buildDirectory, "outputs", "apk", "${project.name}$flavor.apk")
 
@@ -94,13 +91,11 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 
         val resDir = "temporaryBogusResDir"
         val aarDependencies = explodeAarFiles(project, File(resDir))
-        AndroidBuild().run(project, context.variant, configurationFor(project)!!, aarDependencies)
-//        merger.merge(project, context)
+        val rDirectory = KFiles.joinAndMakeDir(KFiles.generatedSourceDir(project, context.variant, "r"))
+        extraSourceDirectories.add(File(rDirectory))
+        AndroidBuild().run(project, context.variant, configurationFor(project)!!, aarDependencies, rDirectory)
 
-        val notUsed = ""
-        val generated = AndroidFiles.generated(project)
-        val success = generateR(project, generated, aapt(project))
-        return TaskResult(success)
+        return TaskResult(true)
     }
 
     /**
@@ -115,46 +110,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         }
 
         override fun call(args: List<String>) = super.run(arrayListOf(aaptCommand) + args)
-    }
-
-    private fun generateR(project: Project, generated: String, aapt: String) : Boolean {
-        val compileSdkVersion = compileSdkVersion(project)
-        val androidJar = Paths.get(androidHome(project), "platforms", "android-$compileSdkVersion", "android.jar")
-        val applicationId = configurationFor(project)?.applicationId!!
-        val intermediates = AndroidFiles.intermediates(project)
-
-//        AaptCommand(project, aapt, "crunch").call(listOf(
-//                "-v",
-//                "-C", mergedResources(project, context.variant),
-//                "-S", crunchedPngDir
-//        ))
-
-        val variantDir = context.variant.toIntermediateDir()
-
-        val rDirectory = KFiles.joinAndMakeDir(generated, "source", "r", variantDir).toString()
-        val result = AaptCommand(project, aapt, "package").call(listOf(
-                "-f",
-                "--no-crunch",
-                "-I", androidJar.toString(),
-                "-M", AndroidFiles.mergedManifest(project, context.variant),
-                "-S", AndroidFiles.mergedResources(project, context.variant),
-                // where to find more assets
-                "-A", KFiles.joinAndMakeDir(intermediates, "assets", variantDir),
-                "-m", // create directory
-                // where all gets generated
-                "-J", rDirectory,
-                "-F", temporaryApk(project, context.variant.shortArchiveName),
-                "--debug-mode",
-                "-0", "apk",
-                "--auto-add-overlay",
-                "--custom-package", applicationId
-         //       "--output-text-symbols", KFiles.joinAndMakeDir(intermediates(project).toString(), "symbol", flavor)
-        ))
-
-//        val rOutputDirectory = KFiles.joinDir(rDirectory, applicationId.replace(".", File.separator))
-//        val generatedBuildDir = compile(project, rOutputDirectory)
-//        project.compileDependencies.add(FileDependency(generatedBuildDir.path))
-        return result == 0
     }
 
     /**
@@ -196,7 +151,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 
     private fun compile(project: Project, rDirectory: String): File {
         val sourceFiles = arrayListOf(Paths.get(rDirectory, "R.java").toFile().path)
-        val buildDir = File(AndroidFiles.generated(project), "classes")
+        val buildDir = File(AndroidFiles.classesDir(project, context.variant))
         // Using a directory of "." since the project.directory is already present in buildDir
         val cai = CompilerActionInfo(".", listOf(), sourceFiles, buildDir, listOf(
                 "-source", "1.6", "-target", "1.6"))
@@ -257,8 +212,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         val classesDex = "classes.dex"
         val outClassesDex = KFiles.joinDir(classesDexDir, classesDex)
 
-        // java.exe -Xmx1024M -Dfile.encoding=windows-1252 -Duser.country=US -Duser.language=en -Duser.variant -cp D:\android\adt-bundle-windows-x86_64-20140321\sdk\build-tools\23.0.1\lib\dx.jar com.android.dx.command.Main --dex --verbose --num-threads=4 --output C:\Users\cbeust\android\android_hello_world\app\build\intermediates\dex\pro\debug C:\Users\cbeust\android\android_hello_world\app\build\intermediates\classes\pro\debug
-
         val javaExecutable = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
 
         val dependencies = dependencyManager.calculateDependencies(project, context, projects,
@@ -292,7 +245,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
         AaptCommand(project, aapt(project), "add").apply {
             directory = File(outClassesDex).parentFile
         }.call(listOf("-v", KFiles.joinDir(
-                File(temporaryApk(project, context.variant.shortArchiveName)).absolutePath), classesDex))
+                File(AndroidFiles.temporaryApk(project, context.variant.shortArchiveName)).absolutePath), classesDex))
 
         return TaskResult()
     }
@@ -313,7 +266,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
             runBefore = arrayOf("assemble"))
     fun taskSignApk(project: Project): TaskResult {
         val apk = apk(project, context.variant.shortArchiveName)
-        val temporaryApk = temporaryApk(project, context.variant.shortArchiveName)
+        val temporaryApk = AndroidFiles.temporaryApk(project, context.variant.shortArchiveName)
         val buildType = context.variant.buildType.name
 
         val config = configurationFor(project)

@@ -2,6 +2,7 @@ package com.beust.kobalt.misc
 
 import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.SystemProperties
+import com.beust.kobalt.Variant
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.homeDir
@@ -57,6 +58,13 @@ class KFiles {
         private val SRC = "src"
 
         val TEST_CLASSES_DIR : String = "test-classes"
+
+        private fun generatedDir(project: Project, variant: Variant)
+                = KFiles.joinDir(project.directory, project.buildDirectory, "generated", variant.toIntermediateDir())
+
+        fun generatedSourceDir(project: Project, variant: Variant, name: String) =
+                KFiles.joinDir(project.directory, project.buildDirectory, "generated", "source", name,
+                        variant.toIntermediateDir())
 
         /**
          * Join the paths elements with the file separator.

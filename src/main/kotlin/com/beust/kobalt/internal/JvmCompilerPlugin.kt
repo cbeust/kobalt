@@ -61,6 +61,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         super.apply(project, context)
         project.projectProperties.put(DEPENDENT_PROJECTS, projects())
         taskContributor.addVariantTasks(this, project, context, "compile", runTask = { taskCompile(project) })
+        sourceDirectories.addAll(context.variant.sourceDirectories(project))
     }
 
     @Task(name = TASK_TEST, description = "Run the tests",
@@ -135,8 +136,11 @@ abstract class JvmCompilerPlugin @Inject constructor(
 
     @Task(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project) : TaskResult {
-        val generatedDir = context.variant.maybeGenerateBuildConfig(project, context)
-        val info = createCompilerActionInfo(project, context, generatedDir, isTest = false)
+        val sourceDirectory = context.variant.maybeGenerateBuildConfig(project, context)
+        if (sourceDirectory != null) {
+            sourceDirectories.add(sourceDirectory)
+        }
+        val info = createCompilerActionInfo(project, context, isTest = false)
         val compiler = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.compilerContributors)
         if (compiler != null) {
             return compiler.compile(project, context, info)
@@ -151,7 +155,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
     fun taskJavadoc(project: Project) : TaskResult {
         val docGenerator = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.docContributors)
         if (docGenerator != null) {
-            return docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context, null,
+            return docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context,
                     isTest = false))
         } else {
             warn("Couldn't find any doc contributor for project ${project.name}")
@@ -163,8 +167,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
      * Create a CompilerActionInfo (all the information that a compiler needs to know) for the given parameters.
      * Runs all the contributors and interceptors relevant to that task.
      */
-    protected fun createCompilerActionInfo(project: Project, context: KobaltContext, generatedSourceDir: File?,
-            isTest: Boolean) : CompilerActionInfo {
+    protected fun createCompilerActionInfo(project: Project, context: KobaltContext, isTest: Boolean) :
+            CompilerActionInfo {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
 
         val classpath = if (isTest)
@@ -177,11 +181,6 @@ abstract class JvmCompilerPlugin @Inject constructor(
         buildDirectory.mkdirs()
 
         val initialSourceDirectories = arrayListOf<File>()
-
-        // Add the generated source dir if any
-        generatedSourceDir?.let {
-            initialSourceDirectories.add(it)
-        }
 
         // Source directories from the contributors
         initialSourceDirectories.addAll(
@@ -213,8 +212,10 @@ abstract class JvmCompilerPlugin @Inject constructor(
         return result
     }
 
+    val sourceDirectories = arrayListOf<File>()
+
     // ISourceDirectoryContributor
     override fun sourceDirectoriesFor(project: Project, context: KobaltContext)
-            = if (accept(project)) context.variant.sourceDirectories(project) else listOf()
+            = if (accept(project)) sourceDirectories else arrayListOf()
 }
 

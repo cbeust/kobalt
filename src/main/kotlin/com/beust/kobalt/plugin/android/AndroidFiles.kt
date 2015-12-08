@@ -9,8 +9,6 @@ import java.nio.file.Paths
 
 class AndroidFiles {
     companion object {
-        fun generated(project: Project) = KFiles.joinDir(project.directory, project.buildDirectory, "generated")
-
         fun intermediates(project: Project) = KFiles.joinDir(project.directory, project.buildDirectory,
                 "intermediates")
 
@@ -33,6 +31,12 @@ class AndroidFiles {
                 Paths.get(intermediates(project), "exploded-aar", mavenId.groupId, mavenId.artifactId, mavenId.version,
                         "classes.jar").toFile().path
 
+        fun classesDir(project: Project, variant: Variant): String =
+                KFiles.joinDir(project.directory, project.buildDirectory, variant.toIntermediateDir(), "classes")
+
+        fun temporaryApk(project: Project, flavor: String)
+                = KFiles.joinFileAndMakeDir(AndroidFiles.intermediates(project), "res", "resources$flavor.ap_")
+
         /**
          * Use the android home define on the project if any, otherwise use the environment variable.
          */
@@ -48,6 +52,5 @@ class AndroidFiles {
         fun androidHome(project: Project?, config: AndroidConfig) = androidHomeNoThrows(project, config) ?:
                 throw IllegalArgumentException("Neither androidHome nor \$ANDROID_HOME were defined")
 
-        fun generatedSourceDir(project: Project) = KFiles.joinDir(AndroidFiles.generated(project), "source")
     }
 }
