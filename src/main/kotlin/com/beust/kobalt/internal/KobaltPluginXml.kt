@@ -119,6 +119,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         //
         // Populate pluginInfo with what was found in Kobalt's own kobalt-plugin.xml
         //
+        @Suppress("UNCHECKED_CAST")
         xml.pluginActors?.className?.forEach {
             with(factory.instanceOf(forName(it))) {
                 // Note: can't use "when" here since the same instance can implement multiple interfaces
