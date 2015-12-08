@@ -198,6 +198,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
             } else {
                 context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories.toList(),
                         { sd, interceptor -> interceptor.intercept(project, context, sd) })
+            }.filter {
+                it.exists()
             }
 
         // Now that we have the final list of source dirs, find source files in them
