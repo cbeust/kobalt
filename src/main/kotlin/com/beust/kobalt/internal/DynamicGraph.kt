@@ -11,7 +11,7 @@ import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.*
 
 open class TaskResult2<T>(success: Boolean, val value: T) : TaskResult(success) {
-    override fun toString() = toString("TaskResult", "success", success, "value", value)
+    override fun toString() = toString("TaskResult", "value", value, "success", success)
 }
 
 public interface IWorker<T> : Callable<TaskResult2<T>> {
