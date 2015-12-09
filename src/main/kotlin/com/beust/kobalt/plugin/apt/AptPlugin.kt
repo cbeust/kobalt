@@ -60,7 +60,7 @@ public class AptPlugin @Inject constructor(val depFactory: DepFactory)
     }
 }
 
-class AptConfig(var outputDir: String = "generated/sources/apt")
+class AptConfig(var outputDir: String = "generated/source/apt")
 
 @Directive
 public fun Project.apt(init: AptConfig.() -> Unit) {
