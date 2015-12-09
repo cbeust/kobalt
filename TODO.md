@@ -1,5 +1,17 @@
 To do:
 
+Android:
+
+- [ ] Dex from android builder
+- [ ] Keep exploded aars between runs
+- [ ] aars keep being refetched
+- [ ] See if there is an android manifest file in builder
+
+General
+
+- [ ] Compile with javax.tool
+- [ ] Apt should run from serviceloader
+- [ ] Auto add variant
 - [ ] The test runner only selects classes with a parameterless constructor, which works for JUnit but not for TestNG
  factories
 - [ ] Add a "Auto complete Build.kt" menu in the plug-in
