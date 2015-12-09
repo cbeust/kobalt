@@ -218,7 +218,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
             project.compileDependencies).map {
                 it.jarFile.get().path
             }.filterNot {
-                it.contains("android.jar") || it.endsWith(".aar") || it.contains("com.android.support")
+                it.contains("android.jar") || it.endsWith(".aar")
                     || it.contains("retrolambda")
             }.toHashSet().toTypedArray()
 
