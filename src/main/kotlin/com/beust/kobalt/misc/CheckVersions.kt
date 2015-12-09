@@ -1,5 +1,6 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.dependency.MavenDependency
@@ -20,7 +21,13 @@ public class CheckVersions @Inject constructor(val depFactory : DepFactory,
             arrayListOf(it.compileDependencies, it.testDependencies).forEach { cds ->
                 cds.forEach { compileDependency ->
                     if (MavenId.isMavenId(compileDependency.id)) {
-                        val dep = depFactory.create(compileDependency.shortId, executor, false /* go remote */)
+                        val dep: IClasspathDependency
+                        try {
+                            dep = depFactory.create(compileDependency.shortId, executor, false /* go remote */)
+                        } catch(e: Exception) {
+                            log(1, "cannot resolve ${compileDependency.shortId}. ignoring")
+                            return@forEach
+                        }
                         if (dep is MavenDependency) {
                             val other = compileDependency as MavenDependency
                             if (dep.id != compileDependency.id
