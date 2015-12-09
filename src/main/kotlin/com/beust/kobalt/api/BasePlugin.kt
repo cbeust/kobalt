@@ -12,6 +12,9 @@ abstract public class BasePlugin : IPlugin {
         this.context = context
     }
 
+    /**
+     * The list of projects depended upon (e.g. val p = javaProject(dependentProject)).
+     */
     protected val projects = arrayListOf<ProjectDescription>()
 
     fun addProject(project: Project, dependsOn: Array<out Project>) =

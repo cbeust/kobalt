@@ -54,7 +54,7 @@ class JavaPlugin @Inject constructor(
             runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
     fun taskCompileTest(project: Project): TaskResult {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
-        val compilerActionInfo = createCompilerActionInfo(project, context, null, isTest = true)
+        val compilerActionInfo = createCompilerActionInfo(project, context, isTest = true)
         val result = javaCompiler.compile(project, context, compilerActionInfo)
         return result
     }

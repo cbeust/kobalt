@@ -29,14 +29,15 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
             .distinct()
 
         // Plugins that add flags to the compiler
-        val addedFlags = ArrayList(info.compilerArgs) +
-            if (project != null) {
-                context.pluginInfo.compilerFlagContributors.flatMap {
-                    it.flagsFor(project, info.compilerArgs)
-                }
-            } else {
-                emptyList()
+        val contributorFlags = if (project != null) {
+            context.pluginInfo.compilerFlagContributors.flatMap {
+                it.flagsFor(project, context, info.compilerArgs)
             }
+        } else {
+            emptyList()
+        }
+
+        val addedFlags = contributorFlags + ArrayList(info.compilerArgs)
 
         validateClasspath(allDependencies.map { it.jarFile.get().absolutePath })
         return action.compile(info.copy(dependencies = allDependencies, compilerArgs = addedFlags))

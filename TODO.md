@@ -1,5 +1,16 @@
 To do:
 
+Android:
+
+- [ ] Dex from android builder
+- [ ] Keep exploded aars between runs
+- [ ] aars keep being refetched
+- [ ] See if there is an android manifest file in builder
+
+General
+
+- [ ] Apt should run from serviceloader
+- [ ] Auto add variant
 - [ ] The test runner only selects classes with a parameterless constructor, which works for JUnit but not for TestNG
  factories
 - [ ] Add a "Auto complete Build.kt" menu in the plug-in
@@ -31,6 +42,7 @@ To do:
 
 Done:
 
+- [x] Compile with javax.tool
 - [x] Android: multiple -source/-target flags
 - [x] Dokka: allow multiple format outputs e.g `outputFormat("html", "javadoc")`
 - [x] Finish abstracting everything in `JvmCompilerPlugin`

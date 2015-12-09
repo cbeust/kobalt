@@ -48,10 +48,8 @@ open class RunCommand(val command: String) {
             }
         }
         val callSucceeded = process.waitFor(30, TimeUnit.SECONDS)
-        val input = if (process.inputStream.available() > 0) fromStream(process.inputStream)
-            else listOf()
-        val error = if (process.errorStream.available() > 0) fromStream(process.errorStream)
-            else listOf()
+        val input = if (process.inputStream.available() > 0) fromStream(process.inputStream) else emptyList()
+        val error = if (process.errorStream.available() > 0) fromStream(process.errorStream) else emptyList()
         val isSuccess = isSuccess(callSucceeded, input, error)
 
         if (isSuccess) {
@@ -85,5 +83,8 @@ open class RunCommand(val command: String) {
             line = br.readLine()
         }
         return result
+
+//        val result = CharStreams.toString(InputStreamReader(ins, Charset.defaultCharset()))
+//        return result.split("\n")
     }
 }

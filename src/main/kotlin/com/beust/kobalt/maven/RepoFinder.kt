@@ -49,7 +49,7 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
             for (i in 0..Kobalt.repos.size - 1) {
                 try {
                     val result = cs.take().get(2000, TimeUnit.MILLISECONDS)
-                    log(2, "Result for repo #$i: $result")
+                    log(2, "  Result for repo #$i: $result")
                     if (result.found) {
                         log(2, "Located $id in ${result.hostConfig.url}")
                         return result
@@ -70,7 +70,7 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
     inner class RepoFinderCallable(val id: String, val repo: HostConfig) : Callable<RepoResult> {
         override fun call(): RepoResult {
             val repoUrl = repo.url
-            log(2, "Checking $repoUrl for $id")
+            log(2, "  Checking $repoUrl for $id")
 
             val mavenId = MavenId(id)
             val groupId = mavenId.groupId

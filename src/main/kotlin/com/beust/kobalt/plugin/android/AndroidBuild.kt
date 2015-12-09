@@ -1,9 +1,12 @@
 package com.beust.kobalt.plugin.android
 
+import com.android.builder.core.AaptPackageProcessBuilder
 import com.android.builder.core.AndroidBuilder
 import com.android.builder.core.ErrorReporter
 import com.android.builder.core.LibraryRequest
 import com.android.builder.dependency.ManifestDependency
+import com.android.builder.dependency.SymbolFileProvider
+import com.android.builder.model.AaptOptions
 import com.android.builder.model.SyncIssue
 import com.android.builder.sdk.DefaultSdkLoader
 import com.android.builder.sdk.SdkLoader
@@ -67,7 +70,8 @@ class AndroidBuild {
 //    val annotationsJar = File("/Users/beust/adt-bundle-mac-x86_64-20140702/sdk/tools/lib/annotations.jar")
 //    val adb = File("/Users/beust/adt-bundle-mac-x86_64-20140702/sdk/platform-tools/adb")
 
-    fun run(project: Project, variant: Variant, config: AndroidConfig, aarDependencies: List<File>) {
+    fun run(project: Project, variant: Variant, config: AndroidConfig, aarDependencies: List<File>,
+            rDirectory: String) {
         val logger = StdLogger(StdLogger.Level.VERBOSE)
         val processExecutor = DefaultProcessExecutor(logger)
         val javaProcessExecutor = KobaltJavaProcessExecutor()
@@ -95,32 +99,34 @@ class AndroidBuild {
                 sdkLoader.getTargetInfo(maxPlatformTargetHash, maxPlatformTarget.buildToolInfo.revision, logger),
                 libraryRequests)
 
-        val writer = MergedResourceWriter(File(outputDir),
-                androidBuilder.getAaptCruncher(processOutputHandler),
-                false /* don't crunch */,
-                false /* don't process 9patch */,
-                layout.publicText,
-                layout.mergeBlame,
-                preprocessor)
-        val target = androidBuilder.target
-        val dxJar = androidBuilder.dxJar
         val resourceMerger = ResourceMerger()
+
+        //
+        // Assets
+        //
+        val intermediates = File(
+                KFiles.joinDir(AndroidFiles.intermediates(project), "assets", variant.toIntermediateDir()))
+        aarDependencies.forEach {
+            val assetDir = File(it, "assets")
+            if (assetDir.exists()) {
+                KFiles.copyRecursively(assetDir, intermediates)
+            }
+        }
 
         //
         // Manifest
         //
-        val mainManifest = File("src/main/AndroidManifest.xml")
-
-        val appInfo = AppInfo(mainManifest, config)
-        val manifestOverlays = listOf(
-                File("src/${variant.productFlavor.name}/AndroidManifest.xml"),
-                File("src/${variant.buildType.name}/AndroidManifest.xml")).filter {
-                    it.exists()
-                }
+        val manifestOverlays = variant.allDirectories(project).map {
+                File("src/$it/AndroidManifest.xml")
+            }.filter {
+                it.exists()
+            }
         val libraries = listOf<ManifestDependency>()
         val outManifest = AndroidFiles.mergedManifest(project, variant)
         val outAaptSafeManifestLocation = KFiles.joinDir(project.directory, project.buildDirectory, "generatedSafeAapt")
         val reportFile = File(KFiles.joinDir(project.directory, project.buildDirectory, "manifest-merger-report.txt"))
+        val mainManifest = File("src/main/AndroidManifest.xml")
+        val appInfo = AppInfo(mainManifest, config)
         androidBuilder.mergeManifests(mainManifest, manifestOverlays, libraries,
                 null /* package override */,
                 appInfo.versionCode,
@@ -143,8 +149,8 @@ class AndroidBuild {
 
         // TODO: figure out why the badSrcList is bad. All this information should be coming from the Variant
         val badSrcList = variant.resDirectories(project).map { it.path }
-        val aarList = aarDependencies.map { it.path + File.separator}
-        (aarList + srcList).map { it + File.separator + "res" }.forEach { path ->
+        val goodAarList = aarDependencies.map { it.path + File.separator}
+        (goodAarList + srcList).map { it + File.separator + "res" }.forEach { path ->
             val set = ResourceSet(path)
             set.addSource(File(path))
             set.loadFromFiles(logger)
@@ -155,9 +161,53 @@ class AndroidBuild {
             resourceMerger.addDataSet(set)
         }
 
-
+        val writer = MergedResourceWriter(File(outputDir),
+                androidBuilder.getAaptCruncher(processOutputHandler),
+                false /* don't crunch */,
+                false /* don't process 9patch */,
+                layout.publicText,
+                layout.mergeBlame,
+                preprocessor)
         resourceMerger.mergeData(writer, true)
 
-        println("")
+        //
+        // Process resources
+        //
+        val aaptOptions = object : AaptOptions {
+            override fun getAdditionalParameters() = emptyList<String>()
+            override fun getFailOnMissingConfigEntry() = false
+            override fun getIgnoreAssets() = null
+            override fun getNoCompress() = null
+        }
+
+        val aaptCommand = AaptPackageProcessBuilder(File(AndroidFiles.mergedManifest(project, variant)),
+                aaptOptions)
+
+        fun toSymbolFileProvider(aarDirectory: File) = object: SymbolFileProvider {
+            override fun getManifest() = File(aarDirectory, "AndroidManifest.xml")
+            override fun isOptional() = false
+            override fun getSymbolFile() = File(aarDirectory, "R.txt")
+        }
+
+        val variantDir = variant.toIntermediateDir()
+        val generated = KFiles.joinAndMakeDir(project.directory, project.buildDirectory, "symbols")
+        with(aaptCommand) {
+            setSourceOutputDir(rDirectory)
+            val libraries = aarDependencies.map { toSymbolFileProvider(it) }
+            setLibraries(libraries)
+            val r = libraries[0].symbolFile
+            setResFolder(File(AndroidFiles.mergedResources(project, variant)))
+            setAssetsFolder(File(KFiles.joinAndMakeDir(AndroidFiles.intermediates(project), "assets", variantDir)))
+            aaptCommand.setResPackageOutput(AndroidFiles.temporaryApk(project, variant.shortArchiveName))
+            aaptCommand.setSymbolOutputDir(generated)
+
+//            aaptCommand.setSourceOutputDir(generated)
+//            aaptCommand.setPackageForR(pkg)
+//            aaptCommand.setProguardOutput(proguardTxt)
+//            aaptCommand.setType(if (lib) VariantType.LIBRARY else VariantType.DEFAULT)
+//            aaptCommand.setDebuggable(debug)
+        }
+
+        androidBuilder.processResources(aaptCommand, true, processOutputHandler)
     }
 }

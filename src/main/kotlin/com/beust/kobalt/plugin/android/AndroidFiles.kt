@@ -3,18 +3,17 @@ package com.beust.kobalt.plugin.android
 import com.beust.kobalt.Variant
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.misc.KFiles
+import java.nio.file.Paths
 
 class AndroidFiles {
     companion object {
-        fun generated(project: Project) = KFiles.joinDir(project.directory, project.buildDirectory, "generated")
-
         fun intermediates(project: Project) = KFiles.joinDir(project.directory, project.buildDirectory,
                 "intermediates")
 
-        fun manifest(project: Project, context: KobaltContext) : String {
-            return KFiles.joinDir(project.directory, "src/main", "AndroidManifest.xml")
-        }
+        fun manifest(project: Project, context: KobaltContext) =
+                KFiles.joinDir(project.directory, "src", "main", "AndroidManifest.xml")
 
         fun mergedManifest(project: Project, variant: Variant) : String {
             val dir = KFiles.joinAndMakeDir(intermediates(project), "manifests", "full", variant.toIntermediateDir())
@@ -26,6 +25,16 @@ class AndroidFiles {
 
         fun mergedResources(project: Project, variant: Variant) =
                 KFiles.joinAndMakeDir(mergedResourcesNoVariant(project), variant.toIntermediateDir())
+
+        fun classesJar(project: Project, mavenId: MavenId) =
+                Paths.get(intermediates(project), "exploded-aar", mavenId.groupId, mavenId.artifactId, mavenId.version,
+                        "classes.jar").toFile().path
+
+        fun classesDir(project: Project, variant: Variant): String =
+                KFiles.joinDir(project.directory, project.buildDirectory, variant.toIntermediateDir(), "classes")
+
+        fun temporaryApk(project: Project, flavor: String)
+                = KFiles.joinFileAndMakeDir(AndroidFiles.intermediates(project), "res", "resources$flavor.ap_")
 
         /**
          * Use the android home define on the project if any, otherwise use the environment variable.
@@ -42,6 +51,5 @@ class AndroidFiles {
         fun androidHome(project: Project?, config: AndroidConfig) = androidHomeNoThrows(project, config) ?:
                 throw IllegalArgumentException("Neither androidHome nor \$ANDROID_HOME were defined")
 
-        fun generatedSourceDir(project: Project) = KFiles.joinDir(AndroidFiles.generated(project), "source")
     }
 }

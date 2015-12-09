@@ -11,7 +11,7 @@ import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.*
 
 open class TaskResult2<T>(success: Boolean, val value: T) : TaskResult(success) {
-    override fun toString() = toString("TaskResult", "success", success, "value", value)
+    override fun toString() = toString("TaskResult", "value", value, "success", success)
 }
 
 public interface IWorker<T> : Callable<TaskResult2<T>> {
@@ -49,24 +49,24 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
     public fun run() : Int {
         var lastResult = TaskResult()
         var gotError = false
+        var nodesRunning = 0
         while (graph.freeNodes.size > 0 && ! gotError) {
-            log(3, "Current count: ${graph.nodeCount}")
+            log(3, "Current node count: ${graph.nodeCount}")
             synchronized(graph) {
                 val freeNodes = graph.freeNodes
                 freeNodes.forEach { graph.setStatus(it, DynamicGraph.Status.RUNNING)}
-                log(3, "submitting free nodes $freeNodes")
+                log(3, "  ==> Submitting " + freeNodes)
                 val callables : List<IWorker<T>> = factory.createWorkers(freeNodes)
                 callables.forEach { completion.submit(it) }
-                var n = callables.size
+                nodesRunning += callables.size
 
                 // When a callable ends, see if it freed a node. If not, keep looping
-                while (n > 0 && graph.freeNodes.size == 0 && ! gotError) {
+                while (graph.nodesRunning.size > 0 && graph.freeNodes.size == 0 && ! gotError) {
                     try {
                         val future = completion.take()
                         val taskResult = future.get(2, TimeUnit.SECONDS)
                         lastResult = taskResult
-                        log(3, "Received task result $taskResult")
-                        n--
+                        log(3, "  <== Received task result $taskResult")
                         graph.setStatus(taskResult.value,
                             if (taskResult.success) {
                                 DynamicGraph.Status.FINISHED
@@ -106,7 +106,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
  */
 public class DynamicGraph<T> {
     val nodesReady = linkedSetOf<T>()
-    private val nodesRunning = linkedSetOf<T>()
+    val nodesRunning = linkedSetOf<T>()
     private val nodesFinished = linkedSetOf<T>()
     private val nodesInError = linkedSetOf<T>()
     private val nodesSkipped = linkedSetOf<T>()
@@ -171,7 +171,7 @@ public class DynamicGraph<T> {
 //                }
 //            }
 
-            log(3, "freeNodes: $result")
+            log(3, "    freeNodes: $result")
             return result
         }
 
@@ -264,6 +264,7 @@ public class DynamicGraph<T> {
 
     fun dump(nodes: Collection<T>) : String {
         val result = StringBuffer()
+        result.append("************ Graph dump ***************\n")
         val free = arrayListOf<T>()
         nodes.forEach { node ->
             val d = dependedUpon.get(node)

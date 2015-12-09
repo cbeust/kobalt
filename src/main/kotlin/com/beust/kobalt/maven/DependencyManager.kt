@@ -39,6 +39,10 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
         return result
     }
 
+    /**
+     * Return the transitive closure of the dependencies *without* running the classpath contributors.
+     * TODO: This should be private, everyone should be calling calculateDependencies().
+     */
     fun transitiveClosure(dependencies : List<IClasspathDependency>): List<IClasspathDependency> {
         var executor = executors.newExecutor("JvmCompiler}", 10)
 

@@ -59,8 +59,7 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
         fun create(mavenId: MavenId, ex: ExecutorService = executor) = depFactory.create(mavenId.toId, ex)
     }
 
-
-    public override fun toString() = mavenId.toId
+    override fun toString() = mavenId.toId
 
     override val id = mavenId.toId
 
