@@ -367,13 +367,14 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     }
 
     override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>): TaskResult {
-        val manifest = AndroidFiles.manifest(project, context)
-        FileInputStream(File(manifest)).use { ins ->
-            // adb shell am start -n com.package.name/com.package.name.ActivityName
-            val manifest = AndroidManifest(ins)
-            RunCommand(adb(project)).useErrorStreamAsErrorIndicator(false).run(args = listOf(
-                    "shell", "am", "start", "-n", manifest.pkg + "/" + manifest.mainActivity))
-            return TaskResult()
+        AndroidFiles.mergedManifest(project, context.variant).let { manifestPath ->
+            FileInputStream(File(manifestPath)).use { ins ->
+                // adb shell am start -n com.package.name/com.package.name.ActivityName
+                val manifest = AndroidManifest(ins)
+                RunCommand(adb(project)).useErrorStreamAsErrorIndicator(false).run(args = listOf(
+                        "shell", "am", "start", "-n", manifest.pkg + "/" + manifest.mainActivity))
+                return TaskResult()
+            }
         }
     }
 
