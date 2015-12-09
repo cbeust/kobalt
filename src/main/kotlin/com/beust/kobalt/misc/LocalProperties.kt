@@ -8,7 +8,6 @@ import java.util.*
 
 @Singleton
 class LocalProperties {
-    var docUrl: String? = null
     val localProperties: Properties by lazy {
         val result = Properties()
         val filePath = Paths.get("local.properties")
@@ -24,7 +23,6 @@ class LocalProperties {
     }
 
     fun get(name: String, docUrl: String? = null) : String {
-        this.docUrl = docUrl
         val result = localProperties.getProperty(name)
                 ?: throw KobaltException("Couldn't find $name in local.properties", docUrl = docUrl)
         return result as String
