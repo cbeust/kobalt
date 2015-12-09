@@ -23,7 +23,7 @@ val wrapper = javaProject {
     directory = "modules/wrapper"
 
     javaCompiler {
-        args("-source", "1.7", "-target", "1.7")
+        args("-source", "1.8", "-target", "1.8")
     }
 
     assemble {

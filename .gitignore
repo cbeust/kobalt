@@ -10,3 +10,6 @@ classes
 libs
 .kobalt/
 build/
+
+modules/wrapper/modules_wrapper.iml
+kobalt.iml
