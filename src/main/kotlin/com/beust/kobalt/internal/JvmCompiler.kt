@@ -31,7 +31,7 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
         // Plugins that add flags to the compiler
         val contributorFlags = if (project != null) {
             context.pluginInfo.compilerFlagContributors.flatMap {
-                it.flagsFor(project, info.compilerArgs)
+                it.flagsFor(project, context, info.compilerArgs)
             }
         } else {
             emptyList()

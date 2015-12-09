@@ -164,7 +164,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
      * Make sure we compile and generate 1.6 sources unless the build file defined those (which can
      * happen if the developer is using RetroLambda for example).
      */
-    override fun flagsFor(project: Project, currentFlags: List<String>) : List<String> {
+    override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>) : List<String> {
         if (isAndroid(project)) {
             var found = currentFlags.any { it == "-source" || it == "-target" }
             val result = arrayListOf<String>().apply { addAll(currentFlags) }
