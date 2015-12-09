@@ -19,14 +19,19 @@ import javax.inject.Singleton
 @Singleton
 public class AptPlugin @Inject constructor(val depFactory: DepFactory)
         : ConfigPlugin<AptConfig>(), ICompilerFlagContributor {
+
     companion object {
         const val PLUGIN_NAME = "Apt"
     }
 
     override val name = PLUGIN_NAME
 
+    private fun generated(project: Project, context: KobaltContext, outputDir: String) =
+            KFiles.joinAndMakeDir(project.directory, project.buildDirectory, outputDir,
+                    context.variant.toIntermediateDir())
+
     // ICompilerFlagContributor
-    override fun flagsFor(project: Project, currentFlags: List<String>) : List<String> {
+    override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>) : List<String> {
         val result = arrayListOf<String>()
         configurationFor(project)?.let { config ->
             aptDependencies[project.name]?.let { aptDependencies ->
@@ -44,9 +49,8 @@ public class AptPlugin @Inject constructor(val depFactory: DepFactory)
 
                 result.add("-processorpath")
                 result.add((dependencyJarFiles + dependencies).joinToString(":"))
-                val generated = KFiles.joinAndMakeDir(project.directory, project.buildDirectory, config.outputDir)
                 result.add("-s")
-                result.add(generated)
+                result.add(generated(project, context, config.outputDir))
             }
             log(2, "New flags from apt: " + result.joinToString(" "))
         }
