@@ -9,7 +9,6 @@ Android:
 
 General
 
-- [ ] Compile with javax.tool
 - [ ] Apt should run from serviceloader
 - [ ] Auto add variant
 - [ ] The test runner only selects classes with a parameterless constructor, which works for JUnit but not for TestNG
@@ -43,6 +42,7 @@ General
 
 Done:
 
+- [x] Compile with javax.tool
 - [x] Android: multiple -source/-target flags
 - [x] Dokka: allow multiple format outputs e.g `outputFormat("html", "javadoc")`
 - [x] Finish abstracting everything in `JvmCompilerPlugin`

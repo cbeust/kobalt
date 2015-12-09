@@ -9,12 +9,14 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
-import com.beust.kobalt.plugin.android.forward
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
+import java.io.PrintWriter
+import javax.tools.DiagnosticCollector
+import javax.tools.JavaFileObject
+import javax.tools.ToolProvider
 
 @Singleton
 class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
@@ -25,31 +27,25 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
                 return TaskResult()
             }
 
-            info.outputDir.mkdirs()
-
             val allArgs = arrayListOf(
-                    executable.absolutePath,
                     "-d", KFiles.makeDir(info.directory!!, info.outputDir.path).path)
             if (info.dependencies.size > 0) {
                 allArgs.add("-classpath")
-                allArgs.add(info.dependencies.map {it.jarFile.get()}.joinToString(File.pathSeparator))
+                allArgs.add(info.dependencies.map { it.jarFile.get() }.joinToString(File.pathSeparator))
             }
             allArgs.addAll(info.compilerArgs)
-            allArgs.addAll(info.sourceFiles)
 
-            val pb = ProcessBuilder(allArgs)
-//            info.directory?.let {
-//                pb.directory(File(it))
-//            }
-            pb.inheritIO()
-            val line = allArgs.joinToString(" ")
-            log(1, "  Compiling ${info.sourceFiles.size} files")
-            log(2, "  Compiling ${line.forward()}")
-            val process = pb.start()
-            val errorCode = process.waitFor()
+            val compiler = ToolProvider.getSystemJavaCompiler()
+            val fileManager = compiler.getStandardFileManager(null, null, null)
+            val fileObjects = fileManager.getJavaFileObjectsFromFiles(info.sourceFiles.map { File(it) })
+            val dc = DiagnosticCollector<JavaFileObject>()
+            val classes = arrayListOf<String>()
+            val task = compiler.getTask(PrintWriter(System.out), fileManager, dc, allArgs, classes, fileObjects)
+            val result = task.call()
 
-            return if (errorCode == 0) TaskResult(true, "Compilation succeeded")
+            return if (result) TaskResult(true, "Compilation succeeded")
                 else TaskResult(false, "There were errors")
+
         }
     }
 
