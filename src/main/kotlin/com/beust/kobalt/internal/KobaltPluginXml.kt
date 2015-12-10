@@ -75,6 +75,8 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val buildConfigFieldContributors = arrayListOf<IBuildConfigFieldContributor>()
     val taskContributors = arrayListOf<ITaskContributor>()
 
+    val mavenIdInterceptors = arrayListOf<IMavenIdInterceptor>()
+
     companion object {
         val PLUGIN_XML = "META-INF/kobalt-plugin.xml" // Plugins.PLUGIN_XML)
 
@@ -142,6 +144,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
                 if (this is ITestRunnerContributor) testRunnerContributors.add(this)
 
                 // Not documented yet
+                if (this is IMavenIdInterceptor) mavenIdInterceptors.add(this)
                 if (this is ITestSourceDirectoryContributor) testSourceDirContributors.add(this)
             }
         }
@@ -171,6 +174,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         buildConfigFieldContributors.addAll(pluginInfo.buildConfigFieldContributors)
         taskContributors.addAll(pluginInfo.taskContributors)
         testSourceDirContributors.addAll(pluginInfo.testSourceDirContributors)
+        mavenIdInterceptors.addAll(pluginInfo.mavenIdInterceptors)
     }
 }
 

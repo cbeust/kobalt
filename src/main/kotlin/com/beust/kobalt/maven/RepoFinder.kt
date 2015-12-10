@@ -72,7 +72,7 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
             val repoUrl = repo.url
             log(2, "  Checking $repoUrl for $id")
 
-            val mavenId = MavenId(id)
+            val mavenId = MavenId.create(id)
             val groupId = mavenId.groupId
             val artifactId = mavenId.artifactId
 

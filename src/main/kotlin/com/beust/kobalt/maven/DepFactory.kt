@@ -30,7 +30,7 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
         if (id.startsWith(FileDependency.PREFIX_FILE)) {
             return FileDependency(id.substring(FileDependency.PREFIX_FILE.length))
         } else {
-            val mavenId = MavenId(id)
+            val mavenId = MavenId.create(id)
             var version = mavenId.version
             var packaging = mavenId.packaging
             var repoResult: RepoFinder.RepoResult?

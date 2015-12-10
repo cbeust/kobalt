@@ -30,7 +30,7 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder) {
         root.addChildren(findChildren(root, seen))
         val repoResult = repoFinder.findCorrectRepo(id)
 
-        val simpleDep = SimpleDep(MavenId(id))
+        val simpleDep = SimpleDep(MavenId.create(id))
         val url = repoResult.hostConfig.url + simpleDep.toJarFile(repoResult)
         AsciiArt.logBox(listOf(id, url).map { "          $it" }, {s -> println(s) })
 

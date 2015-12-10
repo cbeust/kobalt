@@ -4,8 +4,8 @@ import com.beust.kobalt.misc.Strings
 
 open public class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.groupId, mavenId.artifactId) {
     companion object {
-        fun create(id: String) = MavenId(id).let {
-            SimpleDep(MavenId(id))
+        fun create(id: String) = MavenId.create(id).let {
+            SimpleDep(it)
         }
     }
 

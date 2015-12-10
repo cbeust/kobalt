@@ -24,7 +24,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
         val executors: KobaltExecutors, val dependencyManager: DependencyManager)
             : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
                 ICompilerInterceptor, IBuildDirectoryIncerceptor, IRunnerContributor, IClasspathInterceptor,
-                ISourceDirectoryContributor, IBuildConfigFieldContributor, ITaskContributor {
+                ISourceDirectoryContributor, IBuildConfigFieldContributor, ITaskContributor, IMavenIdInterceptor {
     companion object {
         const val PLUGIN_NAME = "Android"
         const val TASK_GENERATE_DEX = "generateDex"
@@ -121,7 +121,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
         project.compileDependencies.filter {
             it.jarFile.get().name.endsWith(".aar")
         }.forEach {
-            val mavenId = MavenId(it.id)
+            val mavenId = MavenId.create(it.id)
             val outputDir = AndroidFiles.intermediates(project)
             val destDir = Paths.get(outputDir, "exploded-aar", mavenId.groupId,
                     mavenId.artifactId, mavenId.version)
@@ -378,14 +378,17 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
         }
     }
 
+    private fun isAar(id: MavenId) = id.groupId == "com.android.support" && id.artifactId != "support-annotations"
+
     /**
-     * Automatically add the "aar" packaging for support libraries.
+     * For each com.android.support dependency or aar packaging, add a classpath dependency that points to the
+     * classes.jar inside that (exploded) aar.
      */
     // IClasspathInterceptor
     override fun intercept(project: Project, dependencies: List<IClasspathDependency>): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         dependencies.forEach {
-            if (it is MavenDependency && (it.groupId == "com.android.support" || it.mavenId.packaging == "aar")) {
+            if (it is MavenDependency && (isAar(it.mavenId) || it.mavenId.packaging == "aar")) {
                 val newDep = FileDependency(AndroidFiles.classesJar(project, it.mavenId))
                 result.add(newDep)
                 val id = MavenId.create(it.groupId, it.artifactId, "aar", it.version)
@@ -396,6 +399,15 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
         }
         return result
     }
+
+    // IMavenIdInterceptor
+    override fun intercept(mavenId: MavenId) : MavenId =
+        if (isAar(mavenId)) {
+            val version = mavenId.version ?: ""
+            MavenId.createNoInterceptors("${mavenId.groupId}:${mavenId.artifactId}:aar:$version")
+        } else {
+            mavenId
+        }
 
     private val extraSourceDirectories = arrayListOf<File>()
 
