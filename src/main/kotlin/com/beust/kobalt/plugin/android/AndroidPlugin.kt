@@ -417,6 +417,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
 }
 
 class DefaultConfig(var minSdkVersion: String? = null,
+        val maxSdkVersion: String? = null,
         var targetSdkVersion: String? = null,
         var versionCode: Int? = null,
         var versionName: String? = null) {

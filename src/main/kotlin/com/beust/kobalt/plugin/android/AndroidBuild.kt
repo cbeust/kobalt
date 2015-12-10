@@ -137,7 +137,7 @@ class AndroidBuild {
                 appInfo.versionName,
                 appInfo.minSdkVersion,
                 appInfo.targetSdkVersion,
-                23,
+                appInfo.maxSdkVersion,
                 outManifest,
                 outAaptSafeManifestLocation,
                 ManifestMerger2.MergeType.APPLICATION,
