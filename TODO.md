@@ -2,6 +2,7 @@ To do:
 
 Android:
 
+- [ ] Dex dependencies into kobaltBuild/intermediates/pre-dexed and preserve those across builds
 - [ ] Move the calculated applicationId back into the merged AndroidManifest.xml 
 - [ ] Dex from android builder
 - [ ] Keep exploded aars between runs
