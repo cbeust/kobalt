@@ -20,7 +20,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 @Singleton
-public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, val merger: Merger,
+public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
         val executors: KobaltExecutors, val dependencyManager: DependencyManager)
             : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
                 ICompilerInterceptor, IBuildDirectoryIncerceptor, IRunnerContributor, IClasspathInterceptor,
