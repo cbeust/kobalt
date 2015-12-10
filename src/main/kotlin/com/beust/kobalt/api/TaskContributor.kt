@@ -13,6 +13,10 @@ class TaskContributor : ITaskContributor {
     /**
      * Register dynamic tasks corresponding to the variants found in the project,e.g. assembleDevDebug,
      * assembleDevRelease, etc...
+     *
+     * TODO: this should be done automatically so that users don't have to invoke it themselves.
+     * Certain tasks could have a boolean flag "hasVariants" and any task that depends on it automatically
+     * depends on variants of that task.
      */
     fun addVariantTasks(plugin: IPlugin, project: Project, context: KobaltContext, taskName: String,
             runBefore : List<String> = emptyList(),
