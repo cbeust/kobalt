@@ -164,7 +164,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
      * Make sure we compile and generate 1.6 sources unless the build file defined those (which can
      * happen if the developer is using RetroLambda for example).
      */
-    override fun flagsFor(project: Project, currentFlags: List<String>) : List<String> {
+    override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>) : List<String> {
         if (isAndroid(project)) {
             var found = currentFlags.any { it == "-source" || it == "-target" }
             val result = arrayListOf<String>().apply { addAll(currentFlags) }
@@ -218,7 +218,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
             project.compileDependencies).map {
                 it.jarFile.get().path
             }.filterNot {
-                it.contains("android.jar") || it.endsWith(".aar") || it.contains("com.android.support")
+                it.contains("android.jar") || it.endsWith(".aar")
                     || it.contains("retrolambda")
             }.toHashSet().toTypedArray()
 
@@ -367,13 +367,14 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     }
 
     override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>): TaskResult {
-        val manifest = AndroidFiles.manifest(project, context)
-        FileInputStream(File(manifest)).use { ins ->
-            // adb shell am start -n com.package.name/com.package.name.ActivityName
-            val manifest = AndroidManifest(ins)
-            RunCommand(adb(project)).useErrorStreamAsErrorIndicator(false).run(args = listOf(
-                    "shell", "am", "start", "-n", manifest.pkg + "/" + manifest.mainActivity))
-            return TaskResult()
+        AndroidFiles.mergedManifest(project, context.variant).let { manifestPath ->
+            FileInputStream(File(manifestPath)).use { ins ->
+                // adb shell am start -n com.package.name/com.package.name.ActivityName
+                val manifest = AndroidManifest(ins)
+                RunCommand(adb(project)).useErrorStreamAsErrorIndicator(false).run(args = listOf(
+                        "shell", "am", "start", "-n", manifest.pkg + "/" + manifest.mainActivity))
+                return TaskResult()
+            }
         }
     }
 

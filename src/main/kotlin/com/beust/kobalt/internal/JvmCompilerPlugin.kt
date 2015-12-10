@@ -179,7 +179,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
                 dependencyManager.dependencies(project, context, projects)
 
         val projectDirectory = File(project.directory)
-        val buildDirectory = File(project.classesDir(context))
+        val buildDirectory = if (isTest) KFiles.makeOutputTestDir(project)
+                else File(project.classesDir(context))
         buildDirectory.mkdirs()
 
         val initialSourceDirectories = arrayListOf<File>()
@@ -199,7 +200,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
                 context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories.toList(),
                         { sd, interceptor -> interceptor.intercept(project, context, sd) })
             }.filter {
-                it.exists()
+                File(project.directory, it.path).exists()
             }
 
         // Now that we have the final list of source dirs, find source files in them

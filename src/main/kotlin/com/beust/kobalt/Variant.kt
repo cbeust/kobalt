@@ -3,6 +3,7 @@ package com.beust.kobalt
 import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.plugin.android.AndroidConfig
 import com.beust.kobalt.plugin.android.AndroidPlugin
 import java.io.File
 
@@ -122,23 +123,35 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
         return result
     }
 
+    fun applicationId(androidConfig: AndroidConfig?): String? {
+        val mainId = productFlavor.applicationId ?: androidConfig?.applicationId
+        val result =
+            if (mainId != null) {
+                mainId + (buildType.applicationIdSuffix ?: "")
+            } else {
+                null
+            }
+
+        return result
+    }
+
     /**
      * Generate BuildConfig.java if requested. Also look up if any BuildConfig is defined on the current build type,
      * product flavor or main project, and use them to generate any additional field (in that order to
      * respect the priorities). Return the generated file if it was generated, null otherwise.
      */
     fun maybeGenerateBuildConfig(project: Project, context: KobaltContext) : File? {
-        val buildConfigs = findBuildConfigs(project, context.variant)
+        val buildConfigs = findBuildConfigs(project, this)
 
         if (buildConfigs.size > 0) {
             val androidConfig = (Kobalt.findPlugin(AndroidPlugin.PLUGIN_NAME) as AndroidPlugin)
                     .configurationFor(project)
-            val pkg = androidConfig?.applicationId ?: project.packageName ?: project.group
+            val pkg = applicationId(androidConfig) ?: project.packageName ?: project.group
                     ?: throw KobaltException(
                     "packageName needs to be defined on the project in order to generate BuildConfig")
 
-            val code = project.projectInfo.generateBuildConfig(project, context, pkg, context.variant, buildConfigs)
-            val result = KFiles.makeDir(KFiles.generatedSourceDir(project, context.variant, "buildConfig"))
+            val code = project.projectInfo.generateBuildConfig(project, context, pkg, this, buildConfigs)
+            val result = KFiles.makeDir(KFiles.generatedSourceDir(project, this, "buildConfig"))
             // Make sure the generatedSourceDirectory doesn't contain the project.directory since
             // that directory will be added when trying to find recursively all the sources in it
             generatedSourceDirectory = File(result.relativeTo(File(project.directory)))

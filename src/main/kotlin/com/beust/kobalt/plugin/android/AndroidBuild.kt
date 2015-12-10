@@ -116,18 +116,17 @@ class AndroidBuild {
         //
         // Manifest
         //
-        val mainManifest = File("src/main/AndroidManifest.xml")
-
-        val appInfo = AppInfo(mainManifest, config)
-        val manifestOverlays = listOf(
-                File("src/${variant.productFlavor.name}/AndroidManifest.xml"),
-                File("src/${variant.buildType.name}/AndroidManifest.xml")).filter {
-                    it.exists()
-                }
+        val manifestOverlays = variant.allDirectories(project).map {
+                File("src/$it/AndroidManifest.xml")
+            }.filter {
+                it.exists()
+            }
         val libraries = listOf<ManifestDependency>()
         val outManifest = AndroidFiles.mergedManifest(project, variant)
         val outAaptSafeManifestLocation = KFiles.joinDir(project.directory, project.buildDirectory, "generatedSafeAapt")
         val reportFile = File(KFiles.joinDir(project.directory, project.buildDirectory, "manifest-merger-report.txt"))
+        val mainManifest = File("src/main/AndroidManifest.xml")
+        val appInfo = AppInfo(mainManifest, config)
         androidBuilder.mergeManifests(mainManifest, manifestOverlays, libraries,
                 null /* package override */,
                 appInfo.versionCode,

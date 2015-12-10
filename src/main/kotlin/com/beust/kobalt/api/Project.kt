@@ -181,6 +181,7 @@ interface IBuildConfig {
 }
 
 class ProductFlavorConfig(val name: String) : IBuildConfig {
+    var applicationId: String? = null
     override var buildConfig : BuildConfig? = BuildConfig()
 }
 
@@ -192,6 +193,7 @@ fun Project.productFlavor(name: String, init: ProductFlavorConfig.() -> Unit) = 
 
 class BuildTypeConfig(val project: Project?, val name: String) : IBuildConfig {
     var minifyEnabled = false
+    var applicationIdSuffix: String? = null
     var proguardFile: String? = null
 
     fun getDefaultProguardFile(name: String) : String {
