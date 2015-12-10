@@ -140,8 +140,9 @@ class AndroidBuild {
                 appInfo.maxSdkVersion,
                 outManifest,
                 outAaptSafeManifestLocation,
+                // TODO: support aar too
                 ManifestMerger2.MergeType.APPLICATION,
-                emptyMap(),
+                emptyMap() /* placeHolders */,
                 reportFile)
 
         //
