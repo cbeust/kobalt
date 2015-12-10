@@ -18,20 +18,20 @@ public class CheckVersions @Inject constructor(val depFactory : DepFactory,
 
         val newVersions = hashSetOf<String>()
         projects.forEach {
-            arrayListOf(it.compileDependencies, it.testDependencies).forEach { cds ->
+            listOf(it.compileDependencies, it.testDependencies).forEach { cds ->
                 cds.forEach { compileDependency ->
                     if (MavenId.isMavenId(compileDependency.id)) {
                         try {
-                            val dep = depFactory.create(compileDependency.shortId, executor, false /* go remote */)
+                            val dep = depFactory.create(compileDependency.shortId, executor, localFirst = false)
                             if (dep is MavenDependency) {
                                 val other = compileDependency as MavenDependency
                                 if (dep.id != compileDependency.id
-                                        && Versions.toLongVersion(dep.version) > Versions.toLongVersion(other.version)) {
+                                       && Versions.toLongVersion(dep.version) > Versions.toLongVersion(other.version)) {
                                     newVersions.add(dep.id)
                                 }
                             }
                         } catch(e: KobaltException) {
-                            log(1, "cannot resolve ${compileDependency.shortId}. ignoring")
+                            log(1, "  Cannot resolve ${compileDependency.shortId}. ignoring")
                         }
                     }
                 }
