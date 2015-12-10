@@ -5,7 +5,6 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.misc.KFiles
-import java.nio.file.Paths
 
 class AndroidFiles {
     companion object {
@@ -26,9 +25,14 @@ class AndroidFiles {
         fun mergedResources(project: Project, variant: Variant) =
                 KFiles.joinAndMakeDir(mergedResourcesNoVariant(project), variant.toIntermediateDir())
 
+        private fun exploded(project: Project, mavenId: MavenId) = KFiles.joinAndMakeDir(
+                intermediates(project), "exploded-aar", mavenId.groupId, mavenId.artifactId, mavenId.version!!)
+
+        fun explodedManifest(project: Project, mavenId: MavenId) =
+                KFiles.joinDir(exploded(project, mavenId), "AndroidManifest.xml")
+
         fun classesJar(project: Project, mavenId: MavenId) =
-                Paths.get(intermediates(project), "exploded-aar", mavenId.groupId, mavenId.artifactId, mavenId.version,
-                        "classes.jar").toFile().path
+                KFiles.joinDir(exploded(project, mavenId), "classes.jar")
 
         fun classesDir(project: Project, variant: Variant): String =
                 KFiles.joinDir(project.directory, project.buildDirectory, variant.toIntermediateDir(), "classes")

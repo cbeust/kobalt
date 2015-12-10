@@ -18,7 +18,9 @@ import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.SdkManager
 import com.android.utils.StdLogger
 import com.beust.kobalt.Variant
+import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import java.io.File
@@ -70,6 +72,8 @@ class AndroidBuild {
 //    val annotationsJar = File("/Users/beust/adt-bundle-mac-x86_64-20140702/sdk/tools/lib/annotations.jar")
 //    val adb = File("/Users/beust/adt-bundle-mac-x86_64-20140702/sdk/platform-tools/adb")
 
+    lateinit var androidBuilder: AndroidBuilder
+
     fun run(project: Project, variant: Variant, config: AndroidConfig, aarDependencies: List<File>,
             rDirectory: String) {
         val logger = StdLogger(StdLogger.Level.VERBOSE)
@@ -77,7 +81,7 @@ class AndroidBuild {
         val javaProcessExecutor = KobaltJavaProcessExecutor()
         val androidHome = File(AndroidFiles.androidHome(project, config))
         val sdkLoader : SdkLoader = DefaultSdkLoader.getLoader(androidHome)
-        val androidBuilder = AndroidBuilder(project.name, "kobalt-android-plugin",
+        androidBuilder = AndroidBuilder(project.name, "kobalt-android-plugin",
                 processExecutor,
                 javaProcessExecutor,
                 KobaltErrorReporter(),
@@ -121,7 +125,7 @@ class AndroidBuild {
             }.filter {
                 it.exists()
             }
-        val libraries = listOf<ManifestDependency>()
+        val libraries = createLibraryDependencies(project, project.compileDependencies)
         val outManifest = AndroidFiles.mergedManifest(project, variant)
         val outAaptSafeManifestLocation = KFiles.joinDir(project.directory, project.buildDirectory, "generatedSafeAapt")
         val reportFile = File(KFiles.joinDir(project.directory, project.buildDirectory, "manifest-merger-report.txt"))
@@ -209,5 +213,33 @@ class AndroidBuild {
         }
 
         androidBuilder.processResources(aaptCommand, true, processOutputHandler)
+    }
+
+    private fun createLibraryDependencies(project: Project, dependencies: List<IClasspathDependency>)
+            : List<ManifestDependency> {
+        val result = arrayListOf<ManifestDependency>()
+        dependencies.filter {
+                it is MavenDependency && it.jarFile.get().path.endsWith(".aar")
+            }.forEach {
+                val dep = it as MavenDependency
+                result.add(object: ManifestDependency {
+                    override fun getManifest(): File? {
+                        return File(AndroidFiles.explodedManifest(project, dep.mavenId))
+                    }
+
+                    override fun getName() = it.jarFile.get().path
+
+                    override fun getManifestDependencies(): List<ManifestDependency> {
+                        return createLibraryDependencies(project, it.directDependencies())
+                    }
+
+                })
+                it.directDependencies()
+            }
+            return result
+        }
+
+    fun dex(project: Project) {
+//        androidBuilder.createMainDexList()
     }
 }

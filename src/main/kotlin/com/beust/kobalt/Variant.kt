@@ -26,13 +26,13 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     fun toTask(taskName: String) = taskName + productFlavor.name.capitalize() + buildType.name.capitalize()
 
     /**
-     * for {internal, release}, return [internal, release, internalRelease]
+     * for {internal, release}, return [internalRelease, internal, release]
      */
     fun allDirectories(project: Project): List<String> {
         val result = arrayListOf<String>()
+        result.add(toCamelcaseDir())
         if (productFlavor != null) result.add(productFlavor.name)
         if (buildType != null) result.add(buildType.name)
-        result.add(toCamelcaseDir())
         return result
     }
 

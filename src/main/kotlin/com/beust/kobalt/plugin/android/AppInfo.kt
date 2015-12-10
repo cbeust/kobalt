@@ -5,23 +5,22 @@ import com.android.xml.AndroidManifest
 import java.io.File
 
 /**
- * Manage the main application id for the app, based on an overlay of the AndroidManifest.xml and
- * values specified in the Android config (in the build file).
+ * Manage the main application id for the app: values from androidConfig{} have precedence over values
+ * found in the manifest.
  */
 class AppInfo(val androidManifest: File, val config: AndroidConfig) {
     val abstractManifest = FileWrapper(androidManifest)
 
-    private fun <T> overlay(manifestValue: T, configValue: T?) = configValue ?: manifestValue
-
     val versionCode : Int
-        get() = overlay(AndroidManifest.getVersionCode(abstractManifest), config.versionCode)
+        get() = config.defaultConfig.versionCode ?: AndroidManifest.getVersionCode(abstractManifest)
 
     val versionName : String
-        get() = versionCode.toString()
+        get() = config.defaultConfig.versionName ?: versionCode.toString()
 
     val minSdkVersion: String?
-        get() = overlay(AndroidManifest.getMinSdkVersion(abstractManifest), config.minSdkVersion)?.toString()
+        get() = config.defaultConfig.minSdkVersion ?: AndroidManifest.getMinSdkVersion(abstractManifest)?.toString()
 
     val targetSdkVersion: String?
-        get()  = overlay(AndroidManifest.getTargetSdkVersion(abstractManifest), config.targetSdkVersion)?.toString()
+        get() = config.defaultConfig.targetSdkVersion
+                ?: AndroidManifest.getTargetSdkVersion(abstractManifest)?.toString()
 }

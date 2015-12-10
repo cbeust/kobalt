@@ -406,8 +406,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     override fun fieldsFor(project: Project, context: KobaltContext): List<BuildConfigField> {
         val result = arrayListOf<BuildConfigField>()
         configurationFor(project)?.let { config ->
-            result.add(BuildConfigField("String", "VERSION_NAME", "\"${config.versionName}\""))
-            result.add(BuildConfigField("int", "VERSION_CODE", "${config.versionCode}"))
+            result.add(BuildConfigField("String", "VERSION_NAME", "\"${config.defaultConfig.versionName}\""))
+            result.add(BuildConfigField("int", "VERSION_CODE", "${config.defaultConfig.versionCode}"))
         }
         return result
     }
@@ -416,13 +416,16 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler, v
     override fun tasksFor(context: KobaltContext): List<DynamicTask> = taskContributor.dynamicTasks
 }
 
+class DefaultConfig(var minSdkVersion: String? = null,
+        var targetSdkVersion: String? = null,
+        var versionCode: Int? = null,
+        var versionName: String? = null) {
+    var buildConfig : BuildConfig? = BuildConfig()
+}
+
 class AndroidConfig(val project: Project,
         var compileSdkVersion : String? = null,
         var buildToolsVersion: String? = null,
-        var minSdkVersion: String? = null,
-        var versionCode: Int? = null,
-        var versionName: String? = null,
-        var targetSdkVersion: String? = null,
         var applicationId: String? = null,
         val androidHome: String? = null) {
 
@@ -430,6 +433,12 @@ class AndroidConfig(val project: Project,
 
     fun addSigningConfig(name: String, project: Project, signingConfig: SigningConfig) {
         signingConfigs.put(name, signingConfig)
+    }
+
+    var defaultConfig: DefaultConfig = DefaultConfig()
+
+    fun defaultConfig(init: DefaultConfig.() -> Unit) {
+        defaultConfig = DefaultConfig().apply { init() }
     }
 }
 
