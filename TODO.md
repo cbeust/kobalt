@@ -2,6 +2,7 @@ To do:
 
 Android:
 
+- [ ] Move the calculated applicationId back into the merged AndroidManifest.xml 
 - [ ] Dex from android builder
 - [ ] Keep exploded aars between runs
 - [ ] aars keep being refetched
