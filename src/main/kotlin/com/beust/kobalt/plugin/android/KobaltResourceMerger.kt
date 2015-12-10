@@ -16,6 +16,7 @@ import com.android.ide.common.res2.*
 import com.android.manifmerger.ManifestMerger2
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.SdkManager
+import com.android.utils.ILogger
 import com.android.utils.StdLogger
 import com.beust.kobalt.Variant
 import com.beust.kobalt.api.IClasspathDependency
@@ -68,46 +69,81 @@ class ProjectLayout {
 
 }
 
-class AndroidBuild {
-//    val annotationsJar = File("/Users/beust/adt-bundle-mac-x86_64-20140702/sdk/tools/lib/annotations.jar")
-//    val adb = File("/Users/beust/adt-bundle-mac-x86_64-20140702/sdk/platform-tools/adb")
-
-    lateinit var androidBuilder: AndroidBuilder
-
+class KobaltResourceMerger {
     fun run(project: Project, variant: Variant, config: AndroidConfig, aarDependencies: List<File>,
             rDirectory: String) {
         val logger = StdLogger(StdLogger.Level.VERBOSE)
+        val androidBuilder = createAndroidBuilder(project, config, logger)
+
+        //
+        // Assets
+        //
+        processAssets(project, variant, androidBuilder, aarDependencies)
+
+        //
+        // Manifests
+        //
+        processManifests(project, variant, androidBuilder, config)
+
+        //
+        // Resources
+        //
+        KobaltProcessOutputHandler().let {
+            processResources(project, variant, androidBuilder, aarDependencies, logger, it)
+            mergeResources(project, variant, androidBuilder, aarDependencies, rDirectory, it)
+        }
+    }
+
+    private fun createAndroidBuilder(project: Project, config: AndroidConfig, logger: ILogger): AndroidBuilder {
         val processExecutor = DefaultProcessExecutor(logger)
         val javaProcessExecutor = KobaltJavaProcessExecutor()
         val androidHome = File(AndroidFiles.androidHome(project, config))
         val sdkLoader : SdkLoader = DefaultSdkLoader.getLoader(androidHome)
-        androidBuilder = AndroidBuilder(project.name, "kobalt-android-plugin",
+        val result = AndroidBuilder(project.name, "kobalt-android-plugin",
                 processExecutor,
                 javaProcessExecutor,
                 KobaltErrorReporter(),
                 logger,
                 false /* verbose */)
 
-        val processOutputHandler = KobaltProcessOutputHandler()
-        val dir : String = project.directory
-        val outputDir = AndroidFiles.mergedResources(project, variant)
-        val layout = ProjectLayout()
-        val preprocessor = NoOpResourcePreprocessor()
         val libraryRequests = arrayListOf<LibraryRequest>()
         val sdk = sdkLoader.getSdkInfo(logger)
         val sdkManager = SdkManager.createManager(androidHome.absolutePath, logger)
         val maxPlatformTarget = sdkManager.targets.filter { it.isPlatform }.last()
         val maxPlatformTargetHash = AndroidTargetHash.getPlatformHashString(maxPlatformTarget.version)
 
-        androidBuilder.setTargetInfo(sdk,
+        result.setTargetInfo(sdk,
                 sdkLoader.getTargetInfo(maxPlatformTargetHash, maxPlatformTarget.buildToolInfo.revision, logger),
                 libraryRequests)
+        return result
+    }
 
-        val resourceMerger = ResourceMerger()
+    private fun createLibraryDependencies(project: Project, dependencies: List<IClasspathDependency>)
+            : List<ManifestDependency> {
+        val result = arrayListOf<ManifestDependency>()
+        dependencies.filter {
+                it is MavenDependency && it.jarFile.get().path.endsWith(".aar")
+            }.forEach {
+                val dep = it as MavenDependency
+                result.add(object: ManifestDependency {
+                    override fun getManifest(): File? {
+                        return File(AndroidFiles.explodedManifest(project, dep.mavenId))
+                    }
 
-        //
-        // Assets
-        //
+                    override fun getName() = it.jarFile.get().path
+
+                    override fun getManifestDependencies(): List<ManifestDependency> {
+                        return createLibraryDependencies(project, it.directDependencies())
+                    }
+
+                })
+                it.directDependencies()
+            }
+            return result
+        }
+
+    private fun processAssets(project: Project, variant: Variant, androidBuilder: AndroidBuilder,
+            aarDependencies: List<File>) {
         val intermediates = File(
                 KFiles.joinDir(AndroidFiles.intermediates(project), "assets", variant.toIntermediateDir()))
         aarDependencies.forEach {
@@ -116,15 +152,15 @@ class AndroidBuild {
                 KFiles.copyRecursively(assetDir, intermediates)
             }
         }
+    }
 
-        //
-        // Manifest
-        //
+    private fun processManifests(project: Project, variant: Variant, androidBuilder: AndroidBuilder,
+            config: AndroidConfig) {
         val manifestOverlays = variant.allDirectories(project).map {
-                File("src/$it/AndroidManifest.xml")
-            }.filter {
-                it.exists()
-            }
+            File("src/$it/AndroidManifest.xml")
+        }.filter {
+            it.exists()
+        }
         val libraries = createLibraryDependencies(project, project.compileDependencies)
         val outManifest = AndroidFiles.mergedManifest(project, variant)
         val outAaptSafeManifestLocation = KFiles.joinDir(project.directory, project.buildDirectory, "generatedSafeAapt")
@@ -144,26 +180,28 @@ class AndroidBuild {
                 ManifestMerger2.MergeType.APPLICATION,
                 emptyMap() /* placeHolders */,
                 reportFile)
+    }
 
-        //
-        // Resources
-        //
+    private fun processResources(project: Project, variant: Variant, androidBuilder: AndroidBuilder,
+            aarDependencies: List<File>, logger: ILogger, processOutputHandler: KobaltProcessOutputHandler) {
+        val layout = ProjectLayout()
+        val preprocessor = NoOpResourcePreprocessor()
+        val outputDir = AndroidFiles.mergedResources(project, variant)
+        val resourceMerger = ResourceMerger()
         val fullVariantDir = File(variant.toCamelcaseDir())
         val srcList = listOf("main", variant.productFlavor.name, variant.buildType.name, fullVariantDir.path)
-            .map { "src" + File.separator + it}
+                .map { "src" + File.separator + it}
 
         // TODO: figure out why the badSrcList is bad. All this information should be coming from the Variant
         val badSrcList = variant.resDirectories(project).map { it.path }
         val goodAarList = aarDependencies.map { it.path + File.separator}
         (goodAarList + srcList).map { it + File.separator + "res" }.forEach { path ->
-            val set = ResourceSet(path)
-            set.addSource(File(path))
-            set.loadFromFiles(logger)
-
-            val generated = GeneratedResourceSet(set)
-            set.setGeneratedSet(generated)
-
-            resourceMerger.addDataSet(set)
+            with(ResourceSet(path)) {
+                addSource(File(path))
+                loadFromFiles(logger)
+                setGeneratedSet(GeneratedResourceSet(this))
+                resourceMerger.addDataSet(this)
+            }
         }
 
         val writer = MergedResourceWriter(File(outputDir),
@@ -174,10 +212,11 @@ class AndroidBuild {
                 layout.mergeBlame,
                 preprocessor)
         resourceMerger.mergeData(writer, true)
+    }
 
-        //
-        // Process resources
-        //
+    private fun mergeResources(project: Project, variant: Variant, androidBuilder: AndroidBuilder,
+            aarDependencies: List<File>, rDirectory: String,
+            processOutputHandler: KobaltProcessOutputHandler) {
         val aaptOptions = object : AaptOptions {
             override fun getAdditionalParameters() = emptyList<String>()
             override fun getFailOnMissingConfigEntry() = false
@@ -214,31 +253,8 @@ class AndroidBuild {
         }
 
         androidBuilder.processResources(aaptCommand, true, processOutputHandler)
+
     }
-
-    private fun createLibraryDependencies(project: Project, dependencies: List<IClasspathDependency>)
-            : List<ManifestDependency> {
-        val result = arrayListOf<ManifestDependency>()
-        dependencies.filter {
-                it is MavenDependency && it.jarFile.get().path.endsWith(".aar")
-            }.forEach {
-                val dep = it as MavenDependency
-                result.add(object: ManifestDependency {
-                    override fun getManifest(): File? {
-                        return File(AndroidFiles.explodedManifest(project, dep.mavenId))
-                    }
-
-                    override fun getName() = it.jarFile.get().path
-
-                    override fun getManifestDependencies(): List<ManifestDependency> {
-                        return createLibraryDependencies(project, it.directDependencies())
-                    }
-
-                })
-                it.directDependencies()
-            }
-            return result
-        }
 
     fun dex(project: Project) {
 //        androidBuilder.createMainDexList()

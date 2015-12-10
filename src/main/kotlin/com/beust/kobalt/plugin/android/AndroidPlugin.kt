@@ -93,7 +93,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
         val aarDependencies = explodeAarFiles(project, File(resDir))
         val rDirectory = KFiles.joinAndMakeDir(KFiles.generatedSourceDir(project, context.variant, "r"))
         extraSourceDirectories.add(File(rDirectory))
-        AndroidBuild().run(project, context.variant, configurationFor(project)!!, aarDependencies, rDirectory)
+        KobaltResourceMerger().run(project, context.variant, configurationFor(project)!!, aarDependencies, rDirectory)
 
         return TaskResult(true)
     }
