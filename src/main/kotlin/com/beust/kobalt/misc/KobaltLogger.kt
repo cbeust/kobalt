@@ -11,6 +11,16 @@ fun Any.log(level: Int, text: String, newLine : Boolean = true) {
     }
 }
 
+fun Any.logWrap(level: Int, text1: String, text2: String, function: () -> Unit) {
+    if (level <= KobaltLogger.LOG_LEVEL) {
+        KobaltLogger.logger.log(javaClass.simpleName, text1, newLine = false)
+    }
+    function()
+    if (level <= KobaltLogger.LOG_LEVEL) {
+        KobaltLogger.logger.log(javaClass.simpleName, text2, newLine = true)
+    }
+}
+
 fun Any.debug(text: String) {
     KobaltLogger.logger.debug(javaClass.simpleName, text)
 }

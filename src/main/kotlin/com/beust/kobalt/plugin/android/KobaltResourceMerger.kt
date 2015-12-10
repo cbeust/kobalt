@@ -23,7 +23,9 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.logWrap
 import java.io.File
 
 class KobaltProcessResult : ProcessResult {
@@ -50,7 +52,7 @@ class KobaltJavaProcessExecutor : JavaProcessExecutor {
 
 class KobaltProcessOutputHandler : BaseProcessOutputHandler() {
     override fun handleOutput(processOutput: ProcessOutput) =
-            log(1, "AndroidBuild output" + processOutput.standardOutput)
+            log(3, "AndroidBuild output" + processOutput.standardOutput)
 }
 
 class KobaltErrorReporter : ErrorReporter(ErrorReporter.EvaluationMode.STANDARD) {
@@ -72,7 +74,12 @@ class ProjectLayout {
 class KobaltResourceMerger {
     fun run(project: Project, variant: Variant, config: AndroidConfig, aarDependencies: List<File>,
             rDirectory: String) {
-        val logger = StdLogger(StdLogger.Level.VERBOSE)
+        val level = when(KobaltLogger.LOG_LEVEL) {
+            3 -> StdLogger.Level.VERBOSE
+            2 -> StdLogger.Level.WARNING
+            else -> StdLogger.Level.ERROR
+        }
+        val logger = StdLogger(level)
         val androidBuilder = createAndroidBuilder(project, config, logger)
 
         //
@@ -144,116 +151,124 @@ class KobaltResourceMerger {
 
     private fun processAssets(project: Project, variant: Variant, androidBuilder: AndroidBuilder,
             aarDependencies: List<File>) {
-        val intermediates = File(
-                KFiles.joinDir(AndroidFiles.intermediates(project), "assets", variant.toIntermediateDir()))
-        aarDependencies.forEach {
-            val assetDir = File(it, "assets")
-            if (assetDir.exists()) {
-                KFiles.copyRecursively(assetDir, intermediates)
+        logWrap(2, "  Processing assets...", "done") {
+            val intermediates = File(
+                    KFiles.joinDir(AndroidFiles.intermediates(project), "assets", variant.toIntermediateDir()))
+            aarDependencies.forEach {
+                val assetDir = File(it, "assets")
+                if (assetDir.exists()) {
+                    KFiles.copyRecursively(assetDir, intermediates)
+                }
             }
         }
     }
 
     private fun processManifests(project: Project, variant: Variant, androidBuilder: AndroidBuilder,
             config: AndroidConfig) {
-        val manifestOverlays = variant.allDirectories(project).map {
-            File("src/$it/AndroidManifest.xml")
-        }.filter {
-            it.exists()
+        logWrap(2, "  Processing manifests...", "done") {
+            val manifestOverlays = variant.allDirectories(project).map {
+                File("src/$it/AndroidManifest.xml")
+            }.filter {
+                it.exists()
+            }
+            val libraries = createLibraryDependencies(project, project.compileDependencies)
+            val outManifest = AndroidFiles.mergedManifest(project, variant)
+            val outAaptSafeManifestLocation = KFiles.joinDir(project.directory, project.buildDirectory, "generatedSafeAapt")
+            val reportFile = File(KFiles.joinDir(project.directory, project.buildDirectory, "manifest-merger-report.txt"))
+            val mainManifest = File("src/main/AndroidManifest.xml")
+            val appInfo = AppInfo(mainManifest, config)
+            androidBuilder.mergeManifests(mainManifest, manifestOverlays, libraries,
+                    null /* package override */,
+                    appInfo.versionCode,
+                    appInfo.versionName,
+                    appInfo.minSdkVersion,
+                    appInfo.targetSdkVersion,
+                    appInfo.maxSdkVersion,
+                    outManifest,
+                    outAaptSafeManifestLocation,
+                    // TODO: support aar too
+                    ManifestMerger2.MergeType.APPLICATION,
+                    emptyMap() /* placeHolders */,
+                    reportFile)
         }
-        val libraries = createLibraryDependencies(project, project.compileDependencies)
-        val outManifest = AndroidFiles.mergedManifest(project, variant)
-        val outAaptSafeManifestLocation = KFiles.joinDir(project.directory, project.buildDirectory, "generatedSafeAapt")
-        val reportFile = File(KFiles.joinDir(project.directory, project.buildDirectory, "manifest-merger-report.txt"))
-        val mainManifest = File("src/main/AndroidManifest.xml")
-        val appInfo = AppInfo(mainManifest, config)
-        androidBuilder.mergeManifests(mainManifest, manifestOverlays, libraries,
-                null /* package override */,
-                appInfo.versionCode,
-                appInfo.versionName,
-                appInfo.minSdkVersion,
-                appInfo.targetSdkVersion,
-                appInfo.maxSdkVersion,
-                outManifest,
-                outAaptSafeManifestLocation,
-                // TODO: support aar too
-                ManifestMerger2.MergeType.APPLICATION,
-                emptyMap() /* placeHolders */,
-                reportFile)
     }
 
     private fun processResources(project: Project, variant: Variant, androidBuilder: AndroidBuilder,
             aarDependencies: List<File>, logger: ILogger, processOutputHandler: KobaltProcessOutputHandler) {
-        val layout = ProjectLayout()
-        val preprocessor = NoOpResourcePreprocessor()
-        val outputDir = AndroidFiles.mergedResources(project, variant)
-        val resourceMerger = ResourceMerger()
-        val fullVariantDir = File(variant.toCamelcaseDir())
-        val srcList = listOf("main", variant.productFlavor.name, variant.buildType.name, fullVariantDir.path)
-                .map { "src" + File.separator + it}
+        logWrap(2, "  Processing resources...", "done") {
+            val layout = ProjectLayout()
+            val preprocessor = NoOpResourcePreprocessor()
+            val outputDir = AndroidFiles.mergedResources(project, variant)
+            val resourceMerger = ResourceMerger()
+            val fullVariantDir = File(variant.toCamelcaseDir())
+            val srcList = listOf("main", variant.productFlavor.name, variant.buildType.name, fullVariantDir.path)
+                    .map { "src" + File.separator + it }
 
-        // TODO: figure out why the badSrcList is bad. All this information should be coming from the Variant
-        val badSrcList = variant.resDirectories(project).map { it.path }
-        val goodAarList = aarDependencies.map { it.path + File.separator}
-        (goodAarList + srcList).map { it + File.separator + "res" }.forEach { path ->
-            with(ResourceSet(path)) {
-                addSource(File(path))
-                loadFromFiles(logger)
-                setGeneratedSet(GeneratedResourceSet(this))
-                resourceMerger.addDataSet(this)
+            // TODO: figure out why the badSrcList is bad. All this information should be coming from the Variant
+            val badSrcList = variant.resDirectories(project).map { it.path }
+            val goodAarList = aarDependencies.map { it.path + File.separator }
+            (goodAarList + srcList).map { it + File.separator + "res" }.forEach { path ->
+                with(ResourceSet(path)) {
+                    addSource(File(path))
+                    loadFromFiles(logger)
+                    setGeneratedSet(GeneratedResourceSet(this))
+                    resourceMerger.addDataSet(this)
+                }
             }
-        }
 
-        val writer = MergedResourceWriter(File(outputDir),
-                androidBuilder.getAaptCruncher(processOutputHandler),
-                false /* don't crunch */,
-                false /* don't process 9patch */,
-                layout.publicText,
-                layout.mergeBlame,
-                preprocessor)
-        resourceMerger.mergeData(writer, true)
+            val writer = MergedResourceWriter(File(outputDir),
+                    androidBuilder.getAaptCruncher(processOutputHandler),
+                    false /* don't crunch */,
+                    false /* don't process 9patch */,
+                    layout.publicText,
+                    layout.mergeBlame,
+                    preprocessor)
+            resourceMerger.mergeData(writer, true)
+        }
     }
 
     private fun mergeResources(project: Project, variant: Variant, androidBuilder: AndroidBuilder,
             aarDependencies: List<File>, rDirectory: String,
             processOutputHandler: KobaltProcessOutputHandler) {
-        val aaptOptions = object : AaptOptions {
-            override fun getAdditionalParameters() = emptyList<String>()
-            override fun getFailOnMissingConfigEntry() = false
-            override fun getIgnoreAssets() = null
-            override fun getNoCompress() = null
-        }
+        logWrap(2, "  Merging resources...", "done") {
 
-        val aaptCommand = AaptPackageProcessBuilder(File(AndroidFiles.mergedManifest(project, variant)),
-                aaptOptions)
+            val aaptOptions = object : AaptOptions {
+                override fun getAdditionalParameters() = emptyList<String>()
+                override fun getFailOnMissingConfigEntry() = false
+                override fun getIgnoreAssets() = null
+                override fun getNoCompress() = null
+            }
 
-        fun toSymbolFileProvider(aarDirectory: File) = object: SymbolFileProvider {
-            override fun getManifest() = File(aarDirectory, "AndroidManifest.xml")
-            override fun isOptional() = false
-            override fun getSymbolFile() = File(aarDirectory, "R.txt")
-        }
+            val aaptCommand = AaptPackageProcessBuilder(File(AndroidFiles.mergedManifest(project, variant)),
+                    aaptOptions)
 
-        val variantDir = variant.toIntermediateDir()
-        val generated = KFiles.joinAndMakeDir(project.directory, project.buildDirectory, "symbols")
-        with(aaptCommand) {
-            setSourceOutputDir(rDirectory)
-            val libraries = aarDependencies.map { toSymbolFileProvider(it) }
-            setLibraries(libraries)
-            val r = libraries[0].symbolFile
-            setResFolder(File(AndroidFiles.mergedResources(project, variant)))
-            setAssetsFolder(File(KFiles.joinAndMakeDir(AndroidFiles.intermediates(project), "assets", variantDir)))
-            aaptCommand.setResPackageOutput(AndroidFiles.temporaryApk(project, variant.shortArchiveName))
-            aaptCommand.setSymbolOutputDir(generated)
+            fun toSymbolFileProvider(aarDirectory: File) = object : SymbolFileProvider {
+                override fun getManifest() = File(aarDirectory, "AndroidManifest.xml")
+                override fun isOptional() = false
+                override fun getSymbolFile() = File(aarDirectory, "R.txt")
+            }
+
+            val variantDir = variant.toIntermediateDir()
+            val generated = KFiles.joinAndMakeDir(project.directory, project.buildDirectory, "symbols")
+            with(aaptCommand) {
+                setSourceOutputDir(rDirectory)
+                val libraries = aarDependencies.map { toSymbolFileProvider(it) }
+                setLibraries(libraries)
+                val r = libraries[0].symbolFile
+                setResFolder(File(AndroidFiles.mergedResources(project, variant)))
+                setAssetsFolder(File(KFiles.joinAndMakeDir(AndroidFiles.intermediates(project), "assets", variantDir)))
+                aaptCommand.setResPackageOutput(AndroidFiles.temporaryApk(project, variant.shortArchiveName))
+                aaptCommand.setSymbolOutputDir(generated)
 
 //            aaptCommand.setSourceOutputDir(generated)
 //            aaptCommand.setPackageForR(pkg)
 //            aaptCommand.setProguardOutput(proguardTxt)
 //            aaptCommand.setType(if (lib) VariantType.LIBRARY else VariantType.DEFAULT)
 //            aaptCommand.setDebuggable(debug)
+            }
+
+            androidBuilder.processResources(aaptCommand, true, processOutputHandler)
         }
-
-        androidBuilder.processResources(aaptCommand, true, processOutputHandler)
-
     }
 
     fun dex(project: Project) {
