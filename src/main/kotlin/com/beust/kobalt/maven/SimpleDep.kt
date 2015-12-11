@@ -11,10 +11,6 @@ open public class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.
 
     val version: String get() = mavenId.version!!
 
-    override public fun toMetadataXmlPath(fileSystem: Boolean): String {
-        return toDirectory(version, fileSystem) + "maven-metadata.xml"
-    }
-
     private fun toFile(v: String, s: String, suffix: String) : String {
         val fv = if (v.contains("SNAPSHOT")) v.replace("SNAPSHOT", "") else v
         val result = Strings.join("/", arrayListOf(toDirectory(v, false) +

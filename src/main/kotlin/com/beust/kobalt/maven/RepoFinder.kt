@@ -2,6 +2,7 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.HostConfig
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.Strings
 import com.beust.kobalt.misc.log
@@ -78,7 +79,8 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
 
             if (! mavenId.hasVersion) {
                 val ud = UnversionedDep(groupId, artifactId)
-                val foundVersion = findCorrectVersionRelease(ud.toMetadataXmlPath(false), repoUrl)
+                val isLocal = repoUrl.startsWith(FileDependency.PREFIX_FILE)
+                val foundVersion = findCorrectVersionRelease(ud.toMetadataXmlPath(false, isLocal), repoUrl)
                 if (foundVersion != null) {
                     return RepoResult(repo, true, foundVersion)
                 } else {
@@ -88,7 +90,8 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                 val version = mavenId.version
                 if (version!!.contains("SNAPSHOT")) {
                     val dep = SimpleDep(mavenId)
-                    val snapshotVersion = findSnapshotVersion(dep.toMetadataXmlPath(false), repoUrl)
+                    val isLocal = repoUrl.startsWith(FileDependency.PREFIX_FILE)
+                    val snapshotVersion = findSnapshotVersion(dep.toMetadataXmlPath(false, isLocal), repoUrl)
                     if (snapshotVersion != null) {
                         return RepoResult(repo, true, version, true /* hasJar, potential bug here */,
                                 snapshotVersion)
