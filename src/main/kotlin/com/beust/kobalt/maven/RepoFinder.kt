@@ -91,7 +91,8 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                 if (version!!.contains("SNAPSHOT")) {
                     val dep = SimpleDep(mavenId)
                     val isLocal = repoUrl.startsWith(FileDependency.PREFIX_FILE)
-                    val snapshotVersion = findSnapshotVersion(dep.toMetadataXmlPath(false, isLocal), repoUrl)
+                    val snapshotVersion = if (isLocal) version!!
+                        else findSnapshotVersion(dep.toMetadataXmlPath(false, isLocal, version), repoUrl)
                     if (snapshotVersion != null) {
                         return RepoResult(repo, true, version, true /* hasJar, potential bug here */,
                                 snapshotVersion)
@@ -154,6 +155,12 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
             val bn = buildNumber.evaluate(doc, XPathConstants.STRING)
             if (! Strings.isEmpty(ts.toString()) && ! Strings.isEmpty(bn.toString())) {
                 return ts.toString() + "-" + bn.toString()
+            } else {
+                val lastUpdated = XPATH.compile("/metadata/versioning/lastUpdated")
+                if (! lastUpdated.toString().isEmpty()) {
+                    return lastUpdated.toString()
+                }
+
             }
         } catch(ex: Exception) {
             log(2, "Couldn't find metadata at $url")
