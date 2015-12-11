@@ -111,7 +111,7 @@ public open class Jvm constructor(
         val pathExecutable = os.findInPath(command)
         if (pathExecutable != null) {
             log(1, "Unable to find the $command executable using home: " +
-                    "$javaHome. We found it on the PATH: $pathExecutable.")
+                    "$javaHome but found it on the PATH: $pathExecutable.")
             return pathExecutable
         }
 
