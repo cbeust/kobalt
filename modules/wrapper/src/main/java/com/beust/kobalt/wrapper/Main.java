@@ -165,30 +165,15 @@ public class Main {
             log(2, "Copying the wrapper files");
             for (String file : FILES) {
                 Path to = Paths.get(new File(".").getAbsolutePath(), file);
+
+                if (file.equals(KOBALTW)) {
+                    generateKobaltW(to);
+                }
+
                 if (Files.exists(to)) {
                     log(1, to + " already exists, not overwriting it");
                     continue;
-                }
-                boolean extractFile = true;
-                if (file.equals(KOBALTW)) {
-                    //
-                    // For kobaltw: try to generate it with the correct env shebang. If this fails,
-                    // we'll extract the one from the zip file
-                    //
-                    File envFile = new File("/bin/env");
-                    if (!envFile.exists()) {
-                        envFile = new File("/usr/bin/env");
-                    }
-                    if (envFile.exists()) {
-                        log(2, "Located " + envFile.getAbsolutePath() + ", generating " + file);
-                        String content = "#!" + envFile.getAbsolutePath() + " bash\n"
-                                + "java -jar $(dirname $0)/kobalt/wrapper/kobalt-wrapper.jar $*\n";
-                        Files.write(to, content.getBytes());
-                        extractFile = false;
-                    }
-                }
-
-                if (extractFile) {
+                } else {
                     Path from = Paths.get(zipOutputDir, file);
                     try {
                         if (isWindows() && to.toFile().exists()) {
@@ -201,15 +186,37 @@ public class Main {
                     }
                 }
             }
-
-            if (!new File(KOBALTW).setExecutable(true)) {
-                if (!isWindows()) {
-                    log(1, "Couldn't make " + KOBALTW + " executable");
-                }
-            }
         }
 
         return kobaltJarFile;
+    }
+
+    private void generateKobaltW(Path filePath) throws IOException {
+        //
+        // For kobaltw: try to generate it with the correct env shebang. If this fails,
+        // we'll generate it without the env shebang
+        //
+        File envFile = new File("/bin/env");
+        if (!envFile.exists()) {
+            envFile = new File("/usr/bin/env");
+        }
+
+        String content = "";
+
+        if (envFile.exists()) {
+            content = "#!" + envFile.getAbsolutePath() + " bash\n";
+        }
+        log(2, "Generating " + KOBALTW + (envFile.exists() ? " with shebang" : "") + ".");
+
+        content += "java -jar $(dirname $0)/kobalt/wrapper/kobalt-wrapper.jar $*\n";
+
+        Files.write(filePath, content.getBytes());
+
+        if (!new File(KOBALTW).setExecutable(true)) {
+            if (!isWindows()) {
+                log(1, "Couldn't make " + KOBALTW + " executable");
+            }
+        }
     }
 
     /**
