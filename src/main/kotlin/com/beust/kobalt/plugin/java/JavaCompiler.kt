@@ -9,6 +9,7 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
 import com.google.inject.Inject
 import com.google.inject.Singleton
@@ -40,17 +41,28 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
             val fileObjects = fileManager.getJavaFileObjectsFromFiles(info.sourceFiles.map { File(it) })
             val dc = DiagnosticCollector<JavaFileObject>()
             val classes = arrayListOf<String>()
-            val task = compiler.getTask(PrintWriter(System.out), fileManager, dc, allArgs, classes, fileObjects)
+            val writer = PrintWriter(System.out)
+            val task = compiler.getTask(writer, fileManager, dc, allArgs, classes, fileObjects)
+
+            val command = "javac " + allArgs.joinToString(" ") + " " + info.sourceFiles.joinToString(" ")
+            log(2, "Launching\n$command")
+
             val result = task.call()
 
-            return if (result) TaskResult(true, "Compilation succeeded")
-                else TaskResult(false, "There were errors")
+            return if (result) {
+                    TaskResult(true, "Compilation succeeded")
+                } else {
+                    val message = "Compilation errors, command:\n$command" +
+                        dc.diagnostics.joinToString("\n")
+                    log(1, message)
+                    TaskResult(false, message)
+                }
 
         }
     }
 
     /**
-     * Invoke the given executale on the CompilerActionInfo.
+     * Invoke the given executable on the CompilerActionInfo.
      */
     private fun run(project: Project?, context: KobaltContext?, cai: CompilerActionInfo, executable: File): TaskResult {
         return jvmCompiler.doCompile(project, context, compilerAction(executable), cai)
