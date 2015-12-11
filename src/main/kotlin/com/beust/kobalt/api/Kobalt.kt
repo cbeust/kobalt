@@ -20,7 +20,7 @@ public class Kobalt {
 
         var context: KobaltContext? = null
 
-        val MAVEN_REPO = homeDir(".m2" + File.separator + "repository")
+        val MAVEN_REPO = homeDir(".m2" + File.separator + "repository/")
 
         private val DEFAULT_REPOS = listOf(
             "http://repo1.maven.org/maven2/",
