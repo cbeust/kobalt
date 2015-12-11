@@ -171,13 +171,13 @@ public class Main {
                 }
 
                 if (Files.exists(to)) {
-                    log(1, to + " already exists, not overwriting it");
+                    log(2, to + " already exists, not overwriting it");
                     continue;
                 } else {
                     Path from = Paths.get(zipOutputDir, file);
                     try {
                         if (isWindows() && to.toFile().exists()) {
-                            log(1, "Windows detected, not overwriting " + to);
+                            log(2, "Windows detected, not overwriting " + to);
                         } else {
                             Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
                         }
