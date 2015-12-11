@@ -33,6 +33,14 @@ data class HostConfig(var url: String = "", var username: String? = null, var pa
     fun hasAuth() : Boolean {
         return (! username.isNullOrBlank()) && (! password.isNullOrBlank())
     }
+
+    override fun toString() : String {
+        return url + if (username != null) {
+            "username: $username, password: ***"
+        } else {
+            ""
+        }
+    }
 }
 
 @Directive
