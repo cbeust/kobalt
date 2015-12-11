@@ -7,7 +7,7 @@ import kotlinx.dom.childElements
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
-import java.io.FileReader
+import java.io.FileInputStream
 import javax.xml.xpath.XPathConstants
 
 public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
@@ -59,7 +59,7 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
     init {
         val DEPENDENCIES = XPATH.compile("/project/dependencies/dependency")
 
-        val document = kotlinx.dom.parseXml(InputSource(FileReader(documentFile)))
+        val document = kotlinx.dom.parseXml(InputSource(FileInputStream(documentFile)))
         groupId = XPATH.compile("/project/groupId").evaluate(document)
         artifactId = XPATH.compile("/project/artifactId").evaluate(document)
         version = XPATH.compile("/project/version").evaluate(document)
