@@ -122,12 +122,16 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
             it.jarFile.get().name.endsWith(".aar")
         }.forEach {
             val mavenId = MavenId.create(it.id)
-            val outputDir = AndroidFiles.intermediates(project)
-            val destDir = Paths.get(outputDir, "exploded-aar", mavenId.groupId,
-                    mavenId.artifactId, mavenId.version)
-                    .toFile()
-            log(2, "Exploding ${it.jarFile.get()} to $destDir")
-            JarUtils.extractJarFile(it.jarFile.get(), destDir)
+            val destDir = File(AndroidFiles.exploded(project, mavenId))
+            if (!File(AndroidFiles.explodedManifest(project, mavenId)).exists()) {
+                log(2, "Exploding ${it.jarFile.get()} to $destDir")
+                JarUtils.extractJarFile(it.jarFile.get(), destDir)
+
+                // Copy all the resources from this aar into the same intermediate directory
+                KFiles.copyRecursively(destDir.resolve("res"), resDir)
+            } else {
+                log(2, "$destDir already exists, not extracting again")
+            }
             val classesJar = AndroidFiles.classesJar(project, mavenId)
 
             // Add the classses.jar of this .aar to the classpath entries (which are returned via IClasspathContributor)
@@ -135,16 +139,12 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
             // Also add all the jar files found in the libs/ directory
             File(destDir, "libs").let { libsDir ->
                 if (libsDir.exists()) {
-                    libsDir.listFiles().filter { it.name.endsWith(".jar")}.forEach {
+                    libsDir.listFiles().filter { it.name.endsWith(".jar") }.forEach {
                         classpathEntries.put(project.name, FileDependency(it.absolutePath))
                     }
                 }
             }
-
-            // Copy all the resources from this aar into the same intermediate directory
-            log(2, "Copying the resources to $resDir")
             result.add(destDir)
-            KFiles.copyRecursively(destDir.resolve("res"), resDir)
         }
         return result
     }
