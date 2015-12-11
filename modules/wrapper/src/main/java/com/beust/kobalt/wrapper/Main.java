@@ -239,7 +239,6 @@ public class Main {
                         Files.copy(zipFile.getInputStream(entry), entryPath, StandardCopyOption.REPLACE_EXISTING);
                     } catch (FileSystemException ex) {
                         log(2, "Couldn't copy to " + entryPath);
-                        throw new IOException(ex);
                     }
                 }
             }
