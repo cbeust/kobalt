@@ -68,7 +68,7 @@ val kobalt = kotlinProject(wrapper) {
     dependencies {
         compile("org.jetbrains.kotlin:kotlin-stdlib:1.0.0-beta-3595",
                 "org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.0-beta-3595",
-                "org.jetbrains.dokka:dokka-fatjar:0.9.2",
+                "org.jetbrains.dokka:dokka-fatjar:0.9.3",
                 "org.jetbrains.kotlinx:kotlinx.dom:0.0.4",
 
                 "com.android.tools.build:builder:1.5.0",
