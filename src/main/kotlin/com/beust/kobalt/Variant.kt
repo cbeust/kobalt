@@ -146,7 +146,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
         if (buildConfigs.size > 0) {
             val androidConfig = (Kobalt.findPlugin(AndroidPlugin.PLUGIN_NAME) as AndroidPlugin)
                     .configurationFor(project)
-            val pkg = applicationId(androidConfig) ?: project.packageName ?: project.group
+            val pkg = project.packageName ?: project.group
                     ?: throw KobaltException(
                     "packageName needs to be defined on the project in order to generate BuildConfig")
 
