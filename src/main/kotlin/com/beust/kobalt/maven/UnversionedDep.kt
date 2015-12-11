@@ -8,9 +8,8 @@ import java.io.File
  * eventually resolve to the latest version of the artifact.
  */
 open class UnversionedDep(open val groupId: String, open val artifactId: String) {
-    open fun toMetadataXmlPath(fileSystem: Boolean = true, isLocal: Boolean): String {
-        return toDirectory("", fileSystem) + if (isLocal) "maven-metadata-local.xml" else "maven-metadata.xml"
-    }
+    open fun toMetadataXmlPath(fileSystem: Boolean = true, isLocal: Boolean) =
+            toDirectory("", fileSystem) + if (isLocal) "maven-metadata-local.xml" else "maven-metadata.xml"
 
     /**
      * Turn this dependency to a directory. If fileSystem is true, use the file system
