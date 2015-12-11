@@ -132,7 +132,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
             } else {
                 log(2, "$destDir already exists, not extracting again")
             }
-            val classesJar = AndroidFiles.classesJar(project, mavenId)
+            val classesJar = AndroidFiles.explodedClassesJar(project, mavenId)
 
             // Add the classses.jar of this .aar to the classpath entries (which are returned via IClasspathContributor)
             classpathEntries.put(project.name, FileDependency(classesJar))

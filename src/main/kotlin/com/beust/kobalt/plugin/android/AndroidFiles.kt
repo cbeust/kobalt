@@ -31,7 +31,7 @@ class AndroidFiles {
         fun explodedManifest(project: Project, mavenId: MavenId) =
                 KFiles.joinDir(exploded(project, mavenId), "AndroidManifest.xml")
 
-        fun classesJar(project: Project, mavenId: MavenId) =
+        fun explodedClassesJar(project: Project, mavenId: MavenId) =
                 KFiles.joinDir(exploded(project, mavenId), "classes.jar")
 
         fun classesDir(project: Project, variant: Variant): String =
