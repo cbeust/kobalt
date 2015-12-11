@@ -31,7 +31,7 @@ public class DynamicGraphTest {
         override fun call() : TaskResult2<T> {
             log(2, "Running node $n")
             runNodes.add(n)
-            return TaskResult2(errorFunction(n), n)
+            return TaskResult2(errorFunction(n), null, n)
         }
     }
 

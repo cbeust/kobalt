@@ -281,7 +281,7 @@ public class TaskManager @Inject constructor(val args: Args) {
                 object : BasePluginTask(plugin, name, description, project) {
                     override fun call(): TaskResult2<PluginTask> {
                         val taskResult = task(project)
-                        return TaskResult2(taskResult.success, this)
+                        return TaskResult2(taskResult.success, taskResult.errorMessage, this)
                     }
                 })
         runBefore.forEach { runBefore(it, name) }
@@ -307,11 +307,13 @@ class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean) : IWorker<Plu
             }
         }
         var success = true
+        val errorMessages = arrayListOf<String>()
         tasks.forEach {
             val tr = if (dryRun) TaskResult() else it.call()
             success = success and tr.success
+            if (tr.errorMessage != null) errorMessages.add(tr.errorMessage)
         }
-        return TaskResult2(success, tasks[0])
+        return TaskResult2(success, errorMessages.joinToString("\n"), tasks[0])
     }
 
 //    override val timeOut : Long = 10000

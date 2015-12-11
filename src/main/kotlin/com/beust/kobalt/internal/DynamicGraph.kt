@@ -10,7 +10,7 @@ import com.google.common.collect.HashMultimap
 import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.*
 
-open class TaskResult2<T>(success: Boolean, val value: T) : TaskResult(success) {
+open class TaskResult2<T>(success: Boolean, errorMessage: String?, val value: T) : TaskResult(success, errorMessage) {
     override fun toString() = toString("TaskResult", "value", value, "success", success)
 }
 
