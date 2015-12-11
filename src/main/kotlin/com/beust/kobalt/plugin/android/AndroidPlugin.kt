@@ -19,6 +19,23 @@ import java.io.FileInputStream
 import java.nio.file.Path
 import java.nio.file.Paths
 
+/**
+ * The Android plug-in which executes:
+ * library dependencies (android.library.reference.N)
+ * ndk
+ * aidl
+ * renderscript
+ * BuildConfig.java
+ * aapt
+ * compile
+ * obfuscate
+ * dex
+ * png crunch
+ * package resources
+ * package apk
+ * sign
+ * zipalign
+ */
 @Singleton
 public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
         val executors: KobaltExecutors, val dependencyManager: DependencyManager)
@@ -85,17 +102,47 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
     private fun apk(project: Project, flavor: String)
             = KFiles.joinFileAndMakeDir(project.buildDirectory, "outputs", "apk", "${project.name}$flavor.apk")
 
+    private val preDexFiles = arrayListOf<String>()
+
     @Task(name = "generateR", description = "Generate the R.java file",
             runBefore = arrayOf("compile"), runAfter = arrayOf("clean"))
     fun taskGenerateRFile(project: Project): TaskResult {
 
         val resDir = "temporaryBogusResDir"
         val aarDependencies = explodeAarFiles(project, File(resDir))
+        preDexFiles.addAll(preDex(project, context.variant, aarDependencies))
         val rDirectory = KFiles.joinAndMakeDir(KFiles.generatedSourceDir(project, context.variant, "r"))
         extraSourceDirectories.add(File(rDirectory))
         KobaltResourceMerger().run(project, context.variant, configurationFor(project)!!, aarDependencies, rDirectory)
 
         return TaskResult(true)
+    }
+
+    /**
+     * Predex all the libraries that need to be predexed then return a list of them.
+     */
+    private fun preDex(project: Project, variant: Variant, aarDependencies: List<File>) : List<String> {
+        log(2, "Predexing")
+        val result = arrayListOf<String>()
+        val aarFiles = aarDependencies.map { File(AndroidFiles.aarClassesJar(it.path))}
+        val jarFiles = dependencies(project).map { File(it) }
+        val allDependencies = (aarFiles + jarFiles).toHashSet().filter { it.exists() }
+
+        allDependencies.forEach { dep ->
+            val versionFile = File(dep.path).parentFile
+            val artifactFile = versionFile.parentFile
+            val name = artifactFile.name + "-" + versionFile.name
+            val outputDir = AndroidFiles.preDexed(project, variant)
+            val outputFile = File(outputDir, name + ".jar")
+            if (! outputFile.exists()) {
+                log(2, "  Predexing $dep")
+                runDex(project, outputFile.path, dep.path)
+            } else {
+                log(2, "  $dep already predexed")
+            }
+            result.add(outputFile.path)
+        }
+        return result
     }
 
     /**
@@ -117,6 +164,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
      * which will be added to the classpath at compile time via the classpath interceptor.
      */
     private fun explodeAarFiles(project: Project, resDir: File) : List<File> {
+        log(2, "Exploding aars")
         val result = arrayListOf<File>()
         project.compileDependencies.filter {
             it.jarFile.get().name.endsWith(".aar")
@@ -124,13 +172,13 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
             val mavenId = MavenId.create(it.id)
             val destDir = File(AndroidFiles.exploded(project, mavenId))
             if (!File(AndroidFiles.explodedManifest(project, mavenId)).exists()) {
-                log(2, "Exploding ${it.jarFile.get()} to $destDir")
+                log(2, "  Exploding ${it.jarFile.get()} to $destDir")
                 JarUtils.extractJarFile(it.jarFile.get(), destDir)
 
                 // Copy all the resources from this aar into the same intermediate directory
                 KFiles.copyRecursively(destDir.resolve("res"), resDir)
             } else {
-                log(2, "$destDir already exists, not extracting again")
+                log(2, "  $destDir already exists, not extracting again")
             }
             val classesJar = AndroidFiles.explodedClassesJar(project, mavenId)
 
@@ -197,6 +245,32 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
         return TaskResult()
     }
 
+    private fun dependencies(project: Project) = dependencyManager.calculateDependencies(project, context, projects,
+            project.compileDependencies).map {
+            it.jarFile.get().path
+        }.filterNot {
+            it.contains("android.jar") || it.endsWith(".aar") || it.contains("retrolambda")
+        }.toHashSet().toTypedArray()
+
+    class DexCommand : RunCommand("java") {
+        override fun isSuccess(callSucceeded: Boolean, input: List<String>, error: List<String>) =
+                error.size == 0
+    }
+
+    private fun runDex(project: Project, outputJarFile: String, target: String) {
+//        DexProcessBuilder(File(jarFile)).
+        DexCommand().run(listOf(
+                "-cp", KFiles.joinDir(androidHome(project), "build-tools", buildToolsVersion(project), "lib", "dx.jar"),
+                "com.android.dx.command.Main",
+                "--dex",
+                if (KobaltLogger.LOG_LEVEL == 3) "--verbose" else "",
+                "--num-threads=4",
+                "--output", outputJarFile,
+                *(preDexFiles.toTypedArray()),
+                target
+        ).filter { it != "" })
+    }
+
     @Task(name = TASK_GENERATE_DEX, description = "Generate the dex file", runBefore = arrayOf("assemble"),
             runAfter = arrayOf("compile"))
     fun taskGenerateDex(project: Project): TaskResult {
@@ -212,30 +286,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
         val classesDex = "classes.dex"
         val outClassesDex = KFiles.joinDir(classesDexDir, classesDex)
 
-        val javaExecutable = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
-
-        val dependencies = dependencyManager.calculateDependencies(project, context, projects,
-            project.compileDependencies).map {
-                it.jarFile.get().path
-            }.filterNot {
-                it.contains("android.jar") || it.endsWith(".aar")
-                    || it.contains("retrolambda")
-            }.toHashSet().toTypedArray()
-
-        class DexCommand : RunCommand(javaExecutable.absolutePath) {
-            override fun isSuccess(callSucceeded: Boolean, input: List<String>, error: List<String>) =
-                    error.size == 0
-        }
-
-        DexCommand().run(listOf(
-                "-cp", KFiles.joinDir(androidHome(project), "build-tools", buildToolsVersion(project), "lib", "dx.jar"),
-                "com.android.dx.command.Main",
-                "--dex", "--verbose", "--num-threads=4",
-                "--output", outClassesDex,
-                *dependencies,
-//                KFiles.joinDir(AndroidFiles.intermediates(project), "dex", context.variant.toIntermediateDir()),
-                project.classesDir(context)
-        ))
+        runDex(project, outClassesDex, project.classesDir(context))
 
         //
         // Add classes.dex to existing .ap_
@@ -389,7 +440,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
         val result = arrayListOf<IClasspathDependency>()
         dependencies.forEach {
             if (it is MavenDependency && (isAar(it.mavenId) || it.mavenId.packaging == "aar")) {
-                val newDep = FileDependency(AndroidFiles.classesJar(project, it.mavenId))
+                val newDep = FileDependency(AndroidFiles.explodedClassesJar(project, it.mavenId))
                 result.add(newDep)
                 val id = MavenId.create(it.groupId, it.artifactId, "aar", it.version)
                 result.add(MavenDependency.create(id))

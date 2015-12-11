@@ -31,8 +31,10 @@ class AndroidFiles {
         fun explodedManifest(project: Project, mavenId: MavenId) =
                 KFiles.joinDir(exploded(project, mavenId), "AndroidManifest.xml")
 
-        fun explodedClassesJar(project: Project, mavenId: MavenId) =
-                KFiles.joinDir(exploded(project, mavenId), "classes.jar")
+        fun aarClassesJar(dir: String) = KFiles.joinDir(dir, "classes.jar")
+
+        fun explodedClassesJar(project: Project, mavenId: MavenId) = aarClassesJar(
+                KFiles.joinDir(exploded(project, mavenId)))
 
         fun classesDir(project: Project, variant: Variant): String =
                 KFiles.joinDir(project.directory, project.buildDirectory, variant.toIntermediateDir(), "classes")
@@ -54,6 +56,9 @@ class AndroidFiles {
 
         fun androidHome(project: Project?, config: AndroidConfig) = androidHomeNoThrows(project, config) ?:
                 throw IllegalArgumentException("Neither androidHome nor \$ANDROID_HOME were defined")
+
+        fun preDexed(project: Project, variant: Variant) =
+                KFiles.joinAndMakeDir(intermediates(project), "pre-dexed", variant.toIntermediateDir())
 
     }
 }

@@ -82,6 +82,8 @@ class KobaltResourceMerger {
         val logger = StdLogger(level)
         val androidBuilder = createAndroidBuilder(project, config, logger)
 
+        log(2, "Merging resources")
+
         //
         // Assets
         //
