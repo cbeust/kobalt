@@ -112,7 +112,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
     }
 
     /**
-     * @return the test dependencies for this project, including the contributors.
+     * @return the compile dependencies for this project, including the contributors.
      */
     fun dependencies(project: Project, context: KobaltContext,
             projects: List<ProjectDescription>) : List<IClasspathDependency> {
