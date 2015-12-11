@@ -7,8 +7,8 @@ import java.io.File
  * Represents a dependency that doesn't have a version: "org.testng:testng:". Such dependencies
  * eventually resolve to the latest version of the artifact.
  */
-open public class UnversionedDep(open val groupId: String, open val artifactId: String) {
-    open public fun toMetadataXmlPath(fileSystem: Boolean = true, isLocal: Boolean): String {
+open class UnversionedDep(open val groupId: String, open val artifactId: String) {
+    open fun toMetadataXmlPath(fileSystem: Boolean = true, isLocal: Boolean): String {
         return toDirectory("", fileSystem) + if (isLocal) "maven-metadata-local.xml" else "maven-metadata.xml"
     }
 
@@ -17,7 +17,7 @@ open public class UnversionedDep(open val groupId: String, open val artifactId: 
      * dependent path separator, otherwise, use '/' (used to create URL's). The returned
      * string always ends with the path separator.
      */
-    public fun toDirectory(v: String, fileSystem: Boolean = true): String {
+    fun toDirectory(v: String, fileSystem: Boolean = true): String {
         val sep = if (fileSystem) File.separator else "/"
         val l = listOf(groupId.replace(".", sep), artifactId, v)
         val result = Strings.Companion.join(sep, l)
