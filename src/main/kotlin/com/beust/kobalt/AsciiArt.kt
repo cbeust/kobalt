@@ -85,7 +85,7 @@ class AsciiArt {
         const val WHITE = "\u001B[37m"
 
         private fun wrap(s: String, color: String) = color + s + RESET
-        private fun blue(s: String) = wrap(s, BLUE/)
+        private fun blue(s: String) = wrap(s, BLUE)
         private fun red(s: String) = wrap(s, RED)
         private fun yellow(s: String) = wrap(s, YELLOW)
 
