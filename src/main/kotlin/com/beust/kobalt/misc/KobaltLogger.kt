@@ -1,5 +1,6 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.Kobalt
 import java.text.SimpleDateFormat
@@ -66,7 +67,7 @@ class Logger(val dev: Boolean) {
         val shortMessage = "***** E $text " + if (docUrl != null) " Documentation: $docUrl" else ""
         val longMessage = "*****\n***** ERROR $text\n*****"
 
-        println(getPattern("E", shortMessage, longMessage, tag))
+        println(AsciiArt.errorColor(getPattern("E", shortMessage, longMessage, tag)))
         if (KobaltLogger.LOG_LEVEL > 1) {
             e?.printStackTrace()
         }
