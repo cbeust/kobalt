@@ -5,7 +5,6 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.dependency.FileDependency
-import com.beust.kobalt.misc.KobaltExecutors
 import java.io.File
 
 @Directive
@@ -17,15 +16,14 @@ fun file(file: String) : String = FileDependency.PREFIX_FILE + file
 
 @Directive
 fun plugins(vararg dependency : IClasspathDependency) {
-    Plugins.dynamicPlugins.addAll(dependency)
+    dependency.forEach { Plugins.addDynamicPlugin(it) }
 }
 
 @Directive
 fun plugins(vararg dependencies : String) {
-    val executor = Kobalt.INJECTOR.getInstance(KobaltExecutors::class.java).miscExecutor
     val factory = Kobalt.INJECTOR.getInstance(DepFactory::class.java)
     dependencies.forEach {
-        Plugins.dynamicPlugins.add(factory.create(it, executor))
+        Plugins.addDynamicPlugin(factory.create(it))
     }
 }
 
