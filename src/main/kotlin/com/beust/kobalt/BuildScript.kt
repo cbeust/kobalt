@@ -12,6 +12,9 @@ fun homeDir(vararg dirs: String) : String = SystemProperties.homeDir +
         File.separator + dirs.toArrayList().joinToString(File.separator)
 
 @Directive
+fun localMavenRepo() = homeDir(".m2" + File.separator + "repository/")
+
+@Directive
 fun file(file: String) : String = FileDependency.PREFIX_FILE + file
 
 @Directive

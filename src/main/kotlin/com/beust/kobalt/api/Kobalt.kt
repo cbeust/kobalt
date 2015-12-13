@@ -1,10 +1,12 @@
 package com.beust.kobalt.api
 
-import com.beust.kobalt.*
+import com.beust.kobalt.Args
+import com.beust.kobalt.Constants
+import com.beust.kobalt.HostConfig
+import com.beust.kobalt.Plugins
 import com.beust.kobalt.misc.MainModule
 import com.google.inject.Guice
 import com.google.inject.Injector
-import java.io.File
 import java.io.InputStream
 import java.util.*
 
@@ -17,17 +19,7 @@ public class Kobalt {
 
         var context: KobaltContext? = null
 
-        val MAVEN_REPO = homeDir(".m2" + File.separator + "repository/")
-
-        private val DEFAULT_REPOS = listOf(
-            "http://repo1.maven.org/maven2/",
-            "https://maven-central.storage.googleapis.com/",
-            "https://repository.jboss.org/nexus/content/repositories/root_repository/",
-            "https://jcenter.bintray.com/",
-            if (File(MAVEN_REPO).exists()) file(MAVEN_REPO) else ""
-        ).filter { it != "" }
-
-        val repos = HashSet<HostConfig>(DEFAULT_REPOS.map { HostConfig(it) })
+        val repos = HashSet<HostConfig>(Constants.DEFAULT_REPOS.map { HostConfig(it) })
 
         fun addRepo(repo: HostConfig) = repos.add(
                 if (repo.url.endsWith("/")) repo
