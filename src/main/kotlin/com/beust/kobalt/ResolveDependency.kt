@@ -23,12 +23,15 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder) {
     class Dep(val dep: IClasspathDependency, val level: Int)
 
     fun run(id: String) {
-        val indent = -1
-        val dep = MavenDependency.create(id)
-        val root = Node(Dep(dep, indent))
-        val seen = hashSetOf<String>(id)
-        root.addChildren(findChildren(root, seen))
         val repoResult = repoFinder.findCorrectRepo(id)
+
+        val indent = -1
+        val originalDep = MavenDependency.create(id)
+        // We want to display the dependencies of the id we found, not the one we queries
+        val dep = MavenDependency.create(originalDep.shortId + repoResult.version)
+        val root = Node(Dep(dep, indent))
+        val seen = hashSetOf(id)
+        root.addChildren(findChildren(root, seen))
 
         val simpleDep = SimpleDep(MavenId.create(id))
         val url = repoResult.hostConfig.url + simpleDep.toJarFile(repoResult)
