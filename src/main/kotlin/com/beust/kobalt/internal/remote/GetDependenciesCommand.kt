@@ -7,6 +7,7 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.internal.build.BuildFileCompiler
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
@@ -14,6 +15,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import java.io.PrintWriter
 import java.net.Socket
+import java.net.URL
 import java.nio.file.Paths
 import javax.inject.Inject
 
@@ -29,12 +31,12 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
     override val name = "getDependencies"
     override fun run(sender: ICommandSender, received: JsonObject) {
         val buildFile = BuildFile(Paths.get(received.get("buildFile").asString), "GetDependenciesCommand")
-        val scriptCompiler = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
-        val projects = scriptCompiler.compileBuildFiles(args)
-        sender.sendData(toData(projects))
+        val buildFileCompiler = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
+        val projects = buildFileCompiler.compileBuildFiles(args)
+        sender.sendData(toData(projects, buildFileCompiler.parsedBuildFiles.flatMap { it.pluginUrls }))
     }
 
-    private fun toData(projects: List<Project>) : CommandData {
+    private fun toData(projects: List<Project>, pluginUrls: List<URL>) : CommandData {
         val projectDatas = arrayListOf<ProjectData>()
         val executor = executors.miscExecutor
 
@@ -45,8 +47,10 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
 
         fun allDeps(l: List<IClasspathDependency>) = dependencyManager.transitiveClosure(l)
 
+        val pluginDependencies = pluginUrls.map { java.io.File(it.toURI()) }.map { FileDependency(it.absolutePath) }
         projects.forEach { project ->
             val allDependencies =
+                pluginDependencies.map { toDependencyData(it, "compile")} +
                 allDeps(project.compileDependencies).map { toDependencyData(it, "compile") } +
                 allDeps(project.compileProvidedDependencies).map { toDependencyData(it, "provided") } +
                 allDeps(project.compileRuntimeDependencies).map { toDependencyData(it, "runtime") } +
