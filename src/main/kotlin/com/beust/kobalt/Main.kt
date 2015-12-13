@@ -251,17 +251,16 @@ private class Main @Inject constructor(
         return result
     }
 
-    private fun findBuildFile(): File {
-        val files = arrayListOf("Build.kt", "build.kobalt", KFiles.src("build.kobalt"),
-                KFiles.src("Build.kt"))
-        try {
-            return files.map {
-                File(SystemProperties.currentDir, it)
-            }.first {
-                it.exists()
+    private fun findBuildFile() : File {
+        val deprecatedLocation = File(Constants.BUILD_FILE_NAME)
+        val result: File =
+            if (deprecatedLocation.exists()) {
+                warn(Constants.BUILD_FILE_NAME + " is in a deprecated location, please move it to "
+                        + Constants.BUILD_FILE_DIRECTORY)
+                deprecatedLocation
+            } else {
+                File(KFiles.joinDir(Constants.BUILD_FILE_DIRECTORY, Constants.BUILD_FILE_NAME))
             }
-        } catch(ex: NoSuchElementException) {
-            return File(KFiles.joinFileAndMakeDir("kobalt", "src", "Build.kt"))
-        }
+        return result
     }
 }

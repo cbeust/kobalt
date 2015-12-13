@@ -1,6 +1,7 @@
 package com.beust.kobalt.internal.build
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.Constants
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.Kobalt
@@ -78,7 +79,8 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
             // compile it, jar it in buildScript.jar and run it
             val modifiedBuildFile = KFiles.createTempFile(".kt")
             KFiles.saveFile(modifiedBuildFile, parsedBuildFile.buildScriptCode)
-            maybeCompileBuildFile(context, BuildFile(Paths.get(modifiedBuildFile.path), "Modified Build.kt"),
+            maybeCompileBuildFile(context, BuildFile(Paths.get(modifiedBuildFile.path),
+                    "Modified ${Constants.BUILD_FILE_NAME}"),
                     buildScriptJarFile, pluginUrls)
             val projects = buildScriptUtil.runBuildScriptJarFile(buildScriptJarFile, pluginUrls, context)
             result.addAll(projects)
