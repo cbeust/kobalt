@@ -60,7 +60,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 runTask = { taskAssemble(project) })
     }
 
-    private fun libsDir(project: Project) = KFiles.makeDir(buildDir(project).path, "libs").path
+    private fun libsDir(project: Project) = KFiles.makeDir(KFiles.buildDir(project).path, "libs").path
 
     @Task(name = TASK_ASSEMBLE, description = "Package the artifacts",
             runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
@@ -125,7 +125,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         //
         // Add all the applicable files for the current project
         //
-        val buildDir = buildDir(project)
+        val buildDir = KFiles.buildDir(project)
         val allFiles = arrayListOf<IncludedFile>()
         val classesDir = KFiles.makeDir(buildDir.path, "classes")
 
@@ -188,8 +188,6 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         return generateArchive(project, jar.name, ".jar", allFiles,
                 true /* expandJarFiles */, jarFactory)
     }
-
-    private fun buildDir(project: Project) = KFiles.makeDir(project.directory, project.buildDirectory)
 
     private fun findIncludedFiles(directory: String, files: List<IncludedFile>, excludes: List<IFileSpec.Glob>)
             : List<IncludedFile> {

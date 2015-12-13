@@ -66,6 +66,8 @@ class KFiles {
                 KFiles.joinDir(project.directory, project.buildDirectory, "generated", "source", name,
                         variant.toIntermediateDir())
 
+        fun buildDir(project: Project) = KFiles.makeDir(project.directory, project.buildDirectory)
+
         /**
          * Join the paths elements with the file separator.
          */
