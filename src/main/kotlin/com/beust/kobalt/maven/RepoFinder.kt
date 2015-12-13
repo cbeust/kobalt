@@ -3,10 +3,7 @@ package com.beust.kobalt.maven
 import com.beust.kobalt.HostConfig
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.maven.dependency.FileDependency
-import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.Strings
-import com.beust.kobalt.misc.log
-import com.beust.kobalt.misc.warn
+import com.beust.kobalt.misc.*
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
@@ -44,6 +41,7 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
         val executor = executors.newExecutor("RepoFinder-$id", Kobalt.repos.size)
         val cs = ExecutorCompletionService<RepoResult>(executor)
 
+        val results = arrayListOf<RepoResult>()
         try {
             log(2, "Looking for $id")
             Kobalt.repos.forEach { cs.submit(RepoFinderCallable(id, it)) }
@@ -53,15 +51,21 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                     log(2, "  Result for repo #$i: $result")
                     if (result.found) {
                         log(2, "Located $id in ${result.hostConfig.url}")
-                        return result
+                        results.add(result)
                     }
                 } catch(ex: Exception) {
                     warn("Error: $ex")
                 }
             }
-            return RepoResult(HostConfig(""), false, id)
         } finally {
             executor.shutdownNow()
+        }
+
+        if (results.size > 0) {
+            results.sortByDescending { Versions.toLongVersion(it.version) }
+            return results[0]
+        } else {
+            return RepoResult(HostConfig(""), false, id)
         }
     }
 
