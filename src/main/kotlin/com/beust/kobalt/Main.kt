@@ -261,7 +261,7 @@ private class Main @Inject constructor(
                 it.exists()
             }
         } catch(ex: NoSuchElementException) {
-            return File("Build.kt")
+            return File(KFiles.joinFileAndMakeDir("kobalt", "src", "Build.kt"))
         }
     }
 }
