@@ -166,23 +166,21 @@ public class Main {
             for (String file : FILES) {
                 Path to = Paths.get(new File(".").getAbsolutePath(), file);
 
-                if (file.equals(KOBALTW)) {
-                    generateKobaltW(to);
-                }
-
                 if (Files.exists(to)) {
-                    log(2, to + " already exists, not overwriting it");
+                    log(2, "  $to already exists, not overwriting it");
                     continue;
-                } else {
+                } else if (file.equals(KOBALTW)) {
+                    generateKobaltW(to);
+               } else {
                     Path from = Paths.get(zipOutputDir, file);
                     try {
                         if (isWindows() && to.toFile().exists()) {
-                            log(2, "Windows detected, not overwriting " + to);
+                            log(2, "  Windows detected, not overwriting " + to);
                         } else {
                             Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
                         }
                     } catch (IOException ex) {
-                        log(1, "Couldn't copy " + from + " to " + to + ": " + ex.getMessage());
+                        log(1, "  Couldn't copy " + from + " to " + to + ": " + ex.getMessage());
                     }
                 }
             }
