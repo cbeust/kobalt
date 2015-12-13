@@ -24,7 +24,7 @@ public class TestNgRunner() : GenericTestRunner() {
                     add(testngXml.absolutePath)
                 } else {
                     add("-testclass")
-                    addAll(findTestClasses(project, classpath))
+                    add(findTestClasses(project, classpath).joinToString(","))
                 }
             }
         }
