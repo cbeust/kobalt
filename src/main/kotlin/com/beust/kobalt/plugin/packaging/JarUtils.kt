@@ -109,7 +109,7 @@ public class JarUtils {
             while (enumEntries.hasMoreElements()) {
                 val file = enumEntries.nextElement()
                 if (file.name == fileName) {
-                    log(2, "Found $fileName in $zip")
+                    log(2, "Found $fileName in ${zip.name}")
                     zip.getInputStream(file).use { ins ->
                         return CharStreams.toString(InputStreamReader(ins, "UTF-8"))
                     }

@@ -41,7 +41,8 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
         /**
          * The list of plugins found in the build file.
          */
-        val dynamicPlugins : ArrayList<IClasspathDependency> = arrayListOf()
+        internal val dynamicPlugins : ArrayList<IClasspathDependency> = arrayListOf()
+        fun addDynamicPlugin(plugin: IClasspathDependency) = dynamicPlugins.add(plugin)
 
         val defaultPlugin : IPlugin get() = findPlugin(KobaltPlugin.PLUGIN_NAME)!!
 
