@@ -90,7 +90,8 @@ class AsciiArt {
         private fun yellow(s: String) = wrap(s, YELLOW)
 
         fun taskColor(s: String) = s
-        fun errorColor(s: String) = s
+        fun errorColor(s: String) = red(s)
+        fun warnColor(s: String) = red(s)
     }
 }
 
