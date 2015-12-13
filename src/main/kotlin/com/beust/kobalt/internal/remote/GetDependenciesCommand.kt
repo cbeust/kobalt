@@ -75,6 +75,6 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
 fun main(argv: Array<String>) {
     val socket = Socket("localhost", 1234)
     (PrintWriter(socket.outputStream, true)).use { out ->
-        out.println("""{ "name" : "getDependencies", "buildFile": "/c/users/cbeust/kotlin/kobalt/kobalt/src/Build.kt" }""")
+        out.println("""{ "name" : "getDependencies", "buildFile": "/Users/beust/kotlin/kobalt/kobalt/src/Build.kt"}""")
     }
 }
