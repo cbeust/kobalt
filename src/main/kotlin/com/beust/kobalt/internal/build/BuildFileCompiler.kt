@@ -55,10 +55,13 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         return allProjects
     }
 
+    val parsedBuildFiles = arrayListOf<ParsedBuildFile>()
+
     private fun findProjects(context: KobaltContext): List<Project> {
         val result = arrayListOf<Project>()
         buildFiles.forEach { buildFile ->
             val parsedBuildFile = parseBuildFile(context, buildFile)
+            parsedBuildFiles.add(parsedBuildFile)
             val pluginUrls = parsedBuildFile.pluginUrls
             val buildScriptJarFile = File(KFiles.findBuildScriptLocation(buildFile, SCRIPT_JAR))
 
