@@ -1,4 +1,4 @@
-package com.beust.kobalt.wrapper
+package com.beust.kobalt.app
 
 import java.net.URL
 import java.net.URLClassLoader
@@ -15,7 +15,7 @@ public class ParentLastClassLoader(val classpath: List<URL>)
 
     init {
         val urls : Array<URL> = classpath.toTypedArray()
-        childClassLoader = ChildURLClassLoader(urls, FindClassClassLoader(this.parent) )
+        childClassLoader = ChildURLClassLoader(urls, FindClassClassLoader(this.parent))
     }
 
     /**

@@ -5,6 +5,9 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.Args
+import com.beust.kobalt.app.ProjectGenerator
+import com.beust.kobalt.app.UpdateKobalt
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile

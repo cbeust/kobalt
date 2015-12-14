@@ -6,6 +6,7 @@ import com.beust.kobalt.api.IPlugin
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.Args
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap

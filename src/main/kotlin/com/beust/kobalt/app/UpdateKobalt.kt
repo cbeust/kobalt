@@ -1,5 +1,8 @@
-package com.beust.kobalt.misc
+package com.beust.kobalt.app
 
+import com.beust.kobalt.misc.GithubApi
+import com.beust.kobalt.misc.KobaltWrapperProperties
+import com.beust.kobalt.wrapper.Main
 import javax.inject.Inject
 
 /**
@@ -9,13 +12,13 @@ public class UpdateKobalt @Inject constructor(val github: GithubApi, val wrapper
     fun updateKobalt() {
         val newVersion = github.latestKobaltVersion
         wrapperProperties.create(newVersion.get())
-        com.beust.kobalt.wrapper.Main.main(arrayOf())
+        Main.main(arrayOf())
     }
 
     /**
      * Download from the URL found in the kobalt-wrapper.properties regardless of what the latest version is
      */
     fun downloadKobalt() {
-        com.beust.kobalt.wrapper.Main.main(arrayOf("--download", "--no-launch"))
+        Main.main(arrayOf("--download", "--no-launch"))
     }
 }

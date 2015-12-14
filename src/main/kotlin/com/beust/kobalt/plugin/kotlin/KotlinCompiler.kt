@@ -11,7 +11,7 @@ import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.wrapper.ParentLastClassLoader
+import com.beust.kobalt.app.ParentLastClassLoader
 import org.jetbrains.kotlin.cli.common.CLICompiler
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler

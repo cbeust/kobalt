@@ -2,7 +2,7 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.KobaltTest
-import com.beust.kobalt.ProjectGenerator
+import com.beust.kobalt.app.ProjectGenerator
 import com.beust.kobalt.internal.PluginInfo
 import com.google.inject.Inject
 import org.testng.Assert

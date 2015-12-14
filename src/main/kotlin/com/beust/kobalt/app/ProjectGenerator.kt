@@ -1,5 +1,6 @@
-package com.beust.kobalt
+package com.beust.kobalt.app
 
+import com.beust.kobalt.Args
 import com.beust.kobalt.internal.ActorUtils
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.misc.log
