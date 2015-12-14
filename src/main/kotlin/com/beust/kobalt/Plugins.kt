@@ -9,8 +9,7 @@ import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.plugin.KobaltPlugin
-import com.beust.kobalt.plugin.packaging.JarUtils
+import com.beust.kobalt.misc.JarUtils
 import com.google.inject.Provider
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -43,8 +42,6 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
          */
         internal val dynamicPlugins : ArrayList<IClasspathDependency> = arrayListOf()
         fun addDynamicPlugin(plugin: IClasspathDependency) = dynamicPlugins.add(plugin)
-
-        val defaultPlugin : IPlugin get() = findPlugin(KobaltPlugin.PLUGIN_NAME)!!
 
         fun findPlugin(name: String) : IPlugin? = pluginMap[name]
     }

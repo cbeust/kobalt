@@ -1,8 +1,8 @@
-package com.beust.kobalt.plugin.packaging
+package com.beust.kobalt.misc
 
 import com.beust.kobalt.IFileSpec
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.plugin.packaging.Direction
+import com.beust.kobalt.plugin.packaging.IncludedFile
 import com.google.common.io.CharStreams
 import java.io.*
 import java.util.jar.JarEntry
@@ -119,11 +119,11 @@ public class JarUtils {
         }
 
         fun extractJarFile(jarFile: File, destDir: File) {
-            val jar = java.util.jar.JarFile(jarFile)
+            val jar = JarFile(jarFile)
             val enumEntries = jar.entries()
             while (enumEntries.hasMoreElements()) {
                 val file = enumEntries.nextElement()
-                val f = File(destDir.path + java.io.File.separator + file.name)
+                val f = File(destDir.path + File.separator + file.name)
                 if (file.isDirectory) {
                     f.mkdir()
                     continue
@@ -141,3 +141,7 @@ public class JarUtils {
         }
     }
 }
+
+class From(override val p: String) : Direction(p)
+
+class To(override val p: String) : Direction(p)

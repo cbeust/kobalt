@@ -10,7 +10,7 @@ import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.*
 import com.beust.kobalt.plugin.java.JavaCompiler
-import com.beust.kobalt.plugin.packaging.JarUtils
+import com.beust.kobalt.misc.JarUtils
 import com.google.common.collect.HashMultimap
 import com.google.inject.Inject
 import com.google.inject.Singleton

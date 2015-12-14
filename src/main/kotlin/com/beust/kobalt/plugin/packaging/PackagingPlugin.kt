@@ -12,10 +12,7 @@ import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.log
-import com.beust.kobalt.misc.toString
+import com.beust.kobalt.misc.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -417,10 +414,6 @@ open class Direction(open val p: String) {
     override public fun toString() = path
     public val path: String get() = if (p.isEmpty() or p.endsWith("/")) p else p + "/"
 }
-
-class From(override val p: String) : Direction(p)
-
-class To(override val p: String) : Direction(p)
 
 class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<IFileSpec>) {
     constructor(specs: List<IFileSpec>) : this(From(""), To(""), specs)
