@@ -4,27 +4,17 @@ import com.beust.kobalt.KobaltException
 import com.beust.kobalt.internal.DocUrl
 import com.beust.kobalt.maven.Http
 import com.google.gson.Gson
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
 import com.google.gson.annotations.SerializedName
 import com.squareup.okhttp.Headers
 import com.squareup.okhttp.OkHttpClient
 import retrofit.RestAdapter
 import retrofit.RetrofitError
 import retrofit.client.OkClient
-import retrofit.http.Body
-import retrofit.http.POST
-import retrofit.http.Path
-import retrofit.http.Query
+import retrofit.http.*
 import retrofit.mime.TypedByteArray
 import retrofit.mime.TypedFile
 import rx.Observable
-import java.io.BufferedReader
 import java.io.File
-import java.io.IOException
-import java.io.InputStreamReader
-import java.net.URL
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
 import javax.inject.Inject
@@ -43,6 +33,8 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
     class RetrofitErrorResponse(val code: String?, val field: String?)
     class RetrofitErrorsResponse(val message: String?, val errors: List<RetrofitErrorResponse>)
 
+    private val docUrl = DocUrl.PUBLISH_PLUGIN_URL
+
     private fun parseRetrofitError(e: Throwable) : RetrofitErrorsResponse {
         val re = e as RetrofitError
         val json = String((re.response.body as TypedByteArray).bytes)
@@ -52,7 +44,6 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
     fun uploadRelease(packageName: String, tagName: String, zipFile: File) {
         log(1, "Uploading release ${zipFile.name}")
 
-        val docUrl = DocUrl.PUBLISH_PLUGIN_URL
         val username = localProperties.get(PROPERTY_USERNAME, docUrl)
         val accessToken = localProperties.get(PROPERTY_ACCESS_TOKEN, docUrl)
         try {
@@ -103,6 +94,8 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
             var name: String? = tagName)
     class CreateReleaseResponse(var id: String? = null, @SerializedName("upload_url") var uploadUrl: String?)
     class UploadAssetResponse(var id: String? = null, val name: String? = null)
+    class ReleasesResponse(@SerializedName("tag_name") var tagName: String? = null,
+            var name: String? = tagName)
 
     interface Api {
         @POST("/repos/{owner}/{repo}/releases")
@@ -110,31 +103,39 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
                 @Query("access_token") accessToken: String,
                 @Path("repo") repo: String,
                 @Body createRelease: CreateRelease): Observable<CreateReleaseResponse>
+
+        @GET("/repos/{owner}/{repo}/releases")
+        fun getReleases(@Path("owner") owner: String,
+                @Query("access_token") accessToken: String,
+                @Path("repo") repo: String): List<ReleasesResponse>
     }
 
     val latestKobaltVersion: Future<String>
         get() {
             val callable = Callable<String> {
                 var result = "0"
+
+                val username = localProperties.get(PROPERTY_USERNAME, docUrl)
+                val accessToken = localProperties.get(PROPERTY_ACCESS_TOKEN, docUrl)
                 try {
-                    val ins = URL(RELEASES_URL).openConnection().inputStream
-                    @Suppress("UNCHECKED_CAST")
-                    val reader = BufferedReader(InputStreamReader(ins))
-                    val jo = JsonParser().parse(reader) as JsonArray
-                    if (jo.size() > 0) {
-                        var versionName = (jo.get(0) as JsonObject).get("name").asString
-                        if (Strings.isEmpty(versionName)) {
-                            versionName = (jo.get(0) as JsonObject).get("tag_name").asString
-                        }
-                        if (versionName != null) {
-                            result = versionName
+                    val releases = service.getReleases(username, accessToken, "kobalt")
+                    if (releases.size > 0) {
+                        var versionName = releases[0].name
+                        if (versionName == null || versionName.isBlank()) {
+                            versionName = releases[0].tagName
+                            if (versionName != null && !versionName.isBlank()) {
+                                result = versionName
+                            }
                         }
                     }
-                } catch(ex: IOException) {
-                    warn("Couldn't load the release URL: $RELEASES_URL")
+                } catch(e: RetrofitError) {
+                    val error = parseRetrofitError(e)
+                    throw KobaltException("Couldn't upload release, ${error.message}: "
+                            + error.errors[0].code + " field: " + error.errors[0].field)
                 }
                 result
             }
+
             return executors.miscExecutor.submit(callable)
         }
 }
