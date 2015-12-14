@@ -11,6 +11,7 @@ import com.android.builder.model.SyncIssue
 import com.android.builder.sdk.DefaultSdkLoader
 import com.android.builder.sdk.SdkLoader
 import com.android.ide.common.blame.Message
+import com.android.ide.common.internal.ExecutorSingleton
 import com.android.ide.common.process.*
 import com.android.ide.common.res2.*
 import com.android.manifmerger.ManifestMerger2
@@ -92,13 +93,13 @@ class KobaltResourceMerger {
         //
         // Manifests
         //
-        processManifests(project, variant, androidBuilder, config)
+        val appInfo = processManifests(project, variant, androidBuilder, config)
 
         //
         // Resources
         //
         KobaltProcessOutputHandler().let {
-            processResources(project, variant, androidBuilder, aarDependencies, logger, it)
+            processResources(project, variant, androidBuilder, aarDependencies, logger, it, appInfo.minSdkVersion)
             mergeResources(project, variant, androidBuilder, aarDependencies, rDirectory, it)
         }
     }
@@ -166,7 +167,9 @@ class KobaltResourceMerger {
     }
 
     private fun processManifests(project: Project, variant: Variant, androidBuilder: AndroidBuilder,
-            config: AndroidConfig) {
+            config: AndroidConfig): AppInfo {
+        val mainManifest = File("src/main/AndroidManifest.xml")
+        val appInfo = AppInfo(mainManifest, config)
         logWrap(2, "  Processing manifests...", "done") {
             val manifestOverlays = variant.allDirectories(project).map {
                 File("src/$it/AndroidManifest.xml")
@@ -177,13 +180,11 @@ class KobaltResourceMerger {
             val outManifest = AndroidFiles.mergedManifest(project, variant)
             val outAaptSafeManifestLocation = KFiles.joinDir(project.directory, project.buildDirectory, "generatedSafeAapt")
             val reportFile = File(KFiles.joinDir(project.directory, project.buildDirectory, "manifest-merger-report.txt"))
-            val mainManifest = File("src/main/AndroidManifest.xml")
-            val appInfo = AppInfo(mainManifest, config)
             androidBuilder.mergeManifests(mainManifest, manifestOverlays, libraries,
                     null /* package override */,
                     appInfo.versionCode,
                     appInfo.versionName,
-                    appInfo.minSdkVersion,
+                    appInfo.minSdkVersion.toString(),
                     appInfo.targetSdkVersion,
                     appInfo.maxSdkVersion,
                     outManifest,
@@ -193,15 +194,17 @@ class KobaltResourceMerger {
                     emptyMap() /* placeHolders */,
                     reportFile)
         }
+        return appInfo
     }
 
     private fun processResources(project: Project, variant: Variant, androidBuilder: AndroidBuilder,
-            aarDependencies: List<File>, logger: ILogger, processOutputHandler: KobaltProcessOutputHandler) {
+            aarDependencies: List<File>, logger: ILogger, processOutputHandler: KobaltProcessOutputHandler,
+            minSdk: Int) {
         logWrap(2, "  Processing resources...", "done") {
             val layout = ProjectLayout()
             val preprocessor = NoOpResourcePreprocessor()
             val outputDir = AndroidFiles.mergedResources(project, variant)
-            val resourceMerger = ResourceMerger()
+            val resourceMerger = ResourceMerger(minSdk)
             val fullVariantDir = File(variant.toCamelcaseDir())
             val srcList = listOf("main", variant.productFlavor.name, variant.buildType.name, fullVariantDir.path)
                     .map { "src" + File.separator + it }
@@ -226,6 +229,7 @@ class KobaltResourceMerger {
                     layout.mergeBlame,
                     preprocessor)
             resourceMerger.mergeData(writer, true)
+            ExecutorSingleton.getExecutor().shutdown()
         }
     }
 

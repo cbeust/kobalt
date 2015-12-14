@@ -17,8 +17,8 @@ class AppInfo(val androidManifest: File, val config: AndroidConfig) {
     val versionName : String
         get() = config.defaultConfig.versionName ?: versionCode.toString()
 
-    val minSdkVersion: String?
-        get() = config.defaultConfig.minSdkVersion ?: AndroidManifest.getMinSdkVersion(abstractManifest)?.toString()
+    val minSdkVersion: Int
+        get() = config.defaultConfig.minSdkVersion ?: (AndroidManifest.getMinSdkVersion(abstractManifest) as Int)
 
     val maxSdkVersion: Int?
         get() = config.defaultConfig.maxSdkVersion?.toInt()
