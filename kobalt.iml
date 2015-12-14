@@ -16,8 +16,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="wrapper" />
     <orderEntry type="library" scope="TEST" name="kobalt (Test)" level="project" />
     <orderEntry type="library" name="kobalt (Compile)" level="project" />
-    <orderEntry type="module" module-name="wrapper" />
   </component>
 </module>
