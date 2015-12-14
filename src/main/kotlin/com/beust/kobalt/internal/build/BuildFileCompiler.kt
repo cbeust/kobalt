@@ -9,11 +9,11 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.PluginProperties
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.PluginInfo
+import com.beust.kobalt.kotlin.kotlinCompilePrivate
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import com.google.inject.assistedinject.Assisted
 import java.io.File
 import java.net.URL

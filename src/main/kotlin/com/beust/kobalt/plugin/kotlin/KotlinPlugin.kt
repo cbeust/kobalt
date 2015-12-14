@@ -6,6 +6,8 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
+import com.beust.kobalt.kotlin.KotlinCompiler
+import com.beust.kobalt.kotlin.kotlinCompilePrivate
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo

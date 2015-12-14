@@ -1,7 +1,8 @@
-package com.beust.kobalt.plugin.kotlin;
+package com.beust.kobalt.kotlin
 
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
+import com.beust.kobalt.app.ParentLastClassLoader
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.maven.DepFactory
@@ -11,7 +12,6 @@ import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.app.ParentLastClassLoader
 import org.jetbrains.kotlin.cli.common.CLICompiler
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
@@ -74,21 +74,21 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
         private fun invokeCompiler(cp: List<File>, allArgs: Array<String>): Boolean {
             log(2, "Calling kotlinc " + allArgs.joinToString(" "))
             val result : Boolean =
-                if (true) {
-                    val classLoader = ParentLastClassLoader(cp.map { it.toURI().toURL() })
-                    val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
-                    val compilerMain = compiler.declaredMethods.filter {
-                        it.name == "doMainNoExit" && it.parameterTypes.size == 2
-                    }.get(0)
-                    val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
-                    val compilerInstance = kCompiler.newInstance()
-                    val exitCode = compilerMain.invoke(null, compilerInstance, allArgs)
-                    val nameMethod = exitCode.javaClass.getMethod("name")
-                    "OK" == nameMethod.invoke(exitCode).toString()
-                } else {
-                    val exitCode = CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs)
-                    exitCode == ExitCode.OK
-                }
+                    if (true) {
+                        val classLoader = ParentLastClassLoader(cp.map { it.toURI().toURL() })
+                        val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
+                        val compilerMain = compiler.declaredMethods.filter {
+                            it.name == "doMainNoExit" && it.parameterTypes.size == 2
+                        }.get(0)
+                        val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
+                        val compilerInstance = kCompiler.newInstance()
+                        val exitCode = compilerMain.invoke(null, compilerInstance, allArgs)
+                        val nameMethod = exitCode.javaClass.getMethod("name")
+                        "OK" == nameMethod.invoke(exitCode).toString()
+                    } else {
+                        val exitCode = CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs)
+                        exitCode == ExitCode.OK
+                    }
             return result
         }
 
@@ -122,10 +122,10 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
 
         executor.shutdown()
 
-//        val classpathList = arrayListOf(
-//                getKotlinCompilerJar("kotlin-stdlib"),
-//                getKotlinCompilerJar("kotlin-compiler-embeddable"))
-//            .map { FileDependency(it) }
+        //        val classpathList = arrayListOf(
+        //                getKotlinCompilerJar("kotlin-stdlib"),
+        //                getKotlinCompilerJar("kotlin-compiler-embeddable"))
+        //            .map { FileDependency(it) }
 
         val dependencies = compileDependencies + otherClasspath.map { FileDependency(it) }
         val info = CompilerActionInfo(project?.directory, dependencies, sourceFiles, outputDir, args)

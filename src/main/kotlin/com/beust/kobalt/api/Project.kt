@@ -1,12 +1,9 @@
 package com.beust.kobalt.api
 
-import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.IProjectInfo
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.plugin.android.AndroidPlugin
-import com.beust.kobalt.plugin.android.Proguard
 import java.util.*
 
 open class Project(
@@ -196,10 +193,10 @@ class BuildTypeConfig(val project: Project?, val name: String) : IBuildConfig {
     var applicationIdSuffix: String? = null
     var proguardFile: String? = null
 
-    fun getDefaultProguardFile(name: String) : String {
-        val androidPlugin = Plugins.findPlugin(AndroidPlugin.PLUGIN_NAME) as AndroidPlugin
-        return Proguard(androidPlugin.androidHome(project)).getDefaultProguardFile(name)
-    }
+//    fun getDefaultProguardFile(name: String) : String {
+//        val androidPlugin = Plugins.findPlugin(AndroidPlugin.PLUGIN_NAME) as AndroidPlugin
+//        return Proguard(androidPlugin.androidHome(project)).getDefaultProguardFile(name)
+//    }
 
     override var buildConfig : BuildConfig? = BuildConfig()
 }

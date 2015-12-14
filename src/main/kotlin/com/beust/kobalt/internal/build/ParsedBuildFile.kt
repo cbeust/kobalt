@@ -7,7 +7,7 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.countChar
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
+import com.beust.kobalt.kotlin.kotlinCompilePrivate
 import java.io.File
 import java.net.URL
 import java.nio.charset.Charset
