@@ -15,6 +15,7 @@ import retrofit.mime.TypedByteArray
 import retrofit.mime.TypedFile
 import rx.Observable
 import java.io.File
+import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
 import javax.inject.Inject
@@ -25,7 +26,6 @@ import javax.inject.Inject
 public class GithubApi @Inject constructor(val executors: KobaltExecutors,
         val localProperties: LocalProperties, val http: Http) {
     companion object {
-        const val RELEASES_URL = "https://api.github.com/repos/cbeust/kobalt/releases"
         const val PROPERTY_ACCESS_TOKEN = "github.accessToken"
         const val PROPERTY_USERNAME = "github.username"
     }
@@ -33,7 +33,7 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
     class RetrofitErrorResponse(val code: String?, val field: String?)
     class RetrofitErrorsResponse(val message: String?, val errors: List<RetrofitErrorResponse>)
 
-    private val docUrl = DocUrl.PUBLISH_PLUGIN_URL
+    private val DOC_URL = DocUrl.PUBLISH_PLUGIN_URL
 
     private fun parseRetrofitError(e: Throwable) : RetrofitErrorsResponse {
         val re = e as RetrofitError
@@ -44,8 +44,8 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
     fun uploadRelease(packageName: String, tagName: String, zipFile: File) {
         log(1, "Uploading release ${zipFile.name}")
 
-        val username = localProperties.get(PROPERTY_USERNAME, docUrl)
-        val accessToken = localProperties.get(PROPERTY_ACCESS_TOKEN, docUrl)
+        val username = localProperties.get(PROPERTY_USERNAME, DOC_URL)
+        val accessToken = localProperties.get(PROPERTY_ACCESS_TOKEN, DOC_URL)
         try {
             service.createRelease(username, accessToken, packageName, CreateRelease(tagName))
                     .flatMap { response ->
@@ -115,22 +115,20 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
             val callable = Callable<String> {
                 var result = "0"
 
-                val username = localProperties.get(PROPERTY_USERNAME, docUrl)
-                val accessToken = localProperties.get(PROPERTY_ACCESS_TOKEN, docUrl)
+                val username = localProperties.get(PROPERTY_USERNAME, DOC_URL)
+                val accessToken = localProperties.get(PROPERTY_ACCESS_TOKEN, DOC_URL)
                 try {
                     val releases = service.getReleases(username, accessToken, "kobalt")
-                    if (releases.size > 0) {
-                        var versionName = releases[0].name
-                        if (versionName == null || versionName.isBlank()) {
-                            versionName = releases[0].tagName
-                            if (versionName != null && !versionName.isBlank()) {
-                                result = versionName
-                            }
+                    releases.firstOrNull()?.let {
+                        try {
+                            result = listOf(it.name, it.tagName).filterNotNull().first { !it.isBlank() }
+                        } catch(ex: NoSuchElementException) {
+                            throw KobaltException("Couldn't find the latest release")
                         }
                     }
                 } catch(e: RetrofitError) {
                     val error = parseRetrofitError(e)
-                    throw KobaltException("Couldn't upload release, ${error.message}: "
+                    throw KobaltException("Couldn't retrieve releases, ${error.message}: "
                             + error.errors[0].code + " field: " + error.errors[0].field)
                 }
                 result
