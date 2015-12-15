@@ -17,9 +17,10 @@
         <class-name>com.beust.kobalt.app.java.JavaBuildGenerator</class-name>
         <class-name>com.beust.kobalt.app.kotlin.KotlinBuildGenerator</class-name>
 
-        <!-- These classes run TestNG or JUnit depending on which one the user picked -->
+        <!-- Test runners -->
         <class-name>com.beust.kobalt.internal.JUnitRunner</class-name>
         <class-name>com.beust.kobalt.internal.TestNgRunner</class-name>
+        <class-name>com.beust.kobalt.internal.SpekRunner</class-name>
 
     </plugin-actors>
 </kobalt-plugin>
