@@ -1,4 +1,4 @@
-package com.beust.kobalt.internal.remote
+package com.beust.kobalt.app.remote
 
 import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.misc.log

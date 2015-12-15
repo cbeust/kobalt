@@ -2,7 +2,7 @@ package com.beust.kobalt.kotlin
 
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
-import com.beust.kobalt.app.ParentLastClassLoader
+import com.beust.kobalt.kotlin.ParentLastClassLoader
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.maven.DepFactory

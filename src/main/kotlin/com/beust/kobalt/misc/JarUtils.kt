@@ -1,8 +1,6 @@
 package com.beust.kobalt.misc
 
 import com.beust.kobalt.IFileSpec
-import com.beust.kobalt.plugin.packaging.Direction
-import com.beust.kobalt.plugin.packaging.IncludedFile
 import com.google.common.io.CharStreams
 import java.io.*
 import java.util.jar.JarEntry
@@ -140,6 +138,21 @@ public class JarUtils {
             }
         }
     }
+}
+
+open class Direction(open val p: String) {
+    override public fun toString() = path
+    public val path: String get() = if (p.isEmpty() or p.endsWith("/")) p else p + "/"
+}
+
+class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<IFileSpec>) {
+    constructor(specs: List<IFileSpec>) : this(From(""), To(""), specs)
+    public val from: String get() = fromOriginal.path.replace("\\", "/")
+    public val to: String get() = toOriginal.path.replace("\\", "/")
+    override public fun toString() = toString("IncludedFile",
+            "files", specs.map { it.toString() }.joinToString(", "),
+            "from", from,
+            "to", to)
 }
 
 class From(override val p: String) : Direction(p)

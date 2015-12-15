@@ -1,4 +1,4 @@
-package com.beust.kobalt.internal.build
+package com.beust.kobalt.app
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.Constants
@@ -9,6 +9,9 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.PluginProperties
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.PluginInfo
+import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.app.ParsedBuildFile
+import com.beust.kobalt.internal.build.VersionFile
 import com.beust.kobalt.kotlin.kotlinCompilePrivate
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles

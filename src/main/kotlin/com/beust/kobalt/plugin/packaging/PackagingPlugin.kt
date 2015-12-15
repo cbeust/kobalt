@@ -410,21 +410,6 @@ open class Zip(open var name: String? = null) {
 
 }
 
-open class Direction(open val p: String) {
-    override public fun toString() = path
-    public val path: String get() = if (p.isEmpty() or p.endsWith("/")) p else p + "/"
-}
-
-class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<IFileSpec>) {
-    constructor(specs: List<IFileSpec>) : this(From(""), To(""), specs)
-    public val from: String get() = fromOriginal.path.replace("\\", "/")
-    public val to: String get() = toOriginal.path.replace("\\", "/")
-    override public fun toString() = toString("IncludedFile",
-            "files", specs.map { it.toString() }.joinToString(", "),
-            "from", from,
-            "to", to)
-}
-
 interface AttributeHolder {
     fun addAttribute(k: String, v: String)
 }

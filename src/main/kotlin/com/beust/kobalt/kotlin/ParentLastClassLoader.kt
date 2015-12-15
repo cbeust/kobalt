@@ -1,4 +1,4 @@
-package com.beust.kobalt.app
+package com.beust.kobalt.kotlin
 
 import java.net.URL
 import java.net.URLClassLoader

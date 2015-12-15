@@ -1,4 +1,4 @@
-package com.beust.kobalt.internal.build
+package com.beust.kobalt.app
 
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.Plugins
@@ -7,6 +7,7 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.TaskManager
+import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Topological
 import com.beust.kobalt.misc.log

@@ -1,6 +1,6 @@
 package com.beust.kobalt.plugin.kotlin
 
-import com.beust.kobalt.internal.BuildGenerator
+import com.beust.kobalt.app.BuildGenerator
 import com.google.inject.Inject
 
 public class KotlinBuildGenerator @Inject constructor (val projectInfo: KotlinProjectInfo) : BuildGenerator() {

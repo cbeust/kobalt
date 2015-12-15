@@ -1,6 +1,5 @@
-package com.beust.kobalt.internal
+package com.beust.kobalt.app
 
-import com.beust.kobalt.app.ProjectGenerator
 import com.beust.kobalt.api.IInitContributor
 import com.beust.kobalt.maven.Pom
 import com.beust.kobalt.misc.KFiles

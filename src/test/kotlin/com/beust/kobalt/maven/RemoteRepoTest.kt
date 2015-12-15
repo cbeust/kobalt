@@ -4,7 +4,7 @@ import com.beust.kobalt.Args
 import com.beust.kobalt.TestModule
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.DependencyExecutor
-import com.beust.kobalt.misc.MainModule
+import com.beust.kobalt.app.MainModule
 import com.google.inject.Guice
 import org.testng.Assert
 import org.testng.annotations.Test
