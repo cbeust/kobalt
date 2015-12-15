@@ -53,7 +53,7 @@ public class JarUtils {
                             }
                         }
                         val includedFile = IncludedFile(From(source.path), To(""), listOf(IFileSpec.Glob("**")))
-                        addSingleFile(directory, includedFile, outputStream, expandJarFiles)
+                        addSingleFile(".", includedFile, outputStream, expandJarFiles)
                     } else {
                         if (expandJarFiles and source.name.endsWith(".jar")) {
                             log(2, "Writing contents of jar file ${source}")
