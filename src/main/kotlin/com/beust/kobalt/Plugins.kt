@@ -40,7 +40,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
         /**
          * The list of plugins found in the build file.
          */
-        internal val dynamicPlugins : ArrayList<IClasspathDependency> = arrayListOf()
+        val dynamicPlugins : ArrayList<IClasspathDependency> = arrayListOf()
         fun addDynamicPlugin(plugin: IClasspathDependency) = dynamicPlugins.add(plugin)
 
         fun findPlugin(name: String) : IPlugin? = pluginMap[name]
