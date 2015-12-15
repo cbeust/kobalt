@@ -12,6 +12,10 @@ import com.beust.kobalt.misc.log
 import java.io.File
 import java.net.URLClassLoader
 
+/**
+ * Base class for testing frameworks that are invoked from a main class with arguments. Test runners can
+ * subclass this class and override mainClass and args.
+ */
 abstract class GenericTestRunner : ITestRunnerContributor {
     abstract val mainClass: String
     abstract fun args(project: Project, classpath: List<IClasspathDependency>) : List<String>
