@@ -155,22 +155,19 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             @Suppress("UNCHECKED_CAST")
             val dependentProjects = project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
                     as List<ProjectDescription>
-            listOf(dependencyManager.calculateDependencies(project, context, dependentProjects,
-                        project.compileDependencies),
-                    dependencyManager.calculateDependencies(project, context, dependentProjects,
-                            project.compileRuntimeDependencies))
-                        .forEach { deps : List<IClasspathDependency> ->
-                                deps.map {
-                                    it.jarFile.get()
-                                }.forEach { file : File ->
-                                    if (! seen.contains(file.name)) {
-                                        seen.add(file.name)
-                                        if (! KFiles.isExcluded(file, jar.excludes)) {
-                                            allFiles.add(IncludedFile(arrayListOf(FileSpec(file.path))))
-                                        }
-                                    }
-                                }
+            val allDependencies = project.compileDependencies + project.compileRuntimeDependencies
+            val transitiveDependencies = dependencyManager.calculateDependencies(project, context, dependentProjects,
+                    allDependencies)
+            transitiveDependencies.map {
+                    it.jarFile.get()
+                }.forEach { file : File ->
+                    if (! seen.contains(file.path)) {
+                        seen.add(file.path)
+                        if (! KFiles.isExcluded(file, jar.excludes)) {
+                            allFiles.add(IncludedFile(arrayListOf(FileSpec(file.path))))
                         }
+                    }
+                }
         }
 
         //
