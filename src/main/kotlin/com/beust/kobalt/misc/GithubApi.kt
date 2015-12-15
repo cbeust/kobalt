@@ -108,6 +108,10 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
         fun getReleases(@Path("owner") owner: String,
                 @Query("access_token") accessToken: String,
                 @Path("repo") repo: String): List<ReleasesResponse>
+
+        @GET("/repos/{owner}/{repo}/releases")
+        fun getReleasesNoAuth(@Path("owner") owner: String,
+                @Path("repo") repo: String): List<ReleasesResponse>
     }
 
     val latestKobaltVersion: Future<String>
@@ -115,10 +119,15 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
             val callable = Callable<String> {
                 var result = "0"
 
-                val username = localProperties.get(PROPERTY_USERNAME, DOC_URL)
-                val accessToken = localProperties.get(PROPERTY_ACCESS_TOKEN, DOC_URL)
+                val username = localProperties.getNoThrows(PROPERTY_USERNAME, DOC_URL)
+                val accessToken = localProperties.getNoThrows(PROPERTY_ACCESS_TOKEN, DOC_URL)
                 try {
-                    val releases = service.getReleases(username, accessToken, "kobalt")
+                    val releases =
+                            if (username != null && accessToken != null) {
+                                service.getReleases(username, accessToken, "kobalt")
+                            } else {
+                                service.getReleasesNoAuth("cbeust", "kobalt")
+                            }
                     releases.firstOrNull()?.let {
                         try {
                             result = listOf(it.name, it.tagName).filterNotNull().first { !it.isBlank() }
