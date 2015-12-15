@@ -142,6 +142,9 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             }
             allFiles.add(IncludedFile(From(prefixPath.toString() + "/"), To(""), fileSpecs))
         } else {
+            //
+            // The user specified an include, just use it verbatim
+            //
             allFiles.addAll(findIncludedFiles(project.directory, jar.includedFiles, jar.excludes))
         }
 
