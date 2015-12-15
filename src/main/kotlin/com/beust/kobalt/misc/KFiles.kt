@@ -15,22 +15,27 @@ import kotlin.io.FileSystemException
 import kotlin.io.NoSuchFileException
 
 class KFiles {
-    val kobaltJar : String
+    /**
+     * This actually returns a list of strings because in development mode, we are not pointing to a single
+     * jar file but to a set of /classes directories.
+     */
+    val kobaltJar : List<String>
         get() {
             val envJar = System.getenv("KOBALT_JAR")
             if (envJar != null) {
                 debug("Using kobalt jar $envJar")
-                return File(envJar).absolutePath
+                return listOf(File(envJar).absolutePath)
             } else {
                 val jar = joinDir(distributionsDir, Kobalt.version, "kobalt/wrapper/kobalt-" + Kobalt.version + ".jar")
                 val jarFile = File(jar)
                 if (jarFile.exists()) {
-                    return jarFile.absolutePath
+                    return listOf(jarFile.absolutePath)
                 } else {
                     // Will only happen when building kobalt itself: the jar file might not be in the dist/ directory
                     // yet since we're currently building it. Instead, use the classes directly
                     debug("Couldn't find ${jarFile.absolutePath}, using build/classes/main")
-                    return File(homeDir("kotlin", "kobalt", "build", "classes", "main")).absolutePath
+                    return listOf(File(homeDir("kotlin", "kobalt", "build", "classes", "main")).absolutePath,
+                            File(homeDir("kotlin", "kobalt", "classes", "production", "kobalt-plugin-api")).absolutePath)
                 }
             }
         }

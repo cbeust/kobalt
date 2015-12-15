@@ -36,8 +36,8 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
     fun runBuildScriptJarFile(buildScriptJarFile: File, urls: List<URL>,
             context: KobaltContext) : List<Project> {
         var stream : InputStream? = null
-        val allUrls = (urls + arrayOf(
-                buildScriptJarFile.toURI().toURL()) + File(files.kobaltJar).toURI().toURL())
+        val allUrls = (urls + arrayOf(buildScriptJarFile.toURI().toURL())
+                + files.kobaltJar.map {File(it).toURI().toURL() })
                 .toTypedArray()
         val classLoader = URLClassLoader(allUrls)
 
