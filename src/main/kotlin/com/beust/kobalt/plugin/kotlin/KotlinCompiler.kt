@@ -1,10 +1,10 @@
-package com.beust.kobalt.kotlin
+package com.beust.kobalt.plugin.kotlin
 
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
-import com.beust.kobalt.kotlin.ParentLastClassLoader
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
+import com.beust.kobalt.kotlin.ParentLastClassLoader
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo

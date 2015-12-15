@@ -14,8 +14,8 @@
         <class-name>com.beust.kobalt.plugin.apt.AptPlugin</class-name>
 
         <!-- These classes manage -init for Java and Kotlin -->
-        <class-name>com.beust.kobalt.plugin.java.JavaBuildGenerator</class-name>
-        <class-name>com.beust.kobalt.plugin.kotlin.KotlinBuildGenerator</class-name>
+        <class-name>com.beust.kobalt.app.java.JavaBuildGenerator</class-name>
+        <class-name>com.beust.kobalt.app.kotlin.KotlinBuildGenerator</class-name>
 
         <!-- These classes run TestNG or JUnit depending on which one the user picked -->
         <class-name>com.beust.kobalt.internal.JUnitRunner</class-name>
