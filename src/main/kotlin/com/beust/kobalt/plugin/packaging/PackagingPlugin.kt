@@ -146,7 +146,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         }
 
         //
-        // If fatJar is true, add all the transitive dependencies as well (both compile and runtime)
+        // If fatJar is true, add all the transitive dependencies as well: compile, runtime and dependent projects
         //
         if (jar.fatJar) {
             log(2, "Creating fat jar")
