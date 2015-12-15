@@ -74,7 +74,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
             return runContributor.run(project, context, dependencyManager.testDependencies(project, context,
                     projects()))
         } else {
-            log(2, "Couldn't find a test runner for project ${project.name}, not running any tests")
+            log(1, "Couldn't find a test runner for project ${project.name}, not running any tests")
             return TaskResult()
         }
     }
