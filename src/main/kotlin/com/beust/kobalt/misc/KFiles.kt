@@ -272,7 +272,7 @@ class KFiles {
                 }
                 ex.forEach {
                     if (it.matches(Paths.get(file))) {
-                        log(2, "Excluding $file")
+                        log(3, "Excluding $file")
                         return true
                     }
                 }
