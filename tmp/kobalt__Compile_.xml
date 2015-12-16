@@ -1,0 +1,46 @@
+<component name="libraryTable">
+  <library name="kobalt (Compile)">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/sdklib/25.0.0-alpha3/sdklib-25.0.0-alpha3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/bouncycastle/bcprov-jdk15on/1.48/bcprov-jdk15on-1.48.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/jack/jack-api/0.9.0/jack-api-0.9.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/apache/commons/commons-compress/1.8.1/commons-compress-1.8.1.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/apache/httpcomponents/httpmime/4.1/httpmime-4.1.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/bouncycastle/bcpkix-jdk15on/1.48/bcpkix-jdk15on-1.48.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/build/transform-api/2.0.0-alpha3/transform-api-2.0.0-alpha3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/layoutlib/layoutlib-api/25.0.0-alpha3/layoutlib-api-25.0.0-alpha3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/javawriter/2.5.0/javawriter-2.5.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/intellij/annotations/12.0/annotations-12.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/build/builder-model/2.0.0-alpha3/builder-model-2.0.0-alpha3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/github/spullara/mustache/java/compiler/0.9.1/compiler-0.9.1.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/ddms/ddmlib/25.0.0-alpha3/ddmlib-25.0.0-alpha3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/ow2/asm/asm-tree/5.0.3/asm-tree-5.0.3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/google/code/gson/gson/2.2.4/gson-2.2.4.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/common/25.0.0-alpha3/common-25.0.0-alpha3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/apache/httpcomponents/httpclient/4.1.1/httpclient-4.1.1.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/sdk-common/25.0.0-alpha3/sdk-common-25.0.0-alpha3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/build/builder/2.0.0-alpha3/builder-2.0.0-alpha3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/jill/jill-api/0.9.0/jill-api-0.9.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/dvlib/25.0.0-alpha3/dvlib-25.0.0-alpha3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/build/builder-test-api/2.0.0-alpha3/builder-test-api-2.0.0-alpha3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/build/manifest-merger/25.0.0-alpha3/manifest-merger-25.0.0-alpha3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/repository/25.0.0-alpha3/repository-25.0.0-alpha3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/android/tools/annotations/25.0.0-alpha3/annotations-25.0.0-alpha3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/dokka/dokka-fatjar/0.9.3/dokka-fatjar-0.9.3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.0.0-beta-3595/kotlin-compiler-embeddable-1.0.0-beta-3595.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/google/guava/guava/17.0/guava-17.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/ow2/asm/asm/5.0.4/asm-5.0.4.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/beust/jcommander/1.48/jcommander-1.48.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/apache/maven/maven-model/3.3.3/maven-model-3.3.3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/google/inject/extensions/guice-assistedinject/4.0/guice-assistedinject-4.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/retrofit/retrofit/1.9.0/retrofit-1.9.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/okhttp/okhttp/2.5.0/okhttp-2.5.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlinx/kotlinx.dom/0.0.4/kotlinx.dom-0.0.4.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/okio/okio/1.6.0/okio-1.6.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/io/reactivex/rxjava/1.1.0/rxjava-1.1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
