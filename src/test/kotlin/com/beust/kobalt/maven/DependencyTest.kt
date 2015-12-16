@@ -16,6 +16,8 @@ public class DependencyTest @Inject constructor(val depFactory: DepFactory,
     @DataProvider
     fun dpVersions(): Array<Array<out Any>> {
         return arrayOf(
+                arrayOf("0.1", "0.1.1"),
+                arrayOf("0.1", "1.4"),
                 arrayOf("6.9.4", "6.9.5"),
                 arrayOf("1.7", "1.38"),
                 arrayOf("1.70", "1.380"),

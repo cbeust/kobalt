@@ -7,7 +7,9 @@ import com.beust.kobalt.misc.*
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
+import kotlinx.dom.asElementList
 import kotlinx.dom.parseXml
+import org.w3c.dom.NodeList
 import java.io.File
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorCompletionService
@@ -25,8 +27,8 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
         return FOUND_REPOS.get(id)
     }
 
-    data class RepoResult(val hostConfig: HostConfig, val found: Boolean, val version: String,
-            val hasJar: Boolean = true, val snapshotVersion: String = "")
+    data class RepoResult(val hostConfig: HostConfig, val found: Boolean, val version: Version? = null,
+                          val hasJar: Boolean = true, val snapshotVersion: Version? = null)
 
     private val FOUND_REPOS: LoadingCache<String, RepoResult> = CacheBuilder.newBuilder()
             .build(object : CacheLoader<String, RepoResult>() {
@@ -62,10 +64,11 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
         }
 
         if (results.size > 0) {
-            results.sortByDescending { Versions.toLongVersion(it.version) }
+//            results.sortByDescending { Versions.toLongVersion(it.version) }
+            results.sort({ left, right -> left.version!!.compareTo(right.version!!) })
             return results[0]
         } else {
-            return RepoResult(HostConfig(""), false, id)
+            return RepoResult(HostConfig(""), false, Version.of(id))
         }
     }
 
@@ -81,28 +84,36 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
             val groupId = mavenId.groupId
             val artifactId = mavenId.artifactId
 
-            if (! mavenId.hasVersion) {
+            if (mavenId.version == null) {
                 val ud = UnversionedDep(groupId, artifactId)
                 val isLocal = repoUrl.startsWith(FileDependency.PREFIX_FILE)
                 val foundVersion = findCorrectVersionRelease(ud.toMetadataXmlPath(false, isLocal), repoUrl)
                 if (foundVersion != null) {
-                    return RepoResult(repo, true, foundVersion)
+                    return RepoResult(repo, true, Version.of(foundVersion))
                 } else {
-                    return RepoResult(repo, false, "")
+                    return RepoResult(repo, false)
                 }
             } else {
-                val version = mavenId.version
-                if (version!!.contains("SNAPSHOT")) {
+                val version = Version.of(mavenId.version)
+                if (version.isSnapshot()) {
                     val dep = SimpleDep(mavenId)
                     val isLocal = repoUrl.startsWith(FileDependency.PREFIX_FILE)
-                    val snapshotVersion = if (isLocal) version!!
-                        else findSnapshotVersion(dep.toMetadataXmlPath(false, isLocal, version), repoUrl)
+                    val snapshotVersion = if (isLocal) version
+                        else findSnapshotVersion(dep.toMetadataXmlPath(false, isLocal, version.version), repoUrl)
                     if (snapshotVersion != null) {
                         return RepoResult(repo, true, version, true /* hasJar, potential bug here */,
                                 snapshotVersion)
                     } else {
-                        return RepoResult(repo, false, "")
+                        return RepoResult(repo, false)
                     }
+                } else if (version.isRangedVersion() ) {
+                    val foundVersion = findRangedVersion(SimpleDep(mavenId), repoUrl)
+                    if (foundVersion != null) {
+                        return RepoResult(repo, true, foundVersion)
+                    } else {
+                        return RepoResult(repo, false)
+                    }
+
                 } else {
                     val dep = SimpleDep(mavenId)
                     // Try to find the jar file
@@ -118,7 +129,7 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                             true
                         }
                     log(2, "Result for $repoUrl for $id: $found")
-                    return RepoResult(repo, found, dep.version, hasJar)
+                    return RepoResult(repo, found, Version.of(dep.version), hasJar)
                 }
             }
         }
@@ -148,7 +159,32 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
         return null
     }
 
-    fun findSnapshotVersion(metadataPath: String, repoUrl: String): String? {
+    fun findRangedVersion(dep: SimpleDep, repoUrl: String): Version? {
+        val l = listOf(dep.groupId.replace(".", "/"), dep.artifactId.replace(".", "/"), "maven-metadata.xml")
+        var metadataPath =  l.joinToString("/")
+
+        val versionsXpath = XPATH.compile("/metadata/versioning/versions/version")
+
+        // No version in this dependency, find out the most recent one by parsing maven-metadata.xml, if it exists
+        val url = repoUrl + metadataPath
+        try {
+            val doc = parseXml(url)
+            val version = Version.of(dep.version)
+            if(version.isRangedVersion()) {
+                val versions = (versionsXpath.evaluate(doc, XPathConstants.NODESET) as NodeList)
+                        .asElementList().map { Version.of(it.textContent) }
+                return version.select(versions)
+            } else {
+                return Version.of(XPATH.compile("/metadata/versioning/versions/version/$version")
+                      .evaluate(doc, XPathConstants.STRING) as String)
+            }
+        } catch(ex: Exception) {
+            log(2, "Couldn't find metadata at ${url}")
+        }
+        return null
+    }
+
+    fun findSnapshotVersion(metadataPath: String, repoUrl: String): Version? {
         val timestamp = XPATH.compile("/metadata/versioning/snapshot/timestamp")
         val buildNumber = XPATH.compile("/metadata/versioning/snapshot/buildNumber")
         // No version in this dependency, find out the most recent one by parsing maven-metadata.xml, if it exists
@@ -158,11 +194,11 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
             val ts = timestamp.evaluate(doc, XPathConstants.STRING)
             val bn = buildNumber.evaluate(doc, XPathConstants.STRING)
             if (! Strings.isEmpty(ts.toString()) && ! Strings.isEmpty(bn.toString())) {
-                return ts.toString() + "-" + bn.toString()
+                return Version.of(ts.toString() + "-" + bn.toString())
             } else {
                 val lastUpdated = XPATH.compile("/metadata/versioning/lastUpdated")
                 if (! lastUpdated.toString().isEmpty()) {
-                    return lastUpdated.toString()
+                    return Version.of(lastUpdated.toString())
                 }
 
             }
