@@ -1,8 +1,6 @@
 package com.beust.kobalt.internal
 
-import com.beust.kobalt.api.IAffinity
 import com.beust.kobalt.api.IClasspathDependency
-import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.KFiles
 import java.io.File
@@ -11,9 +9,7 @@ public class TestNgRunner() : GenericTestRunner() {
 
     override val mainClass = "org.testng.TestNG"
 
-    override fun affinity(project: Project, context: KobaltContext) =
-        if (project.testDependencies.any { it.id.contains("testng")}) IAffinity.DEFAULT_POSITIVE_AFFINITY
-        else 0
+    override val dependencyName = "org.testng"
 
     override fun args(project: Project, classpath: List<IClasspathDependency>) = arrayListOf<String>().apply {
             if (project.testArgs.size > 0) {
