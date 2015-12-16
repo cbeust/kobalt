@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutorService
 import javax.inject.Inject
 
 public class DepFactory @Inject constructor(val localRepo: LocalRepo,
-        val repoFinder: RepoFinder,
+        val remoteRepo: RepoFinder,
         val executors: KobaltExecutors,
         val downloadManager: DownloadManager,
         val pomFactory: Pom.IFactory) {
@@ -39,7 +39,7 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
                 if (localFirst) {
                     localRepo.findLocalVersion(mavenId.groupId, mavenId.artifactId, mavenId.packaging)
                 } else {
-                    repoResult = repoFinder.findCorrectRepo(id)
+                    repoResult = remoteRepo.findCorrectRepo(id)
                     if (!repoResult.found) {
                         throw KobaltException("Couldn't resolve $id")
                     } else {
@@ -48,7 +48,7 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
                 }
 
             return MavenDependency(MavenId.create(mavenId.groupId, mavenId.artifactId, packaging, version),
-                    executor, localRepo, repoFinder, pomFactory, downloadManager)
+                    executor, localRepo, remoteRepo, pomFactory, downloadManager)
         }
     }
 }
