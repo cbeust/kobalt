@@ -15,7 +15,7 @@ class MavenIdTest {
                     null, null),
             arrayOf("com.google.inject:guice:4.0:no_aop",
                     "com.google.inject", "guice", "4.0", null, "no_aop"),
-            arrayOf("com.android.support:appcompat-v7:aar:22.2.1",
+            arrayOf("com.android.support:appcompat-v7:22.2.1@aar",
                     "com.android.support", "appcompat-v7", "22.2.1", "aar", null)
         )
     }

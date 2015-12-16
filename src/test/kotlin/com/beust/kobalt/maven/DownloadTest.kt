@@ -26,7 +26,7 @@ public class DownloadTest @Inject constructor(
         executor = executors.newExecutor("DependentTest", 5)
     }
 
-    private fun deleteDir() : Boolean {
+    private fun deleteDir(): Boolean {
         val dir = File(localRepo.toFullPath("$groupId"))
         val result = dir.deleteRecursively()
         return result
@@ -52,7 +52,7 @@ public class DownloadTest @Inject constructor(
     val version = "2.9.1"
     val previousVersion = "2.9"
     val groupId = "joda-time"
-   val artifactId = "joda-time"
+    val artifactId = "joda-time"
     val jarFile = "$artifactId-$version.jar"
     val idNoVersion = "$groupId:$artifactId:"
 
@@ -73,11 +73,26 @@ public class DownloadTest @Inject constructor(
     }
 
     @Test
+    public fun shouldDownloadRangedVersion() {
+        File(localRepo.toFullPath("javax/servlet/servlet-api")).deleteRecursively()
+        testRange("[2.5,)", "3.0-alpha-1")
+    }
+
+    private fun testRange(range: String, expected: String) {
+        val dep = depFactory.create("javax.servlet:servlet-api:${range}", executor)
+        val future = dep.jarFile
+        val file = future.get()
+        Assert.assertFalse(future is CompletedFuture)
+        Assert.assertEquals(file.getName(), "servlet-api-${expected}.jar")
+        Assert.assertTrue(file.exists())
+    }
+
+    @Test
     public fun shouldFindLocalJar() {
         MavenDependency.create("$idNoVersion$version")
         val dep = depFactory.create("$idNoVersion$version", executor)
         val future = dep.jarFile
-//        Assert.assertTrue(future is CompletedFuture)
+        //        Assert.assertTrue(future is CompletedFuture)
         val file = future.get()
         Assert.assertTrue(file.exists())
     }

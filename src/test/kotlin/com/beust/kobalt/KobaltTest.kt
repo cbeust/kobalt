@@ -6,8 +6,10 @@ import org.testng.annotations.Guice
 
 @Guice(modules = arrayOf(TestModule::class))
 open class KobaltTest {
-    @BeforeSuite
-    public fun bs() {
-        Kobalt.INJECTOR = com.google.inject.Guice.createInjector(TestModule())
+    companion object {
+        @BeforeSuite
+        public fun bs() {
+            Kobalt.INJECTOR = com.google.inject.Guice.createInjector(TestModule())
+        }
     }
 }

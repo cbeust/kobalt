@@ -20,7 +20,13 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
             size == 3 || size == 4
         }
 
-        private fun isVersion(s: String) : Boolean = Character.isDigit(s[0])
+        private fun isVersion(s: String): Boolean {
+           return Character.isDigit(s[0]) || isRangedVersion(s)
+        }
+
+        fun isRangedVersion(s: String): Boolean {
+            return s.first() in listOf('[', '(') && s.last() in listOf(']', ')')
+        }
 
         /**
          * Similar to create(MavenId) but don't run IMavenIdInterceptors.
@@ -38,12 +44,11 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
             groupId = c[0]
             artifactId = c[1]
             if (!c[2].isEmpty()) {
-                if (isVersion(c[2])) {
-                    version = c[2]
-                } else {
-                    packaging = c[2]
-                    version = c[3]
+                val split = c[2].split('@')
+                if (isVersion(split[0])) {
+                    version = split[0]
                 }
+                packaging = if (split.size == 2) split[1] else null
             }
 
             return MavenId(groupId, artifactId, packaging, version)

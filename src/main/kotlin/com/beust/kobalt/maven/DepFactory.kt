@@ -35,15 +35,15 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
             var packaging = mavenId.packaging
             var repoResult: RepoFinder.RepoResult?
 
-            if (! mavenId.hasVersion) {
-                if (localFirst) version = localRepo.findLocalVersion(mavenId.groupId, mavenId.artifactId,
-                        mavenId.packaging)
-                if (! localFirst || version == null) {
+            if (mavenId.version != null) {
+                var localVersion: String? = mavenId.version
+                if (localFirst) localVersion = localRepo.findLocalVersion(mavenId.groupId, mavenId.artifactId, mavenId.packaging)
+                if (! localFirst || localVersion == null) {
                     repoResult = repoFinder.findCorrectRepo(id)
                     if (!repoResult.found) {
                         throw KobaltException("Couldn't resolve $id")
                     } else {
-                        version = repoResult.version
+                        version = repoResult.version?.version
                     }
                 }
             }
