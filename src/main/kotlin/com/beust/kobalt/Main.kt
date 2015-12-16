@@ -116,10 +116,15 @@ private class Main @Inject constructor(
             val latestVersionString = latestVersionFuture.get(1, TimeUnit.SECONDS)
             val latestVersion = Versions.toLongVersion(latestVersionString)
             val current = Versions.toLongVersion(Kobalt.version)
+            val distFile = File(KFiles.joinDir(KFiles.distributionsDir, latestVersionString))
             if (latestVersion > current) {
-                listOf("", "New Kobalt version available: $latestVersionString",
-                        "To update, run ./kobaltw --update", "").forEach {
-                    log(1, "**** $it")
+                if (distFile.exists()) {
+                    log(1, "**** Version $latestVersionString is installed")
+                } else {
+                    listOf("", "New Kobalt version available: $latestVersionString",
+                            "To update, run ./kobaltw --update", "").forEach {
+                        log(1, "**** $it")
+                    }
                 }
             }
         } catch(ex: TimeoutException) {
