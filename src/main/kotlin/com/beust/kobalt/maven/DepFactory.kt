@@ -18,8 +18,9 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
         val pomFactory: Pom.IFactory) {
 
     companion object {
-        val defExecutor =
-                Kobalt.INJECTOR.getInstance(Key.get(ExecutorService::class.java, DependencyExecutor::class.java))
+        val defExecutor : ExecutorService by lazy {
+            Kobalt.INJECTOR.getInstance(Key.get(ExecutorService::class.java, DependencyExecutor::class.java))
+        }
     }
 
     /**
