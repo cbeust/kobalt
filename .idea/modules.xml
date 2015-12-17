@@ -4,7 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/kobalt/Build.kt.iml" filepath="$PROJECT_DIR$/kobalt/Build.kt.iml" />
       <module fileurl="file://$PROJECT_DIR$/kobalt.iml" filepath="$PROJECT_DIR$/kobalt.iml" />
-      <module fileurl="file://$PROJECT_DIR$/modules/wrapper/wrapper.iml" filepath="$PROJECT_DIR$/modules/wrapper/wrapper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/modules/kobalt-plugin-api/kobalt-plugin-api.iml" filepath="$PROJECT_DIR$/modules/kobalt-plugin-api/kobalt-plugin-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/modules/wrapper/kobalt-wrapper.iml" filepath="$PROJECT_DIR$/modules/wrapper/kobalt-wrapper.iml" />
     </modules>
   </component>
 </project>
