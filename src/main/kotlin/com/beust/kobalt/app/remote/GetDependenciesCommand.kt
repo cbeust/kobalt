@@ -3,7 +3,9 @@ package com.beust.kobalt.app.remote
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.ProjectDescription
 import com.beust.kobalt.app.BuildFileCompiler
+import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.internal.remote.CommandData
@@ -55,7 +57,15 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
                     allDeps(project.compileDependencies).map { toDependencyData(it, "compile") }
             val testDependencies = allDeps(project.testDependencies).map { toDependencyData(it, "testCompile") }
 
-            projectDatas.add(ProjectData(project.name, project.directory, compileDependencies, testDependencies,
+            @Suppress("UNCHECKED_CAST")
+            val pd = (project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
+                    as List<ProjectDescription>)
+            val dependentProjects = pd.filter { it.project.name == project.name }.flatMap {
+                it.dependsOn.map { it
+                    .name
+                }}
+            projectDatas.add(ProjectData(project.name, project.directory, dependentProjects,
+                    compileDependencies, testDependencies,
                     project.sourceDirectories, project.sourceDirectoriesTest))
         }
         log(1, "Returning BuildScriptInfo")
@@ -70,7 +80,9 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
 
     class DependencyData(val id: String, val scope: String, val path: String)
 
-    class ProjectData(val name: String, val directory: String, val compileDependencies: List<DependencyData>,
+    class ProjectData(val name: String, val directory: String,
+            val dependentProjects: List<String>,
+            val compileDependencies: List<DependencyData>,
             val testDependencies: List<DependencyData>, val sourceDirs: Set<String>, val testDirs: Set<String>)
 
     class GetDependenciesData(val projects: List<ProjectData>)

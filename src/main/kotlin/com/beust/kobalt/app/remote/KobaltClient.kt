@@ -25,7 +25,7 @@ public class KobaltClient @Inject constructor() : Runnable {
             try {
                 val socket = Socket("localhost", portNumber)
                 outgoing = PrintWriter(socket.outputStream, true)
-                val testBuildfile = Paths.get(SystemProperties.homeDir, "kotlin", "kobalt", "kobalt/src/Build.kt")
+                val testBuildfile = Paths.get(SystemProperties.homeDir, "java/testng/kobalt/src/Build.kt")
                     .toFile().absolutePath
                 val c : String = "{ \"name\":\"getDependencies\", \"buildFile\": \"$testBuildfile\"}"
                 outgoing!!.println(c)
