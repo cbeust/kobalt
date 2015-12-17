@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.cli.common.CLICompiler
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import java.io.File
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.properties.Delegates
@@ -71,7 +72,8 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
          * There are plenty of ways in which this method can break but this will be immediately
          * apparent if it happens.
          */
-        private fun invokeCompiler(cp: List<File>, allArgs: Array<String>): Boolean {
+        private fun invokeCompiler(cp: List<File>, args: Array<String>): Boolean {
+            val allArgs = listOf("-module-name", "module" + Random().nextInt()) + args
             log(2, "Calling kotlinc " + allArgs.joinToString(" "))
             val result : Boolean =
                     if (true) {
@@ -82,11 +84,11 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
                         }.get(0)
                         val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
                         val compilerInstance = kCompiler.newInstance()
-                        val exitCode = compilerMain.invoke(null, compilerInstance, allArgs)
+                        val exitCode = compilerMain.invoke(null, compilerInstance, allArgs.toTypedArray())
                         val nameMethod = exitCode.javaClass.getMethod("name")
                         "OK" == nameMethod.invoke(exitCode).toString()
                     } else {
-                        val exitCode = CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs)
+                        val exitCode = CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs.toTypedArray())
                         exitCode == ExitCode.OK
                     }
             return result
