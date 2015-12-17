@@ -1,13 +1,19 @@
 
-import com.beust.kobalt.*
-import com.beust.kobalt.api.*
+import com.beust.kobalt.TaskResult
+import com.beust.kobalt.api.License
+import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.Scm
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.homeDir
 import com.beust.kobalt.plugin.application.application
-import com.beust.kobalt.plugin.java.*
-import com.beust.kobalt.plugin.kotlin.*
+import com.beust.kobalt.plugin.java.javaCompiler
+import com.beust.kobalt.plugin.java.javaProject
+import com.beust.kobalt.plugin.kotlin.kotlinCompiler
+import com.beust.kobalt.plugin.kotlin.kotlinProject
 import com.beust.kobalt.plugin.packaging.assemble
 import com.beust.kobalt.plugin.publish.github
 import com.beust.kobalt.plugin.publish.jcenter
+import com.beust.kobalt.repos
 import com.beust.kobalt.test
 import java.io.File
 import java.nio.file.Files
@@ -60,8 +66,8 @@ val kobaltPluginApi = kotlinProject {
     dependencies {
         compile("org.jetbrains.kotlinx:kotlinx.dom:0.0.4",
 
-                "com.beust:jcommander:1.48",
                 "com.squareup.okhttp:okhttp:2.5.0",
+                "com.squareup.okio:okio:1.6.0",
                 "com.google.inject:guice:4.0",
                 "com.google.inject.extensions:guice-assistedinject:4.0",
                 "javax.inject:javax.inject:1",
@@ -69,8 +75,9 @@ val kobaltPluginApi = kotlinProject {
                 "org.apache.maven:maven-model:3.3.3",
                 "io.reactivex:rxjava:1.0.16",
                 "com.google.code.gson:gson:2.4",
-                "com.squareup.retrofit:retrofit:1.9.0"
-        )
+                "com.squareup.retrofit:retrofit:1.9.0",
+                "com.beust:jcommander:1.48"
+                )
     }
 
 
@@ -113,7 +120,20 @@ val kobaltApp = kotlinProject(kobaltPluginApi, wrapper) {
                 "org.jetbrains.dokka:dokka-fatjar:0.9.3")
 
         // Used by the main app
-        compile("com.github.spullara.mustache.java:compiler:0.9.1")
+        compile("com.github.spullara.mustache.java:compiler:0.9.1",
+                "com.squareup.okhttp:okhttp:2.5.0",
+                "javax.inject:javax.inject:1",
+                "com.google.inject:guice:4.0",
+                "com.google.inject.extensions:guice-assistedinject:4.0",
+                "com.beust:jcommander:1.48",
+                "com.squareup.retrofit:retrofit:1.9.0",
+                "org.apache.maven:maven-model:3.3.3",
+                "org.codehaus.plexus:plexus-utils:3.0.22")
+
+    }
+
+    dependenciesTest {
+        compile("org.testng:testng:6.9.9")
     }
 
     assemble {

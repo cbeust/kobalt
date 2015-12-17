@@ -19,4 +19,6 @@ done
 
 cp /Users/beust/t/kobalt-plugin-api.iml modules/kobalt-plugin-api
 
+cp tmp/Build.kt kobalt/src
+
 #                     return File(homeDir("kotlin", "kobalt", "classes", "production", "kobalt-plugin-api")).absolutePath
