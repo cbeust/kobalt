@@ -10,3 +10,5 @@ classes
 libs
 .kobalt/
 build/
+out
+.DS_Store

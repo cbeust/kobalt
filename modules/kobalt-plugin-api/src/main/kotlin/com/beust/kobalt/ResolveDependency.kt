@@ -1,6 +1,7 @@
 package com.beust.kobalt
 
 import com.beust.kobalt.api.IClasspathDependency
+import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.RepoFinder
 import com.beust.kobalt.maven.SimpleDep
@@ -13,7 +14,7 @@ import java.util.*
 /**
  * Display information about a Maven id.
  */
-class ResolveDependency @Inject constructor(val repoFinder: RepoFinder) {
+class ResolveDependency @Inject constructor(val repoFinder: RepoFinder, val localRepo: LocalRepo) {
     val increment = 8
     val leftFirst = "\u2558"
     val leftMiddle = "\u255f"
@@ -35,7 +36,8 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder) {
 
         val simpleDep = SimpleDep(MavenId.create(id))
         val url = repoResult.hostConfig.url + simpleDep.toJarFile(repoResult)
-        AsciiArt.logBox(listOf(id, url).map { "          $it" }, {s -> println(s) })
+        val localFile = localRepo.toFullPath(simpleDep.toJarFile(repoResult))
+        AsciiArt.logBox(listOf(id, url, localFile).map { "          $it" }, {s -> println(s) })
 
         display(root.children)
         println("")
