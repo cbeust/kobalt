@@ -38,7 +38,7 @@ public class JarUtils {
                 val path = spec.toString()
                 spec.toFiles(directory + "/" + file.from).forEach { source ->
                     if (source.isDirectory) {
-                        log(2, "Writing contents of directory ${source}")
+                        log(2, "Writing contents of directory $source")
 
                         // Directory
                         var name = path
@@ -56,7 +56,7 @@ public class JarUtils {
                         addSingleFile(".", includedFile, outputStream, expandJarFiles)
                     } else {
                         if (expandJarFiles and source.name.endsWith(".jar")) {
-                            log(2, "Writing contents of jar file ${source}")
+                            log(2, "Writing contents of jar file $source")
                             val stream = JarInputStream(FileInputStream(source))
                             var entry = stream.nextEntry
                             while (entry != null) {
@@ -72,7 +72,7 @@ public class JarUtils {
                             val fromPath = (file.from + "/" + source.path).replace("\\", "/")
                             val entryFile = File(directory, fromPath)
                             if (! entryFile.exists()) {
-                                throw AssertionError("File should exist: ${entryFile}")
+                                throw AssertionError("File should exist: $entryFile")
                             }
                             addEntry(FileInputStream(entryFile), entry, outputStream, onError)
                         }
