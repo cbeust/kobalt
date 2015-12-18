@@ -249,10 +249,10 @@ abstract class JvmCompilerPlugin @Inject constructor(
         return result
     }
 
-    val sourceDirectories = arrayListOf<File>()
+    val sourceDirectories = hashSetOf<File>()
 
     // ISourceDirectoryContributor
     override fun sourceDirectoriesFor(project: Project, context: KobaltContext)
-            = if (accept(project)) sourceDirectories else arrayListOf()
+            = if (accept(project)) sourceDirectories.toList() else arrayListOf()
 }
 
