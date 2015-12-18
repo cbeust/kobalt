@@ -1,8 +1,10 @@
 package com.beust.kobalt.maven
 
+import com.beust.kobalt.HostConfig
 import com.beust.kobalt.KobaltTest
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.Version
 import com.beust.kobalt.misc.warn
 import org.testng.Assert
 import org.testng.annotations.BeforeClass
@@ -18,7 +20,8 @@ import kotlin.properties.Delegates
 public class DownloadTest @Inject constructor(
         val depFactory: DepFactory,
         val localRepo: LocalRepo,
-        val executors: KobaltExecutors) : KobaltTest() {
+        val executors: KobaltExecutors,
+        val repoFinder: RepoFinder) : KobaltTest() {
     var executor: ExecutorService by Delegates.notNull()
 
     @BeforeClass
@@ -105,5 +108,29 @@ public class DownloadTest @Inject constructor(
         Assert.assertNotNull(file)
         Assert.assertTrue(file.exists(), "Should find ${file}")
     }
+
+    @Test
+    fun snapshotTest() {
+        val id = "org.jetbrains.spek:spek:0.1-SNAPSHOT"
+        val mavenId = MavenId.create(id)
+        val dep = SimpleDep(mavenId)
+
+        // TODO: allow tests to add their own repo. The following call requires
+        // "http://repository.jetbrains.com/all" to work
+        // For now, just hardcoding the result we should have received
+//        val repoResult = repoFinder.findCorrectRepo(id)
+
+        val repoResult = RepoFinder.RepoResult(HostConfig("http://repository.jetbrains.com/all/"),
+                true, Version.of("0.1-SNAPSHOT"), true, Version("0.1-SNAPSHOT", "20151011.112011-29"))
+
+        val jarFile = dep.toJarFile(repoResult)
+        val url = repoResult.hostConfig.url + jarFile
+
+        val metadataXmlPath = dep.toMetadataXmlPath(false, false, "0.1-SNAPSHOT")
+
+        Assert.assertEquals(metadataXmlPath, "org/jetbrains/spek/spek/0.1-SNAPSHOT/maven-metadata.xml")
+        Assert.assertTrue(Kurl(HostConfig(url)).exists, "Should exist: $url")
+    }
+
 }
 

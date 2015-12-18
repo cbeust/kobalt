@@ -3,10 +3,7 @@ package com.beust.kobalt.misc
 import com.beust.kobalt.maven.MavenId
 import com.google.common.base.CharMatcher
 import java.math.BigInteger
-import java.util.Arrays
-import java.util.Comparator
-import java.util.Locale
-import java.util.TreeMap
+import java.util.*
 
 public class Versions {
     companion object {
@@ -39,7 +36,7 @@ public class Versions {
     }
 }
 
-class Version(val version: String): Comparable<Version> {
+class Version(val version: String, val snapshotTimestamp: String? = null): Comparable<Version> {
 
     companion object {
         private val comparator = VersionComparator()
@@ -47,6 +44,9 @@ class Version(val version: String): Comparable<Version> {
             return Version(string)
         }
     }
+
+    val noSnapshotVersion: String
+        get() = version.replace("-SNAPSHOT", "")
 
     internal val items: List<Item>
 
