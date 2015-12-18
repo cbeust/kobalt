@@ -17,6 +17,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.nio.file.Paths
+import java.util.*
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
@@ -236,17 +237,40 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val fullArchiveName = context.variant.archiveName(project, archiveName, suffix)
         val archiveDir = File(libsDir(project))
         val result = File(archiveDir.path, fullArchiveName)
-        val outStream = outputStreamFactory(FileOutputStream(result))
         log(2, "Creating $result")
-        JarUtils.addFiles(project.directory, includedFiles, outStream, expandJarFiles)
-        log(2, text = "Added ${includedFiles.size} files to $result")
-        outStream.flush()
-        outStream.close()
-        log(1, "  Created $result")
+        if (isOutdated(project.directory, includedFiles, result)) {
+            val outStream = outputStreamFactory(FileOutputStream(result))
+            JarUtils.addFiles(project.directory, includedFiles, outStream, expandJarFiles)
+            log(2, text = "Added ${includedFiles.size} files to $result")
+            outStream.flush()
+            outStream.close()
+            log(1, "  Created $result")
+        } else {
+            log(2, "  $result is up to date")
+        }
 
         project.projectProperties.put(JAR_NAME, result.absolutePath)
 
         return result
+    }
+
+    private fun isOutdated(directory: String, includedFiles: List<IncludedFile>, output: File): Boolean {
+        if (! output.exists()) return true
+
+        val lastModified = output.lastModified()
+        includedFiles.forEach { root ->
+            val allFiles = root.allFromFiles(directory)
+            allFiles.forEach { file ->
+                if (file.isFile) {
+                    if (file.lastModified() > lastModified) {
+                        log(2, "  Outdated $file and $output "
+                                + Date(file.lastModified()) + " " + Date(output.lastModified()))
+                        return true
+                    }
+                }
+            }
+        }
+        return false
     }
 
     fun addPackage(p: PackageConfig) {

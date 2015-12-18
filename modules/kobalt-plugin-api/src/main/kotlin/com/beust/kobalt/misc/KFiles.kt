@@ -7,6 +7,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.maven.Md5
 import java.io.File
 import java.io.IOException
 import java.nio.file.*
@@ -160,7 +161,7 @@ class KFiles {
             // Until then, wipe everything first
             if (deleteFirst) to.deleteRecursively()
 //            to.mkdirs()
-            hackCopyRecursively(from, to, replaceExisting, onError)
+            hackCopyRecursively(from, to, replaceExisting = replaceExisting, onError = onError)
         }
 
         /** Private exception class, used to terminate recursive copying */
@@ -171,6 +172,7 @@ class KFiles {
          */
         private fun hackCopyRecursively(from: File, dst: File,
                 replaceExisting: Boolean,
+                checkTimestamp: Boolean = false,
                 onError: (File, IOException) -> OnErrorAction =
                 { file, exception -> throw exception }
         ): Boolean {
@@ -196,9 +198,13 @@ class KFiles {
                         } else if (src.isDirectory) {
                             dstFile.mkdirs()
                         } else {
-                            if (src.copyTo(dstFile, true) != src.length()) {
-                                if (onError(src, IOException("src.length() != dst.length()")) == OnErrorAction.TERMINATE)
-                                    return false
+                            if (dstFile.exists() && Md5.toMd5(src) == Md5.toMd5(dstFile)) {
+                                log(2, "  Identical files, not copying $src to $dstFile")
+                            } else {
+                                if (src.copyTo(dstFile, true) != src.length()) {
+                                    if (onError(src, IOException("src.length() != dst.length()")) == OnErrorAction.TERMINATE)
+                                        return false
+                                }
                             }
                         }
                     }
@@ -242,8 +248,14 @@ class KFiles {
                 log(2, "Windows detected, not overwriting $to")
             } else {
                 try {
-                    log(2, "Copy from $from to ${to!!}")
-                    Files.copy(from, to, option)
+                    if (from != null && to != null) {
+                        if (!Files.exists(to) || Md5.toMd5(from.toFile()) != Md5.toMd5(to.toFile())) {
+                            log(2, "Copy from $from to ${to}")
+                            Files.copy(from, to, option)
+                        } else {
+                            log(2, "  Not copying, indentical files: $from $to")
+                        }
+                    }
                 } catch(ex: IOException) {
                     // Windows is anal about this
                     log(1, "Couldn't copy $from to $to: ${ex.message}")

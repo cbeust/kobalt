@@ -112,7 +112,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
                 it.exists()
             } .forEach {
                 log(2, "Copying from $sourceDirs to $absOutputDir")
-                KFiles.copyRecursively(it, absOutputDir, deleteFirst = true)
+                KFiles.copyRecursively(it, absOutputDir, deleteFirst = false)
             }
         } else {
             lp(project, "No resources to copy for $sourceSet")
@@ -133,7 +133,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         project.projectProperties.put(COMPILER_ARGS, arrayListOf(*args))
     }
 
-    fun isOutOfDate(project: Project, context: KobaltContext, actionInfo: CompilerActionInfo) : Boolean {
+    fun isOutdated(project: Project, context: KobaltContext, actionInfo: CompilerActionInfo) : Boolean {
         fun stripSourceDir(sourceFile: String) : String {
             project.sourceDirectories.forEach {
                 val d = KFiles.joinDir(project.directory, it)
@@ -150,10 +150,10 @@ abstract class JvmCompilerPlugin @Inject constructor(
 
         fun toClassFile(sourceFile: String) = stripSuffix(sourceFile) + ".class"
 
-        val sourceFiles = actionInfo.sourceFiles.map { stripSourceDir(it) }
-        sourceFiles.forEach { sourceFile ->
-            val classFile = KFiles.joinDir(project.directory, project.classesDir(context), toClassFile(sourceFile))
-            if (classFile == null || File(sourceFile).lastModified() > File(classFile).lastModified()) {
+        actionInfo.sourceFiles.forEach { sourceFile ->
+            val stripped = stripSourceDir(sourceFile)
+            val classFile = File(KFiles.joinDir(project.directory, project.classesDir(context), toClassFile(stripped)))
+            if (! classFile.exists() || File(sourceFile).lastModified() > classFile.lastModified()) {
                 return true
             }
         }
@@ -170,7 +170,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
             sourceDirectories.add(sourceDirectory)
         }
         val info = createCompilerActionInfo(project, context, isTest = false)
-        if (isOutOfDate(project, context, info)) {
+        if (isOutdated(project, context, info)) {
             val compiler = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.compilerContributors)
             if (compiler != null) {
                 return compiler.compile(project, context, info)

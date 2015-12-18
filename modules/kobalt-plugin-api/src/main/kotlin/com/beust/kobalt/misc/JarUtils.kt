@@ -34,7 +34,8 @@ public class JarUtils {
 
         public fun addSingleFile(directory: String, file: IncludedFile, outputStream: ZipOutputStream,
                 expandJarFiles: Boolean, onError: (Exception) -> Unit = DEFAULT_HANDLER) {
-            file.allFromFiles(directory).forEach { source ->
+            val allFiles = file.allFromFiles(directory)
+            allFiles.forEach { source ->
                 val path = source.path
                 if (source.isDirectory) {
                     log(2, "Writing contents of directory $source")
@@ -68,8 +69,8 @@ public class JarUtils {
                     } else {
                         val entry = JarEntry((file.to + source.path).replace("\\", "/"))
                         entry.time = source.lastModified()
-                        val fromPath = (file.from + "/" + source.path).replace("\\", "/")
-                        val entryFile = File(directory, fromPath)
+                        val fromPath = source.path.replace("\\", "/")
+                        val entryFile = source
                         if (! entryFile.exists()) {
                             throw AssertionError("File should exist: $entryFile")
                         }
@@ -155,9 +156,9 @@ class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<I
     fun allFromFiles(directory: String): List<File> {
         val result = arrayListOf<File>()
         specs.forEach { spec ->
-            val path = spec.toString()
-            spec.toFiles(directory + "/" + from).forEach { source ->
-                result.add(source)
+            val fullDir = KFiles.joinDir(directory, from)
+            spec.toFiles(fullDir).forEach { source ->
+                result.add(if (source.isAbsolute) source else File(fullDir, source.path))
             }
         }
         return result
