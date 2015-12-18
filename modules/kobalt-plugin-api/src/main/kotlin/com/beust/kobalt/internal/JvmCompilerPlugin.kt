@@ -79,7 +79,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         }
     }
 
-    @Task(name = TASK_CLEAN, description = "Clean the project", runBefore = arrayOf("compile"))
+    @Task(name = TASK_CLEAN, description = "Clean the project")
     fun taskClean(project : Project ) : TaskResult {
         java.io.File(project.directory, project.buildDirectory).let { dir ->
             if (! dir.deleteRecursively()) {
@@ -133,6 +133,33 @@ abstract class JvmCompilerPlugin @Inject constructor(
         project.projectProperties.put(COMPILER_ARGS, arrayListOf(*args))
     }
 
+    fun isOutOfDate(project: Project, context: KobaltContext, actionInfo: CompilerActionInfo) : Boolean {
+        fun stripSourceDir(sourceFile: String) : String {
+            project.sourceDirectories.forEach {
+                val d = KFiles.joinDir(project.directory, it)
+                if (sourceFile.startsWith(d)) return sourceFile.substring(d.length + 1)
+            }
+            throw KobaltException("Couldn't strip source dir from $sourceFile")
+        }
+
+        fun stripSuffix(sourceFile: String) : String {
+            val index = sourceFile.indexOf(project.sourceSuffix)
+            if (index >= 0) return sourceFile.substring(0, index)
+            else return sourceFile
+        }
+
+        fun toClassFile(sourceFile: String) = stripSuffix(sourceFile) + ".class"
+
+        val sourceFiles = actionInfo.sourceFiles.map { stripSourceDir(it) }
+        sourceFiles.forEach { sourceFile ->
+            val classFile = KFiles.joinDir(project.directory, project.classesDir(context), toClassFile(sourceFile))
+            if (classFile == null || File(sourceFile).lastModified() > File(classFile).lastModified()) {
+                return true
+            }
+        }
+        return false
+    }
+
     @Task(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project) : TaskResult {
         // Set up the source files now that we have the variant
@@ -143,11 +170,16 @@ abstract class JvmCompilerPlugin @Inject constructor(
             sourceDirectories.add(sourceDirectory)
         }
         val info = createCompilerActionInfo(project, context, isTest = false)
-        val compiler = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.compilerContributors)
-        if (compiler != null) {
-            return compiler.compile(project, context, info)
+        if (isOutOfDate(project, context, info)) {
+            val compiler = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.compilerContributors)
+            if (compiler != null) {
+                return compiler.compile(project, context, info)
+            } else {
+                throw KobaltException("Couldn't find any compiler for project ${project.name}")
+            }
         } else {
-            throw KobaltException("Couldn't find any compiler for project ${project.name}")
+            log(2, "Source files are up to date, not compiling")
+            return TaskResult()
         }
     }
 
