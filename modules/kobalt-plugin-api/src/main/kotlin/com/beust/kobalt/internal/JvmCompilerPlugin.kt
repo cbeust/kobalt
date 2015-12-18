@@ -136,7 +136,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
     fun isOutdated(project: Project, context: KobaltContext, actionInfo: CompilerActionInfo) : Boolean {
         fun stripSourceDir(sourceFile: String) : String {
             project.sourceDirectories.forEach {
-                val d = KFiles.joinDir(project.directory, it)
+                val d = listOf(project.directory, it).joinToString("/")
                 if (sourceFile.startsWith(d)) return sourceFile.substring(d.length + 1)
             }
             throw KobaltException("Couldn't strip source dir from $sourceFile")
@@ -150,7 +150,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
 
         fun toClassFile(sourceFile: String) = stripSuffix(sourceFile) + ".class"
 
-        actionInfo.sourceFiles.forEach { sourceFile ->
+        actionInfo.sourceFiles.map { it.replace("\\", "/") }.forEach { sourceFile ->
             val stripped = stripSourceDir(sourceFile)
             val classFile = File(KFiles.joinDir(project.directory, project.classesDir(context), toClassFile(stripped)))
             if (! classFile.exists() || File(sourceFile).lastModified() > classFile.lastModified()) {
