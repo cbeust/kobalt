@@ -81,14 +81,14 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         /**
          * Where plug-ins define their plug-in actors.
          */
-        val PLUGIN_XML = "META-INF/kobalt-plugin.xml" // Plugins.PLUGIN_XML)
+        val PLUGIN_XML = "META-INF/kobalt-plugin.xml"
 
         /**
          * Kobalt's core XML file needs to be different from kobalt-plugin.xml because classloaders
          * can put a plug-in's jar file in front of Kobalt's, which means we'll read
          * that one instead of the core one.
          */
-        val PLUGIN_CORE_XML = "META-INF/kobalt-core-plugin.xml" // Plugins.PLUGIN_XML)
+        val PLUGIN_CORE_XML = "META-INF/kobalt-core-plugin.xml"
 
         /**
          * Read Kobalt's own kobalt-plugin.xml.
