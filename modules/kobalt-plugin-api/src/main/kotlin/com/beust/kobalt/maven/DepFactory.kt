@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutorService
 import javax.inject.Inject
 
 public class DepFactory @Inject constructor(val localRepo: LocalRepo,
-        val repoFinder: RepoFinder,
+        val remoteRepo: RepoFinder,
         val executors: KobaltExecutors,
         val downloadManager: DownloadManager,
         val pomFactory: Pom.IFactory) {
@@ -26,31 +26,35 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
     /**
      * Parse the id and return the correct IClasspathDependency
      */
-    public fun create(id: String, executor: ExecutorService = defExecutor,
-            localFirst : Boolean = true) : IClasspathDependency {
+    public fun create(id: String, executor: ExecutorService = defExecutor, localFirst : Boolean = true)
+            : IClasspathDependency {
         if (id.startsWith(FileDependency.PREFIX_FILE)) {
             return FileDependency(id.substring(FileDependency.PREFIX_FILE.length))
         } else {
             val mavenId = MavenId.create(id)
-            var version = mavenId.version
+            var tentativeVersion = mavenId.version
             var packaging = mavenId.packaging
             var repoResult: RepoFinder.RepoResult?
 
-            if (mavenId.version != null) {
-                var localVersion: String? = mavenId.version
-                if (localFirst) localVersion = localRepo.findLocalVersion(mavenId.groupId, mavenId.artifactId, mavenId.packaging)
-                if (! localFirst || localVersion == null) {
-                    repoResult = repoFinder.findCorrectRepo(id)
-                    if (!repoResult.found) {
-                        throw KobaltException("Couldn't resolve $id")
+            val version =
+                if (tentativeVersion != null && ! MavenId.isRangedVersion(tentativeVersion)) tentativeVersion
+                else {
+                    var localVersion: String? = tentativeVersion
+                    if (localFirst) localVersion = localRepo.findLocalVersion(mavenId.groupId, mavenId.artifactId, mavenId.packaging)
+                    if (localFirst && localVersion != null) {
+                        localVersion
                     } else {
-                        version = repoResult.version?.version
+                        repoResult = remoteRepo.findCorrectRepo(id)
+                        if (!repoResult.found) {
+                            throw KobaltException("Couldn't resolve $id")
+                        } else {
+                            repoResult.version?.version
+                        }
                     }
                 }
-            }
 
-            return MavenDependency(MavenId.create(mavenId.groupId, mavenId.artifactId, packaging, version!!),
-                    executor, localRepo, repoFinder, pomFactory, downloadManager)
+            return MavenDependency(MavenId.create(mavenId.groupId, mavenId.artifactId, packaging, version),
+                    executor, localRepo, remoteRepo, pomFactory, downloadManager)
         }
     }
 }

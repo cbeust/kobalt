@@ -33,9 +33,11 @@ class KFiles {
                 } else {
                     // Will only happen when building kobalt itself: the jar file might not be in the dist/ directory
                     // yet since we're currently building it. Instead, use the classes directly
-                    debug("Couldn't find ${jarFile.absolutePath}, using build/classes/main")
-                    return listOf(File(homeDir("kotlin", "kobalt", "build", "classes", "main")).absolutePath,
-                            File(homeDir("kotlin", "kobalt", "classes", "production", "kobalt-plugin-api")).absolutePath)
+                    val result = listOf("kobalt", "kobalt-plugin-api", "kobalt-wrapper").map {
+                        File(homeDir(KFiles.joinDir("kotlin", "kobalt", "out", "production", it))).absolutePath
+                    }
+                    debug("Couldn't find ${jarFile.absolutePath}, using\n  " + result.joinToString(" "))
+                    return result
                 }
             }
         }

@@ -9,4 +9,6 @@ local.properties
 classes
 libs
 .kobalt/
-build/
+./build/
+out
+.DS_Store

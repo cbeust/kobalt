@@ -3,10 +3,7 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.JavaInfo
 import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.IClasspathDependency
-import com.beust.kobalt.api.ITestRunnerContributor
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import java.io.File
@@ -14,15 +11,19 @@ import java.net.URLClassLoader
 
 /**
  * Base class for testing frameworks that are invoked from a main class with arguments. Test runners can
- * subclass this class and override mainClass and args.
+ * subclass this class and override mainClass, args and the name of the dependency that should trigger this runner.
  */
 abstract class GenericTestRunner : ITestRunnerContributor {
+    abstract val dependencyName : String
     abstract val mainClass: String
     abstract fun args(project: Project, classpath: List<IClasspathDependency>) : List<String>
 
     override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>)
             = TaskResult(runTests(project, classpath))
 
+    override fun affinity(project: Project, context: KobaltContext) =
+            if (project.testDependencies.any { it.id.contains(dependencyName)}) IAffinity.DEFAULT_POSITIVE_AFFINITY
+            else 0
 
     protected fun findTestClasses(project: Project, classpath: List<IClasspathDependency>): List<String> {
         val path = KFiles.joinDir(project.directory, project.buildDirectory, KFiles.TEST_CLASSES_DIR)

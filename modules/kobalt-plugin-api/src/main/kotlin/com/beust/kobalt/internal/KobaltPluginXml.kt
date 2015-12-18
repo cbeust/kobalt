@@ -78,14 +78,25 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val mavenIdInterceptors = arrayListOf<IMavenIdInterceptor>()
 
     companion object {
-        val PLUGIN_XML = "META-INF/kobalt-plugin.xml" // Plugins.PLUGIN_XML)
+        /**
+         * Where plug-ins define their plug-in actors.
+         */
+        val PLUGIN_XML = "META-INF/kobalt-plugin.xml"
+
+        /**
+         * Kobalt's core XML file needs to be different from kobalt-plugin.xml because classloaders
+         * can put a plug-in's jar file in front of Kobalt's, which means we'll read
+         * that one instead of the core one.
+         */
+        val PLUGIN_CORE_XML = "META-INF/kobalt-core-plugin.xml"
 
         /**
          * Read Kobalt's own kobalt-plugin.xml.
          */
         fun readKobaltPluginXml(): PluginInfo {
             // Note: use forward slash here since we're looking up this file in a .jar file
-            val url = Kobalt::class.java.classLoader.getResource(PLUGIN_XML)
+            val url = Kobalt::class.java.classLoader.getResource(PLUGIN_CORE_XML)
+            log(2, "URL for core kobalt-plugin.xml: $url")
             if (url != null) {
                 return readPluginXml(url.openConnection().inputStream)
             } else {
@@ -100,6 +111,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
             val jaxbContext = JAXBContext.newInstance(KobaltPluginXml::class.java)
             val kotlinPlugin: KobaltPluginXml = jaxbContext.createUnmarshaller().unmarshal(ins)
                     as KobaltPluginXml
+            log(2, "Parsed plugin XML file, found: " + kotlinPlugin.name)
             return PluginInfo(kotlinPlugin, classLoader)
         }
 

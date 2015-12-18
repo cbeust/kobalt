@@ -3,7 +3,9 @@ package com.beust.kobalt.app.remote
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.ProjectDescription
 import com.beust.kobalt.app.BuildFileCompiler
+import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.internal.remote.CommandData
@@ -51,15 +53,20 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
 
         val pluginDependencies = pluginUrls.map { File(it.toURI()) }.map { FileDependency(it.absolutePath) }
         projects.forEach { project ->
-            val allDependencies =
-                pluginDependencies.map { toDependencyData(it, "compile")} +
-                allDeps(project.compileDependencies).map { toDependencyData(it, "compile") } +
-                allDeps(project.compileProvidedDependencies).map { toDependencyData(it, "provided") } +
-                allDeps(project.compileRuntimeDependencies).map { toDependencyData(it, "runtime") } +
-                allDeps(project.testDependencies).map { toDependencyData(it, "testCompile") } +
-                allDeps(project.testProvidedDependencies).map { toDependencyData(it, "testProvided") }
+            val compileDependencies = pluginDependencies.map { toDependencyData(it, "compile")} +
+                    allDeps(project.compileDependencies).map { toDependencyData(it, "compile") }
+            val testDependencies = allDeps(project.testDependencies).map { toDependencyData(it, "testCompile") }
 
-            projectDatas.add(ProjectData(project.name, allDependencies))
+            @Suppress("UNCHECKED_CAST")
+            val pd = (project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
+                    as List<ProjectDescription>)
+            val dependentProjects = pd.filter { it.project.name == project.name }.flatMap {
+                it.dependsOn.map { it
+                    .name
+                }}
+            projectDatas.add(ProjectData(project.name, project.directory, dependentProjects,
+                    compileDependencies, testDependencies,
+                    project.sourceDirectories, project.sourceDirectoriesTest))
         }
         log(1, "Returning BuildScriptInfo")
         val result = toCommandData(Gson().toJson(GetDependenciesData(projectDatas)))
@@ -73,7 +80,10 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
 
     class DependencyData(val id: String, val scope: String, val path: String)
 
-    class ProjectData( val name: String, val dependencies: List<DependencyData>)
+    class ProjectData(val name: String, val directory: String,
+            val dependentProjects: List<String>,
+            val compileDependencies: List<DependencyData>,
+            val testDependencies: List<DependencyData>, val sourceDirs: Set<String>, val testDirs: Set<String>)
 
     class GetDependenciesData(val projects: List<ProjectData>)
 }

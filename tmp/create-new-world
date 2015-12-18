@@ -1,0 +1,24 @@
+rm -rf modules/kobalt-plugin-api
+
+mkdir -p modules/kobalt-plugin-api/src
+
+mkdir -p modules/kobalt-plugin-api/src/main/kotlin/com/beust/kobalt
+for i in api internal kotlin maven misc
+do
+  mv src/main/kotlin/com/beust/kobalt/$i modules/kobalt-plugin-api/src/main/kotlin/com/beust/kobalt
+done
+mv src/main/kotlin/com/beust/kobalt/*kt modules/kobalt-plugin-api/src/main/kotlin/com/beust/kobalt
+
+for i in Main.kt
+do
+  mv modules/kobalt-plugin-api/src/main/kotlin/com/beust/kobalt/$i src/main/kotlin/com/beust/kobalt
+done
+
+#mv modules/kobalt-plugin-api/src/main/kotlin/com/beust/kobalt/app src/main/kotlin/com/beust/kobalt
+
+
+cp /Users/beust/t/kobalt-plugin-api.iml modules/kobalt-plugin-api
+
+cp tmp/Build.kt kobalt/src
+
+#                     return File(homeDir("kotlin", "kobalt", "classes", "production", "kobalt-plugin-api")).absolutePath
