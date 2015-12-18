@@ -108,7 +108,8 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         val buildScriptJarFile = File(buildScriptJar)
         if (! buildScriptUtil.isUpToDate(buildFile, File(buildScriptJar))) {
             buildScriptJarFile.parentFile.mkdirs()
-            generateJarFile(context, BuildFile(Paths.get(pluginSourceFile.path), "Plugins"), buildScriptJarFile)
+            generateJarFile(context, BuildFile(Paths.get(pluginSourceFile.path), "Plugins",
+                    Paths.get(buildScriptJar)), buildScriptJarFile)
             VersionFile.generateVersionFile(buildScriptJarFile.parentFile)
         }
 

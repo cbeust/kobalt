@@ -10,7 +10,6 @@ import com.beust.kobalt.api.PluginProperties
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
-import com.beust.kobalt.app.ParsedBuildFile
 import com.beust.kobalt.internal.build.VersionFile
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
@@ -83,7 +82,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
             val modifiedBuildFile = KFiles.createTempFile(".kt")
             KFiles.saveFile(modifiedBuildFile, parsedBuildFile.buildScriptCode)
             maybeCompileBuildFile(context, BuildFile(Paths.get(modifiedBuildFile.path),
-                    "Modified ${Constants.BUILD_FILE_NAME}"),
+                    "Modified ${Constants.BUILD_FILE_NAME}", buildFile.realPath),
                     buildScriptJarFile, pluginUrls)
             val projects = buildScriptUtil.runBuildScriptJarFile(buildScriptJarFile, pluginUrls, context)
             result.addAll(projects)
