@@ -9,7 +9,7 @@ annotation class Directive
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Task(
     val name: String,
-    val description: String,
+    val description: String = "",
 
     /** Tasks that this task depends on */
     val runBefore: Array<String> = arrayOf(),
