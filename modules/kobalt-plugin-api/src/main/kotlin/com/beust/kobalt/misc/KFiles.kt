@@ -188,12 +188,12 @@ class KFiles {
                     } else {
                         val relPath = src.relativeTo(from)
                         val dstFile = File(dst, relPath)
-                        if (dstFile.exists() && !replaceExisting && !(src.isDirectory() && dstFile.isDirectory())) {
+                        if (dstFile.exists() && !replaceExisting && !(src.isDirectory && dstFile.isDirectory)) {
                             if (onError(dstFile, FileAlreadyExistsException(file = src,
                                     other = dstFile,
                                     reason = "The destination file already exists")) == OnErrorAction.TERMINATE)
                                 return false
-                        } else if (src.isDirectory()) {
+                        } else if (src.isDirectory) {
                             dstFile.mkdirs()
                         } else {
                             if (src.copyTo(dstFile, true) != src.length()) {
@@ -239,7 +239,7 @@ class KFiles {
 
         fun copy(from: Path?, to: Path?, option: StandardCopyOption = StandardCopyOption.REPLACE_EXISTING) {
             if (isWindows() && to!!.toFile().exists()) {
-                log(2, "Windows detected, not overwriting ${to}")
+                log(2, "Windows detected, not overwriting $to")
             } else {
                 try {
                     log(2, "Copy from $from to ${to!!}")
