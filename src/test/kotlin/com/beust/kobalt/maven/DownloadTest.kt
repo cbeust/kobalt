@@ -20,8 +20,7 @@ import kotlin.properties.Delegates
 public class DownloadTest @Inject constructor(
         val depFactory: DepFactory,
         val localRepo: LocalRepo,
-        val executors: KobaltExecutors,
-        val repoFinder: RepoFinder) : KobaltTest() {
+        val executors: KobaltExecutors) : KobaltTest() {
     var executor: ExecutorService by Delegates.notNull()
 
     @BeforeClass
@@ -56,7 +55,6 @@ public class DownloadTest @Inject constructor(
     val previousVersion = "2.9"
     val groupId = "joda-time"
     val artifactId = "joda-time"
-    val jarFile = "$artifactId-$version.jar"
     val idNoVersion = "$groupId:$artifactId:"
 
     @Test(description = "Make sure that versionless id's, e.g. org.testng:testng:, get downloaded")
@@ -81,11 +79,11 @@ public class DownloadTest @Inject constructor(
         val range = "[2.5,)"
         val expected = "3.0-alpha-1"
 
-        val dep = depFactory.create("javax.servlet:servlet-api:${range}", executor)
+        val dep = depFactory.create("javax.servlet:servlet-api:$range", executor)
         val future = dep.jarFile
         val file = future.get()
         Assert.assertFalse(future is CompletedFuture)
-        Assert.assertEquals(file.getName(), "servlet-api-${expected}.jar")
+        Assert.assertEquals(file.name, "servlet-api-$expected.jar")
         Assert.assertTrue(file.exists())
     }
 
@@ -106,7 +104,7 @@ public class DownloadTest @Inject constructor(
         val future = dep.jarFile
         val file = future.get()
         Assert.assertNotNull(file)
-        Assert.assertTrue(file.exists(), "Should find ${file}")
+        Assert.assertTrue(file.exists(), "Should find $file")
     }
 
     @Test
