@@ -196,16 +196,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
         return result
     }
 
-    private fun compile(project: Project, rDirectory: String): File {
-        val sourceFiles = arrayListOf(Paths.get(rDirectory, "R.java").toFile().path)
-        val buildDir = File(AndroidFiles.classesDir(project, context.variant))
-        // Using a directory of "." since the project.directory is already present in buildDir
-        val cai = CompilerActionInfo(".", listOf(), sourceFiles, buildDir, listOf(
-                "-source", "1.6", "-target", "1.6"))
-        javaCompiler.compile(project, context, cai)
-        return buildDir
-    }
-
     /**
      * Implements ICompilerFlagContributor
      * Make sure we compile and generate 1.6 sources unless the build file defined those (which can
