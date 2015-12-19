@@ -182,7 +182,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
                 throw KobaltException("Couldn't find any compiler for project ${project.name}")
             }
         } else {
-            log(2, "Source files are up to date, not compiling")
+            log(2, "  Source files are up to date, not compiling")
             return TaskResult()
         }
     }
