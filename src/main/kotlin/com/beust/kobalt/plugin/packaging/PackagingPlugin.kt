@@ -1,5 +1,6 @@
 package com.beust.kobalt.plugin.packaging
 
+import com.beust.kobalt.Features
 import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.IFileSpec.FileSpec
 import com.beust.kobalt.IFileSpec.Glob
@@ -238,7 +239,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val archiveDir = File(libsDir(project))
         val result = File(archiveDir.path, fullArchiveName)
         log(2, "Creating $result")
-        if (isOutdated(project.directory, includedFiles, result)) {
+        if (! Features.USE_TIMESTAMPS || isOutdated(project.directory, includedFiles, result)) {
             val outStream = outputStreamFactory(FileOutputStream(result))
             JarUtils.addFiles(project.directory, includedFiles, outStream, expandJarFiles)
             log(2, text = "Added ${includedFiles.size} files to $result")

@@ -1,11 +1,8 @@
 package com.beust.kobalt.misc
 
-import com.beust.kobalt.IFileSpec
-import com.beust.kobalt.SystemProperties
-import com.beust.kobalt.Variant
+import com.beust.kobalt.*
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.maven.Md5
 import java.io.File
@@ -198,11 +195,12 @@ class KFiles {
                         } else if (src.isDirectory) {
                             dstFile.mkdirs()
                         } else {
-                            if (dstFile.exists() && Md5.toMd5(src) == Md5.toMd5(dstFile)) {
+                            if (Features.USE_TIMESTAMPS && dstFile.exists() && Md5.toMd5(src) == Md5.toMd5(dstFile)) {
                                 log(2, "  Identical files, not copying $src to $dstFile")
                             } else {
                                 if (src.copyTo(dstFile, true) != src.length()) {
-                                    if (onError(src, IOException("src.length() != dst.length()")) == OnErrorAction.TERMINATE)
+                                    if (onError(src,
+                                            IOException("src.length() != dst.length()")) == OnErrorAction.TERMINATE)
                                         return false
                                 }
                             }

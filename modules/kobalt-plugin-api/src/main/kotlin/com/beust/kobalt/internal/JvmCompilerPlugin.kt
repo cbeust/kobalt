@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.Features
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
@@ -170,7 +171,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
             sourceDirectories.add(sourceDirectory)
         }
         val info = createCompilerActionInfo(project, context, isTest = false)
-        if (isOutdated(project, context, info)) {
+        if (! Features.USE_TIMESTAMPS || isOutdated(project, context, info)) {
             val compiler = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.compilerContributors)
             if (compiler != null) {
                 return compiler.compile(project, context, info)
