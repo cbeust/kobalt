@@ -261,7 +261,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val lastModified = output.lastModified()
         includedFiles.forEach { root ->
             val allFiles = root.allFromFiles(directory)
-            allFiles.forEach { file ->
+            allFiles.forEach { relFile ->
+                val file = File(KFiles.joinDir(directory, root.from, relFile.path))
                 if (file.isFile) {
                     if (file.lastModified() > lastModified) {
                         log(2, "  Outdated $file and $output "
