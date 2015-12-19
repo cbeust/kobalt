@@ -145,6 +145,8 @@ class KotlinPlugin @Inject constructor(
     fun addDokkaConfiguration(project: Project, dokkaConfig: DokkaConfig) {
         dokkaConfigurations.put(project.name, dokkaConfig)
     }
+
+    override fun toClassFile(sourceFile: String) = sourceFile + "Kt.class"
 }
 
 /**
