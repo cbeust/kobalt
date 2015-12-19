@@ -60,6 +60,12 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
                     val allArgs = arrayListOf(
                             executable.absolutePath,
                             "-d", KFiles.makeDir(info.directory!!, info.outputDir.path).path)
+
+                    if (info.dependencies.size > 0) {
+                        allArgs.add("-classpath")
+                        allArgs.add(info.dependencies.map { it.jarFile.get() }.joinToString(File.pathSeparator))
+                    }
+
                     allArgs.addAll(info.sourceFiles)
 
                     val pb = ProcessBuilder(allArgs)
