@@ -97,7 +97,6 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
                     }
                 }
             }
-            log(3, "Done parsing: $groupId $artifactId $version")
             val tmpDependency = Dependency(groupId!!, artifactId!!, packaging, version, optional!!, scope)
             dependencies.add(tmpDependency)
         }
