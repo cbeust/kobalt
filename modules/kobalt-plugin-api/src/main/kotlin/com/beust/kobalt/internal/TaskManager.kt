@@ -6,7 +6,6 @@ import com.beust.kobalt.api.IPlugin
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.Args
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
@@ -59,7 +58,7 @@ public class TaskManager @Inject constructor(val args: Args) {
                 tasksByNames.put(it.name, it)
             }
 
-            AsciiArt.logBox("Building project ${project.name}")
+            AsciiArt.logBox("Building ${project.name}")
 
             log(3, "Tasks:")
             tasksByNames.keys().forEach {
