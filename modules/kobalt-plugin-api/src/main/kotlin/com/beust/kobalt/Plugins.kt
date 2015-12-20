@@ -1,6 +1,7 @@
 package com.beust.kobalt
 
 import com.beust.kobalt.api.*
+import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
@@ -63,31 +64,13 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
                 plugin.apply(project, context)
             }
 
-            var currentClass : Class<in Any> = plugin.javaClass
-
-            // Tasks can come from two different places: plugin classes and build files.
-            // When a task is read from a build file, ScriptCompiler adds it right away to plugin.methodTasks.
-            // The following loop introspects the current plugin, finds all the tasks using the @Task annotation
-            // and adds them to plugin.methodTasks
-            while (! (currentClass.equals(Any::class.java))) {
-                currentClass.declaredMethods.map {
-                    Pair(it, it.getAnnotation(Task::class.java))
-                }.filter {
-                    it.second != null
-                }.filter {
-                    isValidTaskMethod(it.first)
-                }.forEach {
-                    if (Modifier.isPrivate(it.first.modifiers)) {
-                        throw KobaltException("A task method cannot be private: ${it.first}")
-                    }
-                    val annotation = it.second
-
-                    taskManager.addStaticTask(plugin, it.first, annotation)
-                }
-
-                currentClass = currentClass.superclass
+            findStaticTasks(plugin, Task::class.java, { method -> isValidTaskMethod(method)}).forEach {
+                taskManager.addAnnotationTask(plugin, it.first, it.second)
             }
-
+            findStaticTasks(plugin, IncrementalTask::class.java,
+                    { method -> isValidIncrementalTaskMethod(method)}).forEach {
+            taskManager.addIncrementalTask(plugin, it.first, it.second)
+            }
         }
 
         // Collect all the tasks from the task contributors
@@ -97,6 +80,47 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
 
         // Now that we have collected all static and dynamic tasks, turn them all into plug-in tasks
         taskManager.computePluginTasks(plugins, projects)
+    }
+
+    private fun <T: Annotation> findStaticTasks(plugin: IPlugin, klass: Class<T>, validate: (Method) -> Boolean)
+            : List<Pair<Method, T>> {
+        val result = arrayListOf<Pair<Method, T>>()
+
+        var currentClass : Class<in Any> = plugin.javaClass
+
+        // Tasks can come from two different places: plugin classes and build files.
+        // When a task is read from a build file, ScriptCompiler adds it right away to plugin.methodTasks.
+        // The following loop introspects the current plugin, finds all the tasks using the @Task annotation
+        // and adds them to plugin.methodTasks
+        while (currentClass != null && ! (klass.equals(currentClass))) {
+            currentClass.declaredMethods.map {
+                Pair(it, it.getAnnotation(klass))
+            }.filter {
+                it.second != null
+            }.filter {
+                validate(it.first)
+            }.forEach {
+                if (Modifier.isPrivate(it.first.modifiers)) {
+                    throw KobaltException("A task method cannot be private: ${it.first}")
+                }
+                result.add(it)
+            }
+
+            currentClass = currentClass.superclass
+        }
+        return result
+    }
+
+    /**
+     * Make sure this task method has the right signature.
+     */
+    private fun isValidIncrementalTaskMethod(method: Method): Boolean {
+        val t = "Task ${method.declaringClass.simpleName}.${method.name}: "
+
+        if (method.returnType != IncrementalTaskInfo::class.java) {
+            throw IllegalArgumentException("${t}should return a IncrementalTaskInfo")
+        }
+        return true
     }
 
     /**

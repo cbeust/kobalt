@@ -53,7 +53,7 @@ public class TaskManager @Inject constructor(val args: Args) {
             // There can be multiple tasks by the same name (e.g. PackagingPlugin and AndroidPlugin both
             // define "install"), so use a multimap
             val tasksByNames = ArrayListMultimap.create<String, PluginTask>()
-            tasks.filter {
+            annotationTasks.filter {
                 it.project.name == project.name
             }.forEach {
                 tasksByNames.put(it.name, it)
@@ -221,33 +221,53 @@ public class TaskManager @Inject constructor(val args: Args) {
     // Manage the tasks
     //
 
-    // Both @Task and @IncrementalTask get stored as a TaskAnnotation so they can be treated uniformly
+    // Both @Task and @IncrementalTask get stored as a TaskAnnotation so they can be treated uniformly.
+    // They only differ in the way they are invoked (see below)
     private val taskAnnotations = arrayListOf<TaskAnnotation>()
     class TaskAnnotation(val method: Method, val plugin: IPlugin, val name: String, val description: String,
-            val runBefore: Array<String>, val runAfter: Array<String>, val alwaysRunAfter: Array<String>)
+            val runBefore: Array<String>, val runAfter: Array<String>, val alwaysRunAfter: Array<String>,
+            val callable: (Project) -> TaskResult)
 
+    /**
+     * Invoking a @Task means simply calling the method and returning its result TaskResult.
+     */
     fun toTaskAnnotation(method: Method, plugin: IPlugin, ta: Task)
-            = TaskAnnotation(method, plugin, ta.name, ta.description, ta.runBefore, ta.runAfter, ta.alwaysRunAfter)
+            = TaskAnnotation(method, plugin, ta.name, ta.description, ta.runBefore, ta.runAfter, ta.alwaysRunAfter,
+            { project ->
+                method.invoke(plugin, project) as TaskResult
 
+            })
+
+    /**
+     * Invoking an @IncrementalTask means invoking the method and then deciding what to do based on the content
+     * of the returned IncrementalTaskInfo.
+     */
     fun toTaskAnnotation(method: Method, plugin: IPlugin, ta: IncrementalTask)
-            = TaskAnnotation(method, plugin, ta.name, ta.description, ta.runBefore, ta.runAfter, ta.alwaysRunAfter)
+            = TaskAnnotation(method, plugin, ta.name, ta.description, ta.runBefore, ta.runAfter, ta.alwaysRunAfter,
+            { project ->
+                val iit = method.invoke(plugin, project) as IncrementalTaskInfo
+                iit.task(project)
+            })
 
     class PluginDynamicTask(val plugin: IPlugin, val task: DynamicTask)
 
-    val tasks = arrayListOf<PluginTask>()
+    /** Tasks annotated with @Task or @IncrementalTask */
+    val annotationTasks = arrayListOf<PluginTask>()
+
+    /** Tasks provided by ITaskContributors */
     val dynamicTasks = arrayListOf<PluginDynamicTask>()
 
-    fun addStaticTask(plugin: IPlugin, method: Method, annotation: Task) =
+    fun addAnnotationTask(plugin: IPlugin, method: Method, annotation: Task) =
         taskAnnotations.add(toTaskAnnotation(method, plugin, annotation))
 
     fun addIncrementalTask(plugin: IPlugin, method: Method, annotation: IncrementalTask) =
-            taskAnnotations.add(toTaskAnnotation(method, plugin, annotation))
+        taskAnnotations.add(toTaskAnnotation(method, plugin, annotation))
 
     /**
      * Turn all the static and dynamic tasks into plug-in tasks, which are then suitable to be executed.
      */
     fun computePluginTasks(plugins: List<IPlugin>, projects: List<Project>) {
-        addStaticTasks(projects)
+        installAnnotationTasks(projects)
         addDynamicTasks(projects)
     }
 
@@ -261,28 +281,21 @@ public class TaskManager @Inject constructor(val args: Args) {
         }
     }
 
-    private fun addStaticTasks(projects: List<Project>) {
+    private fun installAnnotationTasks(projects: List<Project>) {
         taskAnnotations.forEach { staticTask ->
             val method = staticTask.method
 
             val methodName = method.declaringClass.toString() + "." + method.name
             log(3, "    Found task:${staticTask.name} method: $methodName")
 
-            fun toTask(m: Method, project: Project, plugin: IPlugin): (Project) -> TaskResult {
-                val result: (Project) -> TaskResult = {
-                    m.invoke(plugin, project) as TaskResult
-                }
-                return result
-            }
-
             val plugin = staticTask.plugin
             projects.filter { plugin.accept(it) }.forEach { project ->
-                addStaticTask(plugin, project, staticTask, toTask(method, project, plugin))
+                addAnnotationTask(plugin, project, staticTask, staticTask.callable)
             }
         }
     }
 
-    private fun addStaticTask(plugin: IPlugin, project: Project, annotation: TaskAnnotation,
+    private fun addAnnotationTask(plugin: IPlugin, project: Project, annotation: TaskAnnotation,
             task: (Project) -> TaskResult) {
         addTask(plugin, project, annotation.name, annotation.description, annotation.runBefore.toList(),
                 annotation.runAfter.toList(), annotation.alwaysRunAfter.toList(), task)
@@ -293,7 +306,7 @@ public class TaskManager @Inject constructor(val args: Args) {
             runAfter: List<String> = listOf<String>(),
             alwaysRunAfter: List<String> = listOf<String>(),
             task: (Project) -> TaskResult) {
-        tasks.add(
+        annotationTasks.add(
                 object : BasePluginTask(plugin, name, description, project) {
                     override fun call(): TaskResult2<PluginTask> {
                         val taskResult = task(project)

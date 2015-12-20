@@ -214,7 +214,7 @@ private class Main @Inject constructor(
         // List of tasks, --tasks
         //
         val tasksByPlugins = HashMultimap.create<String, PluginTask>()
-        taskManager.tasks.forEach {
+        taskManager.annotationTasks.forEach {
             tasksByPlugins.put(it.plugin.name, it)
         }
         val sb = StringBuffer("List of tasks\n")

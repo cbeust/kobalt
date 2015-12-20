@@ -5,6 +5,7 @@ import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.IPlugin
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
@@ -85,9 +86,11 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
                             throw ex.cause ?: KobaltException(ex)
                         }
                     } else {
-                        val taskAnnotation = method.getAnnotation(Task::class.java)
-                        if (taskAnnotation != null) {
-                            taskManager.addStaticTask(defaultPlugin, method, taskAnnotation)
+                        method.getAnnotation(Task::class.java)?.let {
+                            taskManager.addAnnotationTask(defaultPlugin, method, it)
+                        }
+                        method.getAnnotation(IncrementalTask::class.java)?.let {
+                            taskManager.addIncrementalTask(defaultPlugin, method, it)
                         }
 
                     }}
