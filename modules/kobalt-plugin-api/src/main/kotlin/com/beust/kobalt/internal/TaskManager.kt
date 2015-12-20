@@ -224,12 +224,13 @@ public class TaskManager @Inject constructor(val args: Args) {
     // Both @Task and @IncrementalTask get stored as a TaskAnnotation so they can be treated uniformly.
     // They only differ in the way they are invoked (see below)
     private val taskAnnotations = arrayListOf<TaskAnnotation>()
+
     class TaskAnnotation(val method: Method, val plugin: IPlugin, val name: String, val description: String,
             val runBefore: Array<String>, val runAfter: Array<String>, val alwaysRunAfter: Array<String>,
             val callable: (Project) -> TaskResult)
 
     /**
-     * Invoking a @Task means simply calling the method and returning its result TaskResult.
+     * Invoking a @Task means simply calling the method and returning its returned TaskResult.
      */
     fun toTaskAnnotation(method: Method, plugin: IPlugin, ta: Task)
             = TaskAnnotation(method, plugin, ta.name, ta.description, ta.runBefore, ta.runAfter, ta.alwaysRunAfter,
@@ -246,6 +247,7 @@ public class TaskManager @Inject constructor(val args: Args) {
             = TaskAnnotation(method, plugin, ta.name, ta.description, ta.runBefore, ta.runAfter, ta.alwaysRunAfter,
             { project ->
                 val iit = method.invoke(plugin, project) as IncrementalTaskInfo
+                // TODO: compare the checksums with the previous run
                 iit.task(project)
             })
 
