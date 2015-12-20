@@ -6,10 +6,10 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.LocalRepo
+import com.beust.kobalt.misc.JarUtils
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.misc.JarUtils
 import com.google.inject.Provider
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -82,7 +82,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
                     }
                     val annotation = it.second
 
-                    taskManager.staticTasks.add(TaskManager.StaticTask(plugin, it.first, annotation))
+                    taskManager.addStaticTask(plugin, it.first, annotation)
                 }
 
                 currentClass = currentClass.superclass

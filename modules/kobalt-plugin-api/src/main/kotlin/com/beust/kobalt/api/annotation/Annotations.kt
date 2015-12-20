@@ -21,6 +21,21 @@ annotation class Task(
     val alwaysRunAfter: Array<String> = arrayOf()
 )
 
+@Retention(AnnotationRetention.RUNTIME)
+annotation class IncrementalTask(
+    val name: String,
+    val description: String = "",
+
+    /** Tasks that this task depends on */
+    val runBefore: Array<String> = arrayOf(),
+
+    /** Tasks that this task will run after if they get run */
+    val runAfter: Array<String> = arrayOf(),
+
+    /** Tasks that this task will always run after */
+    val alwaysRunAfter: Array<String> = arrayOf()
+)
+
 /**
  * Plugins that export properties should annotate those with this annotation so they can be documented.
  */

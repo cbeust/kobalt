@@ -87,7 +87,7 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
                     } else {
                         val taskAnnotation = method.getAnnotation(Task::class.java)
                         if (taskAnnotation != null) {
-                            taskManager.staticTasks.add(TaskManager.StaticTask(defaultPlugin, method, taskAnnotation))
+                            taskManager.addStaticTask(defaultPlugin, method, taskAnnotation)
                         }
 
                     }}

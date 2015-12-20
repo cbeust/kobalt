@@ -5,6 +5,7 @@ import com.beust.kobalt.api.DynamicTask
 import com.beust.kobalt.api.IPlugin
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
@@ -220,12 +221,27 @@ public class TaskManager @Inject constructor(val args: Args) {
     // Manage the tasks
     //
 
-    class StaticTask(val plugin: IPlugin, val method: Method, val taskAnnotation: Task)
+    // Both @Task and @IncrementalTask get stored as a TaskAnnotation so they can be treated uniformly
+    private val taskAnnotations = arrayListOf<TaskAnnotation>()
+    class TaskAnnotation(val method: Method, val plugin: IPlugin, val name: String, val description: String,
+            val runBefore: Array<String>, val runAfter: Array<String>, val alwaysRunAfter: Array<String>)
+
+    fun toTaskAnnotation(method: Method, plugin: IPlugin, ta: Task)
+            = TaskAnnotation(method, plugin, ta.name, ta.description, ta.runBefore, ta.runAfter, ta.alwaysRunAfter)
+
+    fun toTaskAnnotation(method: Method, plugin: IPlugin, ta: IncrementalTask)
+            = TaskAnnotation(method, plugin, ta.name, ta.description, ta.runBefore, ta.runAfter, ta.alwaysRunAfter)
+
     class PluginDynamicTask(val plugin: IPlugin, val task: DynamicTask)
 
     val tasks = arrayListOf<PluginTask>()
-    val staticTasks = arrayListOf<StaticTask>()
     val dynamicTasks = arrayListOf<PluginDynamicTask>()
+
+    fun addStaticTask(plugin: IPlugin, method: Method, annotation: Task) =
+        taskAnnotations.add(toTaskAnnotation(method, plugin, annotation))
+
+    fun addIncrementalTask(plugin: IPlugin, method: Method, annotation: IncrementalTask) =
+            taskAnnotations.add(toTaskAnnotation(method, plugin, annotation))
 
     /**
      * Turn all the static and dynamic tasks into plug-in tasks, which are then suitable to be executed.
@@ -246,12 +262,11 @@ public class TaskManager @Inject constructor(val args: Args) {
     }
 
     private fun addStaticTasks(projects: List<Project>) {
-        staticTasks.forEach { staticTask ->
+        taskAnnotations.forEach { staticTask ->
             val method = staticTask.method
-            val annotation = staticTask.taskAnnotation
 
             val methodName = method.declaringClass.toString() + "." + method.name
-            log(3, "    Found task:${annotation.name} method: $methodName")
+            log(3, "    Found task:${staticTask.name} method: $methodName")
 
             fun toTask(m: Method, project: Project, plugin: IPlugin): (Project) -> TaskResult {
                 val result: (Project) -> TaskResult = {
@@ -262,12 +277,13 @@ public class TaskManager @Inject constructor(val args: Args) {
 
             val plugin = staticTask.plugin
             projects.filter { plugin.accept(it) }.forEach { project ->
-                addStaticTask(plugin, project, staticTask.taskAnnotation, toTask(method, project, plugin))
+                addStaticTask(plugin, project, staticTask, toTask(method, project, plugin))
             }
         }
     }
 
-    private fun addStaticTask(plugin: IPlugin, project: Project, annotation: Task, task: (Project) -> TaskResult) {
+    private fun addStaticTask(plugin: IPlugin, project: Project, annotation: TaskAnnotation,
+            task: (Project) -> TaskResult) {
         addTask(plugin, project, annotation.name, annotation.description, annotation.runBefore.toList(),
                 annotation.runAfter.toList(), annotation.alwaysRunAfter.toList(), task)
     }
