@@ -266,7 +266,7 @@ public class TaskManager @Inject constructor(val args: Args) {
     /**
      * Turn all the static and dynamic tasks into plug-in tasks, which are then suitable to be executed.
      */
-    fun computePluginTasks(plugins: List<IPlugin>, projects: List<Project>) {
+    fun computePluginTasks(projects: List<Project>) {
         installAnnotationTasks(projects)
         addDynamicTasks(projects)
     }

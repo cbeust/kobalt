@@ -79,7 +79,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
         }
 
         // Now that we have collected all static and dynamic tasks, turn them all into plug-in tasks
-        taskManager.computePluginTasks(plugins, projects)
+        taskManager.computePluginTasks(projects)
     }
 
     private fun <T: Annotation> findStaticTasks(plugin: IPlugin, klass: Class<T>, validate: (Method) -> Boolean)
