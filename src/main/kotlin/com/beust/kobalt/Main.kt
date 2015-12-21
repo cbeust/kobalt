@@ -14,9 +14,7 @@ import com.beust.kobalt.app.remote.KobaltServer
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
-import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.Http
-import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.*
 import com.google.common.collect.HashMultimap
 import com.google.inject.Guice
@@ -56,8 +54,6 @@ private class Main @Inject constructor(
         val http: Http,
         val files: KFiles,
         val executors: KobaltExecutors,
-        val localRepo: LocalRepo,
-        val depFactory: DepFactory,
         val checkVersions: CheckVersions,
         val github: GithubApi,
         val updateKobalt: UpdateKobalt,
