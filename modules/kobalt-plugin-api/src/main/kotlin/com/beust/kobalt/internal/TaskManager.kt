@@ -270,11 +270,11 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                         log(2, "  INC- Incremental task ${ta.name} done running, saving checksums")
                         iit.inputChecksum?.let {
                             incrementalManager.saveInputChecksum(taskName, it)
-                            log(2, "  INC-          input $it saved")
+                            log(2, "  INC-          input checksum \"$it\" saved")
                         }
                         iit.outputChecksum?.let {
                             incrementalManager.saveOutputChecksum(taskName, it)
-                            log(2, "  INC-          output $it saved")
+                            log(2, "  INC-          output checksum \"$it\" saved")
                         }
                     }
                     result
