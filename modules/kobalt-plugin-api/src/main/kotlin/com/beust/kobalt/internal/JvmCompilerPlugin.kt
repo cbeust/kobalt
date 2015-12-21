@@ -1,14 +1,17 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.Features
+import com.beust.kobalt.IncrementalTaskInfo
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
+import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
+import com.beust.kobalt.maven.Md5
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
@@ -61,7 +64,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
         project.projectProperties.put(DEPENDENT_PROJECTS, projects())
-        taskContributor.addVariantTasks(this, project, context, "compile", runTask = { taskCompile(project) })
+        taskContributor.addVariantTasks(this, project, context, "compile", runTask = { doTaskCompile(project) })
     }
 
     @Task(name = TASK_TEST, description = "Run the tests",
@@ -164,8 +167,19 @@ abstract class JvmCompilerPlugin @Inject constructor(
         return false
     }
 
-    @Task(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project")
-    fun taskCompile(project: Project) : TaskResult {
+    @IncrementalTask(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project")
+    fun taskCompile(project: Project) : IncrementalTaskInfo {
+        val inputChecksum = Md5.toMd5Directories(project.sourceDirectories.map {
+            File(project.directory, it)
+        })
+        return IncrementalTaskInfo(
+                inputChecksum = inputChecksum,
+                outputChecksum = "1",
+                task = { project -> doTaskCompile(project) }
+        )
+    }
+
+    private fun doTaskCompile(project: Project) : TaskResult {
         // Set up the source files now that we have the variant
         sourceDirectories.addAll(context.variant.sourceDirectories(project))
 

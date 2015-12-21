@@ -10,4 +10,4 @@ import com.beust.kobalt.api.Project
  * if they differ, the task gets run.
  * @param task The task to run.
  */
-class IncrementalTaskInfo(val inputChecksum: String, val outputChecksum: String?, val task: (Project) -> TaskResult)
+class IncrementalTaskInfo(val inputChecksum: String?, val outputChecksum: String?, val task: (Project) -> TaskResult)

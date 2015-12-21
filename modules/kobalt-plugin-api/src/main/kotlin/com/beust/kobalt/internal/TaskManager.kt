@@ -17,7 +17,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-public class TaskManager @Inject constructor(val args: Args) {
+public class TaskManager @Inject constructor(val args: Args, val incrementalManager: IncrementalManager) {
     private val runBefore = TreeMultimap.create<String, String>()
     private val alwaysRunAfter = TreeMultimap.create<String, String>()
 
@@ -248,7 +248,40 @@ public class TaskManager @Inject constructor(val args: Args) {
             { project ->
                 val iit = method.invoke(plugin, project) as IncrementalTaskInfo
                 // TODO: compare the checksums with the previous run
-                iit.task(project)
+                val taskName = project.name + ":" + ta.name
+                var upToDate = false
+                incrementalManager.inputChecksumFor(taskName)?.let { inputChecksum ->
+                    if (inputChecksum == iit.inputChecksum) {
+                        incrementalManager.outputChecksumFor(taskName)?.let { outputChecksum ->
+                            if (outputChecksum == iit.outputChecksum) {
+                                upToDate = true
+                            } else {
+                                log(2, "  INC- Incremental task ${ta.name} output is out of date, running it")
+
+                            }
+                        }
+                    } else {
+                        log(2, "  INC- Incremental task ${ta.name} input is out of date, running it")
+                    }
+                }
+                if (! upToDate) {
+                    val result = iit.task(project)
+                    if (result.success) {
+                        log(2, "  INC- Incremental task ${ta.name} done running, saving checksums")
+                        iit.inputChecksum?.let {
+                            incrementalManager.saveInputChecksum(taskName, it)
+                            log(2, "  INC-          input $it saved")
+                        }
+                        iit.outputChecksum?.let {
+                            incrementalManager.saveOutputChecksum(taskName, it)
+                            log(2, "  INC-          output $it saved")
+                        }
+                    }
+                    result
+                } else {
+                    log(2, "  INC- Incremental task ${ta.name} is up to date, not running it")
+                    TaskResult()
+                }
             })
 
     class PluginDynamicTask(val plugin: IPlugin, val task: DynamicTask)
@@ -334,7 +367,7 @@ class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean) : IWorker<Plu
     override fun call() : TaskResult2<PluginTask> {
         if (tasks.size > 0) {
             tasks[0].let {
-                log(1, AsciiArt.taskColor(AsciiArt.horizontalSingleLine + " ${it.project.name}:${it.name}"))
+                log(2, AsciiArt.taskColor(AsciiArt.horizontalSingleLine + " ${it.project.name}:${it.name}"))
             }
         }
         var success = true
