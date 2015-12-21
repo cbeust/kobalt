@@ -367,7 +367,7 @@ class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean) : IWorker<Plu
     override fun call() : TaskResult2<PluginTask> {
         if (tasks.size > 0) {
             tasks[0].let {
-                log(2, AsciiArt.taskColor(AsciiArt.horizontalSingleLine + " ${it.project.name}:${it.name}"))
+                log(1, AsciiArt.taskColor(AsciiArt.horizontalSingleLine + " ${it.project.name}:${it.name}"))
             }
         }
         var success = true
