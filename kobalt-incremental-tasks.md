@@ -1,9 +1,10 @@
 Kobalt's incremental task algorithm is not based on timestamps but on checksums.
 
-You make a task incremental by declaring it `@IncrementalTask` instead of `@Task`. The only other difference is that instead of returning a `TaskResult`, incremental tasks return a `IncrementalTaskInfo`:
+You make a task incremental by declaring it `@IncrementalTask` instead of `@Task`. The only other difference is that instead of returning a `TaskResult`, incremental tasks return an `IncrementalTaskInfo`:
 
 ```
-class IncrementalTaskInfo(val inputChecksum: String?,
+class IncrementalTaskInfo(
+    val inputChecksum: String?,
     val outputChecksum: String?,
     val task: (Project) -> TaskResult)
 ```
@@ -11,10 +12,10 @@ class IncrementalTaskInfo(val inputChecksum: String?,
 This class contains three fields:
 
 - A task closure, which is your effective task: `(Project) -> TaskResult`
-- An input checksum (`String`)
-- An output checksum (`String`)
+- An input checksum (`String?`)
+- An output checksum (`String?`)
 
-These checksums are numbers that each task calculates for their input and output. For example, the "compile" task calculates an MD5 checksum of all the source files. Similarly, the output checksum is for produced artifacts, e.g. checksum of `.class` files or `.jar` files, etc...
+These checksums are numbers that each task calculates for their input and output. For example, the `"compile"` task calculates an MD5 checksum of all the source files. Similarly, the output checksum is for produced artifacts, e.g. checksum of `.class` files or `.jar` files, etc...
 
 Example of an incremental task:
 
