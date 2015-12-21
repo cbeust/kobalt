@@ -12,22 +12,19 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
-import java.nio.file.Paths
 import java.util.*
-import java.util.jar.JarOutputStream
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class PackagingPlugin @Inject constructor(val dependencyManager : DependencyManager,
-        val executors: KobaltExecutors, val localRepo: LocalRepo)
-            : ConfigPlugin<InstallConfig>(), ITaskContributor {
+        val executors: KobaltExecutors, val jarGenerator: JarGenerator, val warGenerator: WarGenerator,
+        val zipGenerator: ZipGenerator) : ConfigPlugin<InstallConfig>(), ITaskContributor {
 
     companion object {
         const val PLUGIN_NAME = "Packaging"
@@ -44,6 +41,92 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
         const val TASK_ASSEMBLE: String = "assemble"
         const val TASK_INSTALL: String = "install"
+
+
+        fun findIncludedFiles(directory: String, files: List<IncludedFile>, excludes: List<IFileSpec.Glob>)
+                : List<IncludedFile> {
+            val result = arrayListOf<IncludedFile>()
+            files.forEach { includedFile ->
+                val includedSpecs = arrayListOf<IFileSpec>()
+                includedFile.specs.forEach { spec ->
+                    val fromPath = directory + "/" + includedFile.from
+                    if (File(fromPath).exists()) {
+                        spec.toFiles(fromPath).forEach { file ->
+                            File(fromPath, file.path).let {
+                                if (!it.exists()) {
+                                    throw AssertionError("File should exist: $it")
+                                }
+                            }
+
+                            if (!KFiles.isExcluded(file, excludes)) {
+                                includedSpecs.add(FileSpec(file.path))
+                            } else {
+                                log(2, "Not adding ${file.path} to jar file because it's excluded")
+                            }
+
+                        }
+                    } else {
+                        log(2, "Directory $fromPath doesn't exist, not including it in the jar")
+                    }
+                }
+                if (includedSpecs.size > 0) {
+                    log(3, "Including specs $includedSpecs")
+                    result.add(IncludedFile(From(includedFile.from), To(includedFile.to), includedSpecs))
+                }
+            }
+            return result
+        }
+
+        fun generateArchive(project: Project,
+                context: KobaltContext,
+                archiveName: String?,
+                suffix: String,
+                includedFiles: List<IncludedFile>,
+                expandJarFiles : Boolean = false,
+                outputStreamFactory: (OutputStream) -> ZipOutputStream = DEFAULT_STREAM_FACTORY) : File {
+            val fullArchiveName = context.variant.archiveName(project, archiveName, suffix)
+            val archiveDir = File(libsDir(project))
+            val result = File(archiveDir.path, fullArchiveName)
+            log(2, "Creating $result")
+            if (! Features.USE_TIMESTAMPS || isOutdated(project.directory, includedFiles, result)) {
+                val outStream = outputStreamFactory(FileOutputStream(result))
+                JarUtils.addFiles(project.directory, includedFiles, outStream, expandJarFiles)
+                log(2, text = "Added ${includedFiles.size} files to $result")
+                outStream.flush()
+                outStream.close()
+                log(1, "  Created $result")
+            } else {
+                log(2, "  $result is up to date")
+            }
+
+            project.projectProperties.put(JAR_NAME, result.absolutePath)
+
+            return result
+        }
+
+        private val DEFAULT_STREAM_FACTORY = { os : OutputStream -> ZipOutputStream(os) }
+
+        private fun isOutdated(directory: String, includedFiles: List<IncludedFile>, output: File): Boolean {
+            if (! output.exists()) return true
+
+            val lastModified = output.lastModified()
+            includedFiles.forEach { root ->
+                val allFiles = root.allFromFiles(directory)
+                allFiles.forEach { relFile ->
+                    val file = File(KFiles.joinDir(directory, root.from, relFile.path))
+                    if (file.isFile) {
+                        if (file.lastModified() > lastModified) {
+                            log(2, "  Outdated $file and $output "
+                                    + Date(file.lastModified()) + " " + Date(output.lastModified()))
+                            return true
+                        }
+                    }
+                }
+            }
+            return false
+        }
+
+        private fun libsDir(project: Project) = KFiles.makeDir(KFiles.buildDir(project).path, "libs").path
     }
 
     override val name = PLUGIN_NAME
@@ -59,220 +142,16 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 runTask = { taskAssemble(project) })
     }
 
-    private fun libsDir(project: Project) = KFiles.makeDir(KFiles.buildDir(project).path, "libs").path
-
     @Task(name = TASK_ASSEMBLE, description = "Package the artifacts",
             runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
     fun taskAssemble(project: Project) : TaskResult {
         project.projectProperties.put(PACKAGES, packages)
         packages.filter { it.project.name == project.name }.forEach { pkg ->
-            pkg.jars.forEach { generateJar(pkg.project, it) }
-            pkg.wars.forEach { generateWar(pkg.project, it) }
-            pkg.zips.forEach { generateZip(pkg.project, it) }
+            pkg.jars.forEach { jarGenerator.generateJar(pkg.project, context, it) }
+            pkg.wars.forEach { warGenerator.generateWar(pkg.project, context, it, projects) }
+            pkg.zips.forEach { zipGenerator.generateZip(pkg.project, context, it) }
         }
         return TaskResult()
-    }
-
-    private fun generateWar(project: Project, war: War) : File {
-        //
-        // src/main/web app and classes
-        //
-        val allFiles = arrayListOf(
-                IncludedFile(From("src/main/webapp"), To(""), listOf(Glob("**"))),
-                IncludedFile(From("kobaltBuild/classes"), To("WEB-INF/classes"), listOf(Glob("**")))
-                )
-        val manifest = java.util.jar.Manifest()//FileInputStream(mf))
-        war.attributes.forEach { attribute ->
-            manifest.mainAttributes.putValue(attribute.first, attribute.second)
-        }
-
-        //
-        // The transitive closure of libraries goes into WEB-INF/libs.
-        // Copy them all in kobaltBuild/war/WEB-INF/libs and create one IncludedFile out of that directory
-        //
-        val allDependencies = dependencyManager.calculateDependencies(project, context, projects,
-                project.compileDependencies)
-
-        val WEB_INF = "WEB-INF/lib"
-        val outDir = project.buildDirectory + "/war"
-        val fullDir = outDir + "/" + WEB_INF
-        File(fullDir).mkdirs()
-
-        // Run through all the classpath contributors and add their contributions to the libs/ directory
-        context.pluginInfo.classpathContributors.map {
-            it.entriesFor(project)
-        }.map { deps : Collection<IClasspathDependency> ->
-            deps.forEach { dep ->
-                val jar = dep.jarFile.get()
-                KFiles.copy(Paths.get(jar.path), Paths.get(fullDir, jar.name))
-            }
-        }
-
-        // Add the regular dependencies to the libs/ directory
-        allDependencies.map { it.jarFile.get() }.forEach {
-            KFiles.copy(Paths.get(it.absolutePath), Paths.get(fullDir, it.name))
-        }
-
-        allFiles.add(IncludedFile(From(fullDir), To(WEB_INF), listOf(Glob("**"))))
-
-        val jarFactory = { os:OutputStream -> JarOutputStream(os, manifest) }
-        return generateArchive(project, war.name, ".war", allFiles,
-                false /* don't expand jar files */, jarFactory)
-    }
-
-    private fun generateJar(project: Project, jar: Jar) : File {
-        //
-        // Add all the applicable files for the current project
-        //
-        val buildDir = KFiles.buildDir(project)
-        val allFiles = arrayListOf<IncludedFile>()
-        val classesDir = KFiles.makeDir(buildDir.path, "classes")
-
-        if (jar.includedFiles.isEmpty()) {
-            // If no includes were specified, assume the user wants a simple jar file made of the
-            // classes of the project, so we specify a From("build/classes/"), To("") and
-            // a list of files containing everything under it
-            val relClassesDir = Paths.get(project.directory).relativize(Paths.get(classesDir.path))
-            val prefixPath = Paths.get(project.directory).relativize(Paths.get(classesDir.path + "/"))
-
-            // Class files
-            val files = KFiles.findRecursively(classesDir).map { File(relClassesDir.toFile(), it) }
-            val filesNotExcluded : List<File> = files.filter { ! KFiles.isExcluded(it, jar.excludes) }
-            val fileSpecs = arrayListOf<IFileSpec>()
-            filesNotExcluded.forEach {
-                fileSpecs.add(FileSpec(it.path.toString().substring(prefixPath.toString().length + 1)))
-            }
-            allFiles.add(IncludedFile(From(prefixPath.toString() + "/"), To(""), fileSpecs))
-        } else {
-            //
-            // The user specified an include, just use it verbatim
-            //
-            allFiles.addAll(findIncludedFiles(project.directory, jar.includedFiles, jar.excludes))
-        }
-
-        //
-        // If fatJar is true, add all the transitive dependencies as well: compile, runtime and dependent projects
-        //
-        if (jar.fatJar) {
-            log(2, "Creating fat jar")
-
-            val seen = hashSetOf<String>()
-            @Suppress("UNCHECKED_CAST")
-            val dependentProjects = project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
-                    as List<ProjectDescription>
-            val allDependencies = project.compileDependencies + project.compileRuntimeDependencies
-            val transitiveDependencies = dependencyManager.calculateDependencies(project, context, dependentProjects,
-                    allDependencies)
-            transitiveDependencies.map {
-                    it.jarFile.get()
-                }.forEach { file : File ->
-                    if (! seen.contains(file.path)) {
-                        seen.add(file.path)
-                        if (! KFiles.isExcluded(file, jar.excludes)) {
-                            allFiles.add(IncludedFile(arrayListOf(FileSpec(file.path))))
-                        }
-                    }
-                }
-        }
-
-        //
-        // Generate the manifest
-        //
-        val manifest = java.util.jar.Manifest()//FileInputStream(mf))
-        jar.attributes.forEach { attribute ->
-            manifest.mainAttributes.putValue(attribute.first, attribute.second)
-        }
-        val jarFactory = { os:OutputStream -> JarOutputStream(os, manifest) }
-
-        return generateArchive(project, jar.name, ".jar", allFiles,
-                true /* expandJarFiles */, jarFactory)
-    }
-
-    private fun findIncludedFiles(directory: String, files: List<IncludedFile>, excludes: List<IFileSpec.Glob>)
-            : List<IncludedFile> {
-        val result = arrayListOf<IncludedFile>()
-        files.forEach { includedFile ->
-            val includedSpecs = arrayListOf<IFileSpec>()
-            includedFile.specs.forEach { spec ->
-                val fromPath = directory + "/" + includedFile.from
-                if (File(fromPath).exists()) {
-                    spec.toFiles(fromPath).forEach { file ->
-                        File(fromPath, file.path).let {
-                            if (! it.exists()) {
-                                throw AssertionError("File should exist: $it")
-                            }
-                        }
-
-                        if (! KFiles.isExcluded(file, excludes)) {
-                            includedSpecs.add(FileSpec(file.path))
-                        } else {
-                            log(2, "Not adding ${file.path} to jar file because it's excluded")
-                        }
-
-                    }
-                } else {
-                    log(2, "Directory $fromPath doesn't exist, not including it in the jar")
-                }
-            }
-            if (includedSpecs.size > 0) {
-                log(3, "Including specs $includedSpecs")
-                result.add(IncludedFile(From(includedFile.from), To(includedFile.to), includedSpecs))
-            }
-        }
-        return result
-    }
-
-    private fun generateZip(project: Project, zip: Zip) {
-        val allFiles = findIncludedFiles(project.directory, zip.includedFiles, zip.excludes)
-        generateArchive(project, zip.name, ".zip", allFiles)
-    }
-
-    private val DEFAULT_STREAM_FACTORY = { os : OutputStream -> ZipOutputStream(os) }
-
-    private fun generateArchive(project: Project,
-            archiveName: String?,
-            suffix: String,
-            includedFiles: List<IncludedFile>,
-            expandJarFiles : Boolean = false,
-            outputStreamFactory: (OutputStream) -> ZipOutputStream = DEFAULT_STREAM_FACTORY) : File {
-        val fullArchiveName = context.variant.archiveName(project, archiveName, suffix)
-        val archiveDir = File(libsDir(project))
-        val result = File(archiveDir.path, fullArchiveName)
-        log(2, "Creating $result")
-        if (! Features.USE_TIMESTAMPS || isOutdated(project.directory, includedFiles, result)) {
-            val outStream = outputStreamFactory(FileOutputStream(result))
-            JarUtils.addFiles(project.directory, includedFiles, outStream, expandJarFiles)
-            log(2, text = "Added ${includedFiles.size} files to $result")
-            outStream.flush()
-            outStream.close()
-            log(1, "  Created $result")
-        } else {
-            log(2, "  $result is up to date")
-        }
-
-        project.projectProperties.put(JAR_NAME, result.absolutePath)
-
-        return result
-    }
-
-    private fun isOutdated(directory: String, includedFiles: List<IncludedFile>, output: File): Boolean {
-        if (! output.exists()) return true
-
-        val lastModified = output.lastModified()
-        includedFiles.forEach { root ->
-            val allFiles = root.allFromFiles(directory)
-            allFiles.forEach { relFile ->
-                val file = File(KFiles.joinDir(directory, root.from, relFile.path))
-                if (file.isFile) {
-                    if (file.lastModified() > lastModified) {
-                        log(2, "  Outdated $file and $output "
-                                + Date(file.lastModified()) + " " + Date(output.lastModified()))
-                        return true
-                    }
-                }
-            }
-        }
-        return false
     }
 
     fun addPackage(p: PackageConfig) {
