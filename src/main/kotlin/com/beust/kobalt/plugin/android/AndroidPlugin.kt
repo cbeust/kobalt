@@ -250,7 +250,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
     private fun inputChecksum(classDirectory: String) = Md5.toMd5Directories(listOf(File(classDirectory)))
 
     private fun runDex(project: Project, outputJarFile: String, target: String) {
-        println("INPUT CHECKSUM: " + inputChecksum(target))
 //        DexProcessBuilder(File(jarFile)).
         DexCommand().run(listOf(
                 "-cp", KFiles.joinDir(androidHome(project), "build-tools", buildToolsVersion(project), "lib", "dx.jar"),
