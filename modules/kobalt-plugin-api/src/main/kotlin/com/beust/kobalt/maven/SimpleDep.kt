@@ -12,14 +12,14 @@ open class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.groupId
     val version: String get() = mavenId.version!!
 
     private fun toFile(version: Version, suffix: String): String {
+        val dir = toDirectory(version.version, false, trailingSlash = false)
         val list =
-                if (version.snapshotTimestamp != null) {
-                    listOf(toDirectory(version.version, false),
-                            artifactId + "-" + version.noSnapshotVersion + "-" + version.snapshotTimestamp + suffix)
-                } else {
-                    listOf(toDirectory(version.version, false), artifactId + "-" + version.version + suffix)
-                }
-        return list.joinToString("/")
+            if (version.snapshotTimestamp != null) {
+                listOf(dir, artifactId + "-" + version.noSnapshotVersion + "-" + version.snapshotTimestamp + suffix)
+            } else {
+                listOf(dir, artifactId + "-" + version.version + suffix)
+            }
+        return list.joinToString("/").replace("//", "/")
     }
 
     fun toPomFile(v: String) = toFile(Version.of(v), ".pom")
@@ -27,8 +27,6 @@ open class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.groupId
     fun toPomFile(r: RepoFinder.RepoResult) = toFile(r.snapshotVersion ?: r.version!!, ".pom")
 
     fun toJarFile(v: String = version) = toFile(Version.of(v), suffix)
-
-    fun toJarFile(v: Version) = toFile(v, suffix)
 
     fun toPomFileName() = "$artifactId-$version.pom"
 
