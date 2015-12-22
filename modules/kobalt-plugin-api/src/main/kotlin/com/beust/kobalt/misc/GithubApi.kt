@@ -137,7 +137,7 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
                     }
                 } catch(e: RetrofitError) {
                     val error = parseRetrofitError(e)
-                    throw KobaltException("Couldn't retrieve releases, ${error.message}: "
+                    throw KobaltException("Couldn't retrieve releases, ${error.message ?: e}: "
                             + error.errors[0].code + " field: " + error.errors[0].field)
                 }
                 result
