@@ -266,6 +266,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
     @IncrementalTask(name = TASK_GENERATE_DEX, description = "Generate the dex file", runBefore = arrayOf("assemble"),
             runAfter = arrayOf("compile"))
     fun taskGenerateDex(project: Project): IncrementalTaskInfo {
+        File(project.classesDir(context)).mkdirs()
         return IncrementalTaskInfo(
                 inputChecksum = inputChecksum(project.classesDir(context)),
                 outputChecksum = "1",
