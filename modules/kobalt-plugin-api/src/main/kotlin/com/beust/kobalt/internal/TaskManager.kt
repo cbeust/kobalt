@@ -109,7 +109,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                                             graph.addEdge(pluginTask, to)
                                         }
                                     } else {
-                                        log(2, "Couldn't find node $it: not applicable to project ${project.name}")
+                                        log(1, "Couldn't find node $it: not applicable to project ${project.name}")
                                     }
                                 }
                             }
@@ -206,7 +206,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                         newToProcess.add(TaskInfo(project.name, it))
                     }
             } else {
-                    log(2, "Couldn't find task ${currentTask.taskName}: not applicable to project ${project.name}")
+                    log(1, "Couldn't find task ${currentTask.taskName}: not applicable to project ${project.name}")
                 }
             }
             done = newToProcess.isEmpty()
@@ -256,33 +256,36 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                             if (outputChecksum == iit.outputChecksum) {
                                 upToDate = true
                             } else {
-                                log(2, "  INC- Incremental task ${ta.name} output is out of date, running it")
+                                logIncremental(1, "Incremental task ${ta.name} output is out of date, running it")
 
                             }
                         }
                     } else {
-                        log(2, "  INC- Incremental task ${ta.name} input is out of date, running it")
+                        logIncremental(1, "Incremental task ${ta.name} input is out of date, running it"
+                            + " old: $inputChecksum new: ${iit.inputChecksum}")
                     }
                 }
                 if (! upToDate) {
                     val result = iit.task(project)
                     if (result.success) {
-                        log(2, "  INC- Incremental task ${ta.name} done running, saving checksums")
+                        logIncremental(1, "Incremental task ${ta.name} done running, saving checksums")
                         iit.inputChecksum?.let {
                             incrementalManager.saveInputChecksum(taskName, it)
-                            log(2, "  INC-          input checksum \"$it\" saved")
+                            logIncremental(1, "          input checksum \"$it\" saved")
                         }
                         iit.outputChecksum?.let {
                             incrementalManager.saveOutputChecksum(taskName, it)
-                            log(2, "  INC-          output checksum \"$it\" saved")
+                            logIncremental(1, "          output checksum \"$it\" saved")
                         }
                     }
                     result
                 } else {
-                    log(2, "  INC- Incremental task ${ta.name} is up to date, not running it")
+                    logIncremental(2, "Incremental task \"${ta.name}\" is up to date, not running it")
                     TaskResult()
                 }
             })
+
+    private fun logIncremental(level: Int, s: String) = log(level, "    INC - $s")
 
     class PluginDynamicTask(val plugin: IPlugin, val task: DynamicTask)
 

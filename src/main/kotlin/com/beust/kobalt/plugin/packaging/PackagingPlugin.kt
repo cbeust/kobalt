@@ -116,7 +116,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                     val file = File(KFiles.joinDir(directory, root.from, relFile.path))
                     if (file.isFile) {
                         if (file.lastModified() > lastModified) {
-                            log(2, "  Outdated $file and $output "
+                            log(2, "    TS - Outdated $file and $output "
                                     + Date(file.lastModified()) + " " + Date(output.lastModified()))
                             return true
                         }
@@ -139,12 +139,43 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         super.apply(project, context)
         project.projectProperties.put(LIBS_DIR, libsDir(project))
         taskContributor.addVariantTasks(this, project, context, "assemble", runAfter = listOf("compile"),
-                runTask = { taskAssemble(project) })
+                runTask = { doTaskAssemble(project) })
     }
+
+    private fun findIncludedFiles(project: Project) : List<File> {
+        val inf = arrayListOf<IncludedFile>()
+        packages.filter { it.project.name == project.name }.forEach { pkg ->
+            pkg.jars.forEach { inf.addAll(jarGenerator.findIncludedFiles(pkg.project, context, it)) }
+            pkg.wars.forEach { inf.addAll(warGenerator.findIncludedFiles(pkg.project, context, it, projects)) }
+            pkg.zips.forEach { inf.addAll(zipGenerator.findIncludedFiles(pkg.project, context, it)) }
+        }
+
+        val result = arrayListOf<File>()
+        inf.map { includedFile ->
+            result.addAll(includedFile.allFromFiles().map {
+                if (it.isAbsolute) it else File(KFiles.joinDir(project.directory, includedFile.from, it.path))
+            })
+        }
+        result.forEach { if (! it.exists())
+            throw RuntimeException("Should exist $it")
+        }
+        return result
+    }
+
+//    @IncrementalTask(name = TASK_ASSEMBLE, description = "Package the artifacts",
+//            runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
+//    fun taskAssemble(project: Project) : IncrementalTaskInfo {
+//        val i = findIncludedFiles(project)
+//        val inputChecksum = Md5.toMd5Directories(i)
+//        return IncrementalTaskInfo(
+//                inputChecksum = inputChecksum,
+//                outputChecksum = "1",
+//                task = { project -> doTaskAssemble(project) })
+//    }
 
     @Task(name = TASK_ASSEMBLE, description = "Package the artifacts",
             runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
-    fun taskAssemble(project: Project) : TaskResult {
+    fun doTaskAssemble(project: Project) : TaskResult {
         project.projectProperties.put(PACKAGES, packages)
         packages.filter { it.project.name == project.name }.forEach { pkg ->
             pkg.jars.forEach { jarGenerator.generateJar(pkg.project, context, it) }

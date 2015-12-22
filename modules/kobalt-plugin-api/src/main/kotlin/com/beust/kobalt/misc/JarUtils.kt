@@ -157,10 +157,10 @@ class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<I
             "from", from,
             "to", to)
 
-    fun allFromFiles(directory: String): List<File> {
+    fun allFromFiles(directory: String? = null): List<File> {
         val result = arrayListOf<File>()
         specs.forEach { spec ->
-            val fullDir = KFiles.joinDir(directory, from)
+            val fullDir = if (directory == null) from else KFiles.joinDir(directory, from)
             spec.toFiles(fullDir).forEach { source ->
                 result.add(if (source.isAbsolute) source else File(source.path))
             }

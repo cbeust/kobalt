@@ -14,7 +14,7 @@ import java.nio.file.Paths
 import java.util.jar.JarOutputStream
 
 class JarGenerator @Inject constructor(val dependencyManager: DependencyManager){
-    fun includedFilesForJarFile(project: Project, context: KobaltContext, jar: Jar) : List<IncludedFile> {
+    fun findIncludedFiles(project: Project, context: KobaltContext, jar: Jar) : List<IncludedFile> {
         //
         // Add all the applicable files for the current project
         //
@@ -73,7 +73,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
     }
 
     fun generateJar(project: Project, context: KobaltContext, jar: Jar) : File {
-        val allFiles = includedFilesForJarFile(project, context, jar)
+        val allFiles = findIncludedFiles(project, context, jar)
 
         //
         // Generate the manifest

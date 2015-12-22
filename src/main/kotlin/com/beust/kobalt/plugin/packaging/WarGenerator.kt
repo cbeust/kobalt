@@ -18,7 +18,7 @@ import java.util.jar.JarOutputStream
 
 class WarGenerator @Inject constructor(val dependencyManager: DependencyManager){
 
-    fun includedFilesForJarFile(project: Project, context: KobaltContext, war: War,
+    fun findIncludedFiles(project: Project, context: KobaltContext, war: War,
             projects: List<ProjectDescription>) : List<IncludedFile> {
         //
         // src/main/web app and classes
@@ -67,7 +67,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
             manifest.mainAttributes.putValue(attribute.first, attribute.second)
         }
 
-        val allFiles = includedFilesForJarFile(project, context, war, projects)
+        val allFiles = findIncludedFiles(project, context, war, projects)
         val jarFactory = { os: OutputStream -> JarOutputStream(os, manifest) }
         return PackagingPlugin.generateArchive(project, context, war.name, ".war", allFiles,
                 false /* don't expand jar files */, jarFactory)

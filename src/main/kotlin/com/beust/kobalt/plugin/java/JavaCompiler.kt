@@ -22,7 +22,7 @@ import javax.tools.ToolProvider
 @Singleton
 class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
     fun compilerAction(executable: File) = object : ICompilerAction {
-        override fun compile(info: CompilerActionInfo): TaskResult {
+        override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
             if (info.sourceFiles.isEmpty()) {
                 warn("No source files to compile")
                 return TaskResult()

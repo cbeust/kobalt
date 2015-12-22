@@ -11,15 +11,20 @@ public class Md5 {
         fun toMd5Directories(directories: List<File>) : String {
             MessageDigest.getInstance("MD5").let { md5 ->
                 directories.forEach { file ->
-                    val files = KFiles.findRecursively(file) // , { f -> f.endsWith("java")})
-                    log(2, "  Calculating checksum of ${files.size} files")
-                    files.map {
-                        File(file, it)
-                    }.filter {
-                        it.isFile
-                    }.forEach {
-                        val bytes = it.readBytes()
+                    if (file.isFile) {
+                        val bytes = file.readBytes()
                         md5.update(bytes, 0, bytes.size)
+                    } else {
+                        val files = KFiles.findRecursively(file) // , { f -> f.endsWith("java")})
+                        log(2, "  Calculating checksum of ${files.size} files in $file")
+                        files.map {
+                            File(file, it)
+                        }.filter {
+                            it.isFile
+                        }.forEach {
+                            val bytes = it.readBytes()
+                            md5.update(bytes, 0, bytes.size)
+                        }
                     }
                 }
                 val result = DatatypeConverter.printHexBinary(md5.digest()).toLowerCase()

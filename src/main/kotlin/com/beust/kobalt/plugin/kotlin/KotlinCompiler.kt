@@ -26,7 +26,7 @@ import kotlin.properties.Delegates
  * @since 08 03, 2015
  */
 @Singleton
-class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
+class KotlinCompiler @Inject constructor(
         val files: KFiles,
         val dependencyManager: DependencyManager,
         val depFactory: DepFactory,
@@ -37,7 +37,7 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
     }
 
     val compilerAction = object: ICompilerAction {
-        override fun compile(info: CompilerActionInfo): TaskResult {
+        override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
             if (info.sourceFiles.size > 1) {
                 log(1, "  Compiling ${info.sourceFiles.size} files")
             }
@@ -58,7 +58,7 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
                     *(info.compilerArgs.toTypedArray()),
                     *(info.sourceFiles.toTypedArray())
             )
-            val success = invokeCompiler(cp, allArgs)
+            val success = invokeCompiler(projectName ?: "kobalt-" + Random().nextInt(), cp, allArgs)
             return TaskResult(success)
         }
 
@@ -72,8 +72,8 @@ class KotlinCompiler @Inject constructor(val localRepo : LocalRepo,
          * There are plenty of ways in which this method can break but this will be immediately
          * apparent if it happens.
          */
-        private fun invokeCompiler(cp: List<File>, args: Array<String>): Boolean {
-            val allArgs = listOf("-module-name", "module" + Random().nextInt()) + args
+        private fun invokeCompiler(projectName: String, cp: List<File>, args: Array<String>): Boolean {
+            val allArgs = listOf("-module-name", "project-" + projectName) + args
             log(2, "Calling kotlinc " + allArgs.joinToString(" "))
             val result : Boolean =
                     if (true) {
