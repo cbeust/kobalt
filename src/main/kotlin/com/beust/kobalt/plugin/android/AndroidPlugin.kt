@@ -108,8 +108,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
             runBefore = arrayOf("compile"), runAfter = arrayOf("clean"))
     fun taskGenerateRFile(project: Project): TaskResult {
 
-        val resDir = "temporaryBogusResDir"
-        val aarDependencies = explodeAarFiles(project, File(resDir))
+        val aarDependencies = explodeAarFiles(project)
         preDexFiles.addAll(preDex(project, context.variant, aarDependencies))
         val rDirectory = KFiles.joinAndMakeDir(KFiles.generatedSourceDir(project, context.variant, "r"))
         extraSourceDirectories.add(File(rDirectory))
@@ -163,7 +162,7 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
      * Extract all the .aar files found in the dependencies and add their android.jar to classpathEntries,
      * which will be added to the classpath at compile time via the classpath interceptor.
      */
-    private fun explodeAarFiles(project: Project, resDir: File) : List<File> {
+    private fun explodeAarFiles(project: Project) : List<File> {
         log(2, "Exploding aars")
         val result = arrayListOf<File>()
         project.compileDependencies.filter {
@@ -174,9 +173,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
             if (!File(AndroidFiles.explodedManifest(project, mavenId)).exists()) {
                 log(2, "  Exploding ${it.jarFile.get()} to $destDir")
                 JarUtils.extractJarFile(it.jarFile.get(), destDir)
-
-                // Copy all the resources from this aar into the same intermediate directory
-                KFiles.copyRecursively(destDir.resolve("res"), resDir)
             } else {
                 log(2, "  $destDir already exists, not extracting again")
             }
