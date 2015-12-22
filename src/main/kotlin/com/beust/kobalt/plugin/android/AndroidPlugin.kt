@@ -37,7 +37,7 @@ import java.nio.file.Paths
  */
 @Singleton
 public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
-        val executors: KobaltExecutors, val dependencyManager: DependencyManager)
+        val executors: KobaltExecutors, val dependencyManager: DependencyManager, val taskContributor : TaskContributor)
             : ConfigPlugin<AndroidConfig>(), IClasspathContributor, IRepoContributor, ICompilerFlagContributor,
                 ICompilerInterceptor, IBuildDirectoryIncerceptor, IRunnerContributor, IClasspathInterceptor,
                 ISourceDirectoryContributor, IBuildConfigFieldContributor, ITaskContributor, IMavenIdInterceptor {
@@ -51,8 +51,6 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
     override val name = PLUGIN_NAME
 
     fun isAndroid(project: Project) = configurationFor(project) != null
-
-    val taskContributor : TaskContributor = TaskContributor()
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)

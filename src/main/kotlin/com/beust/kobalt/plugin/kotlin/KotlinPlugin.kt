@@ -28,8 +28,9 @@ class KotlinPlugin @Inject constructor(
         override val depFactory: DepFactory,
         override val dependencyManager: DependencyManager,
         override val executors: KobaltExecutors,
-        override val jvmCompiler: JvmCompiler)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler),
+        override val jvmCompiler: JvmCompiler,
+        override val taskContributor : TaskContributor)
+        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler, taskContributor),
             IClasspathContributor, ICompilerContributor, IDocContributor {
 
     companion object {

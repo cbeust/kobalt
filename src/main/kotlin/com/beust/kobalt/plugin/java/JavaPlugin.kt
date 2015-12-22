@@ -24,8 +24,9 @@ class JavaPlugin @Inject constructor(
         override val dependencyManager: DependencyManager,
         override val executors: KobaltExecutors,
         val javaCompiler: JavaCompiler,
-        override val jvmCompiler: JvmCompiler)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler),
+        override val jvmCompiler: JvmCompiler,
+        override val taskContributor : TaskContributor)
+        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler, taskContributor),
             ICompilerContributor, IDocContributor, ITestSourceDirectoryContributor {
     companion object {
         const val PLUGIN_NAME = "Java"

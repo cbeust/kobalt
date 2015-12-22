@@ -236,7 +236,6 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
             = TaskAnnotation(method, plugin, ta.name, ta.description, ta.runBefore, ta.runAfter, ta.alwaysRunAfter,
             { project ->
                 method.invoke(plugin, project) as TaskResult
-
             })
 
     /**
@@ -245,47 +244,10 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
      */
     fun toTaskAnnotation(method: Method, plugin: IPlugin, ta: IncrementalTask)
             = TaskAnnotation(method, plugin, ta.name, ta.description, ta.runBefore, ta.runAfter, ta.alwaysRunAfter,
-            { project ->
-                val iit = method.invoke(plugin, project) as IncrementalTaskInfo
-                // TODO: compare the checksums with the previous run
-                val taskName = project.name + ":" + ta.name
-                var upToDate = false
-                incrementalManager.inputChecksumFor(taskName)?.let { inputChecksum ->
-                    if (inputChecksum == iit.inputChecksum) {
-                        incrementalManager.outputChecksumFor(taskName)?.let { outputChecksum ->
-                            if (outputChecksum == iit.outputChecksum) {
-                                upToDate = true
-                            } else {
-                                logIncremental(1, "Incremental task ${ta.name} output is out of date, running it")
-
-                            }
-                        }
-                    } else {
-                        logIncremental(1, "Incremental task ${ta.name} input is out of date, running it"
-                            + " old: $inputChecksum new: ${iit.inputChecksum}")
-                    }
-                }
-                if (! upToDate) {
-                    val result = iit.task(project)
-                    if (result.success) {
-                        logIncremental(1, "Incremental task ${ta.name} done running, saving checksums")
-                        iit.inputChecksum?.let {
-                            incrementalManager.saveInputChecksum(taskName, it)
-                            logIncremental(1, "          input checksum \"$it\" saved")
-                        }
-                        iit.outputChecksum?.let {
-                            incrementalManager.saveOutputChecksum(taskName, it)
-                            logIncremental(1, "          output checksum \"$it\" saved")
-                        }
-                    }
-                    result
-                } else {
-                    logIncremental(2, "Incremental task \"${ta.name}\" is up to date, not running it")
-                    TaskResult()
-                }
-            })
-
-    private fun logIncremental(level: Int, s: String) = log(level, "    INC - $s")
+            incrementalManager.toIncrementalTaskClosure(plugin, ta.name,
+                    { project ->
+                        method.invoke(plugin, project) as IncrementalTaskInfo
+                    }))
 
     class PluginDynamicTask(val plugin: IPlugin, val task: DynamicTask)
 

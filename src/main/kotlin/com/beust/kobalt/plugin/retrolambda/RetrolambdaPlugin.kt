@@ -18,8 +18,9 @@ import java.io.File
  * the most recent retrolambda.jar and it can be configured with the `retrolambda{}` directive.
  */
 @Singleton
-class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyManager)
-        : ConfigPlugin<RetrolambdaConfig>(), IClasspathContributor, ITaskContributor {
+class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyManager,
+        val taskContributor : TaskContributor)
+            : ConfigPlugin<RetrolambdaConfig>(), IClasspathContributor, ITaskContributor {
 
     override val name = PLUGIN_NAME
 
@@ -72,8 +73,6 @@ class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyMan
 
         return result
     }
-
-    val taskContributor : TaskContributor = TaskContributor()
 
     // ITaskContributor
     override fun tasksFor(context: KobaltContext) : List<DynamicTask> = taskContributor.dynamicTasks

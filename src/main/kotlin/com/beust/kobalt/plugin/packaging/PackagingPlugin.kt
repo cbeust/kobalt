@@ -24,7 +24,8 @@ import javax.inject.Singleton
 @Singleton
 class PackagingPlugin @Inject constructor(val dependencyManager : DependencyManager,
         val executors: KobaltExecutors, val jarGenerator: JarGenerator, val warGenerator: WarGenerator,
-        val zipGenerator: ZipGenerator) : ConfigPlugin<InstallConfig>(), ITaskContributor {
+        val zipGenerator: ZipGenerator, val taskContributor: TaskContributor)
+            : ConfigPlugin<InstallConfig>(), ITaskContributor {
 
     companion object {
         const val PLUGIN_NAME = "Packaging"
@@ -132,8 +133,6 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     override val name = PLUGIN_NAME
 
     private val packages = arrayListOf<PackageConfig>()
-
-    val taskContributor : TaskContributor = TaskContributor()
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)

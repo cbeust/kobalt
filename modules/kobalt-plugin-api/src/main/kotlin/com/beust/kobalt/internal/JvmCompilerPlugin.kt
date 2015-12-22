@@ -33,7 +33,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         open val dependencyManager: DependencyManager,
         open val executors: KobaltExecutors,
         open val jvmCompiler: JvmCompiler,
-        val taskContributor : TaskContributor = TaskContributor())
+        open val taskContributor : TaskContributor)
             : BasePlugin(), ISourceDirectoryContributor, IProjectContributor, ITaskContributor by taskContributor {
 
     companion object {
@@ -63,7 +63,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
         project.projectProperties.put(DEPENDENT_PROJECTS, projects())
-        taskContributor.addVariantTasks(this, project, context, "compile", runTask = { doTaskCompile(project) })
+        taskContributor.addIncrementalVariantTasks(this, project, context, "compile",
+                runTask = { taskCompile(project) })
     }
 
     @Task(name = TASK_TEST, description = "Run the tests",

@@ -34,7 +34,7 @@ fun Project.application(init: ApplicationConfig.() -> Unit) {
 
 @Singleton
 class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
-        val dependencyManager: DependencyManager)
+        val dependencyManager: DependencyManager, val taskContributor : TaskContributor)
             : ConfigPlugin<ApplicationConfig>(), IRunnerContributor, ITaskContributor {
 
     companion object {
@@ -42,8 +42,6 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
     }
 
     override val name = PLUGIN_NAME
-
-    val taskContributor : TaskContributor = TaskContributor()
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
