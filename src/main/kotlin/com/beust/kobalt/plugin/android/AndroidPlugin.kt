@@ -3,9 +3,11 @@ package com.beust.kobalt.plugin.android
 import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
+import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.MavenId
+import com.beust.kobalt.maven.Md5
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.*
@@ -59,7 +61,8 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
 
             taskContributor.addVariantTasks(this, project, context, "generateR", runBefore = listOf("compile"),
                     runTask = { taskGenerateRFile(project) })
-            taskContributor.addVariantTasks(this, project, context, "generateDex", runAfter = listOf("compile"),
+            taskContributor.addIncrementalVariantTasks(this, project, context, "generateDex",
+                    runAfter = listOf ("compile"),
                     runBefore = listOf("assemble"),
                     runTask = { taskGenerateDex(project) })
             taskContributor.addVariantTasks(this, project, context, "signApk", runAfter = listOf("generateDex"),
@@ -244,7 +247,10 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
                 error.size == 0
     }
 
+    private fun inputChecksum(classDirectory: String) = Md5.toMd5Directories(listOf(File(classDirectory)))
+
     private fun runDex(project: Project, outputJarFile: String, target: String) {
+        println("INPUT CHECKSUM: " + inputChecksum(target))
 //        DexProcessBuilder(File(jarFile)).
         DexCommand().run(listOf(
                 "-cp", KFiles.joinDir(androidHome(project), "build-tools", buildToolsVersion(project), "lib", "dx.jar"),
@@ -258,9 +264,17 @@ public class AndroidPlugin @Inject constructor(val javaCompiler: JavaCompiler,
         ).filter { it != "" })
     }
 
-    @Task(name = TASK_GENERATE_DEX, description = "Generate the dex file", runBefore = arrayOf("assemble"),
+    @IncrementalTask(name = TASK_GENERATE_DEX, description = "Generate the dex file", runBefore = arrayOf("assemble"),
             runAfter = arrayOf("compile"))
-    fun taskGenerateDex(project: Project): TaskResult {
+    fun taskGenerateDex(project: Project): IncrementalTaskInfo {
+        return IncrementalTaskInfo(
+                inputChecksum = inputChecksum(project.classesDir(context)),
+                outputChecksum = "1",
+                task = { project -> doTaskGenerateDex(project) }
+        )
+    }
+
+    fun doTaskGenerateDex(project: Project): TaskResult {
         //
         // Call dx to generate classes.dex
         //
