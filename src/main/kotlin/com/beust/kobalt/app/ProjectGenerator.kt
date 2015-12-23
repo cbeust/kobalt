@@ -26,6 +26,7 @@ public class ProjectGenerator @Inject constructor(val pluginInfo: PluginInfo){
 
     fun run(args: Args) {
         val contributor = ActorUtils.selectAffinityActor(pluginInfo.initContributors, File("."))
+        File(args.buildFile).parentFile.mkdirs()
         if (contributor != null) {
             contributor.generateBuildFile(FileOutputStream(File(args.buildFile)))
             log(1, "Created ${args.buildFile}")
