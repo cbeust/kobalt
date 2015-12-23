@@ -46,4 +46,19 @@ Another advantage of checksums is that they are generic and not necessarily tied
 
 Internally, Kobalt maintains information about all the checksums and tasks that it has seen in a file `.kobalt/build-info.json`. Whenever an incremental task is about to run, Kobalt compares its input and output checksums to the ones from the previous run and if any differs, that task is run. Otherwise, it's skipped.
 
+Example timings:
+
+| Task | First run | Second run |
+| ---- | --------- | ---------- |
+|  kobalt-wrapper:compile | 627 ms | 22 ms |
+|  kobalt-wrapper:assemble | 9 ms | 9 ms |
+|  kobalt-plugin-api:compile | 10983 ms | 54 ms |
+|  kobalt-plugin-api:assemble | 1763 ms | 154 ms |
+|  kobalt:compile | 11758 ms | 11 ms |
+|  kobalt:assemble | 42333 ms | 2130 ms |
+| | 70 seconds | 2 seconds |
+
+
+
+
 
