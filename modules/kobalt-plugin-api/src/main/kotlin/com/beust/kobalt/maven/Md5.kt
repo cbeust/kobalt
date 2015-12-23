@@ -8,6 +8,13 @@ import javax.xml.bind.DatatypeConverter
 
 public class Md5 {
     companion object {
+//        private fun md5(file: File) : String {
+//            val md5 = MessageDigest.getInstance("MD5")
+//            val bytes = file.readBytes()
+//            md5.update(bytes, 0, bytes.size)
+//            return DatatypeConverter.printHexBinary(md5.digest()).toLowerCase()
+//        }
+
         fun toMd5Directories(directories: List<File>) : String {
             MessageDigest.getInstance("MD5").let { md5 ->
                 directories.forEach { file ->
