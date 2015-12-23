@@ -94,7 +94,7 @@ private class Main @Inject constructor(
 
         var result = 0
         val latestVersionFuture = github.latestKobaltVersion
-        val seconds = benchmark {
+        val seconds = benchmarkSeconds {
             try {
                 result = runWithArgs(jc, args, argv)
             } catch(ex: KobaltException) {
@@ -195,10 +195,12 @@ private class Main @Inject constructor(
                     //
                     // Launch the build
                     //
-                    val thisResult = taskManager.runTargets(args.targets, allProjects)
+                    val runTargetResult = taskManager.runTargets(args.targets, allProjects)
                     if (result == 0) {
-                        result = thisResult
+                        result = runTargetResult.exitCode
                     }
+
+                    log(2, "Timings:\n  " + runTargetResult.messages.joinToString("\n  "))
                 }
             }
         }

@@ -7,6 +7,7 @@ import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.misc.benchmarkMillis
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
@@ -46,8 +47,11 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
         fun matches(projectName: String) = project == null || project == projectName
     }
 
-    public fun runTargets(taskNames: List<String>, projects: List<Project>) : Int {
+    class RunTargetResult(val exitCode: Int, val messages: List<String>)
+
+    public fun runTargets(taskNames: List<String>, projects: List<Project>) : RunTargetResult {
         var result = 0
+        val messages = Collections.synchronizedList(arrayListOf<String>())
         projects.forEach { project ->
             val projectName = project.name
             // There can be multiple tasks by the same name (e.g. PackagingPlugin and AndroidPlugin both
@@ -139,9 +143,13 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
 
             val factory = object : IThreadWorkerFactory<PluginTask> {
                 override public fun createWorkers(nodes: List<PluginTask>): List<IWorker<PluginTask>> {
+//                    val tr = nodes.reduce { workers: List<TaskWorker>, node: PluginTask ->
+//                        val result: List<TaskWorker> = workers + TaskWorker(listOf(node), args.dryRun, messages)
+//                        result
+//                    }
                     val thisResult = arrayListOf<IWorker<PluginTask>>()
                     nodes.forEach {
-                        thisResult.add(TaskWorker(arrayListOf(it), args.dryRun))
+                        thisResult.add(TaskWorker(listOf(it), args.dryRun, messages))
                     }
                     return thisResult
                 }
@@ -154,7 +162,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
             }
 
         }
-        return result
+        return RunTargetResult(result, messages)
     }
 
     /**
@@ -205,7 +213,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                     dependencyNames.forEach {
                         newToProcess.add(TaskInfo(project.name, it))
                     }
-            } else {
+                } else {
                     log(1, "Couldn't find task ${currentTask.taskName}: not applicable to project ${project.name}")
                 }
             }
@@ -319,15 +327,12 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
     }
 
     //
-    //
+    // Manage the tasks
     /////
-
 }
 
-class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean) : IWorker<PluginTask> {
-//    override fun compareTo(other: IWorker2<PluginTask>): Int {
-//        return priority.compareTo(other.priority)
-//    }
+class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean, val messages: MutableList<String>)
+        : IWorker<PluginTask> {
 
     override fun call() : TaskResult2<PluginTask> {
         if (tasks.size > 0) {
@@ -338,9 +343,13 @@ class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean) : IWorker<Plu
         var success = true
         val errorMessages = arrayListOf<String>()
         tasks.forEach {
-            val tr = if (dryRun) TaskResult() else it.call()
-            success = success and tr.success
-            if (tr.errorMessage != null) errorMessages.add(tr.errorMessage)
+            val name = it.project.name + ":" + it.name
+            val time = benchmarkMillis {
+                val tr = if (dryRun) TaskResult() else it.call()
+                success = success and tr.success
+                if (tr.errorMessage != null) errorMessages.add(tr.errorMessage)
+            }
+            messages.add("$name: $time ms")
         }
         return TaskResult2(success, errorMessages.joinToString("\n"), tasks[0])
     }
