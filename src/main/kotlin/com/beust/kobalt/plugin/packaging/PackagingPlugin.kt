@@ -12,6 +12,7 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.misc.*
 import java.io.File
 import java.io.FileOutputStream
@@ -24,7 +25,8 @@ import javax.inject.Singleton
 @Singleton
 class PackagingPlugin @Inject constructor(val dependencyManager : DependencyManager,
         val executors: KobaltExecutors, val jarGenerator: JarGenerator, val warGenerator: WarGenerator,
-        val zipGenerator: ZipGenerator, val taskContributor: TaskContributor)
+        val zipGenerator: ZipGenerator, val taskContributor: TaskContributor,
+        val pomFactory: PomGenerator.IFactory)
             : ConfigPlugin<InstallConfig>(), ITaskContributor {
 
     companion object {
@@ -180,6 +182,9 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             pkg.jars.forEach { jarGenerator.generateJar(pkg.project, context, it) }
             pkg.wars.forEach { warGenerator.generateWar(pkg.project, context, it, projects) }
             pkg.zips.forEach { zipGenerator.generateZip(pkg.project, context, it) }
+            if (pkg.generatePom) {
+                pomFactory.create(project).generate()
+            }
         }
         return TaskResult()
     }
@@ -228,6 +233,7 @@ class PackageConfig(val project: Project) : AttributeHolder {
     val jars = arrayListOf<Jar>()
     val wars = arrayListOf<War>()
     val zips = arrayListOf<Zip>()
+    var generatePom: Boolean = false
 
     init {
         (Kobalt.findPlugin(PackagingPlugin.PLUGIN_NAME) as PackagingPlugin).addPackage(this)
@@ -282,6 +288,8 @@ class PackageConfig(val project: Project) : AttributeHolder {
         mainJarAttributes.forEach {
             mainJar.addAttribute(it.first, it.second)
         }
+
+        generatePom = true
 
         return m
     }
