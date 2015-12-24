@@ -37,7 +37,7 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
 
     private fun parseRetrofitError(e: Throwable) : RetrofitErrorsResponse {
         val re = e as RetrofitError
-        val json = String((re.response.body as TypedByteArray).bytes)
+        val json = String((re.response?.body as TypedByteArray).bytes)
         return Gson().fromJson(json, RetrofitErrorsResponse::class.java)
     }
 
