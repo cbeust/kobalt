@@ -46,7 +46,7 @@ Another advantage of checksums is that they are generic and not necessarily tied
 
 Internally, Kobalt maintains information about all the checksums and tasks that it has seen in a file `.kobalt/build-info.json`. Whenever an incremental task is about to run, Kobalt compares its input and output checksums to the ones from the previous run and if any differs, that task is run. Otherwise, it's skipped.
 
-Example timings:
+Example timings for Kobalt:
 
 | Task | First run | Second run |
 | ---- | --------- | ---------- |
@@ -57,6 +57,20 @@ Example timings:
 |  kobalt:compile | 11758 ms | 11 ms |
 |  kobalt:assemble | 42333 ms | 2130 ms |
 | | 70 seconds | 2 seconds |
+
+Android (u2020):
+
+| Task | First run | Second run |
+| ---- | --------- | ---------- |
+|  u2020:generateRInternalDebug | 33025 ms | 1652 ms |
+|  u2020:compileInternalDebug | 23 ms | 24 ms |
+|  u2020:retrolambdaInternalDebug | 234 ms | 255 ms |
+|  u2020:generateDexInternalDebug | 2 ms | 2 ms |
+|  u2020:signApkInternalDebug | 449 ms | 394 ms |
+|  u2020:assembleInternalDebug | 0 ms | 0 ms |
+| | 33 seconds | 2 seconds |
+
+
 
 
 
