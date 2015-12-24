@@ -62,13 +62,13 @@ Android (u2020):
 
 | Task | First run | Second run |
 | ---- | --------- | ---------- |
-|  u2020:generateRInternalDebug | 33025 ms | 1652 ms |
-|  u2020:compileInternalDebug | 23 ms | 24 ms |
-|  u2020:retrolambdaInternalDebug | 234 ms | 255 ms |
-|  u2020:generateDexInternalDebug | 2 ms | 2 ms |
-|  u2020:signApkInternalDebug | 449 ms | 394 ms |
+|  u2020:generateRInternalDebug | 32350 ms | 1652 ms |
+|  u2020:compileInternalDebug | 3629 ms | 24 ms |
+|  u2020:retrolambdaInternalDebug | 668 ms | 473 ms |
+|  u2020:generateDexInternalDebug | 6130 ms |55 ms |
+|  u2020:signApkInternalDebug | 449 ms | 404 ms |
 |  u2020:assembleInternalDebug | 0 ms | 0 ms |
-| | 33 seconds | 2 seconds |
+| | 43 seconds | 2 seconds |
 
 
 
