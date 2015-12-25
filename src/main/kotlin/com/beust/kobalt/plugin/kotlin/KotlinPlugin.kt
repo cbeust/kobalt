@@ -87,7 +87,7 @@ class KotlinPlugin @Inject constructor(
                             sourceFiles,
                             KFiles.makeOutputTestDir(project))
                 } else {
-                    warn("Couldn't find any test files")
+                    warn("Couldn't find any source test files")
                     TaskResult()
                 }
 
