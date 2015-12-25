@@ -1,15 +1,12 @@
 package com.beust.kobalt.plugin.packaging
 
-import com.beust.kobalt.Features
-import com.beust.kobalt.IFileSpec
+import com.beust.kobalt.*
 import com.beust.kobalt.IFileSpec.FileSpec
 import com.beust.kobalt.IFileSpec.Glob
-import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.PomGenerator
@@ -177,16 +174,20 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     @Task(name = TASK_ASSEMBLE, description = "Package the artifacts",
             runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
     fun doTaskAssemble(project: Project) : TaskResult {
-        project.projectProperties.put(PACKAGES, packages)
-        packages.filter { it.project.name == project.name }.forEach { pkg ->
-            pkg.jars.forEach { jarGenerator.generateJar(pkg.project, context, it) }
-            pkg.wars.forEach { warGenerator.generateWar(pkg.project, context, it, projects) }
-            pkg.zips.forEach { zipGenerator.generateZip(pkg.project, context, it) }
-            if (pkg.generatePom) {
-                pomFactory.create(project).generate()
+        try {
+            project.projectProperties.put(PACKAGES, packages)
+            packages.filter { it.project.name == project.name }.forEach { pkg ->
+                pkg.jars.forEach { jarGenerator.generateJar(pkg.project, context, it) }
+                pkg.wars.forEach { warGenerator.generateWar(pkg.project, context, it, projects) }
+                pkg.zips.forEach { zipGenerator.generateZip(pkg.project, context, it) }
+                if (pkg.generatePom) {
+                    pomFactory.create(project).generate()
+                }
             }
+            return TaskResult()
+        } catch(ex: Exception) {
+            throw KobaltException(ex)
         }
-        return TaskResult()
     }
 
     fun addPackage(p: PackageConfig) {
