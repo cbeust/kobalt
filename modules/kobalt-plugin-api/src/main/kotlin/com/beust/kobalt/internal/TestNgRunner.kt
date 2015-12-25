@@ -3,6 +3,7 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.warn
 import java.io.File
 
 public class TestNgRunner() : GenericTestRunner() {
@@ -19,8 +20,13 @@ public class TestNgRunner() : GenericTestRunner() {
                 if (testngXml.exists()) {
                     add(testngXml.absolutePath)
                 } else {
-                    add("-testclass")
-                    add(findTestClasses(project, classpath).joinToString(","))
+                    val testClasses = findTestClasses(project, classpath)
+                    if (testClasses.size > 0) {
+                        add("-testclass")
+                        add(testClasses.joinToString(","))
+                    } else {
+                        warn("Couldn't find any test classes for ${project.name}")
+                    }
                 }
             }
         }
