@@ -243,9 +243,13 @@ private class Main @Inject constructor(
 
     private fun runClasspathInterceptors(project: Project, dependencies: ArrayList<IClasspathDependency>)
             = with(dependencies) {
-                val deps = interceptDependencies(project, pluginInfo, this)
-                clear()
-                addAll(deps)
+                if (pluginInfo.classpathInterceptors.size > 0) {
+                    val deps = interceptDependencies(project, pluginInfo, this)
+                    clear()
+                    addAll(deps)
+                } else {
+                    this
+                }
             }
 
     private fun interceptDependencies(project: Project, pluginInfo: PluginInfo,
