@@ -5,7 +5,6 @@
         <!-- Classes within this tag are instantiated and the introspected by Kobalt. Whenever they -->
         <!-- are found to implement one of IPluginActor's interfaces, they are added as such -->
         <class-name>com.beust.kobalt.plugin.java.JavaPlugin</class-name>
-        <class-name>com.beust.kobalt.plugin.android.AndroidPlugin</class-name>
         <class-name>com.beust.kobalt.plugin.application.ApplicationPlugin</class-name>
         <class-name>com.beust.kobalt.plugin.KobaltPlugin</class-name>
         <class-name>com.beust.kobalt.plugin.kotlin.KotlinPlugin</class-name>

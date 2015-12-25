@@ -115,8 +115,7 @@ val kobaltApp = kotlinProject(kobaltPluginApi, wrapper) {
 
     dependencies {
         // Used by the plugins
-        compile("com.android.tools.build:builder:2.0.0-alpha3",
-                "org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.0-beta-3595",
+        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.0-beta-3595",
                 "org.jetbrains.dokka:dokka-fatjar:0.9.3")
 
         // Used by the main app
