@@ -12,6 +12,7 @@ import com.beust.kobalt.misc.RunCommand
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
+import java.nio.charset.Charset
 
 /**
  * Run Retrolambda on the classes right after "compile". This plug-in automatically downloads and uses
@@ -55,11 +56,16 @@ class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyMan
                         project.compileDependencies)
                         .map {
                     it.jarFile.get()
-                } + classesDir).joinToString(File.pathSeparator)
+                } + classesDir).joinToString("\n")
+
+                // Use retrolambda.classpathFile instead of retrolambda.classpath to avoid problems
+                // with file path separators on Windows
+                val classpathFile = File.createTempFile("kobalt-", "")
+                classpathFile.writeText(classpath, Charset.defaultCharset())
 
                 val args = listOf(
-                        "-Dretrolambda.inputDir=" + classesDir,
-                        "-Dretrolambda.classpath=" + classpath,
+                        "-Dretrolambda.inputDir=" + classesDir.replace("\\", "/"),
+                        "-Dretrolambda.classpathFile=" + classpathFile,
                         "-Dretrolambda.bytecodeVersion=${config.byteCodeVersion}",
                         "-jar", JAR.jarFile.get().path)
 
