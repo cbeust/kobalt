@@ -94,10 +94,6 @@ val kobaltPluginApi = kotlinProject {
 //        libDir = "lib-test"
 //    }
 
-    test {
-        args("-log", "1", "src/test/resources/testng.xml")
-    }
-
     kotlinCompiler {
         args("-nowarn")
     }
@@ -161,6 +157,10 @@ val kobaltApp = kotlinProject(kobaltPluginApi, wrapper) {
 
     github {
         file("$buildDirectory/libs/$name-$version.zip", "$name/$version/$name-$version.zip")
+    }
+
+    test {
+        args("-log", "1", "src/test/resources/testng.xml")
     }
 }
 
