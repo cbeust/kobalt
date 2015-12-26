@@ -14,10 +14,6 @@ class TestConfig(val project: Project) {
 }
 
 @Directive
-fun Project.test(init: TestConfig.() -> Unit) : TestConfig {
-    val result = TestConfig(this)
-    result.init()
-    return result
-}
+fun Project.test(init: TestConfig.() -> Unit) = TestConfig(this).apply { init() }
 
 
