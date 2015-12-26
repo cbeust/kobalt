@@ -25,7 +25,8 @@ abstract class GenericTestRunner : ITestRunnerContributor {
             if (project.testDependencies.any { it.id.contains(dependencyName)}) IAffinity.DEFAULT_POSITIVE_AFFINITY
             else 0
 
-    protected fun findTestClasses(project: Project, classpath: List<IClasspathDependency>): List<String> {
+    protected fun findTestClasses(project: Project, classpath: List<IClasspathDependency>,
+            classFilter : (Class<*>) -> Boolean = {true}): List<String> {
         val path = KFiles.joinDir(project.directory, project.buildDirectory, KFiles.TEST_CLASSES_DIR)
         val result = KFiles.findRecursively(File(path), arrayListOf(File(".")), {
             file -> file.endsWith(".class")
@@ -36,8 +37,11 @@ abstract class GenericTestRunner : ITestRunnerContributor {
                 // Only keep classes with a parameterless constructor
                 val urls = arrayOf(File(path).toURI().toURL()) +
                         classpath.map { it.jarFile.get().toURI().toURL() }
-                URLClassLoader(urls).loadClass(it).getConstructor()
-                true
+                val cl = URLClassLoader(urls).loadClass(it)
+                val constructor = cl.getConstructor()
+                // If we get past this, we have a default constructor
+
+                classFilter(cl)
             } catch(ex: Exception) {
                 log(2, "Skipping non test class $it: ${ex.message}")
                 false
