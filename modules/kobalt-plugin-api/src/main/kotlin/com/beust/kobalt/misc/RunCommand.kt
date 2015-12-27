@@ -43,7 +43,7 @@ open class RunCommand(val command: String) {
             "\n  " + allArgs.joinToString(" "))
         val process = pb.start()
         pb.environment().let { pbEnv ->
-            env.forEach {
+            env.forEach {it ->
                 pbEnv.put(it.key, it.value)
             }
         }

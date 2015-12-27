@@ -144,7 +144,7 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
     val XPATH = XPATH_FACTORY.newXPath();
 
     fun findCorrectVersionRelease(metadataPath: String, repoUrl: String): String? {
-        val XPATHS = arrayListOf(
+        val XPATHS = listOf(
                 XPATH.compile("/metadata/version"),
                 XPATH.compile("/metadata/versioning/latest"),
                 XPATH.compile("/metadata/versioning/release"))

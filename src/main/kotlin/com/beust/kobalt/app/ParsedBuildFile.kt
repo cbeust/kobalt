@@ -15,7 +15,6 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.Paths
 import java.util.*
-import kotlin.text.Regex
 
 class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val buildScriptUtil: BuildScriptUtil,
         val dependencyManager: DependencyManager, val files: KFiles) {
@@ -74,7 +73,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
              * val profile = true, otherwise return the same line
              */
             fun correctProfileLine(line: String) : String {
-                context.profiles.forEach {
+                (context.profiles as List<String>).forEach {
                     if (line.matches(Regex("[ \\t]*val[ \\t]+$it[ \\t]+=.*"))) {
                         with("val $it = true") {
                             profileLines.add(this)
