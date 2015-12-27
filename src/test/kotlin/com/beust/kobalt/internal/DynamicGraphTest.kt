@@ -64,7 +64,7 @@ public class DynamicGraphTest {
         val factory = createFactory(runNodes, { n -> n != 3 })
         val ex = DynamicGraphExecutor(g, factory)
         ex.run()
-        Thread.yield()
+        Thread.`yield`()
         Assert.assertTrue(! runNodes.contains(4))
         Assert.assertTrue(! runNodes.contains(10))
     }

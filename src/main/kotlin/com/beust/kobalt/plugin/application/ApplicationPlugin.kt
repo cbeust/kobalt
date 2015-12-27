@@ -10,6 +10,7 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.misc.warn
+import com.beust.kobalt.plugin.packaging.Jar
 import com.beust.kobalt.plugin.packaging.PackageConfig
 import com.beust.kobalt.plugin.packaging.PackagingPlugin
 import com.google.inject.Inject
@@ -65,7 +66,7 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
 
     private fun isFatJar(packages: List<PackageConfig>, jarName: String): Boolean {
         packages.forEach { pc ->
-            pc.jars.forEach { jar ->
+            (pc.jars as List<Jar>).forEach { jar ->
                 if ((jar.name == null || jar.name == jarName) && jar.fatJar) {
                     return true
                 }

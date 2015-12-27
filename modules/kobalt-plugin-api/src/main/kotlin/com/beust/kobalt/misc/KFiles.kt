@@ -283,9 +283,8 @@ class KFiles {
             if (excludes.isEmpty()) {
                 return false
             } else {
-                val ex = arrayListOf<PathMatcher>()
-                excludes.forEach {
-                    ex.add(FileSystems.getDefault().getPathMatcher("glob:${it.spec}"))
+                val ex = excludes.map {
+                    FileSystems.getDefault().getPathMatcher("glob:${it.spec}")
                 }
                 ex.forEach {
                     if (it.matches(Paths.get(file))) {
