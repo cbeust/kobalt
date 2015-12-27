@@ -69,7 +69,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
     }
 
     private fun uploadGithub(project: Project) : TaskResult {
-        val configuration = githubConfigurations.getRaw(project.name)
+        val configuration = githubConfigurations[project.name]
 
         //
         // Upload individual files, if applicable
@@ -93,7 +93,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
 
         val jcenter = jcenterFactory.create(user, password)
         var success = false
-        val configuration = jcenterConfigurations.getRaw(project.name)
+        val configuration = jcenterConfigurations[project.name]
         val messages = arrayListOf<String>()
 
         if (configuration != null) {

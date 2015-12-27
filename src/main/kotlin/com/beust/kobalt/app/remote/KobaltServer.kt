@@ -77,7 +77,7 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
     private fun runCommand(jo: JsonObject) {
         val command = jo.get("name").asString
         if (command != null) {
-            COMMANDS.getOrElse(command, { COMMANDS.get("ping") })!!.run(this, jo)
+            (COMMANDS[command] ?: COMMANDS["ping"])!!.run(this, jo)
         } else {
             error("Did not find a name in command: $jo")
         }
