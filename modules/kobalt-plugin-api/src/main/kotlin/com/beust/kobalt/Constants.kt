@@ -8,7 +8,8 @@ object Constants {
             "http://repo1.maven.org/maven2/",
             "https://maven-central.storage.googleapis.com/",
             "https://repository.jboss.org/nexus/content/repositories/root_repository/",
-            "https://jcenter.bintray.com/"
+            "https://jcenter.bintray.com/",
+            "http://repository.jetbrains.com/all/"
     )
 
 }
