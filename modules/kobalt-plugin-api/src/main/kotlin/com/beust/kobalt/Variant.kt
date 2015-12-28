@@ -186,9 +186,9 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     }
 
     fun toCamelcaseDir() : String {
-        val pfName = productFlavor.name
-        val btName = buildType.name
-        return pfName[0].toLowerCase() + pfName.substring(1) + btName[0].toUpperCase() + btName.substring(1)
+        fun lci(s : String) = if (s.length == 0 || s.length == 1) s else s[0].toLowerCase() + s.substring(1)
+
+        return lci(productFlavor.name) + buildType.name.capitalize()
     }
 
     fun toIntermediateDir() : String {
