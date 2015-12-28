@@ -15,7 +15,6 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.Paths
 import java.util.*
-import kotlin.text.Regex
 
 class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val buildScriptUtil: BuildScriptUtil,
         val dependencyManager: DependencyManager, val files: KFiles) {
