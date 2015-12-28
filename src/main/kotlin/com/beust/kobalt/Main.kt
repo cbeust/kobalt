@@ -65,20 +65,8 @@ private class Main @Inject constructor(
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
-    private fun addReposFromContributors(project: Project?) =
-            pluginInfo.repoContributors.forEach {
-                it.reposFor(project).forEach {
-                    Kobalt.addRepo(it)
-                }
-            }
-
     public fun run(jc: JCommander, args: Args, argv: Array<String>): Int {
 //        github.uploadRelease("kobalt", "0.101", File("/Users/beust/t/a.zip"))
-
-        //
-        // Add all the repos from repo contributors (at least those that return values without a Project)
-        //
-        addReposFromContributors(null)
 
         //
         // Add all the plugins read in kobalt-plugin.xml to the Plugins singleton, so that code
@@ -167,7 +155,13 @@ private class Main @Inject constructor(
                 //
                 // Now that we have projects, add all the repos from repo contributors that need a Project
                 //
-                allProjects.forEach { addReposFromContributors(it) }
+                allProjects.forEach { project ->
+                    pluginInfo.repoContributors.forEach {
+                        it.reposFor(project).forEach {
+                            Kobalt.addRepo(it)
+                        }
+                    }
+                }
 
                 //
                 // Run all their dependencies through the IDependencyInterceptors

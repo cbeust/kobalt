@@ -16,9 +16,21 @@ public class Kobalt {
 
         var context: KobaltContext? = null
 
-        val repos = HashSet<HostConfig>(Constants.DEFAULT_REPOS.map { HostConfig(it) })
+        /**
+         * @return the repos from the build files and from the contributors.
+         */
+        val repos : Set<HostConfig>
+            get() {
+                val result = HashSet(reposFromBuildFiles)
+                Kobalt.context?.pluginInfo?.repoContributors?.forEach {
+                    result.addAll(it.reposFor(null))
+                }
+                return result
+            }
 
-        fun addRepo(repo: HostConfig) = repos.add(
+        val reposFromBuildFiles = HashSet<HostConfig>(Constants.DEFAULT_REPOS.map { HostConfig(it) })
+
+        fun addRepo(repo: HostConfig) = reposFromBuildFiles.add(
                 if (repo.url.endsWith("/")) repo
                 else repo.copy(url = (repo.url + "/")))
 
