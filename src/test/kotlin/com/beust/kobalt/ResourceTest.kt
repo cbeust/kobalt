@@ -2,7 +2,7 @@ package com.beust.kobalt
 
 import org.testng.Assert
 import org.testng.annotations.Test
-import java.util.Properties
+import java.util.*
 
 @Test(enabled = false)
 public class ResourceTest {

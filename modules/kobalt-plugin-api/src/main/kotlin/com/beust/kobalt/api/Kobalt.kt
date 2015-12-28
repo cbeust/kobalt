@@ -12,14 +12,14 @@ public class Kobalt {
         // This injector will eventually be replaced with a different injector initialized with the
         // correct arguments (or with a TestModule) but it's necessary to give it a default value
         // here so the kobalt-plugin.xml file can be read since this is done very early
-        lateinit var INJECTOR : Injector
+        lateinit var INJECTOR: Injector
 
         var context: KobaltContext? = null
 
         /**
          * @return the repos from the build files and from the contributors.
          */
-        val repos : Set<HostConfig>
+        val repos: Set<HostConfig>
             get() {
                 val result = HashSet(reposFromBuildFiles)
                 Kobalt.context?.pluginInfo?.repoContributors?.forEach {
@@ -43,7 +43,7 @@ public class Kobalt {
         /**
          * Read the content of kobalt.properties
          */
-        private fun readProperties() : Properties {
+        private fun readProperties(): Properties {
             val result = Properties()
 
             // kobalt.properties is internal to Kobalt
@@ -55,13 +55,13 @@ public class Kobalt {
             }
 
             // local.properties can be used by external users
-//            Paths.get(LOCAL_PROPERTIES).let { path ->
-//                if (Files.exists(path)) {
-//                    Files.newInputStream(path).use {
-//                        readProperties(result, it)
-//                    }
-//                }
-//            }
+            //            Paths.get(LOCAL_PROPERTIES).let { path ->
+            //                if (Files.exists(path)) {
+            //                    Files.newInputStream(path).use {
+            //                        readProperties(result, it)
+            //                    }
+            //                }
+            //            }
 
             return result
         }

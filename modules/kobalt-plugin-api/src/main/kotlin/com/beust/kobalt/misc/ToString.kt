@@ -1,6 +1,6 @@
 package com.beust.kobalt.misc
 
-fun <T> toString(name: String, vararg o: T) : String {
+fun <T> toString(name: String, vararg o: T): String {
     val sb = StringBuilder()
 
     var i = 0

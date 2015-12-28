@@ -3,30 +3,30 @@ package com.beust.kobalt.maven
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Versions
 import java.io.File
-import java.util.Collections
+import java.util.*
 import javax.inject.Singleton
 
 @Singleton
 open public class LocalRepo(open val localRepo: String = KFiles.localRepo) {
     init {
         val l = File(localRepo)
-        if (! l.exists()) {
+        if (!l.exists()) {
             l.mkdirs()
         }
     }
 
-    fun existsPom(d: LocalDep, v: String) : Boolean {
+    fun existsPom(d: LocalDep, v: String): Boolean {
         return File(d.toAbsolutePomFile(v)).exists()
     }
 
-    fun existsJar(d: LocalDep, v: String) : Boolean {
+    fun existsJar(d: LocalDep, v: String): Boolean {
         return File(d.toAbsoluteJarFilePath(v)).exists()
     }
 
     /**
      * If the dependency is local, return the correct version for it
      */
-    fun findLocalVersion(groupId: String, artifactId: String, packaging: String? = null) : String? {
+    fun findLocalVersion(groupId: String, artifactId: String, packaging: String? = null): String? {
         // No version: look at all the directories under group/artifactId, pick the latest and see
         // if it contains a maven and jar file
         val dir = toFullPath(KFiles.joinDir(groupId.replace(".", File.separator), artifactId))
@@ -50,7 +50,7 @@ open public class LocalRepo(open val localRepo: String = KFiles.localRepo) {
         return null
     }
 
-    fun toFullPath(path: String) : String {
+    fun toFullPath(path: String): String {
         return localRepo + File.separatorChar + path
     }
 }

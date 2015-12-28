@@ -13,7 +13,7 @@ import java.io.InputStreamReader
 public class Gpg {
     val COMMANDS = listOf("gpg", "gpg2")
 
-     fun findGpgCommand() : String? {
+    fun findGpgCommand(): String? {
         val path = System.getenv("PATH")
         if (path != null) {
             path.split(File.pathSeparator).forEach { dir ->
@@ -32,7 +32,7 @@ public class Gpg {
     /**
      * @return the .asc files
      */
-    fun runGpg(files: List<File>) : List<File> {
+    fun runGpg(files: List<File>): List<File> {
         val result = arrayListOf<File>()
         val gpg = findGpgCommand()
         if (gpg != null) {

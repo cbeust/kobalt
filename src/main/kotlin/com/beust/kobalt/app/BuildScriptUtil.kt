@@ -24,10 +24,10 @@ import java.util.*
 import java.util.jar.JarInputStream
 
 class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFiles,
-        val taskManager: TaskManager) {
+                                          val taskManager: TaskManager) {
     val projects = arrayListOf<Project>()
 
-    val defaultPlugin : IPlugin get() = Plugins.findPlugin(KobaltPlugin.PLUGIN_NAME)!!
+    val defaultPlugin: IPlugin get() = Plugins.findPlugin(KobaltPlugin.PLUGIN_NAME)!!
 
     /**
      * Run the given preBuildScript (or buildScript) jar file, using a classloader made of the passed URL's.
@@ -35,10 +35,10 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
      * URL's found from running preBuildScript.jar.
      */
     fun runBuildScriptJarFile(buildScriptJarFile: File, urls: List<URL>,
-            context: KobaltContext) : List<Project> {
-        var stream : InputStream? = null
+                              context: KobaltContext): List<Project> {
+        var stream: InputStream? = null
         val allUrls = (urls + arrayOf(buildScriptJarFile.toURI().toURL())
-                + files.kobaltJar.map {File(it).toURI().toURL() })
+                + files.kobaltJar.map { File(it).toURI().toURL() })
                 .toTypedArray()
         val classLoader = URLClassLoader(allUrls)
 
@@ -59,7 +59,7 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
                 val name = entry.name;
                 if (name.endsWith(".class")) {
                     val className = name.substring(0, name.length - 6).replace("/", ".")
-                    var cl : Class<*>? = classLoader.loadClass(className)
+                    var cl: Class<*>? = classLoader.loadClass(className)
                     if (cl != null) {
                         classes.add(cl)
                     } else {
@@ -93,7 +93,8 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
                             taskManager.addIncrementalTask(defaultPlugin, method, it)
                         }
 
-                    }}
+                    }
+                }
             }
         } finally {
             stream?.close()

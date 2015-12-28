@@ -13,7 +13,7 @@ public open class Jvm constructor(
     override public var javaHome: File? = null
         get() = _javaHome!!
     override public var runtimeJar: File? = null
-    private fun findRuntimeJar() : File? {
+    private fun findRuntimeJar(): File? {
         var runtimeJar = File(javaBase, "lib/rt.jar")
         if (runtimeJar.exists()) {
             return runtimeJar
@@ -21,6 +21,7 @@ public open class Jvm constructor(
         runtimeJar = File(javaBase, "jre/lib/rt.jar")
         return if (runtimeJar.exists()) runtimeJar else null
     }
+
     override public var toolsJar: File? = null
 
     private var userSupplied: Boolean? = false
@@ -89,9 +90,9 @@ public open class Jvm constructor(
         return null
     }
 
-//    open public fun isIbmJvm(): Boolean {
-//        return false
-//    }
+    //    open public fun isIbmJvm(): Boolean {
+    //        return false
+    //    }
 
     override public fun findExecutable(command: String): File {
         if (javaHome != null) {
@@ -103,10 +104,10 @@ public open class Jvm constructor(
             }
         }
 
-//        if (userSupplied) {
-//            //then we want to validate strictly
-//            throw JavaHomeException(String.format("The supplied javaHome seems to be invalid." + " I cannot find the %s executable. Tried location: %s", command, executable.getAbsolutePath()))
-//        }
+        //        if (userSupplied) {
+        //            //then we want to validate strictly
+        //            throw JavaHomeException(String.format("The supplied javaHome seems to be invalid." + " I cannot find the %s executable. Tried location: %s", command, executable.getAbsolutePath()))
+        //        }
 
         val pathExecutable = os.findInPath(command)
         if (pathExecutable != null) {
@@ -136,25 +137,25 @@ class AppleJvm : Jvm {
     /**
      * {@inheritDoc}
      */
-//    fun getInheritableEnvironmentVariables(envVars: Map<String, *>): Map<String, *> {
-//        val vars = HashMap<String, Any>()
-//        for (entry in envVars.entrySet()) {
-//            if (entry.getKey().toRegex().matches("APP_NAME_\\d+") ||
-//                    entry.getKey().toRegex().matches("JAVA_MAIN_CLASS_\\d+")) {
-//                continue
-//            }
-//            vars.put(entry.getKey(), entry.getValue())
-//        }
-//        return vars
-//    }
+    //    fun getInheritableEnvironmentVariables(envVars: Map<String, *>): Map<String, *> {
+    //        val vars = HashMap<String, Any>()
+    //        for (entry in envVars.entrySet()) {
+    //            if (entry.getKey().toRegex().matches("APP_NAME_\\d+") ||
+    //                    entry.getKey().toRegex().matches("JAVA_MAIN_CLASS_\\d+")) {
+    //                continue
+    //            }
+    //            vars.put(entry.getKey(), entry.getValue())
+    //        }
+    //        return vars
+    //    }
 }
 
 class IbmJvm(os: OperatingSystem, suppliedJavaBase: File) : Jvm(os, suppliedJavaBase) {
     override var runtimeJar: File? = throw IllegalArgumentException("Not implemented")
     override var toolsJar: File? = throw IllegalArgumentException("Not implemented")
 
-//    override fun isIbmJvm(): Boolean {
-//        return true
-//    }
+    //    override fun isIbmJvm(): Boolean {
+    //        return true
+    //    }
 }
 

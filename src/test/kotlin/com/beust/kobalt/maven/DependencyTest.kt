@@ -11,7 +11,7 @@ import kotlin.properties.Delegates
 
 @Guice(modules = arrayOf(TestModule::class))
 public class DependencyTest @Inject constructor(val depFactory: DepFactory,
-        val executors: KobaltExecutors) {
+                                                val executors: KobaltExecutors) {
 
     @DataProvider
     fun dpVersions(): Array<Array<out Any>> {
@@ -24,7 +24,7 @@ public class DependencyTest @Inject constructor(val depFactory: DepFactory,
                 arrayOf("3.8.1", "4.5"),
                 arrayOf("18.0-rc1", "19.0"),
                 arrayOf("3.0.5.RELEASE", "3.0.6")
-                )
+        )
     }
 
     private var executor: ExecutorService by Delegates.notNull()

@@ -22,10 +22,10 @@ class TaskContributor @Inject constructor(val incrementalManager: IncrementalMan
      * depends on variants of that task.
      */
     fun addVariantTasks(plugin: IPlugin, project: Project, context: KobaltContext, taskName: String,
-            runBefore : List<String> = emptyList(),
-            runAfter : List<String> = emptyList(),
-            alwaysRunAfter : List<String> = emptyList(),
-            runTask: (Project) -> TaskResult) {
+                        runBefore: List<String> = emptyList(),
+                        runAfter: List<String> = emptyList(),
+                        alwaysRunAfter: List<String> = emptyList(),
+                        runTask: (Project) -> TaskResult) {
         Variant.allVariants(project).forEach { variant ->
             val variantTaskName = variant.toTask(taskName)
             dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName,
@@ -40,10 +40,10 @@ class TaskContributor @Inject constructor(val incrementalManager: IncrementalMan
     }
 
     fun addIncrementalVariantTasks(plugin: IPlugin, project: Project, context: KobaltContext, taskName: String,
-            runBefore : List<String> = emptyList(),
-            runAfter : List<String> = emptyList(),
-            alwaysRunAfter : List<String> = emptyList(),
-            runTask: (Project) -> IncrementalTaskInfo) {
+                                   runBefore: List<String> = emptyList(),
+                                   runAfter: List<String> = emptyList(),
+                                   alwaysRunAfter: List<String> = emptyList(),
+                                   runTask: (Project) -> IncrementalTaskInfo) {
         Variant.allVariants(project).forEach { variant ->
             val variantTaskName = variant.toTask(taskName)
             dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName,
@@ -54,5 +54,5 @@ class TaskContributor @Inject constructor(val incrementalManager: IncrementalMan
         }
     }
 
-    override fun tasksFor(context: KobaltContext) : List<DynamicTask> = dynamicTasks
+    override fun tasksFor(context: KobaltContext): List<DynamicTask> = dynamicTasks
 }

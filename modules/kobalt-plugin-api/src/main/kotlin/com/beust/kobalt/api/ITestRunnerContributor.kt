@@ -9,6 +9,6 @@ interface ITestRunnerContributor : IContributor, IProjectAffinity {
     /**
      * Run the project.
      */
-    fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>) : TaskResult
+    fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>): TaskResult
 }
 

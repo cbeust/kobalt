@@ -24,7 +24,7 @@ import javax.inject.Inject
  * Retrieve Kobalt's latest release version from github.
  */
 public class GithubApi @Inject constructor(val executors: KobaltExecutors,
-        val localProperties: LocalProperties, val http: Http) {
+                                           val localProperties: LocalProperties, val http: Http) {
     companion object {
         const val PROPERTY_ACCESS_TOKEN = "github.accessToken"
         const val PROPERTY_USERNAME = "github.username"
@@ -35,7 +35,7 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
 
     private val DOC_URL = DocUrl.PUBLISH_PLUGIN_URL
 
-    private fun parseRetrofitError(e: Throwable) : RetrofitErrorsResponse {
+    private fun parseRetrofitError(e: Throwable): RetrofitErrorsResponse {
         val re = e as RetrofitError
         val json = String((re.response?.body as TypedByteArray).bytes)
         return Gson().fromJson(json, RetrofitErrorsResponse::class.java)
@@ -81,7 +81,7 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
     //
 
     private val service = RestAdapter.Builder()
-//            .setLogLevel(RestAdapter.LogLevel.FULL)
+            //            .setLogLevel(RestAdapter.LogLevel.FULL)
             .setClient(OkClient(OkHttpClient()))
             .setEndpoint("https://api.github.com")
             .build()
@@ -91,27 +91,28 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
     // JSON mapped classes that get sent up and down
     //
     class CreateRelease(@SerializedName("tag_name") var tagName: String? = null,
-            var name: String? = tagName)
+                        var name: String? = tagName)
+
     class CreateReleaseResponse(var id: String? = null, @SerializedName("upload_url") var uploadUrl: String?)
     class UploadAssetResponse(var id: String? = null, val name: String? = null)
     class ReleasesResponse(@SerializedName("tag_name") var tagName: String? = null,
-            var name: String? = tagName)
+                           var name: String? = tagName)
 
     interface Api {
         @POST("/repos/{owner}/{repo}/releases")
         fun createRelease(@Path("owner") owner: String,
-                @Query("access_token") accessToken: String,
-                @Path("repo") repo: String,
-                @Body createRelease: CreateRelease): Observable<CreateReleaseResponse>
+                          @Query("access_token") accessToken: String,
+                          @Path("repo") repo: String,
+                          @Body createRelease: CreateRelease): Observable<CreateReleaseResponse>
 
         @GET("/repos/{owner}/{repo}/releases")
         fun getReleases(@Path("owner") owner: String,
-                @Query("access_token") accessToken: String,
-                @Path("repo") repo: String): List<ReleasesResponse>
+                        @Query("access_token") accessToken: String,
+                        @Path("repo") repo: String): List<ReleasesResponse>
 
         @GET("/repos/{owner}/{repo}/releases")
         fun getReleasesNoAuth(@Path("owner") owner: String,
-                @Path("repo") repo: String): List<ReleasesResponse>
+                              @Path("repo") repo: String): List<ReleasesResponse>
     }
 
     val latestKobaltVersion: Future<String>

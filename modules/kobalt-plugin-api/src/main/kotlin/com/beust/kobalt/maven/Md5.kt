@@ -8,17 +8,17 @@ import javax.xml.bind.DatatypeConverter
 
 public class Md5 {
     companion object {
-//        private fun md5(file: File) : String {
-//            if (file.isDirectory) {
-//                println("PROBLEM")
-//            }
-//            val md5 = MessageDigest.getInstance("MD5")
-//            val bytes = file.readBytes()
-//            md5.update(bytes, 0, bytes.size)
-//            return DatatypeConverter.printHexBinary(md5.digest()).toLowerCase()
-//        }
+        //        private fun md5(file: File) : String {
+        //            if (file.isDirectory) {
+        //                println("PROBLEM")
+        //            }
+        //            val md5 = MessageDigest.getInstance("MD5")
+        //            val bytes = file.readBytes()
+        //            md5.update(bytes, 0, bytes.size)
+        //            return DatatypeConverter.printHexBinary(md5.digest()).toLowerCase()
+        //        }
 
-        fun toMd5Directories(directories: List<File>) : String? {
+        fun toMd5Directories(directories: List<File>): String? {
             val ds = directories.filter { it.exists() }
             if (ds.size > 0) {
                 MessageDigest.getInstance("MD5").let { md5 ->
@@ -48,11 +48,11 @@ public class Md5 {
         }
 
         fun toMd5(file: File) = MessageDigest.getInstance("MD5").let { md5 ->
-                file.forEachBlock { bytes, size ->
-                    md5.update(bytes, 0, size)
-                }
-                DatatypeConverter.printHexBinary(md5.digest()).toLowerCase()
+            file.forEachBlock { bytes, size ->
+                md5.update(bytes, 0, size)
             }
+            DatatypeConverter.printHexBinary(md5.digest()).toLowerCase()
+        }
     }
 }
 

@@ -13,7 +13,7 @@ import com.beust.kobalt.api.Kobalt
  * usually means "latest version") but it doesn't handle version ranges yet.
  */
 class MavenId private constructor(val groupId: String, val artifactId: String, val packaging: String?,
-        val version: String?) {
+                                  val version: String?) {
 
     companion object {
         fun isMavenId(id: String) = with(id.split(":")) {
@@ -21,7 +21,7 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
         }
 
         private fun isVersion(s: String): Boolean {
-           return Character.isDigit(s[0]) || isRangedVersion(s)
+            return Character.isDigit(s[0]) || isRangedVersion(s)
         }
 
         fun isRangedVersion(s: String): Boolean {
@@ -31,7 +31,7 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
         /**
          * Similar to create(MavenId) but don't run IMavenIdInterceptors.
          */
-        fun createNoInterceptors(id: String) : MavenId {
+        fun createNoInterceptors(id: String): MavenId {
             var groupId: String? = null
             var artifactId: String? = null
             var version: String? = null
@@ -58,24 +58,26 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
          * The main entry point to create Maven Id's. Id's created by this function
          * will run through IMavenIdInterceptors.
          */
-        fun create(id: String) : MavenId {
+        fun create(id: String): MavenId {
             var originalMavenId = createNoInterceptors(id)
             var interceptedMavenId = originalMavenId
             val interceptors = Kobalt.context?.pluginInfo?.mavenIdInterceptors
             if (interceptors != null) {
                 interceptedMavenId = interceptors.fold(originalMavenId, {
-                            id, interceptor -> interceptor.intercept(id) })
+                    id, interceptor ->
+                    interceptor.intercept(id)
+                })
             }
 
             return interceptedMavenId
         }
 
         fun create(groupId: String, artifactId: String, packaging: String?, version: String?) =
-               create(toId(groupId, artifactId, packaging, version))
+                create(toId(groupId, artifactId, packaging, version))
 
         fun toId(groupId: String, artifactId: String, packaging: String? = null, version: String?) =
                 "$groupId:$artifactId:$version" +
-                    (if (packaging != null) "@$packaging" else "")
+                        (if (packaging != null) "@$packaging" else "")
     }
 
 

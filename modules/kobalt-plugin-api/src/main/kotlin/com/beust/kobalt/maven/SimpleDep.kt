@@ -14,11 +14,11 @@ open class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.groupId
     private fun toFile(version: Version, suffix: String): String {
         val dir = toDirectory(version.version, false, trailingSlash = false)
         val list =
-            if (version.snapshotTimestamp != null) {
-                listOf(dir, artifactId + "-" + version.noSnapshotVersion + "-" + version.snapshotTimestamp + suffix)
-            } else {
-                listOf(dir, artifactId + "-" + version.version + suffix)
-            }
+                if (version.snapshotTimestamp != null) {
+                    listOf(dir, artifactId + "-" + version.noSnapshotVersion + "-" + version.snapshotTimestamp + suffix)
+                } else {
+                    listOf(dir, artifactId + "-" + version.version + suffix)
+                }
         return list.joinToString("/").replace("//", "/")
     }
 
@@ -32,9 +32,9 @@ open class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.groupId
 
     fun toJarFile(r: RepoFinder.RepoResult) = toFile(r.snapshotVersion ?: r.version!!, suffix)
 
-    val suffix : String
+    val suffix: String
         get() {
             val packaging = mavenId.packaging
-            return if (packaging != null && ! packaging.isNullOrBlank()) ".$packaging" else ".jar"
+            return if (packaging != null && !packaging.isNullOrBlank()) ".$packaging" else ".jar"
         }
 }

@@ -37,7 +37,7 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder, val loca
         val simpleDep = SimpleDep(MavenId.create(id))
         val url = repoResult.hostConfig.url + simpleDep.toJarFile(repoResult)
         val localFile = localRepo.toFullPath(simpleDep.toJarFile(repoResult))
-        AsciiArt.logBox(listOf(id, url, localFile).map { "          $it" }, {s -> println(s) })
+        AsciiArt.logBox(listOf(id, url, localFile).map { "          $it" }, { s -> println(s) })
 
         display(root.children)
         println("")
@@ -51,7 +51,7 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder, val loca
                         if (indexNode.index == nodes.size - 1) leftLast
                         else leftMiddle
                 val indent = level * increment
-                for(i in 0..indent - 2) {
+                for (i in 0..indent - 2) {
                     if (i % increment == 0) print(vertical)
                     else print(" ")
                 }
@@ -65,7 +65,7 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder, val loca
     private fun findChildren(root: Node<Dep>, seen: HashSet<String>): List<Node<Dep>> {
         val result = arrayListOf<Node<Dep>>()
         root.value.dep.directDependencies().forEach {
-            if (! seen.contains(it.id)) {
+            if (!seen.contains(it.id)) {
                 val dep = Dep(it, root.value.level + 1)
                 val node = Node(dep)
                 log(2, "Found dependency ${dep.dep.id} level: ${dep.level}")

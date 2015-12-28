@@ -20,11 +20,11 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PackagingPlugin @Inject constructor(val dependencyManager : DependencyManager,
-        val executors: KobaltExecutors, val jarGenerator: JarGenerator, val warGenerator: WarGenerator,
-        val zipGenerator: ZipGenerator, val taskContributor: TaskContributor,
-        val pomFactory: PomGenerator.IFactory)
-            : ConfigPlugin<InstallConfig>(), ITaskContributor {
+class PackagingPlugin @Inject constructor(val dependencyManager: DependencyManager,
+                                          val executors: KobaltExecutors, val jarGenerator: JarGenerator, val warGenerator: WarGenerator,
+                                          val zipGenerator: ZipGenerator, val taskContributor: TaskContributor,
+                                          val pomFactory: PomGenerator.IFactory)
+: ConfigPlugin<InstallConfig>(), ITaskContributor {
 
     companion object {
         const val PLUGIN_NAME = "Packaging"
@@ -78,17 +78,17 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         }
 
         fun generateArchive(project: Project,
-                context: KobaltContext,
-                archiveName: String?,
-                suffix: String,
-                includedFiles: List<IncludedFile>,
-                expandJarFiles : Boolean = false,
-                outputStreamFactory: (OutputStream) -> ZipOutputStream = DEFAULT_STREAM_FACTORY) : File {
+                            context: KobaltContext,
+                            archiveName: String?,
+                            suffix: String,
+                            includedFiles: List<IncludedFile>,
+                            expandJarFiles: Boolean = false,
+                            outputStreamFactory: (OutputStream) -> ZipOutputStream = DEFAULT_STREAM_FACTORY): File {
             val fullArchiveName = context.variant.archiveName(project, archiveName, suffix)
             val archiveDir = File(libsDir(project))
             val result = File(archiveDir.path, fullArchiveName)
             log(2, "Creating $result")
-            if (! Features.USE_TIMESTAMPS || isOutdated(project.directory, includedFiles, result)) {
+            if (!Features.USE_TIMESTAMPS || isOutdated(project.directory, includedFiles, result)) {
                 val outStream = outputStreamFactory(FileOutputStream(result))
                 JarUtils.addFiles(project.directory, includedFiles, outStream, expandJarFiles)
                 log(2, text = "Added ${includedFiles.size} files to $result")
@@ -104,10 +104,10 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             return result
         }
 
-        private val DEFAULT_STREAM_FACTORY = { os : OutputStream -> ZipOutputStream(os) }
+        private val DEFAULT_STREAM_FACTORY = { os: OutputStream -> ZipOutputStream(os) }
 
         private fun isOutdated(directory: String, includedFiles: List<IncludedFile>, output: File): Boolean {
-            if (! output.exists()) return true
+            if (!output.exists()) return true
 
             val lastModified = output.lastModified()
             includedFiles.forEach { root ->
@@ -140,7 +140,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 runTask = { doTaskAssemble(project) })
     }
 
-    private fun findIncludedFiles(project: Project) : List<File> {
+    private fun findIncludedFiles(project: Project): List<File> {
         val inf = arrayListOf<IncludedFile>()
         packages.filter { it.project.name == project.name }.forEach { pkg ->
             pkg.jars.forEach { inf.addAll(jarGenerator.findIncludedFiles(pkg.project, context, it)) }
@@ -154,26 +154,27 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 if (it.isAbsolute) it else File(KFiles.joinDir(project.directory, includedFile.from, it.path))
             })
         }
-        result.forEach { if (! it.exists())
-            throw RuntimeException("Should exist $it")
+        result.forEach {
+            if (!it.exists())
+                throw RuntimeException("Should exist $it")
         }
         return result
     }
 
-//    @IncrementalTask(name = TASK_ASSEMBLE, description = "Package the artifacts",
-//            runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
-//    fun taskAssemble(project: Project) : IncrementalTaskInfo {
-//        val i = findIncludedFiles(project)
-//        val inputChecksum = Md5.toMd5Directories(i)
-//        return IncrementalTaskInfo(
-//                inputChecksum = inputChecksum,
-//                outputChecksum = "1",
-//                task = { project -> doTaskAssemble(project) })
-//    }
+    //    @IncrementalTask(name = TASK_ASSEMBLE, description = "Package the artifacts",
+    //            runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
+    //    fun taskAssemble(project: Project) : IncrementalTaskInfo {
+    //        val i = findIncludedFiles(project)
+    //        val inputChecksum = Md5.toMd5Directories(i)
+    //        return IncrementalTaskInfo(
+    //                inputChecksum = inputChecksum,
+    //                outputChecksum = "1",
+    //                task = { project -> doTaskAssemble(project) })
+    //    }
 
     @Task(name = TASK_ASSEMBLE, description = "Package the artifacts",
             runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
-    fun doTaskAssemble(project: Project) : TaskResult {
+    fun doTaskAssemble(project: Project): TaskResult {
         try {
             project.projectProperties.put(PACKAGES, packages)
             packages.filter { it.project.name == project.name }.forEach { pkg ->
@@ -197,7 +198,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
     @Task(name = PackagingPlugin.TASK_INSTALL, description = "Install the artifacts",
             runAfter = arrayOf(PackagingPlugin.TASK_ASSEMBLE))
-    fun taskInstall(project: Project) : TaskResult {
+    fun taskInstall(project: Project): TaskResult {
         val config = configurationFor(project) ?: InstallConfig()
         val buildDir = project.projectProperties.getString(LIBS_DIR)
         val buildDirFile = File(buildDir)
@@ -223,7 +224,7 @@ fun Project.install(init: InstallConfig.() -> Unit) {
     }
 }
 
-class InstallConfig(var libDir : String = "libs")
+class InstallConfig(var libDir: String = "libs")
 
 @Directive
 fun Project.assemble(init: PackageConfig.(p: Project) -> Unit) = let {
@@ -241,7 +242,7 @@ class PackageConfig(val project: Project) : AttributeHolder {
     }
 
     @Directive
-    fun jar(init: Jar.(p: Jar) -> Unit) : Jar {
+    fun jar(init: Jar.(p: Jar) -> Unit): Jar {
         val jar = Jar()
         jar.init(jar)
         jars.add(jar)
@@ -249,7 +250,7 @@ class PackageConfig(val project: Project) : AttributeHolder {
     }
 
     @Directive
-    fun zip(init: Zip.(p: Zip) -> Unit) : Zip {
+    fun zip(init: Zip.(p: Zip) -> Unit): Zip {
         val zip = Zip()
         zip.init(zip)
         zips.add(zip)
@@ -257,7 +258,7 @@ class PackageConfig(val project: Project) : AttributeHolder {
     }
 
     @Directive
-    fun war(init: War.(p: War) -> Unit) : War {
+    fun war(init: War.(p: War) -> Unit): War {
         val war = War()
         war.init(war)
         wars.add(war)
@@ -268,7 +269,7 @@ class PackageConfig(val project: Project) : AttributeHolder {
      * Package all the jar files necessary for a maven repo: classes, sources, javadocs.
      */
     @Directive
-    fun mavenJars(init: MavenJars.(p: MavenJars) -> Unit) : MavenJars {
+    fun mavenJars(init: MavenJars.(p: MavenJars) -> Unit): MavenJars {
         val m = MavenJars(this)
         m.init(m)
 
@@ -303,7 +304,7 @@ class PackageConfig(val project: Project) : AttributeHolder {
 
     class MavenJars(val ah: AttributeHolder, var fatJar: Boolean = false, var manifest: Manifest? = null) :
             AttributeHolder by ah {
-        public fun manifest(init: Manifest.(p: Manifest) -> Unit) : Manifest {
+        public fun manifest(init: Manifest.(p: Manifest) -> Unit): Manifest {
             val m = Manifest(this)
             m.init(m)
             return m
@@ -312,7 +313,7 @@ class PackageConfig(val project: Project) : AttributeHolder {
 }
 
 open class Zip(open var name: String? = null) {
-//    internal val includes = arrayListOf<IFileSpec>()
+    //    internal val includes = arrayListOf<IFileSpec>()
     internal val excludes = arrayListOf<Glob>()
 
     @Directive
@@ -363,7 +364,7 @@ interface AttributeHolder {
  */
 open class Jar(override var name: String? = null, var fatJar: Boolean = false) : Zip(name), AttributeHolder {
     @Directive
-    public fun manifest(init: Manifest.(p: Manifest) -> Unit) : Manifest {
+    public fun manifest(init: Manifest.(p: Manifest) -> Unit): Manifest {
         val m = Manifest(this)
         m.init(m)
         return m
@@ -380,7 +381,7 @@ open class Jar(override var name: String? = null, var fatJar: Boolean = false) :
 
 class War(override var name: String? = null) : Jar(name), AttributeHolder {
     init {
-        include(from("src/main/webapp"),to(""), glob("**"))
+        include(from("src/main/webapp"), to(""), glob("**"))
         include(from("kobaltBuild/classes"), to("WEB-INF/classes"), glob("**"))
     }
 }

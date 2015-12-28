@@ -66,7 +66,7 @@ private class Main @Inject constructor(
     data class RunInfo(val jc: JCommander, val args: Args)
 
     public fun run(jc: JCommander, args: Args, argv: Array<String>): Int {
-//        github.uploadRelease("kobalt", "0.101", File("/Users/beust/t/a.zip"))
+        //        github.uploadRelease("kobalt", "0.101", File("/Users/beust/t/a.zip"))
 
         //
         // Add all the plugins read in kobalt-plugin.xml to the Plugins singleton, so that code
@@ -122,9 +122,9 @@ private class Main @Inject constructor(
     //    }
 
     private fun runWithArgs(jc: JCommander, args: Args, argv: Array<String>): Int {
-//        val file = File("/Users/beust/.kobalt/repository/com/google/guava/guava/19.0-rc2/guava-19.0-rc2.pom")
-//        val md5 = Md5.toMd5(file)
-//        val md52 = MessageDigest.getInstance("MD5").digest(file.readBytes()).toHexString()
+        //        val file = File("/Users/beust/.kobalt/repository/com/google/guava/guava/19.0-rc2/guava-19.0-rc2.pom")
+        //        val md5 = Md5.toMd5(file)
+        //        val md52 = MessageDigest.getInstance("MD5").digest(file.readBytes()).toHexString()
         var result = 0
         val p = if (args.buildFile != null) File(args.buildFile) else findBuildFile()
         args.buildFile = p.absolutePath
@@ -237,17 +237,17 @@ private class Main @Inject constructor(
 
     private fun runClasspathInterceptors(project: Project, dependencies: ArrayList<IClasspathDependency>)
             = with(dependencies) {
-                if (pluginInfo.classpathInterceptors.size > 0) {
-                    val deps = interceptDependencies(project, pluginInfo, this)
-                    clear()
-                    addAll(deps)
-                } else {
-                    this
-                }
-            }
+        if (pluginInfo.classpathInterceptors.size > 0) {
+            val deps = interceptDependencies(project, pluginInfo, this)
+            clear()
+            addAll(deps)
+        } else {
+            this
+        }
+    }
 
     private fun interceptDependencies(project: Project, pluginInfo: PluginInfo,
-            dependencies: ArrayList<IClasspathDependency>) : ArrayList<IClasspathDependency> {
+                                      dependencies: ArrayList<IClasspathDependency>): ArrayList<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         pluginInfo.classpathInterceptors.forEach {
             result.addAll(it.intercept(project, dependencies))
@@ -255,16 +255,16 @@ private class Main @Inject constructor(
         return result
     }
 
-    private fun findBuildFile() : File {
+    private fun findBuildFile(): File {
         val deprecatedLocation = File(Constants.BUILD_FILE_NAME)
         val result: File =
-            if (deprecatedLocation.exists()) {
-                warn(Constants.BUILD_FILE_NAME + " is in a deprecated location, please move it to "
-                        + Constants.BUILD_FILE_DIRECTORY)
-                deprecatedLocation
-            } else {
-                File(KFiles.joinDir(Constants.BUILD_FILE_DIRECTORY, Constants.BUILD_FILE_NAME))
-            }
+                if (deprecatedLocation.exists()) {
+                    warn(Constants.BUILD_FILE_NAME + " is in a deprecated location, please move it to "
+                            + Constants.BUILD_FILE_DIRECTORY)
+                    deprecatedLocation
+                } else {
+                    File(KFiles.joinDir(Constants.BUILD_FILE_DIRECTORY, Constants.BUILD_FILE_NAME))
+                }
         return result
     }
 }

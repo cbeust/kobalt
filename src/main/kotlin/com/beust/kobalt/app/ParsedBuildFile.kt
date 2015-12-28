@@ -17,7 +17,7 @@ import java.nio.file.Paths
 import java.util.*
 
 class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val buildScriptUtil: BuildScriptUtil,
-        val dependencyManager: DependencyManager, val files: KFiles) {
+                      val dependencyManager: DependencyManager, val files: KFiles) {
     val pluginList = arrayListOf<String>()
     val repos = arrayListOf<String>()
     val profileLines = arrayListOf<String>()
@@ -27,10 +27,10 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
     private val preBuildScript = arrayListOf(
             "import com.beust.kobalt.*",
             "import com.beust.kobalt.api.*")
-    val preBuildScriptCode : String get() = preBuildScript.joinToString("\n")
+    val preBuildScriptCode: String get() = preBuildScript.joinToString("\n")
 
     private val buildScript = arrayListOf<String>()
-    val buildScriptCode : String get() = buildScript.joinToString("\n")
+    val buildScriptCode: String get() = buildScript.joinToString("\n")
 
     init {
         parseBuildFile()
@@ -72,7 +72,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
              * If the current line matches one of the profile, turns the declaration into
              * val profile = true, otherwise return the same line
              */
-            fun correctProfileLine(line: String) : String {
+            fun correctProfileLine(line: String): String {
                 (context.profiles as List<String>).forEach {
                     if (line.matches(Regex("[ \\t]*val[ \\t]+$it[ \\t]+=.*"))) {
                         with("val $it = true") {
@@ -105,7 +105,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         //
         val buildScriptJar = KFiles.findBuildScriptLocation(buildFile, "preBuildScript.jar")
         val buildScriptJarFile = File(buildScriptJar)
-        if (! buildScriptUtil.isUpToDate(buildFile, File(buildScriptJar))) {
+        if (!buildScriptUtil.isUpToDate(buildFile, File(buildScriptJar))) {
             buildScriptJarFile.parentFile.mkdirs()
             generateJarFile(context, BuildFile(Paths.get(pluginSourceFile.path), "Plugins",
                     Paths.get(buildScriptJar)), buildScriptJarFile)

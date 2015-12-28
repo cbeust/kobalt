@@ -11,7 +11,7 @@ import java.io.FileReader
 import javax.xml.xpath.XPathConstants
 
 public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
-        @Assisted documentFile: java.io.File) {
+                                                  @Assisted documentFile: java.io.File) {
     val XPATH_FACTORY = javax.xml.xpath.XPathFactory.newInstance()
     val XPATH = XPATH_FACTORY.newXPath()
     var groupId: String? = null
@@ -27,7 +27,7 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
     }
 
     data public class Dependency(val groupId: String, val artifactId: String, val packaging: String?,
-        val version: String, val optional: Boolean = false, val scope: String? = null) {
+                                 val version: String, val optional: Boolean = false, val scope: String? = null) {
 
         /** When a variable is used in a maven file, e.g. ${version} */
         private val VAR = "$" + "{"

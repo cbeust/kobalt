@@ -26,9 +26,9 @@ class KotlinPlugin @Inject constructor(
         override val dependencyManager: DependencyManager,
         override val executors: KobaltExecutors,
         override val jvmCompiler: JvmCompiler,
-        override val taskContributor : TaskContributor)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler, taskContributor),
-            IClasspathContributor, ICompilerContributor, IDocContributor {
+        override val taskContributor: TaskContributor)
+: JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler, taskContributor),
+        IClasspathContributor, ICompilerContributor, IDocContributor {
 
     companion object {
         const val PLUGIN_NAME = "Kotlin"
@@ -38,40 +38,40 @@ class KotlinPlugin @Inject constructor(
 
     override fun accept(project: Project) = project is KotlinProject
 
-    override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
+    override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
         return TaskResult()
     }
 
-//    override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
-//        val configs = dokkaConfigurations[project.name]
-//        val classpath = context.dependencyManager.calculateDependencies(project, context)
-//        val buildDir = project.buildDirectory
-//        val classpathList = classpath.map { it.jarFile.get().absolutePath } + listOf(buildDir)
-//        var success = true
-//        configs.forEach { config ->
-//            if (!config.skip) {
-//                val outputDir = buildDir + "/" +
-//                        if (config.outputDir.isBlank()) "doc" else config.outputDir
-//
-//                val gen = DokkaGenerator(
-//                        KobaltDokkaLogger { success = false },
-//                        classpathList,
-//                        project.sourceDirectories.filter { File(it).exists() }.toList(),
-//                        config.samplesDirs,
-//                        config.includeDirs,
-//                        config.moduleName,
-//                        outputDir,
-//                        config.outputFormat,
-//                        config.sourceLinks.map { SourceLinkDefinition(it.dir, it.url, it.urlSuffix) }
-//                )
-//                gen.generate()
-//                log(2, "Documentation generated in $outputDir")
-//            } else {
-//                log(2, "skip is true, not generating the documentation")
-//            }
-//        }
-//        return TaskResult(success)
-//    }
+    //    override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
+    //        val configs = dokkaConfigurations[project.name]
+    //        val classpath = context.dependencyManager.calculateDependencies(project, context)
+    //        val buildDir = project.buildDirectory
+    //        val classpathList = classpath.map { it.jarFile.get().absolutePath } + listOf(buildDir)
+    //        var success = true
+    //        configs.forEach { config ->
+    //            if (!config.skip) {
+    //                val outputDir = buildDir + "/" +
+    //                        if (config.outputDir.isBlank()) "doc" else config.outputDir
+    //
+    //                val gen = DokkaGenerator(
+    //                        KobaltDokkaLogger { success = false },
+    //                        classpathList,
+    //                        project.sourceDirectories.filter { File(it).exists() }.toList(),
+    //                        config.samplesDirs,
+    //                        config.includeDirs,
+    //                        config.moduleName,
+    //                        outputDir,
+    //                        config.outputFormat,
+    //                        config.sourceLinks.map { SourceLinkDefinition(it.dir, it.url, it.urlSuffix) }
+    //                )
+    //                gen.generate()
+    //                log(2, "Documentation generated in $outputDir")
+    //            } else {
+    //                log(2, "skip is true, not generating the documentation")
+    //            }
+    //        }
+    //        return TaskResult(success)
+    //    }
 
     @Task(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf(TASK_COMPILE))
     fun taskCompileTest(project: Project): TaskResult {
@@ -97,7 +97,7 @@ class KotlinPlugin @Inject constructor(
     }
 
     private fun compilePrivate(project: Project, cpList: List<IClasspathDependency>, sources: List<String>,
-            outputDirectory: File): TaskResult {
+                               outputDirectory: File): TaskResult {
         return kotlinCompilePrivate {
             classpath(cpList.map { it.jarFile.get().absolutePath })
             sourceFiles(sources)
@@ -129,24 +129,24 @@ class KotlinPlugin @Inject constructor(
     override fun affinity(project: Project, context: KobaltContext) =
             if (project.sourceSuffix == ".kt") 1 else 0
 
-    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
+    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
         val result =
-            if (info.sourceFiles.size > 0) {
-                compilePrivate(project, info.dependencies, info.sourceFiles, info.outputDir)
-            } else {
-                warn("Couldn't find any source files")
-                TaskResult()
-            }
+                if (info.sourceFiles.size > 0) {
+                    compilePrivate(project, info.dependencies, info.sourceFiles, info.outputDir)
+                } else {
+                    warn("Couldn't find any source files")
+                    TaskResult()
+                }
 
         lp(project, "Compilation " + if (result.success) "succeeded" else "failed")
         return result
     }
 
-//    private val dokkaConfigurations = ArrayListMultimap.create<String, DokkaConfig>()
-//
-//    fun addDokkaConfiguration(project: Project, dokkaConfig: DokkaConfig) {
-//        dokkaConfigurations.put(project.name, dokkaConfig)
-//    }
+    //    private val dokkaConfigurations = ArrayListMultimap.create<String, DokkaConfig>()
+    //
+    //    fun addDokkaConfiguration(project: Project, dokkaConfig: DokkaConfig) {
+    //        dokkaConfigurations.put(project.name, dokkaConfig)
+    //    }
 
     override fun toClassFile(sourceFile: String) = sourceFile + "Kt.class"
 }

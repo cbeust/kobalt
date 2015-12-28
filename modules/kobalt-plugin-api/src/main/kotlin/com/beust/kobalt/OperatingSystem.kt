@@ -66,18 +66,18 @@ abstract class OperatingSystem {
         return null
     }
 
-//    fun findAllInPath(name: String): List<File> {
-//        val all = LinkedList<File>()
-//
-//        for (dir in getPath()) {
-//            val candidate = File(dir, name)
-//            if (candidate.isFile) {
-//                all.add(candidate)
-//            }
-//        }
-//
-//        return all
-//    }
+    //    fun findAllInPath(name: String): List<File> {
+    //        val all = LinkedList<File>()
+    //
+    //        for (dir in getPath()) {
+    //            val candidate = File(dir, name)
+    //            if (candidate.isFile) {
+    //                all.add(candidate)
+    //            }
+    //        }
+    //
+    //        return all
+    //    }
 
     val path: List<File>
         get() {

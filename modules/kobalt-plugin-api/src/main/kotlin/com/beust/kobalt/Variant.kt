@@ -9,7 +9,7 @@ import java.io.File
  * Capture the product flavor and the build type of a build.
  */
 class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
-        val initialBuildType: BuildTypeConfig? = null) {
+              val initialBuildType: BuildTypeConfig? = null) {
 
     val productFlavor: ProductFlavorConfig by lazy {
         initialProductFlavor ?: Variant.DEFAULT_PRODUCT_FLAVOR
@@ -18,7 +18,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
         initialBuildType ?: Variant.DEFAULT_BUILD_TYPE
     }
 
-    val isDefault : Boolean
+    val isDefault: Boolean
         get() = productFlavor == DEFAULT_PRODUCT_FLAVOR && buildType == DEFAULT_BUILD_TYPE
 
     fun toTask(taskName: String) = taskName + productFlavor.name.capitalize() + buildType.name.capitalize()
@@ -29,20 +29,20 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     fun allDirectories(project: Project): List<String> {
         val result = arrayListOf<String>()
         result.add(toCamelcaseDir())
-        if (productFlavor != null) result.add(productFlavor.name)
-        if (buildType != null) result.add(buildType.name)
+        result.add(productFlavor.name)
+        result.add(buildType.name)
         return result
     }
 
-    fun resDirectories(project: Project) : List<File> = sourceDirectories(project, "res")
+    fun resDirectories(project: Project): List<File> = sourceDirectories(project, "res")
 
-    fun sourceDirectories(project: Project) : List<File> =
+    fun sourceDirectories(project: Project): List<File> =
             sourceDirectories(project, project.projectInfo.sourceDirectory)
 
     /**
      * suffix is either "java" (to find source files) or "res" (to find resources)
      */
-    private fun sourceDirectories(project: Project, suffix: String) : List<File> {
+    private fun sourceDirectories(project: Project, suffix: String): List<File> {
         val result = arrayListOf<File>()
         val sourceDirectories = project.sourceDirectories.map { File(it) }
         if (isDefault) {
@@ -50,11 +50,11 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
         } else {
             result.addAll(allDirectories(project).map {
                 File(KFiles.joinDir("src", it, suffix))
-                }.filter {
-                    it.exists()
-                })
+            }.filter {
+                it.exists()
+            })
 
-//            // The ordering of files is: 1) build type 2) product flavor 3) default
+            //            // The ordering of files is: 1) build type 2) product flavor 3) default
             buildType.let {
                 val dir = File(KFiles.joinDir("src", it.name, project.projectInfo.sourceDirectory))
                 log(3, "Adding source for build type ${it.name}: ${dir.path}")
@@ -79,18 +79,18 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
         return result
     }
 
-    fun archiveName(project: Project, archiveName: String?, suffix: String) : String {
+    fun archiveName(project: Project, archiveName: String?, suffix: String): String {
         val result =
-            if (isDefault) {
-                archiveName ?: project.name + "-" + project.version + suffix
-            } else {
-                val base = if (archiveName != null) archiveName.substring(0, archiveName.length - suffix.length)
-                else project.name + "-" + project.version
-                val result: String =
-                        base + "-${productFlavor.name}" + "-${buildType.name}"
+                if (isDefault) {
+                    archiveName ?: project.name + "-" + project.version + suffix
+                } else {
+                    val base = if (archiveName != null) archiveName.substring(0, archiveName.length - suffix.length)
+                    else project.name + "-" + project.version
+                    val result: String =
+                            base + "-${productFlavor.name}" + "-${buildType.name}"
 
-                result
-            }
+                    result
+                }
         return result
     }
 
@@ -98,25 +98,25 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
 
     var generatedSourceDirectory: File? = null
 
-    private fun findBuildTypeBuildConfig(project: Project, variant: Variant?) : BuildConfig? {
+    private fun findBuildTypeBuildConfig(project: Project, variant: Variant?): BuildConfig? {
         val buildTypeName = variant?.buildType?.name
-        return project.buildTypes.getRaw(buildTypeName)?.buildConfig ?: null
+        return project.buildTypes[buildTypeName]?.buildConfig ?: null
     }
 
-    private fun findProductFlavorBuildConfig(project: Project, variant: Variant?) : BuildConfig? {
+    private fun findProductFlavorBuildConfig(project: Project, variant: Variant?): BuildConfig? {
         val buildTypeName = variant?.productFlavor?.name
-        return project.productFlavors.getRaw(buildTypeName)?.buildConfig ?: null
+        return project.productFlavors[buildTypeName]?.buildConfig ?: null
     }
 
     /**
      * Return a list of the BuildConfigs found on the productFlavor{}, buildType{} and project{} (in that order).
      */
-    private fun findBuildConfigs(project: Project, variant: Variant?) : List<BuildConfig> {
+    private fun findBuildConfigs(project: Project, variant: Variant?): List<BuildConfig> {
         val result = listOf(
                 findBuildTypeBuildConfig(project, variant),
                 findProductFlavorBuildConfig(project, variant),
                 project.buildConfig)
-            .filterNotNull()
+                .filterNotNull()
 
         return result
     }
@@ -126,7 +126,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
      * product flavor or main project, and use them to generate any additional field (in that order to
      * respect the priorities). Return the generated file if it was generated, null otherwise.
      */
-    fun maybeGenerateBuildConfig(project: Project, context: KobaltContext) : File? {
+    fun maybeGenerateBuildConfig(project: Project, context: KobaltContext): File? {
         val buildConfigs = findBuildConfigs(project, this)
 
         if (buildConfigs.size > 0) {
@@ -138,7 +138,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
             val result = KFiles.makeDir(KFiles.generatedSourceDir(project, this, "buildConfig"))
             // Make sure the generatedSourceDirectory doesn't contain the project.directory since
             // that directory will be added when trying to find recursively all the sources in it
-            generatedSourceDirectory = File(result.relativeTo(File(project.directory)))
+            generatedSourceDirectory = File(result.toRelativeString(File(project.directory)))
             val outputGeneratedSourceDirectory = File(result, pkg.replace('.', File.separatorChar))
             val outputDir = File(outputGeneratedSourceDirectory, "BuildConfig" + project.sourceSuffix)
             KFiles.saveFile(outputDir, code)
@@ -185,13 +185,13 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
         }
     }
 
-    fun toCamelcaseDir() : String {
-        fun lci(s : String) = if (s.length == 0 || s.length == 1) s else s[0].toLowerCase() + s.substring(1)
+    fun toCamelcaseDir(): String {
+        fun lci(s: String) = if (s.length <= 1) s else s[0].toLowerCase() + s.substring(1)
 
         return lci(productFlavor.name) + buildType.name.capitalize()
     }
 
-    fun toIntermediateDir() : String {
+    fun toIntermediateDir(): String {
         if (isDefault) {
             return ""
         } else {

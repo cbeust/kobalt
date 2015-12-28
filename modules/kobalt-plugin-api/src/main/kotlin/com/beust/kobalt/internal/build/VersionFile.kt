@@ -13,8 +13,8 @@ class VersionFile {
         }
 
         fun isSameVersionFile(directory: File) =
-            with(File(directory, VERSION_FILE)) {
-                ! exists() || (exists() && readText() == Kobalt.version)
-            }
+                with(File(directory, VERSION_FILE)) {
+                    !exists() || (exists() && readText() == Kobalt.version)
+                }
     }
 }

@@ -1,4 +1,3 @@
-
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.License
 import com.beust.kobalt.api.Project
@@ -77,7 +76,7 @@ val kobaltPluginApi = kotlinProject {
                 "com.google.code.gson:gson:2.4",
                 "com.squareup.retrofit:retrofit:1.9.0",
                 "com.beust:jcommander:1.48"
-                )
+        )
     }
 
 
@@ -90,9 +89,9 @@ val kobaltPluginApi = kotlinProject {
         }
     }
 
-//    install {
-//        libDir = "lib-test"
-//    }
+    //    install {
+    //        libDir = "lib-test"
+    //    }
 
     kotlinCompiler {
         args("-nowarn")
@@ -163,10 +162,10 @@ val kobaltApp = kotlinProject(kobaltPluginApi, wrapper) {
     }
 }
 
-fun readVersion() : String {
+fun readVersion(): String {
     val p = java.util.Properties()
     var localFile = java.io.File("src/main/resources/kobalt.properties")
-    if (! localFile.exists()) {
+    if (!localFile.exists()) {
         localFile = File(homeDir("kotlin", "kobalt", "src/main/resources/kobalt.properties"))
     }
     p.load(java.io.FileReader(localFile))
@@ -174,7 +173,7 @@ fun readVersion() : String {
 }
 
 @Task(name = "copyVersionForWrapper", runBefore = arrayOf("assemble"), runAfter = arrayOf("compile"), description = "")
-fun taskCopyVersionForWrapper(project: Project) : TaskResult {
+fun taskCopyVersionForWrapper(project: Project): TaskResult {
     if (project.name == "kobalt-wrapper") {
         val toString = "modules/wrapper/kobaltBuild/classes"
         File(toString).mkdirs()

@@ -37,14 +37,14 @@ class Kurl(val hostInfo: HostConfig) {
             throw KobaltException("Found \"$s1\" but not \"$s2\" in local.properties for $KEY.$host",
                     docUrl = "http://beust.com/kobalt/documentation/index.html#maven-repos-authenticated")
         }
-        if (! hostInfo.username.isNullOrBlank() && hostInfo.password.isNullOrBlank()) {
+        if (!hostInfo.username.isNullOrBlank() && hostInfo.password.isNullOrBlank()) {
             error("username", "password")
-        } else if(hostInfo.username.isNullOrBlank() && ! hostInfo.password.isNullOrBlank()) {
+        } else if (hostInfo.username.isNullOrBlank() && !hostInfo.password.isNullOrBlank()) {
             error("password", "username")
         }
     }
 
-    val connection : URLConnection
+    val connection: URLConnection
         get() {
             val result = URL(hostInfo.url).openConnection()
             if (hostInfo.hasAuth()) {
@@ -55,11 +55,11 @@ class Kurl(val hostInfo: HostConfig) {
             return result
         }
 
-    val inputStream : InputStream by lazy {
+    val inputStream: InputStream by lazy {
         connection.inputStream
     }
 
-    val exists : Boolean
+    val exists: Boolean
         get() {
             val url = hostInfo.url
             val result =
@@ -79,7 +79,7 @@ class Kurl(val hostInfo: HostConfig) {
     private fun checkResponseCode(responseCode: Int) {
         if (responseCode == 401) {
             if (hostInfo.hasAuth()) {
-               error("Bad credentials supplied for ${hostInfo.url}")
+                error("Bad credentials supplied for ${hostInfo.url}")
             } else {
                 error("This repo requires authentication: ${hostInfo.url}")
             }
@@ -97,15 +97,15 @@ class Kurl(val hostInfo: HostConfig) {
         toOutputStream(it, progress)
     }
 
-    private fun copy(from: InputStream, to: OutputStream, progress: (Long) -> Unit = {}) : Long {
+    private fun copy(from: InputStream, to: OutputStream, progress: (Long) -> Unit = {}): Long {
         val estimate =
-            if (connection is HttpURLConnection) {
-                (connection as HttpURLConnection).let {
-                    it.contentLength
+                if (connection is HttpURLConnection) {
+                    (connection as HttpURLConnection).let {
+                        it.contentLength
+                    }
+                } else {
+                    estimatedSize
                 }
-            } else {
-                estimatedSize
-            }
 
         val buf = ByteArray(estimatedSize)
         var total: Long = 0

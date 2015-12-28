@@ -30,8 +30,8 @@ import javax.inject.Inject
  * The response is a GetDependenciesData.
  */
 class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
-        val buildFileCompilerFactory: BuildFileCompiler.IFactory, val args: Args,
-        val dependencyManager: DependencyManager, val pluginInfo: PluginInfo) : ICommand {
+                                                 val buildFileCompilerFactory: BuildFileCompiler.IFactory, val args: Args,
+                                                 val dependencyManager: DependencyManager, val pluginInfo: PluginInfo) : ICommand {
     override val name = "getDependencies"
     override fun run(sender: ICommandSender, received: JsonObject) {
         val buildFile = BuildFile(Paths.get(received.get("buildFile").asString), "GetDependenciesCommand")
@@ -40,11 +40,11 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
         sender.sendData(toData(projects, buildFileCompiler.parsedBuildFiles.flatMap { it.pluginUrls }))
     }
 
-    private fun toData(projects: List<Project>, pluginUrls: List<URL>) : CommandData {
+    private fun toData(projects: List<Project>, pluginUrls: List<URL>): CommandData {
         val projectDatas = arrayListOf<ProjectData>()
         val executor = executors.miscExecutor
 
-        fun toDependencyData(d: IClasspathDependency, scope: String) : DependencyData {
+        fun toDependencyData(d: IClasspathDependency, scope: String): DependencyData {
             val dep = MavenDependency.create(d.id, executor)
             return DependencyData(d.id, scope, dep.jarFile.get().absolutePath)
         }
@@ -53,7 +53,7 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
 
         val pluginDependencies = pluginUrls.map { File(it.toURI()) }.map { FileDependency(it.absolutePath) }
         projects.forEach { project ->
-            val compileDependencies = pluginDependencies.map { toDependencyData(it, "compile")} +
+            val compileDependencies = pluginDependencies.map { toDependencyData(it, "compile") } +
                     allDeps(project.compileDependencies).map { toDependencyData(it, "compile") }
             val testDependencies = allDeps(project.testDependencies).map { toDependencyData(it, "testCompile") }
 
@@ -61,9 +61,11 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
             val pd = (project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
                     as List<ProjectDescription>)
             val dependentProjects = pd.filter { it.project.name == project.name }.flatMap {
-                it.dependsOn.map { it
-                    .name
-                }}
+                it.dependsOn.map {
+                    it
+                            .name
+                }
+            }
             projectDatas.add(ProjectData(project.name, project.directory, dependentProjects,
                     compileDependencies, testDependencies,
                     project.sourceDirectories, project.sourceDirectoriesTest))
@@ -81,9 +83,9 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
     class DependencyData(val id: String, val scope: String, val path: String)
 
     class ProjectData(val name: String, val directory: String,
-            val dependentProjects: List<String>,
-            val compileDependencies: List<DependencyData>,
-            val testDependencies: List<DependencyData>, val sourceDirs: Set<String>, val testDirs: Set<String>)
+                      val dependentProjects: List<String>,
+                      val compileDependencies: List<DependencyData>,
+                      val testDependencies: List<DependencyData>, val sourceDirs: Set<String>, val testDirs: Set<String>)
 
     class GetDependenciesData(val projects: List<ProjectData>)
 }

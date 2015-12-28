@@ -11,11 +11,11 @@ import java.util.*
  * Abstract base class for the build generators that use build-template.mustache.
  */
 abstract class BuildGenerator : IInitContributor<File> {
-    abstract val defaultSourceDirectories : HashSet<String>
-    abstract val defaultTestDirectories : HashSet<String>
-    abstract val directive : String
-    abstract val name : String
-    abstract val fileMatch : (String) -> Boolean
+    abstract val defaultSourceDirectories: HashSet<String>
+    abstract val defaultTestDirectories: HashSet<String>
+    abstract val directive: String
+    abstract val name: String
+    abstract val fileMatch: (String) -> Boolean
 
     override fun generateBuildFile(os: OutputStream) {
         PrintWriter(os).use {
@@ -26,7 +26,7 @@ abstract class BuildGenerator : IInitContributor<File> {
     override fun affinity(arg: File) = KFiles.findRecursively(arg, fileMatch).size
 
     private fun importPom(pomFile: File, mainDeps: ArrayList<Pom.Dependency>, testDeps: ArrayList<Pom.Dependency>,
-            map: HashMap<String, Any?>) {
+                          map: HashMap<String, Any?>) {
         var pom = Pom("imported", pomFile.absoluteFile)
         with(map) {
             put("group", pom.groupId ?: "com.example")

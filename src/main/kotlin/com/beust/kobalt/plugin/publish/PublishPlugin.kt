@@ -16,8 +16,8 @@ import javax.inject.Singleton
 @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
 @Singleton
 public class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGenerator.IFactory,
-            val jcenterFactory: JCenterApi.IFactory, val github: GithubApi, val localProperties: LocalProperties)
-        : BasePlugin() {
+                                               val jcenterFactory: JCenterApi.IFactory, val github: GithubApi, val localProperties: LocalProperties)
+: BasePlugin() {
 
     override val name = PLUGIN_NAME
 
@@ -47,10 +47,10 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
 
     private val VALID = arrayListOf(".jar", ".pom")
 
-    private fun findArtifactFiles(project: Project) : List<File> {
+    private fun findArtifactFiles(project: Project): List<File> {
         val result = files.findRecursively(File(project.directory, project.buildDirectory)) { file ->
-                VALID.any { file.endsWith(it)} and file.contains(project.version!!)
-            }.map { it -> File(it) }
+            VALID.any { file.endsWith(it) } and file.contains(project.version!!)
+        }.map { it -> File(it) }
         return result
     }
 
@@ -68,7 +68,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         return uploadGithub(project)
     }
 
-    private fun uploadGithub(project: Project) : TaskResult {
+    private fun uploadGithub(project: Project): TaskResult {
         val configuration = githubConfigurations[project.name]
 
         //
@@ -86,7 +86,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         return TaskResult()
     }
 
-    private fun uploadJcenter(project: Project) : TaskResult {
+    private fun uploadJcenter(project: Project): TaskResult {
         val docUrl = DocUrl.PUBLISH_PLUGIN_URL
         val user = localProperties.get(PROPERTY_BINTRAY_USER, docUrl)
         val password = localProperties.get(PROPERTY_BINTRAY_PASSWORD, docUrl)
@@ -102,7 +102,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
             //
             val trMaven = jcenter.uploadMaven(project, findArtifactFiles(project), configuration)
             success = trMaven.success
-            if (! success) messages.add(trMaven.errorMessage!!)
+            if (!success) messages.add(trMaven.errorMessage!!)
 
             //
             // Upload individual files, if applicable
@@ -127,6 +127,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
      * Map of project name -> JCenterConfiguration
      */
     private val jcenterConfigurations = hashMapOf<String, JCenterConfig>()
+
     fun addJCenterConfiguration(projectName: String, config: JCenterConfig) {
         jcenterConfigurations.put(projectName, config)
     }
@@ -135,6 +136,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
      * Map of project name -> GithubConfiguration
      */
     private val githubConfigurations = hashMapOf<String, GithubConfig>()
+
     fun addGithubConfiguration(projectName: String, config: GithubConfig) {
         githubConfigurations.put(projectName, config)
     }

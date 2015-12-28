@@ -7,11 +7,11 @@ import com.beust.kobalt.TaskResult
  * to implement this interface.
  */
 interface ITaskContributor : IContributor {
-    fun tasksFor(context: KobaltContext) : List<DynamicTask>
+    fun tasksFor(context: KobaltContext): List<DynamicTask>
 }
 
 class DynamicTask(val plugin: IPlugin, val name: String, val description: String = "",
-        val runBefore: List<String> = listOf<String>(),
-        val runAfter: List<String> = listOf<String>(),
-        val alwaysRunAfter: List<String> = listOf<String>(),
-        val closure: (Project) -> TaskResult)
+                  val runBefore: List<String> = listOf<String>(),
+                  val runAfter: List<String> = listOf<String>(),
+                  val alwaysRunAfter: List<String> = listOf<String>(),
+                  val closure: (Project) -> TaskResult)

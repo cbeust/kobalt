@@ -1,6 +1,6 @@
 package com.beust.kobalt.misc
 
-fun benchmarkMillis(run: () -> Unit) : Long {
+fun benchmarkMillis(run: () -> Unit): Long {
     val start = System.currentTimeMillis()
     run()
     return System.currentTimeMillis() - start

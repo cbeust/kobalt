@@ -21,11 +21,11 @@ import java.io.File
 import javax.inject.Inject
 
 data class JCenterPackage(val jo: JsonObject) {
-//    @Suppress("UNCHECKED_CAST")
-//    val latestPublishedVersion = (jo.get("versions") as JsonArray).get(0) as JsonObject).
+    //    @Suppress("UNCHECKED_CAST")
+    //    val latestPublishedVersion = (jo.get("versions") as JsonArray).get(0) as JsonObject).
 }
 
-open public class UnauthenticatedJCenterApi @Inject constructor(open val http: Http){
+open public class UnauthenticatedJCenterApi @Inject constructor(open val http: Http) {
     companion object {
         const val BINTRAY_URL_API = "https://api.bintray.com"
         const val BINTRAY_URL_API_CONTENT = BINTRAY_URL_API + "/content"
@@ -33,7 +33,7 @@ open public class UnauthenticatedJCenterApi @Inject constructor(open val http: H
 
     class JCenterResponse(val jo: JsonObject?, val errorMessage: String?)
 
-    fun parseResponse(r: Response) : JCenterResponse {
+    fun parseResponse(r: Response): JCenterResponse {
         val networkResponse = r.networkResponse()
         if (networkResponse.code() != 200) {
             val message = networkResponse.message()
@@ -44,24 +44,24 @@ open public class UnauthenticatedJCenterApi @Inject constructor(open val http: H
         }
     }
 
-//    fun getPackage() : JCenterPackage {
-//        val url = arrayListOf(BINTRAY_URL_API, "packages", "cbeust", "maven", "kobalt").joinToString("/")
-//        val response = http.get(url).getAsString()
-//        val result = parseResponse(response)
-//        return JCenterPackage(result)
-//    }
+    //    fun getPackage() : JCenterPackage {
+    //        val url = arrayListOf(BINTRAY_URL_API, "packages", "cbeust", "maven", "kobalt").joinToString("/")
+    //        val response = http.get(url).getAsString()
+    //        val result = parseResponse(response)
+    //        return JCenterPackage(result)
+    //    }
 }
 
-public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val username: String?,
-        @Nullable @Assisted("password") val password: String?,
-        override val http: Http, val gpg: Gpg, val executors: KobaltExecutors) : UnauthenticatedJCenterApi(http) {
+public class JCenterApi @Inject constructor(@Nullable @Assisted("username") val username: String?,
+                                            @Nullable @Assisted("password") val password: String?,
+                                            override val http: Http, val gpg: Gpg, val executors: KobaltExecutors) : UnauthenticatedJCenterApi(http) {
 
     interface IFactory {
         fun create(@Nullable @Assisted("username") username: String?,
-                @Nullable @Assisted("password") password: String?) : JCenterApi
+                   @Nullable @Assisted("password") password: String?): JCenterApi
     }
 
-    fun packageExists(packageName: String) : Boolean {
+    fun packageExists(packageName: String): Boolean {
         val url = arrayListOf(UnauthenticatedJCenterApi.BINTRAY_URL_API, "packages", username!!, "maven", packageName)
                 .joinToString("/")
         val jcResponse = parseResponse(http.get(username, password, url))
@@ -73,16 +73,16 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
         return jcResponse.jo!!.get("name").asString == packageName
     }
 
-//    class ForPost(val name: String, val license: Array<String>)
-//
-//    fun createPackage(packageName: String) : String {
-//        val url = arrayListOf(UnauthenticatedJCenterApi.BINTRAY_URL_API, "packages", username!!, "maven").join("/")
-//        val jsonString = Gson().toJson(ForPost(packageName, arrayOf("Apache 2.0")))
-//        return http.post(username, password, url, jsonString)
-//    }
+    //    class ForPost(val name: String, val license: Array<String>)
+    //
+    //    fun createPackage(packageName: String) : String {
+    //        val url = arrayListOf(UnauthenticatedJCenterApi.BINTRAY_URL_API, "packages", username!!, "maven").join("/")
+    //        val jsonString = Gson().toJson(ForPost(packageName, arrayOf("Apache 2.0")))
+    //        return http.post(username, password, url, jsonString)
+    //    }
 
-    fun uploadMaven(project: Project, files: List<File>, config: JCenterConfig?) : TaskResult {
-        if (! packageExists(project.name)) {
+    fun uploadMaven(project: Project, files: List<File>, config: JCenterConfig?): TaskResult {
+        if (!packageExists(project.name)) {
             throw KobaltException("Couldn't find a package called ${project.name} on bintray, please create one first" +
                     " as explained at https://bintray.com/docs/usermanual/uploads/uploads_creatinganewpackage.html")
         }
@@ -105,13 +105,15 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
     }
 
     fun uploadFile(file: File, url: String, config: JCenterConfig, generateMd5: Boolean = false,
-            generateAsc: Boolean = false) =
-        upload(arrayListOf(file), config, {
-                f: File -> "${UnauthenticatedJCenterApi.BINTRAY_URL_API_CONTENT}/$username/generic/$url"},
-                generateMd5, generateAsc)
+                   generateAsc: Boolean = false) =
+            upload(arrayListOf(file), config, {
+                f: File ->
+                "${UnauthenticatedJCenterApi.BINTRAY_URL_API_CONTENT}/$username/generic/$url"
+            },
+                    generateMd5, generateAsc)
 
     private fun upload(files: List<File>, config: JCenterConfig?, fileToPath: (File) -> String,
-            generateMd5: Boolean = false, generateAsc: Boolean) : TaskResult {
+                       generateMd5: Boolean = false, generateAsc: Boolean): TaskResult {
         val filesToUpload = arrayListOf<File>()
 
         if (generateAsc) {
@@ -153,8 +155,8 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
             val errorMessages = arrayListOf<String>()
 
 
-            fun dots(total: Int, list: List<Boolean>) : String {
-                val spaces : String = Array(total - list.size, { " " }).joinToString("")
+            fun dots(total: Int, list: List<Boolean>): String {
+                val spaces: String = Array(total - list.size, { " " }).joinToString("")
                 return "|" + list.map { if (it) "." else "X" }.joinToString("") + spaces + "|"
             }
 

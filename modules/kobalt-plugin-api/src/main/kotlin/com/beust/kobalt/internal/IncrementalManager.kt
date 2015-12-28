@@ -58,7 +58,7 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
         }
     }
 
-    fun inputChecksumFor(taskName: String) : String? =
+    fun inputChecksumFor(taskName: String): String? =
             taskInfoFor(taskInfos(), taskName).inputChecksum
 
     fun saveOutputChecksum(taskName: String, outputChecksum: String) {
@@ -68,8 +68,9 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
         }
     }
 
-    fun outputChecksumFor(taskName: String) : String? =
+    fun outputChecksumFor(taskName: String): String? =
             taskInfoFor(taskInfos(), taskName).outputChecksum
+
     /**
      * @param method is assumed to return an IncrementalTaskInfo.
      * @return a closure that invokes that method and decide whether to run the task or not based
@@ -97,7 +98,7 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
                             + " old: $inputChecksum new: ${iit.inputChecksum}")
                 }
             }
-            if (! upToDate) {
+            if (!upToDate) {
                 val result = iit.task(project)
                 if (result.success) {
                     logIncremental(1, "Incremental task $taskName done running, saving checksums")

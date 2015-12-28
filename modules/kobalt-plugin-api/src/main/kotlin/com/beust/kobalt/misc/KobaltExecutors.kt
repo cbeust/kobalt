@@ -9,7 +9,7 @@ class NamedThreadFactory(val n: String) : ThreadFactory {
         get() = PREFIX + n
 
     override
-    public fun newThread(r: Runnable) : Thread {
+    public fun newThread(r: Runnable): Thread {
         val result = Thread(r)
         result.name = name + "-" + result.id
         return result
@@ -17,12 +17,12 @@ class NamedThreadFactory(val n: String) : ThreadFactory {
 }
 
 class KobaltExecutor(name: String, threadCount: Int)
-        : ThreadPoolExecutor(threadCount, threadCount, 5L, TimeUnit.SECONDS,
-                LinkedBlockingQueue<Runnable>(), NamedThreadFactory(name)) {
+: ThreadPoolExecutor(threadCount, threadCount, 5L, TimeUnit.SECONDS,
+        LinkedBlockingQueue<Runnable>(), NamedThreadFactory(name)) {
 
     override protected fun afterExecute(r: Runnable, t: Throwable?) {
         super.afterExecute(r, t)
-        var ex : Throwable? = null
+        var ex: Throwable? = null
         if (t == null && r is Future<*>) {
             try {
                 if (r.isDone) r.get();
@@ -41,7 +41,7 @@ class KobaltExecutor(name: String, threadCount: Int)
 }
 
 public class KobaltExecutors {
-    public fun newExecutor(name: String, threadCount: Int) : ExecutorService
+    public fun newExecutor(name: String, threadCount: Int): ExecutorService
             = KobaltExecutor(name, threadCount)
 
     val dependencyExecutor = newExecutor("Dependency", 5)
@@ -53,7 +53,7 @@ public class KobaltExecutors {
     }
 
     fun <T> completionService(name: String, threadCount: Int, maxMs: Long, tasks: List<Callable<T>>,
-            progress: (T) -> Unit = {}) : List<T> {
+                              progress: (T) -> Unit = {}): List<T> {
         val result = arrayListOf<T>()
         val executor = newExecutor(name, threadCount)
         val cs = ExecutorCompletionService<T>(executor)

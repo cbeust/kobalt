@@ -16,7 +16,8 @@ open public class JUnitRunner() : GenericTestRunner() {
         it.declaredMethods.flatMap {
             it.annotations.toList()
         }.filter {
-            ann: Annotation -> ann.javaClass.name.contains("Test")
+            ann: Annotation ->
+            ann.javaClass.name.contains("Test")
         }.size > 0
     }
 }

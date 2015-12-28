@@ -10,11 +10,11 @@ import java.net.URLClassLoader
  * being inside Kobalt itself.
  */
 public class ParentLastClassLoader(val classpath: List<URL>)
-        : ClassLoader(Thread.currentThread().contextClassLoader) {
+: ClassLoader(Thread.currentThread().contextClassLoader) {
     private val childClassLoader: ChildURLClassLoader
 
     init {
-        val urls : Array<URL> = classpath.toTypedArray()
+        val urls: Array<URL> = classpath.toTypedArray()
         childClassLoader = ChildURLClassLoader(urls, FindClassClassLoader(this.parent))
     }
 
@@ -30,9 +30,9 @@ public class ParentLastClassLoader(val classpath: List<URL>)
      * We need this because findClass is protected in URLClassLoader
      */
     private class ChildURLClassLoader(urls: Array<URL>, val realParent: FindClassClassLoader)
-            : URLClassLoader(urls, null) {
+    : URLClassLoader(urls, null) {
 
-        override public fun findClass(name: String) : Class<*> {
+        override public fun findClass(name: String): Class<*> {
             try {
                 // first try to use the URLClassLoader findClass
                 return super.findClass(name)
@@ -43,7 +43,7 @@ public class ParentLastClassLoader(val classpath: List<URL>)
         }
     }
 
-    override public @Synchronized fun loadClass(name: String, resolve: Boolean) : Class<*> {
+    override public @Synchronized fun loadClass(name: String, resolve: Boolean): Class<*> {
         try {
             // first we try to find a class inside the child classloader
             return childClassLoader.findClass(name)

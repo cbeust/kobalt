@@ -44,12 +44,13 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
             get() = if (id.contains(":")) id.split(":")[0] else null
         val taskName: String
             get() = if (id.contains(":")) id.split(":")[1] else id
+
         fun matches(projectName: String) = project == null || project == projectName
     }
 
     class RunTargetResult(val exitCode: Int, val messages: List<String>)
 
-    public fun runTargets(taskNames: List<String>, projects: List<Project>) : RunTargetResult {
+    public fun runTargets(taskNames: List<String>, projects: List<Project>): RunTargetResult {
         var result = 0
         val messages = Collections.synchronizedList(arrayListOf<String>())
         projects.forEach { project ->
@@ -72,7 +73,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
             val graph = DynamicGraph<PluginTask>()
             taskNames.forEach { taskName ->
                 val ti = TaskInfo(taskName)
-                if (! tasksByNames.keys().contains(ti.taskName)) {
+                if (!tasksByNames.keys().contains(ti.taskName)) {
                     throw KobaltException("Unknown task: $taskName")
                 }
 
@@ -143,10 +144,10 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
 
             val factory = object : IThreadWorkerFactory<PluginTask> {
                 override public fun createWorkers(nodes: List<PluginTask>): List<IWorker<PluginTask>> {
-//                    val tr = nodes.reduce { workers: List<TaskWorker>, node: PluginTask ->
-//                        val result: List<TaskWorker> = workers + TaskWorker(listOf(node), args.dryRun, messages)
-//                        result
-//                    }
+                    //                    val tr = nodes.reduce { workers: List<TaskWorker>, node: PluginTask ->
+                    //                        val result: List<TaskWorker> = workers + TaskWorker(listOf(node), args.dryRun, messages)
+                    //                        result
+                    //                    }
                     val thisResult = arrayListOf<IWorker<PluginTask>>()
                     nodes.forEach {
                         thisResult.add(TaskWorker(listOf(it), args.dryRun, messages))
@@ -172,7 +173,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
             : Collection<PluginTask> {
         val freeTaskMap = hashMapOf<String, PluginTask>()
         tasksByNames.keys().forEach {
-            if (! runBefore.containsKey(it) && ! reverseAfter.containsKey(it)) {
+            if (!runBefore.containsKey(it) && !reverseAfter.containsKey(it)) {
                 tasksByNames[it].forEach { t ->
                     freeTaskMap.put(it, t)
                 }
@@ -193,7 +194,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
         val seen = hashSetOf(ti.taskName)
         val toProcess = hashSetOf(ti)
         var done = false
-        while (! done) {
+        while (!done) {
             val newToProcess = hashSetOf<TaskInfo>()
             log(3, "toProcess size: " + toProcess.size)
             toProcess.forEach { target ->
@@ -234,8 +235,8 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
     private val taskAnnotations = arrayListOf<TaskAnnotation>()
 
     class TaskAnnotation(val method: Method, val plugin: IPlugin, val name: String, val description: String,
-            val runBefore: Array<String>, val runAfter: Array<String>, val alwaysRunAfter: Array<String>,
-            val callable: (Project) -> TaskResult)
+                         val runBefore: Array<String>, val runAfter: Array<String>, val alwaysRunAfter: Array<String>,
+                         val callable: (Project) -> TaskResult)
 
     /**
      * Invoking a @Task means simply calling the method and returning its returned TaskResult.
@@ -266,10 +267,10 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
     val dynamicTasks = arrayListOf<PluginDynamicTask>()
 
     fun addAnnotationTask(plugin: IPlugin, method: Method, annotation: Task) =
-        taskAnnotations.add(toTaskAnnotation(method, plugin, annotation))
+            taskAnnotations.add(toTaskAnnotation(method, plugin, annotation))
 
     fun addIncrementalTask(plugin: IPlugin, method: Method, annotation: IncrementalTask) =
-        taskAnnotations.add(toTaskAnnotation(method, plugin, annotation))
+            taskAnnotations.add(toTaskAnnotation(method, plugin, annotation))
 
     /**
      * Turn all the static and dynamic tasks into plug-in tasks, which are then suitable to be executed.
@@ -304,16 +305,16 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
     }
 
     private fun addAnnotationTask(plugin: IPlugin, project: Project, annotation: TaskAnnotation,
-            task: (Project) -> TaskResult) {
+                                  task: (Project) -> TaskResult) {
         addTask(plugin, project, annotation.name, annotation.description, annotation.runBefore.toList(),
                 annotation.runAfter.toList(), annotation.alwaysRunAfter.toList(), task)
     }
 
     fun addTask(plugin: IPlugin, project: Project, name: String, description: String = "",
-            runBefore: List<String> = listOf<String>(),
-            runAfter: List<String> = listOf<String>(),
-            alwaysRunAfter: List<String> = listOf<String>(),
-            task: (Project) -> TaskResult) {
+                runBefore: List<String> = listOf<String>(),
+                runAfter: List<String> = listOf<String>(),
+                alwaysRunAfter: List<String> = listOf<String>(),
+                task: (Project) -> TaskResult) {
         annotationTasks.add(
                 object : BasePluginTask(plugin, name, description, project) {
                     override fun call(): TaskResult2<PluginTask> {
@@ -323,7 +324,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                 })
         runBefore.forEach { runBefore(it, name) }
         runAfter.forEach { runBefore(name, it) }
-        alwaysRunAfter.forEach { alwaysRunAfter(it, name)}
+        alwaysRunAfter.forEach { alwaysRunAfter(it, name) }
     }
 
     //
@@ -332,9 +333,9 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
 }
 
 class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean, val messages: MutableList<String>)
-        : IWorker<PluginTask> {
+: IWorker<PluginTask> {
 
-    override fun call() : TaskResult2<PluginTask> {
+    override fun call(): TaskResult2<PluginTask> {
         if (tasks.size > 0) {
             tasks[0].let {
                 log(1, AsciiArt.taskColor(AsciiArt.horizontalSingleLine + " ${it.project.name}:${it.name}"))
@@ -354,7 +355,7 @@ class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean, val messages:
         return TaskResult2(success, errorMessages.joinToString("\n"), tasks[0])
     }
 
-//    override val timeOut : Long = 10000
+    //    override val timeOut : Long = 10000
 
     override val priority: Int = 0
 }

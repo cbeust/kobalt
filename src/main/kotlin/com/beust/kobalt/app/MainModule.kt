@@ -32,14 +32,14 @@ public open class MainModule(val args: Args) : AbstractModule() {
                 Pom.IFactory::class.java,
                 BuildFileCompiler.IFactory::class.java,
                 ArtifactFetcher.IFactory::class.java)
-            .forEach {
-                install(builder.build(it))
-            }
+                .forEach {
+                    install(builder.build(it))
+                }
 
-//        bind(javaClass<TaskManager>()).toProvider(javaClass<TaskManagerProvider>())
-//                .`in`(Scopes.SINGLETON)
-        bind(object: TypeLiteral<KobaltExecutors>() {}).toInstance(executors)
-        bind(object: TypeLiteral<ExecutorService>() {}).annotatedWith(DependencyExecutor::class.java)
+        //        bind(javaClass<TaskManager>()).toProvider(javaClass<TaskManagerProvider>())
+        //                .`in`(Scopes.SINGLETON)
+        bind(object : TypeLiteral<KobaltExecutors>() {}).toInstance(executors)
+        bind(object : TypeLiteral<ExecutorService>() {}).annotatedWith(DependencyExecutor::class.java)
                 .toInstance(executors.dependencyExecutor)
         bind(Args::class.java).toProvider(Provider<Args> {
             args
@@ -49,17 +49,17 @@ public open class MainModule(val args: Args) : AbstractModule() {
         }).`in`(Singleton::class.java)
 
 
-//        bindListener(Matchers.any(), object: TypeListener {
-//            override fun <I> hear(typeLiteral: TypeLiteral<I>?, typeEncounter: TypeEncounter<I>?) {
-//                val bean = object: InjectionListener<I> {
-//                    override public fun afterInjection(injectee: I) {
-//                        if (Scopes.isCircularProxy(injectee)) {
-//                            println("CYCLE: " + typeLiteral?.getRawType()?.getName());
-//                        }
-//                    }
-//                }
-//                typeEncounter?.register(bean)
-//            }
-//        })
+        //        bindListener(Matchers.any(), object: TypeListener {
+        //            override fun <I> hear(typeLiteral: TypeLiteral<I>?, typeEncounter: TypeEncounter<I>?) {
+        //                val bean = object: InjectionListener<I> {
+        //                    override public fun afterInjection(injectee: I) {
+        //                        if (Scopes.isCircularProxy(injectee)) {
+        //                            println("CYCLE: " + typeLiteral?.getRawType()?.getName());
+        //                        }
+        //                    }
+        //                }
+        //                typeEncounter?.register(bean)
+        //            }
+        //        })
     }
 }

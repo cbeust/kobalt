@@ -116,7 +116,7 @@ public class DownloadTest @Inject constructor(
         // TODO: allow tests to add their own repo. The following call requires
         // "http://repository.jetbrains.com/all" to work
         // For now, just hardcoding the result we should have received
-//        val repoResult = repoFinder.findCorrectRepo(id)
+        //        val repoResult = repoFinder.findCorrectRepo(id)
 
         val repoResult = RepoFinder.RepoResult(HostConfig("http://repository.jetbrains.com/all/"),
                 true, Version.of("0.1-SNAPSHOT"), true, Version("0.1-SNAPSHOT", "20151011.112011-29"))

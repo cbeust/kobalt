@@ -25,9 +25,9 @@ class JavaPlugin @Inject constructor(
         override val executors: KobaltExecutors,
         val javaCompiler: JavaCompiler,
         override val jvmCompiler: JvmCompiler,
-        override val taskContributor : TaskContributor)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler, taskContributor),
-            ICompilerContributor, IDocContributor, ITestSourceDirectoryContributor {
+        override val taskContributor: TaskContributor)
+: JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler, taskContributor),
+        ICompilerContributor, IDocContributor, ITestSourceDirectoryContributor {
     companion object {
         const val PLUGIN_NAME = "Java"
     }
@@ -40,14 +40,14 @@ class JavaPlugin @Inject constructor(
     override fun affinity(project: Project, context: KobaltContext) =
             if (project.sourceSuffix == ".java") 1 else 0
 
-    override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
+    override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
         val result =
-            if (info.sourceFiles.size > 0) {
-                javaCompiler.javadoc(project, context, info.copy(compilerArgs = compilerArgsFor(project)))
-            } else {
-                warn("Couldn't find any source files to run Javadoc on")
-                TaskResult()
-            }
+                if (info.sourceFiles.size > 0) {
+                    javaCompiler.javadoc(project, context, info.copy(compilerArgs = compilerArgsFor(project)))
+                } else {
+                    warn("Couldn't find any source files to run Javadoc on")
+                    TaskResult()
+                }
         return result
     }
 
@@ -61,20 +61,20 @@ class JavaPlugin @Inject constructor(
     }
 
     // ICompilerContributor
-    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
+    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
         val result =
-            if (info.sourceFiles.size > 0) {
-                javaCompiler.compile(project, context, info.copy(compilerArgs = compilerArgsFor(project)))
-            } else {
-                warn("Couldn't find any source files to compile")
-                TaskResult()
-            }
+                if (info.sourceFiles.size > 0) {
+                    javaCompiler.compile(project, context, info.copy(compilerArgs = compilerArgsFor(project)))
+                } else {
+                    warn("Couldn't find any source files to compile")
+                    TaskResult()
+                }
         return result
     }
 
     // ITestSourceDirectoryContributor
     override fun testSourceDirectoriesFor(project: Project, context: KobaltContext)
-        = project.sourceDirectoriesTest.map { File(it) }.toList()
+            = project.sourceDirectoriesTest.map { File(it) }.toList()
 }
 
 @Directive

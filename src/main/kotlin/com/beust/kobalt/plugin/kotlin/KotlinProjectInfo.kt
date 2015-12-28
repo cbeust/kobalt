@@ -19,7 +19,7 @@ class KotlinProjectInfo : BaseProjectInfo {
     }
 
     override fun generateBuildConfig(project: Project, context: KobaltContext, packageName: String, variant: Variant,
-            buildConfigs: List<BuildConfig>) : String {
+                                     buildConfigs: List<BuildConfig>): String {
         val lines = arrayListOf<String>()
         with(lines) {
             add("package $packageName")

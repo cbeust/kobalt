@@ -10,7 +10,7 @@ import java.io.File
  * An OkHttp RequestBody subclass that counts the outgoing bytes and offers progress callbacks.
  */
 class CountingFileRequestBody(val file: File, val contentType: String,
-        val listenerCallback: (Long) -> Unit) : RequestBody() {
+                              val listenerCallback: (Long) -> Unit) : RequestBody() {
 
     val SEGMENT_SIZE = 4096L
 
@@ -32,34 +32,34 @@ class CountingFileRequestBody(val file: File, val contentType: String,
         }
     }
 
-//    companion object {
-//        private val MEDIA_TYPE_BINARY = MediaType.parse("application/octet-stream")
-//
-//        fun progressUpload(file: File, url: String) {
-//            val totalSize = file.length()
-//
-//            val progressListener = object : ProgressListener {
-//                override fun transferred(num: Long) {
-//                    val progress: Float = (num.toFloat() * 100) / totalSize
-//                    print("\rProgress: $progress")
-//                }
-//            }
-//
-//            val request = Request.Builder()
-//                    .url(url)
-//                    //                    .post(RequestBody.create(MEDIA_TYPE_BINARY, file))
-//                    .put(CountingFileRequestBody(file, "application/octet-stream", progressListener))
-//                    //                    .post(requestBody)
-//                    .build();
-//
-//            val response = OkHttpClient().newCall(request).execute()
-//            if (! response.isSuccessful) {
-//                println("ERROR")
-//            } else {
-//                println("SUCCESS")
-//            }
-//        }
-//    }
+    //    companion object {
+    //        private val MEDIA_TYPE_BINARY = MediaType.parse("application/octet-stream")
+    //
+    //        fun progressUpload(file: File, url: String) {
+    //            val totalSize = file.length()
+    //
+    //            val progressListener = object : ProgressListener {
+    //                override fun transferred(num: Long) {
+    //                    val progress: Float = (num.toFloat() * 100) / totalSize
+    //                    print("\rProgress: $progress")
+    //                }
+    //            }
+    //
+    //            val request = Request.Builder()
+    //                    .url(url)
+    //                    //                    .post(RequestBody.create(MEDIA_TYPE_BINARY, file))
+    //                    .put(CountingFileRequestBody(file, "application/octet-stream", progressListener))
+    //                    //                    .post(requestBody)
+    //                    .build();
+    //
+    //            val response = OkHttpClient().newCall(request).execute()
+    //            if (! response.isSuccessful) {
+    //                println("ERROR")
+    //            } else {
+    //                println("SUCCESS")
+    //            }
+    //        }
+    //    }
 }
 
 

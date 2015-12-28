@@ -17,7 +17,7 @@ interface IClasspathDependency {
     val jarFile: Future<File>
 
     /** Convert to a Maven <dependency> model tag */
-    fun toMavenDependencies() : Dependency
+    fun toMavenDependencies(): Dependency
 
     /** The list of dependencies for this element (not the transitive closure */
     fun directDependencies(): List<IClasspathDependency>

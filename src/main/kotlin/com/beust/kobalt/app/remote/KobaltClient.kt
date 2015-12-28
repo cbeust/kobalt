@@ -21,22 +21,22 @@ public class KobaltClient @Inject constructor() : Runnable {
 
         var done = false
         var attempts = 1
-        while (attempts < 10 && ! done) {
+        while (attempts < 10 && !done) {
             try {
                 val socket = Socket("localhost", portNumber)
                 outgoing = PrintWriter(socket.outputStream, true)
                 val testBuildfile = Paths.get(SystemProperties.homeDir, "java/testng/kobalt/src/Build.kt")
-                    .toFile().absolutePath
-                val c : String = "{ \"name\":\"getDependencies\", \"buildFile\": \"$testBuildfile\"}"
+                        .toFile().absolutePath
+                val c: String = "{ \"name\":\"getDependencies\", \"buildFile\": \"$testBuildfile\"}"
                 outgoing!!.println(c)
                 val ins = BufferedReader(InputStreamReader(socket.inputStream))
                 var line = ins.readLine()
-                while (! done && line != null) {
+                while (!done && line != null) {
                     log(1, "Received from server:\n" + line)
                     val jo = JsonParser().parse(line) as JsonObject
                     if (jo.has("name") && "Quit" == jo.get("name").asString) {
                         log(1, "Quitting")
-//                        outgoing!!.println("{ \"name\": \"Quit\" }")
+                        //                        outgoing!!.println("{ \"name\": \"Quit\" }")
                         done = true
                     } else {
                         val data = jo.get("data").asString

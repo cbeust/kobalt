@@ -10,7 +10,7 @@ import javax.inject.Singleton
 
 @Singleton
 public class Http {
-    public fun get(user: String?, password: String?, url: String) : Response {
+    public fun get(user: String?, password: String?, url: String): Response {
         val client = OkHttpClient();
         val request = Request.Builder().url(url)
         if (user != null) {
@@ -24,11 +24,11 @@ public class Http {
         }
     }
 
-    public fun get(url: String) : Response {
+    public fun get(url: String): Response {
         return get(null, null, url)
     }
 
-    fun percentProgressCallback(totalSize: Long) : (Long) -> Unit {
+    fun percentProgressCallback(totalSize: Long): (Long) -> Unit {
         return { num: Long ->
             val progress = num * 100 / totalSize
             log(1, "\rUploaded: $progress%", newLine = false)
@@ -40,11 +40,11 @@ public class Http {
     }
 
     public fun uploadFile(user: String? = null, password: String? = null, url: String, file: TypedFile,
-            post: Boolean,
-            progressCallback: (Long) -> Unit = {},
-            headers: Headers = Headers.of(),
-            success: (Response) -> Unit = {},
-            error: (Response) -> Unit = DEFAULT_ERROR_RESPONSE) {
+                          post: Boolean,
+                          progressCallback: (Long) -> Unit = {},
+                          headers: Headers = Headers.of(),
+                          success: (Response) -> Unit = {},
+                          error: (Response) -> Unit = DEFAULT_ERROR_RESPONSE) {
 
         val fullHeaders = Headers.Builder()
         fullHeaders.set("Content-Type", file.mimeType())
@@ -58,15 +58,15 @@ public class Http {
                 .headers(fullHeaders.build())
                 .url(url)
         val request =
-            (if (post)
-                requestBuilder.post(CountingFileRequestBody(file.file(), file.mimeType(), progressCallback))
-            else
-                requestBuilder.put(CountingFileRequestBody(file.file(), file.mimeType(), progressCallback)))
-            .build()
+                (if (post)
+                    requestBuilder.post(CountingFileRequestBody(file.file(), file.mimeType(), progressCallback))
+                else
+                    requestBuilder.put(CountingFileRequestBody(file.file(), file.mimeType(), progressCallback)))
+                        .build()
 
         log(2, "Uploading $file to $url")
         val response = OkHttpClient().newCall(request).execute()
-        if (! response.isSuccessful) {
+        if (!response.isSuccessful) {
             error(response)
         } else {
             success(response)
