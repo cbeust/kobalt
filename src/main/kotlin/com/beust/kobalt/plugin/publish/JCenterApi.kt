@@ -53,16 +53,17 @@ open public class UnauthenticatedJCenterApi @Inject constructor(open val http: H
 }
 
 public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val username: String?,
-        @Nullable @Assisted("password") val password: String?,
+        @Nullable @Assisted("password") val password: String?, @Nullable @Assisted("org") val org: String?,
         override val http: Http, val gpg: Gpg, val executors: KobaltExecutors) : UnauthenticatedJCenterApi(http) {
 
     interface IFactory {
         fun create(@Nullable @Assisted("username") username: String?,
-                @Nullable @Assisted("password") password: String?) : JCenterApi
+                   @Nullable @Assisted("password") password: String?,
+                   @Nullable @Assisted("org") org: String?) : JCenterApi
     }
 
     fun packageExists(packageName: String) : Boolean {
-        val url = arrayListOf(UnauthenticatedJCenterApi.BINTRAY_URL_API, "packages", username!!, "maven", packageName)
+        val url = arrayListOf(UnauthenticatedJCenterApi.BINTRAY_URL_API, "packages", org ?: username!!, "maven", packageName)
                 .joinToString("/")
         val jcResponse = parseResponse(http.get(username, password, url))
 
@@ -90,7 +91,7 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
         val fileToPath: (File) -> String = { f: File ->
             arrayListOf(
                     UnauthenticatedJCenterApi.BINTRAY_URL_API_CONTENT,
-                    username!!,
+                    org ?: username!!,
                     "maven",
                     project.name,
                     project.version!!,
@@ -107,7 +108,7 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
     fun uploadFile(file: File, url: String, config: JCenterConfig, generateMd5: Boolean = false,
             generateAsc: Boolean = false) =
         upload(arrayListOf(file), config, {
-                f: File -> "${UnauthenticatedJCenterApi.BINTRAY_URL_API_CONTENT}/$username/generic/$url"},
+                f: File -> "${UnauthenticatedJCenterApi.BINTRAY_URL_API_CONTENT}/${org ?: username}/generic/$url"},
                 generateMd5, generateAsc)
 
     private fun upload(files: List<File>, config: JCenterConfig?, fileToPath: (File) -> String,
