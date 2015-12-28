@@ -17,7 +17,7 @@ class KFiles {
      * This actually returns a list of strings because in development mode, we are not pointing to a single
      * jar file but to a set of /classes directories.
      */
-    val kobaltJar : List<String>
+    val kobaltJar: List<String>
         get() {
             val envJar = System.getenv("KOBALT_JAR")
             if (envJar != null) {
@@ -45,8 +45,8 @@ class KFiles {
     }
 
     companion object {
-        internal const val KOBALT_DOT_DIR : String = ".kobalt"
-        const val KOBALT_DIR : String = "kobalt"
+        internal const val KOBALT_DOT_DIR: String = ".kobalt"
+        const val KOBALT_DIR: String = "kobalt"
         const val KOBALT_BUILD_DIR = "kobaltBuild"
 
         // Directories under ~/.kobalt
@@ -56,13 +56,13 @@ class KFiles {
         val distributionsDir = homeDir(KOBALT_DOT_DIR, "wrapper", "dist")
 
         // Directories under ./.kobalt
-        val SCRIPT_BUILD_DIR : String = "build"
-        val CLASSES_DIR : String = "classes"
+        val SCRIPT_BUILD_DIR: String = "build"
+        val CLASSES_DIR: String = "classes"
 
         /** Where build file and support source files go, under KOBALT_DIR */
         private val SRC = "src"
 
-        val TEST_CLASSES_DIR : String = "test-classes"
+        val TEST_CLASSES_DIR: String = "test-classes"
 
         private fun generatedDir(project: Project, variant: Variant)
                 = KFiles.joinDir(project.directory, project.buildDirectory, "generated", variant.toIntermediateDir())
@@ -104,11 +104,11 @@ class KFiles {
         fun makeDir(dir: String, s: String? = null) =
                 (if (s != null) File(dir, s) else File(dir)).apply { mkdirs() }
 
-        fun findRecursively(rootDir: File) : List<String> =
+        fun findRecursively(rootDir: File): List<String> =
                 findRecursively(rootDir, arrayListOf(), { s -> true })
 
         fun findRecursively(rootDir: File, directories: List<File>,
-                function: Function1<String, Boolean>): List<String> {
+                            function: Function1<String, Boolean>): List<String> {
             var result = arrayListOf<String>()
 
             val allDirs = arrayListOf<File>()
@@ -120,13 +120,13 @@ class KFiles {
 
             val seen = hashSetOf<java.nio.file.Path>()
             allDirs.forEach { dir ->
-                if (! dir.exists()) {
+                if (!dir.exists()) {
                     log(2, "Couldn't find directory $dir")
                 } else {
                     val files = findRecursively(dir, function)
                     files.map { Paths.get(it) }.forEach {
                         val rel = Paths.get(dir.path).relativize(it)
-                        if (! seen.contains(rel)) {
+                        if (!seen.contains(rel)) {
                             result.add(File(dir, rel.toFile().path).path)
                             seen.add(rel)
                         } else {
@@ -136,7 +136,7 @@ class KFiles {
                 }
             }
             // Return files relative to rootDir
-            val r = result.map { it.substring(rootDir.path.length + 1)}
+            val r = result.map { it.substring(rootDir.path.length + 1) }
             return r
         }
 
@@ -153,11 +153,11 @@ class KFiles {
         }
 
         fun copyRecursively(from: File, to: File, replaceExisting: Boolean = true, deleteFirst: Boolean = false,
-                onError: (File, IOException) -> OnErrorAction = { file, exception -> throw exception }) {
+                            onError: (File, IOException) -> OnErrorAction = { file, exception -> throw exception }) {
             // Need to wait until copyRecursively supports an overwrite: Boolean = false parameter
             // Until then, wipe everything first
             if (deleteFirst) to.deleteRecursively()
-//            to.mkdirs()
+            //            to.mkdirs()
             hackCopyRecursively(from, to, replaceExisting = replaceExisting, onError = onError)
         }
 
@@ -168,10 +168,10 @@ class KFiles {
          * Copy/pasted from kotlin/io/Utils.kt to add support for overwriting.
          */
         private fun hackCopyRecursively(from: File, dst: File,
-                replaceExisting: Boolean,
-                checkTimestamp: Boolean = false,
-                onError: (File, IOException) -> OnErrorAction =
-                { file, exception -> throw exception }
+                                        replaceExisting: Boolean,
+                                        checkTimestamp: Boolean = false,
+                                        onError: (File, IOException) -> OnErrorAction =
+                                        { file, exception -> throw exception }
         ): Boolean {
             if (!from.exists()) {
                 return onError(from, NoSuchFileException(file = from, reason = "The source file doesn't exist")) !=
@@ -179,13 +179,13 @@ class KFiles {
             }
             try {
                 // We cannot break for loop from inside a lambda, so we have to use an exception here
-                for (src in from.walkTopDown().fail { f, e -> if (onError(f, e) == OnErrorAction.TERMINATE) throw TerminateException(f) }) {
+                for (src in from.walkTopDown().onFail { f, e -> if (onError(f, e) == OnErrorAction.TERMINATE) throw TerminateException(f) }) {
                     if (!src.exists()) {
                         if (onError(src, NoSuchFileException(file = src, reason = "The source file doesn't exist")) ==
                                 OnErrorAction.TERMINATE)
                             return false
                     } else {
-                        val relPath = src.relativeTo(from)
+                        val relPath = src.toRelativeString(from)
                         val dstFile = File(dst, relPath)
                         if (dstFile.exists() && !replaceExisting && !(src.isDirectory && dstFile.isDirectory)) {
                             if (onError(dstFile, FileAlreadyExistsException(file = src,
@@ -213,9 +213,9 @@ class KFiles {
             }
         }
 
-        fun findDotDir(startDir: File) : File {
+        fun findDotDir(startDir: File): File {
             var result = startDir
-            while (result != null && ! File(result, KOBALT_DOT_DIR).exists()) {
+            while (result != null && !File(result, KOBALT_DOT_DIR).exists()) {
                 result = result.parentFile
             }
             if (result == null) {
@@ -227,7 +227,7 @@ class KFiles {
         /**
          * The build location for build scripts is .kobalt/build
          */
-        fun findBuildScriptLocation(buildFile: BuildFile, jarFile: String) : String {
+        fun findBuildScriptLocation(buildFile: BuildFile, jarFile: String): String {
             val result = joinDir(findDotDir(buildFile.directory).absolutePath, KFiles.SCRIPT_BUILD_DIR, jarFile)
             log(2, "Script jar file: $result")
             return result
@@ -261,25 +261,25 @@ class KFiles {
             }
         }
 
-        fun createTempFile(suffix : String = "", deleteOnExit: Boolean = false) : File =
-            File.createTempFile("kobalt", suffix, File(SystemProperties.tmpDir)).let {
-                if (deleteOnExit) it.deleteOnExit()
-                return it
-            }
+        fun createTempFile(suffix: String = "", deleteOnExit: Boolean = false): File =
+                File.createTempFile("kobalt", suffix, File(SystemProperties.tmpDir)).let {
+                    if (deleteOnExit) it.deleteOnExit()
+                    return it
+                }
 
         fun src(filePath: String): String = KFiles.joinDir(KOBALT_DIR, SRC, filePath)
 
-        fun makeDir(project: Project, suffix: String) : File {
+        fun makeDir(project: Project, suffix: String): File {
             return File(project.directory, project.buildDirectory + File.separator + suffix).apply { mkdirs() }
         }
 
-        fun makeOutputDir(project: Project) : File = makeDir(project, KFiles.CLASSES_DIR)
+        fun makeOutputDir(project: Project): File = makeDir(project, KFiles.CLASSES_DIR)
 
-        fun makeOutputTestDir(project: Project) : File = makeDir(project, KFiles.TEST_CLASSES_DIR)
+        fun makeOutputTestDir(project: Project): File = makeDir(project, KFiles.TEST_CLASSES_DIR)
 
         fun isExcluded(file: File, excludes: List<IFileSpec.Glob>) = isExcluded(file.path, excludes)
 
-        fun isExcluded(file: String, excludes: List<IFileSpec.Glob>) : Boolean {
+        fun isExcluded(file: String, excludes: List<IFileSpec.Glob>): Boolean {
             if (excludes.isEmpty()) {
                 return false
             } else {
@@ -303,7 +303,7 @@ class KFiles {
     }
 
     fun findRecursively(rootDir: File, directories: List<File>,
-            function: Function1<String, Boolean>): List<String> {
+                        function: Function1<String, Boolean>): List<String> {
         return KFiles.findRecursively(rootDir, directories, function)
     }
 }

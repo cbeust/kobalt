@@ -15,14 +15,14 @@ public class JarUtils {
     companion object {
         val DEFAULT_HANDLER: (Exception) -> Unit = { ex: Exception ->
             // Ignore duplicate entry exceptions
-            if (! ex.message?.contains("duplicate")!!) {
+            if (!ex.message?.contains("duplicate")!!) {
                 throw ex
             }
         }
 
         public fun addFiles(directory: String, files: List<IncludedFile>, target: ZipOutputStream,
-                expandJarFiles: Boolean,
-                onError: (Exception) -> Unit = DEFAULT_HANDLER) {
+                            expandJarFiles: Boolean,
+                            onError: (Exception) -> Unit = DEFAULT_HANDLER) {
             files.forEach {
                 addSingleFile(directory, it, target, expandJarFiles, onError)
             }
@@ -34,7 +34,7 @@ public class JarUtils {
                 IFileSpec.Glob("META-INF/*.RSA"))
 
         public fun addSingleFile(directory: String, file: IncludedFile, outputStream: ZipOutputStream,
-                expandJarFiles: Boolean, onError: (Exception) -> Unit = DEFAULT_HANDLER) {
+                                 expandJarFiles: Boolean, onError: (Exception) -> Unit = DEFAULT_HANDLER) {
             val allFiles = file.allFromFiles(directory)
             allFiles.forEach { relSource ->
                 val source =
@@ -85,7 +85,7 @@ public class JarUtils {
         }
 
         private fun addEntry(inputStream: InputStream, entry: ZipEntry, outputStream: ZipOutputStream,
-                onError: (Exception) -> Unit = DEFAULT_HANDLER) {
+                             onError: (Exception) -> Unit = DEFAULT_HANDLER) {
             var bis: BufferedInputStream? = null
             try {
                 outputStream.putNextEntry(entry)
@@ -105,7 +105,7 @@ public class JarUtils {
             }
         }
 
-        fun extractTextFile(zip : ZipFile, fileName: String) : String? {
+        fun extractTextFile(zip: ZipFile, fileName: String): String? {
             val enumEntries = zip.entries()
             while (enumEntries.hasMoreElements()) {
                 val file = enumEntries.nextElement()
@@ -150,6 +150,7 @@ open class Direction(open val p: String) {
 
 class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<IFileSpec>) {
     constructor(specs: List<IFileSpec>) : this(From(""), To(""), specs)
+
     public val from: String get() = fromOriginal.path.replace("\\", "/")
     public val to: String get() = toOriginal.path.replace("\\", "/")
     override public fun toString() = toString("IncludedFile",

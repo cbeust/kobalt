@@ -14,8 +14,8 @@ public class DynamicGraphTest {
         Assert.assertEquals(h, e)
     }
 
-    private fun <T> createFactory(runNodes: ArrayList<T>, errorFunction: (T) -> Boolean) : IThreadWorkerFactory<T> {
-        return object: IThreadWorkerFactory<T> {
+    private fun <T> createFactory(runNodes: ArrayList<T>, errorFunction: (T) -> Boolean): IThreadWorkerFactory<T> {
+        return object : IThreadWorkerFactory<T> {
             override fun createWorkers(nodes: List<T>): List<IWorker<T>> {
                 val result = arrayListOf<IWorker<T>>()
                 nodes.forEach { result.add(Worker(runNodes, it, errorFunction)) }
@@ -25,10 +25,10 @@ public class DynamicGraphTest {
     }
 
     public class Worker<T>(val runNodes: ArrayList<T>, val n: T,
-            val errorFunction: (T) -> Boolean) : IWorker<T> {
+                           val errorFunction: (T) -> Boolean) : IWorker<T> {
         override val priority = 0
 
-        override fun call() : TaskResult2<T> {
+        override fun call(): TaskResult2<T> {
             log(2, "Running node $n")
             runNodes.add(n)
             return TaskResult2(errorFunction(n), null, n)
@@ -65,8 +65,8 @@ public class DynamicGraphTest {
         val ex = DynamicGraphExecutor(g, factory)
         ex.run()
         Thread.`yield`()
-        Assert.assertTrue(! runNodes.contains(4))
-        Assert.assertTrue(! runNodes.contains(10))
+        Assert.assertTrue(!runNodes.contains(4))
+        Assert.assertTrue(!runNodes.contains(10))
     }
 
     @Test
@@ -105,7 +105,7 @@ public class DynamicGraphTest {
         dg.addEdge("b1", "a2")
         dg.addNode("x")
         val freeNodes = dg.freeNodes
-        assertFreeNodesEquals(dg, arrayOf("a1", "a2", "x" ))
+        assertFreeNodesEquals(dg, arrayOf("a1", "a2", "x"))
 
         dg.setStatus(freeNodes, DynamicGraph.Status.RUNNING)
         dg.setStatus("a1", DynamicGraph.Status.FINISHED)

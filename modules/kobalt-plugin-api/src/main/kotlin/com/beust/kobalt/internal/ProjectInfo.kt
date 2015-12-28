@@ -12,7 +12,7 @@ import java.util.*
  */
 interface IProjectInfo {
     /** Used to determine the last directory segment of the flavored sources, e.g. src/main/JAVA */
-    val sourceDirectory : String
+    val sourceDirectory: String
 
     val defaultSourceDirectories: HashSet<String>
     val defaultTestDirectories: HashSet<String>
@@ -22,17 +22,17 @@ interface IProjectInfo {
      * will be used to generate the BuildConfig file with the correct language.
      */
     fun generateBuildConfig(project: Project, context: KobaltContext, packageName: String, variant: Variant,
-            buildConfigs: List<BuildConfig>) : String
+                            buildConfigs: List<BuildConfig>): String
 }
 
 interface BaseProjectInfo : IProjectInfo {
-    fun generate(field: BuildConfigField) : String
+    fun generate(field: BuildConfigField): String
     fun generate(type: String, name: String, value: Any) = generate(BuildConfigField(type, name, value))
 
     fun generateFieldsFromContributors(project: Project, context: KobaltContext)
-        = context.pluginInfo.buildConfigFieldContributors.flatMap {
-                it.fieldsFor(project, context)
-            }.map {
-                generate(it)
-            }
+            = context.pluginInfo.buildConfigFieldContributors.flatMap {
+        it.fieldsFor(project, context)
+    }.map {
+        generate(it)
+    }
 }

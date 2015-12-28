@@ -19,7 +19,7 @@ class KobaltWrapperProperties @Inject constructor() {
         log(2, "Creating $file with $version and ${defaultUrlFor(version)}")
         KFiles.saveFile(file, listOf(
                 "$PROPERTY_VERSION=$version"
-//                "$PROPERTY_DOWNLOAD_URL=${defaultUrlFor(version)}"
+                //                "$PROPERTY_DOWNLOAD_URL=${defaultUrlFor(version)}"
         ).joinToString("\n"))
     }
 
@@ -27,9 +27,9 @@ class KobaltWrapperProperties @Inject constructor() {
             "http://beust.com/kobalt/kobalt-$version.zip"
 
     private val file: File
-            get() = File("$WRAPPER_DIR/$KOBALT_WRAPPER_PROPERTIES")
+        get() = File("$WRAPPER_DIR/$KOBALT_WRAPPER_PROPERTIES")
 
-    private val properties : Properties
+    private val properties: Properties
         get() {
             val config = file
             if (!config.exists()) {
@@ -41,9 +41,9 @@ class KobaltWrapperProperties @Inject constructor() {
             return result
         }
 
-    val version : String
+    val version: String
         get() = properties.getProperty(PROPERTY_VERSION)
 
-    val downloadUrl : String
+    val downloadUrl: String
         get() = properties.getProperty(PROPERTY_DOWNLOAD_URL)
 }

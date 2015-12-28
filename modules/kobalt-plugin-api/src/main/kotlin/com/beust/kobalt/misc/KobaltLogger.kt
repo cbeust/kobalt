@@ -6,7 +6,7 @@ import com.beust.kobalt.api.Kobalt
 import java.text.SimpleDateFormat
 import java.util.*
 
-fun Any.log(level: Int, text: String, newLine : Boolean = true) {
+fun Any.log(level: Int, text: String, newLine: Boolean = true) {
     if (level <= KobaltLogger.LOG_LEVEL) {
         KobaltLogger.logger.log(javaClass.simpleName, text, newLine)
     }
@@ -49,21 +49,23 @@ class Logger(val dev: Boolean) {
     val FORMAT = SimpleDateFormat("HH:mm:ss.SSS")
 
     private fun getPattern(shortTag: String, shortMessage: String, longMessage: String, tag: String) =
-        if (dev) {
-            val ts = FORMAT.format(Date())
-            "$shortTag/$ts [" + Thread.currentThread().name + "] $tag - $shortMessage"
-        } else {
-            longMessage
-        }
+            if (dev) {
+                val ts = FORMAT.format(Date())
+                "$shortTag/$ts [" + Thread.currentThread().name + "] $tag - $shortMessage"
+            } else {
+                longMessage
+            }
 
     final fun debug(tag: String, message: String) =
-        println(getPattern("D", message, message, tag))
+            println(getPattern("D", message, message, tag))
 
     final fun error(tag: String, message: String, e: Throwable? = null) {
         val docUrl = if (e is KobaltException && e.docUrl != null) e.docUrl else null
-        val text = if (! message.isBlank()) message
-            else if (e != null && (! e.message.isNullOrBlank())) e.message
-            else { "<unknown error>" }
+        val text = if (!message.isBlank()) message
+        else if (e != null && (!e.message.isNullOrBlank())) e.message
+        else {
+            "<unknown error>"
+        }
         val shortMessage = "***** E $text " + if (docUrl != null) " Documentation: $docUrl" else ""
         val longMessage = "*****\n***** ERROR $text\n*****"
 
@@ -79,8 +81,8 @@ class Logger(val dev: Boolean) {
     }
 
     final fun log(tag: String, message: String, newLine: Boolean) =
-        with(getPattern("L", message, message, tag)) {
-            if (newLine) println(this)
-            else print("\r" + this)
-        }
+            with(getPattern("L", message, message, tag)) {
+                if (newLine) println(this)
+                else print("\r" + this)
+            }
 }

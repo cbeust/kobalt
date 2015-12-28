@@ -11,10 +11,10 @@ class ProjectProperties {
 
     fun get(key: String) = properties[key]
 
-    fun getString(key: String) : String? {
+    fun getString(key: String): String? {
         val result = get(key)
         return if (result != null) result as String
-            else null
+        else null
     }
 }
 

@@ -20,18 +20,18 @@ class AsciiArt {
                 "           |_|\\_\\  \\___/  |_.__/   \\__,_| |_|  \\__|  "
         )
 
-        val banner : String get() = BANNERS[Random().nextInt(BANNERS.size)]
+        val banner: String get() = BANNERS[Random().nextInt(BANNERS.size)]
 
-//        fun box(s: String) : List<String> = box(listOf(s))
+        //        fun box(s: String) : List<String> = box(listOf(s))
 
         val horizontalSingleLine = "\u2500\u2500\u2500\u2500\u2500"
         val horizontalDoubleLine = "\u2550\u2550\u2550\u2550\u2550"
 
-//        fun horizontalLine(n: Int) = StringBuffer().apply {
-//                repeat(n, { append("\u2500") })
-//            }.toString()
+        //        fun horizontalLine(n: Int) = StringBuffer().apply {
+        //                repeat(n, { append("\u2500") })
+        //            }.toString()
 
-        fun box(strings: List<String>) : List<String> {
+        fun box(strings: List<String>): List<String> {
             val ul = "\u2554"
             val ur = "\u2557"
             val h = "\u2550"
@@ -39,7 +39,7 @@ class AsciiArt {
             val bl = "\u255a"
             val br = "\u255d"
 
-            fun r(n: Int, w: String) : String {
+            fun r(n: Int, w: String): String {
                 with(StringBuffer()) {
                     repeat(n, { append(w) })
                     return toString()
@@ -54,9 +54,9 @@ class AsciiArt {
             return result
         }
 
-        private fun fill(n: Int) = StringBuffer().apply { repeat(n, { append(" ")})}.toString()
+        private fun fill(n: Int) = StringBuffer().apply { repeat(n, { append(" ") }) }.toString()
 
-        val defaultLog : (s: String) -> Unit = { log(1, "          $it") }
+        val defaultLog: (s: String) -> Unit = { log(1, "          $it") }
 
         fun logBox(strings: List<String>, print: (String) -> Unit = defaultLog) {
             box(strings).forEach {
@@ -68,7 +68,7 @@ class AsciiArt {
             logBox(listOf(s), print)
         }
 
-        fun center(s: String, width: Int) : String {
+        fun center(s: String, width: Int): String {
             val diff = width - s.length
             val spaces = diff / 2 + 1
             return fill(spaces) + s + fill(spaces + if (diff % 2 == 1) 1 else 0)

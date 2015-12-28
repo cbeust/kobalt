@@ -10,7 +10,7 @@ abstract public class PluginTask : Callable<TaskResult2<PluginTask>> {
     open val doc: String = ""
     abstract val project: Project
 
-    override public fun toString() : String {
+    override public fun toString(): String {
         return toString("PluginTask", "id", project.name + ":" + name)
     }
 }

@@ -31,11 +31,11 @@ class VariantTest : KobaltTest() {
                         productFlavor("prod") {}
                         buildType("debug") {}
                         buildType("release") {}
-            })
-            )
+                    })
+    )
 
     @Test(dataProvider = "projectVariants", description =
-            "Make sure we generate the correct dynamic tasks based on the product flavor and build types.")
+    "Make sure we generate the correct dynamic tasks based on the product flavor and build types.")
     fun taskNamesShouldWork(expected: Set<String>, project: JavaProject) {
         val variantNames = HashSet(Variant.allVariants(project).map { it.toTask("compile") })
         Assert.assertEquals(variantNames, expected)

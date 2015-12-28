@@ -35,8 +35,8 @@ fun Project.application(init: ApplicationConfig.() -> Unit) {
 
 @Singleton
 class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
-        val dependencyManager: DependencyManager, val taskContributor : TaskContributor)
-            : ConfigPlugin<ApplicationConfig>(), IRunnerContributor, ITaskContributor {
+                                            val dependencyManager: DependencyManager, val taskContributor: TaskContributor)
+: ConfigPlugin<ApplicationConfig>(), IRunnerContributor, ITaskContributor {
 
     companion object {
         const val PLUGIN_NAME = "Application"
@@ -93,13 +93,13 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
         return result
     }
 
-    private fun runJarFile(project: Project, config: ApplicationConfig) : TaskResult {
+    private fun runJarFile(project: Project, config: ApplicationConfig): TaskResult {
         val jarName = project.projectProperties.get(PackagingPlugin.JAR_NAME) as String
         @Suppress("UNCHECKED_CAST")
         val packages = project.projectProperties.get(PackagingPlugin.PACKAGES) as List<PackageConfig>
         val allDeps = arrayListOf(jarName)
         val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
-        if (! isFatJar(packages, jarName)) {
+        if (!isFatJar(packages, jarName)) {
             @Suppress("UNCHECKED_CAST")
             val projDeps = project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
                     as List<ProjectDescription>
@@ -116,7 +116,7 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
                 successCallback = { output: List<String> ->
                     println(output.joinToString("\n"))
                 },
-                errorCallback =  { output: List<String> ->
+                errorCallback = { output: List<String> ->
                     println("ERROR")
                     println(output.joinToString("\n"))
                 }

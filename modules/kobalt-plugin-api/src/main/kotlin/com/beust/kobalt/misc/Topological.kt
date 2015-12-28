@@ -22,10 +22,10 @@ class Topological<T> {
     /**
      * @return the Ts sorted topologically.
      */
-    fun sort(all: ArrayList<T>) : List<T> {
+    fun sort(all: ArrayList<T>): List<T> {
         val result = arrayListOf<T>()
         var dependMap = HashMultimap.create<T, T>()
-        dependingOn.keySet().forEach { dependMap.putAll(it, dependingOn.get(it))}
+        dependingOn.keySet().forEach { dependMap.putAll(it, dependingOn.get(it)) }
         while (all.size > 0) {
             val freeNodes = all.filter {
                 dependMap.get(it).isEmpty()

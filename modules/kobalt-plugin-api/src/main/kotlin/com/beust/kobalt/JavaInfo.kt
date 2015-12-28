@@ -13,7 +13,7 @@ abstract public class JavaInfo {
     abstract public var runtimeJar: File?
     abstract public var toolsJar: File?
 
-    abstract public fun findExecutable(command: String) : File
+    abstract public fun findExecutable(command: String): File
 
     companion object {
         fun create(javaBase: File?): Jvm {

@@ -11,7 +11,7 @@ class ActorUtils {
          * Return the plug-in actor with the highest affinity.
          */
         fun <T : IProjectAffinity> selectAffinityActor(project: Project, context: KobaltContext, actors: List<T>)
-            = actors.maxBy { it.affinity(project, context) }
+                = actors.maxBy { it.affinity(project, context) }
 
         /**
          * Return the plug-in actor with the highest affinity.

@@ -28,15 +28,15 @@ class PomTest @Inject constructor() : KobaltTest() {
 
     @Test
     fun importBasicPom() {
-            val pomSrc = File("src/test/resources/pom-norepositories-properties.xml")
-            val pom = Pom("testing", pomSrc);
+        val pomSrc = File("src/test/resources/pom-norepositories-properties.xml")
+        val pom = Pom("testing", pomSrc);
 
-            Assert.assertEquals(pom.groupId, "com.foo.bob")
-            Assert.assertEquals(pom.artifactId, "rawr")
-            Assert.assertEquals(pom.name, "rawr")
-            Assert.assertEquals(pom.version, "1.2.3")
-            Assert.assertTrue(pom.properties.isEmpty())
-            Assert.assertTrue(pom.repositories.isEmpty())
+        Assert.assertEquals(pom.groupId, "com.foo.bob")
+        Assert.assertEquals(pom.artifactId, "rawr")
+        Assert.assertEquals(pom.name, "rawr")
+        Assert.assertEquals(pom.version, "1.2.3")
+        Assert.assertTrue(pom.properties.isEmpty())
+        Assert.assertTrue(pom.repositories.isEmpty())
 
         validateGeneratedFile(pom, pomSrc)
     }
@@ -65,7 +65,7 @@ class PomTest @Inject constructor() : KobaltTest() {
             Assert.assertTrue(contents.contains("version = \"${pom.version}\""), "Should find the version defined")
             pom.properties.forEach {
                 Assert.assertTrue(contents.contains("val ${ProjectGenerator.toIdentifier(it.key)} = \"${it.value}\""), "Should find the " +
-                      "property defined")
+                        "property defined")
             }
             pom.repositories.forEach {
                 Assert.assertTrue(contents.contains(it), "Should find the repository defined")

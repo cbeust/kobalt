@@ -1,6 +1,5 @@
 package com.beust.kobalt.internal.remote
 
-import com.beust.kobalt.misc.log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 

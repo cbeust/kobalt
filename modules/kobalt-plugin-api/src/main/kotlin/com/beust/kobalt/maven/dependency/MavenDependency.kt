@@ -17,12 +17,12 @@ import javax.inject.Inject
 import kotlin.properties.Delegates
 
 public class MavenDependency @Inject constructor(mavenId: MavenId,
-        val executor: ExecutorService,
-        override val localRepo: LocalRepo,
-        val repoFinder: RepoFinder,
-        val pomFactory: Pom.IFactory,
-        val downloadManager: DownloadManager)
-            : LocalDep(mavenId, localRepo), IClasspathDependency, Comparable<MavenDependency> {
+                                                 val executor: ExecutorService,
+                                                 override val localRepo: LocalRepo,
+                                                 val repoFinder: RepoFinder,
+                                                 val pomFactory: Pom.IFactory,
+                                                 val downloadManager: DownloadManager)
+: LocalDep(mavenId, localRepo), IClasspathDependency, Comparable<MavenDependency> {
     override var jarFile: Future<File> by Delegates.notNull()
     var pomFile: Future<File> by Delegates.notNull()
 
@@ -36,12 +36,12 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
             val repoResult = repoFinder.findCorrectRepo(mavenId.toId)
             if (repoResult.found) {
                 jarFile =
-                    if (repoResult.hasJar) {
-                        downloadManager.download(HostConfig(url = repoResult.hostConfig.url + toJarFile(repoResult)),
-                                jar.absolutePath, executor)
-                    } else {
-                        CompletedFuture(File("nonexistentFile")) // will be filtered out
-                }
+                        if (repoResult.hasJar) {
+                            downloadManager.download(HostConfig(url = repoResult.hostConfig.url + toJarFile(repoResult)),
+                                    jar.absolutePath, executor)
+                        } else {
+                            CompletedFuture(File("nonexistentFile")) // will be filtered out
+                        }
                 pomFile = downloadManager.download(HostConfig(url = repoResult.hostConfig.url + toPomFile(repoResult)),
                         pom.absolutePath, executor)
             } else {
@@ -77,7 +77,7 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
 
     override val shortId = "$groupId:$artifactId:"
 
-    override fun directDependencies() : List<IClasspathDependency> {
+    override fun directDependencies(): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         try {
             pomFactory.create(id, pomFile.get()).dependencies.filter {

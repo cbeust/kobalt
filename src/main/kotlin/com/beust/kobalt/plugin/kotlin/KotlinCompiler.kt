@@ -7,7 +7,6 @@ import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.kotlin.ParentLastClassLoader
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -36,12 +35,12 @@ class KotlinCompiler @Inject constructor(
         val KOTLIN_VERSION = "1.0.0-beta-4584"
     }
 
-    val compilerAction = object: ICompilerAction {
+    val compilerAction = object : ICompilerAction {
         override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
             if (info.sourceFiles.size > 1) {
                 log(1, "  Compiling ${info.sourceFiles.size} files")
             }
-            val cp = compilerFirst(info.dependencies.map {it.jarFile.get()})
+            val cp = compilerFirst(info.dependencies.map { it.jarFile.get() })
             val outputDir = if (info.directory != null) {
                 KFiles.joinDir(info.directory, info.outputDir.path)
             } else {
@@ -49,10 +48,10 @@ class KotlinCompiler @Inject constructor(
             }
             // kotlinc can accept a jar file as -d (which is super convenient) so only
             // create a directory if the output is not a jar file
-            if (! outputDir.endsWith(".jar")) {
+            if (!outputDir.endsWith(".jar")) {
                 File(outputDir).mkdirs()
             }
-            val allArgs : Array<String> = arrayOf(
+            val allArgs: Array<String> = arrayOf(
                     "-d", outputDir,
                     "-classpath", cp.joinToString(File.pathSeparator),
                     *(info.compilerArgs.toTypedArray()),
@@ -75,7 +74,7 @@ class KotlinCompiler @Inject constructor(
         private fun invokeCompiler(projectName: String, cp: List<File>, args: Array<String>): Boolean {
             val allArgs = listOf("-module-name", "project-" + projectName) + args
             log(2, "Calling kotlinc " + allArgs.joinToString(" "))
-            val result : Boolean =
+            val result: Boolean =
                     if (true) {
                         val classLoader = ParentLastClassLoader(cp.map { it.toURI().toURL() })
                         val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
@@ -113,7 +112,7 @@ class KotlinCompiler @Inject constructor(
      * JvmCompilerPlugin#createCompilerActionInfo instead
      */
     fun compile(project: Project?, context: KobaltContext?, compileDependencies: List<IClasspathDependency>,
-            otherClasspath: List<String>, sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult {
+                otherClasspath: List<String>, sourceFiles: List<String>, outputDir: File, args: List<String>): TaskResult {
 
         val executor = executors.newExecutor("KotlinCompiler", 10)
         val compilerDep = depFactory.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION", executor)
@@ -135,7 +134,7 @@ class KotlinCompiler @Inject constructor(
     }
 }
 
-class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
+class KConfiguration @Inject constructor(val compiler: KotlinCompiler) {
     val classpath = arrayListOf<String>()
     val dependencies = arrayListOf<IClasspathDependency>()
     var source = arrayListOf<String>()
@@ -152,12 +151,12 @@ class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
 
     fun compilerArgs(s: List<String>) = args.addAll(s)
 
-    fun compile(project: Project? = null, context: KobaltContext? = null) : TaskResult {
+    fun compile(project: Project? = null, context: KobaltContext? = null): TaskResult {
         return compiler.compile(project, context, dependencies, classpath, source, output, args + "-no-stdlib")
     }
 }
 
-fun kotlinCompilePrivate(ini: KConfiguration.() -> Unit) : KConfiguration {
+fun kotlinCompilePrivate(ini: KConfiguration.() -> Unit): KConfiguration {
     val result = Kobalt.INJECTOR.getInstance(KConfiguration::class.java)
     result.ini()
     return result

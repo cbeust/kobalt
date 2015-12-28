@@ -23,7 +23,7 @@ public interface IWorker<T> : Callable<TaskResult2<T>> {
     /**
      * @return the priority of this task.
      */
-    val priority : Int
+    val priority: Int
 }
 
 public interface IThreadWorkerFactory<T> {
@@ -35,44 +35,44 @@ public interface IThreadWorkerFactory<T> {
      * @param nodes tasks that need to be executed
      * @return list of workers
      */
-    fun createWorkers(nodes: List<T>) : List<IWorker<T>>
+    fun createWorkers(nodes: List<T>): List<IWorker<T>>
 }
 
 public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
-        val factory: IThreadWorkerFactory<T>) {
+                                     val factory: IThreadWorkerFactory<T>) {
     val executor = Executors.newFixedThreadPool(5, NamedThreadFactory("DynamicGraphExecutor"))
     val completion = ExecutorCompletionService<TaskResult2<T>>(executor)
 
     /**
      * @return 0 if all went well, > 0 otherwise
      */
-    public fun run() : Int {
+    public fun run(): Int {
         var lastResult = TaskResult()
         var gotError = false
         var nodesRunning = 0
-        while (graph.freeNodes.size > 0 && ! gotError) {
+        while (graph.freeNodes.size > 0 && !gotError) {
             log(3, "Current node count: ${graph.nodeCount}")
             synchronized(graph) {
                 val freeNodes = graph.freeNodes
-                freeNodes.forEach { graph.setStatus(it, DynamicGraph.Status.RUNNING)}
+                freeNodes.forEach { graph.setStatus(it, DynamicGraph.Status.RUNNING) }
                 log(3, "  ==> Submitting " + freeNodes)
-                val callables : List<IWorker<T>> = factory.createWorkers(freeNodes)
+                val callables: List<IWorker<T>> = factory.createWorkers(freeNodes)
                 callables.forEach { completion.submit(it) }
                 nodesRunning += callables.size
 
                 // When a callable ends, see if it freed a node. If not, keep looping
-                while (graph.nodesRunning.size > 0 && graph.freeNodes.size == 0 && ! gotError) {
+                while (graph.nodesRunning.size > 0 && graph.freeNodes.size == 0 && !gotError) {
                     try {
                         val future = completion.take()
                         val taskResult = future.get(2, TimeUnit.SECONDS)
                         lastResult = taskResult
                         log(3, "  <== Received task result $taskResult")
                         graph.setStatus(taskResult.value,
-                            if (taskResult.success) {
-                                DynamicGraph.Status.FINISHED
-                            } else {
-                                DynamicGraph.Status.ERROR
-                            })
+                                if (taskResult.success) {
+                                    DynamicGraph.Status.FINISHED
+                                } else {
+                                    DynamicGraph.Status.ERROR
+                                })
                     } catch(ex: TimeoutException) {
                         log(2, "Time out")
                     } catch(ex: Exception) {
@@ -117,7 +117,7 @@ public class DynamicGraph<T> {
      * Define a comparator for the nodes of this graph, which will be used
      * to order the free nodes when they are asked.
      */
-//    public val comparator : Comparator<T>? = null
+    //    public val comparator : Comparator<T>? = null
 
     enum class Status {
         READY, RUNNING, FINISHED, ERROR, SKIPPED
@@ -126,7 +126,7 @@ public class DynamicGraph<T> {
     /**
      * Add a node to the graph.
      */
-    public fun addNode(value: T) : T {
+    public fun addNode(value: T): T {
         nodes.add(value)
         nodesReady.add(value)
         return value
@@ -148,7 +148,7 @@ public class DynamicGraph<T> {
     /**
      * @return a set of all the nodes that don't depend on any other nodes.
      */
-    public val freeNodes : List<T>
+    public val freeNodes: List<T>
         get() {
             val result = arrayListOf<T>()
             nodesReady.forEach { m ->
@@ -156,7 +156,7 @@ public class DynamicGraph<T> {
 
                 val du = dependedUpon.get(m)
                 // - no other nodes depend on it
-                if (! dependedUpon.containsKey(m)) {
+                if (!dependedUpon.containsKey(m)) {
                     result.add(m)
                 } else if (getUnfinishedNodes(du).size == 0) {
                     result.add(m)
@@ -164,12 +164,12 @@ public class DynamicGraph<T> {
             }
 
             // Sort the free nodes if requested (e.g. priorities)
-//            if (! result.isEmpty()) {
-//                if (comparator != null) {
-//                    Collections.sort(result, comparator)
-//                    debug("Nodes after sorting:" + result.get(0))
-//                }
-//            }
+            //            if (! result.isEmpty()) {
+            //                if (comparator != null) {
+            //                    Collections.sort(result, comparator)
+            //                    debug("Nodes after sorting:" + result.get(0))
+            //                }
+            //            }
 
             log(3, "    freeNodes: $result")
             return result
@@ -178,7 +178,7 @@ public class DynamicGraph<T> {
     /**
      * @return a list of all the nodes that have a status other than FINISHED.
      */
-    private fun getUnfinishedNodes(nodes: Set<T>) : Collection<T> {
+    private fun getUnfinishedNodes(nodes: Set<T>): Collection<T> {
         val result = hashSetOf<T>()
         nodes.forEach { node ->
             if (nodesReady.contains(node) || nodesRunning.contains(node)) {
@@ -200,7 +200,7 @@ public class DynamicGraph<T> {
      */
     private fun setSkipStatus(node: T, status: Status) {
         dependingOn.get(node).forEach {
-            if (! nodesSkipped.contains(it)) {
+            if (!nodesSkipped.contains(it)) {
                 log(3, "Node skipped: $it")
                 nodesSkipped.add(it)
                 nodesReady.remove(it)
@@ -214,7 +214,7 @@ public class DynamicGraph<T> {
      */
     public fun setStatus(node: T, status: Status) {
         removeNode(node);
-        when(status) {
+        when (status) {
             Status.READY -> nodesReady.add(node)
             Status.RUNNING -> nodesRunning.add(node)
             Status.FINISHED -> nodesFinished.add(node)
@@ -231,8 +231,8 @@ public class DynamicGraph<T> {
     }
 
     private fun removeNode(node: T) {
-        if (! nodesReady.remove(node)) {
-            if (! nodesRunning.remove(node)) {
+        if (!nodesReady.remove(node)) {
+            if (!nodesRunning.remove(node)) {
                 nodesFinished.remove(node)
             }
         }
@@ -244,7 +244,7 @@ public class DynamicGraph<T> {
     public val nodeCount: Int
         get() = nodesReady.size + nodesRunning.size + nodesFinished.size
 
-    override public fun toString() : String {
+    override public fun toString(): String {
         val result = StringBuilder("[DynamicGraph ")
         result.append("\n  Ready:" + nodesReady)
         result.append("\n  Running:" + nodesRunning)
@@ -262,7 +262,7 @@ public class DynamicGraph<T> {
 
     val nodes = hashSetOf<T>()
 
-    fun dump(nodes: Collection<T>) : String {
+    fun dump(nodes: Collection<T>): String {
         val result = StringBuffer()
         result.append("************ Graph dump ***************\n")
         val free = arrayListOf<T>()

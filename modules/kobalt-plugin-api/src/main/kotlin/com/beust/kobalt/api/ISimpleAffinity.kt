@@ -8,5 +8,5 @@ interface ISimpleAffinity<T> : IAffinity {
      * @return an integer indicating the affinity of your actor. The actor that returns
      * the highest affinity gets selected.
      */
-    fun affinity(arg: T) : Int
+    fun affinity(arg: T): Int
 }

@@ -16,10 +16,10 @@ import java.io.OutputStream
 import java.nio.file.Paths
 import java.util.jar.JarOutputStream
 
-class WarGenerator @Inject constructor(val dependencyManager: DependencyManager){
+class WarGenerator @Inject constructor(val dependencyManager: DependencyManager) {
 
     fun findIncludedFiles(project: Project, context: KobaltContext, war: War,
-            projects: List<ProjectDescription>) : List<IncludedFile> {
+                          projects: List<ProjectDescription>): List<IncludedFile> {
         //
         // src/main/web app and classes
         //
@@ -43,7 +43,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         // Run through all the classpath contributors and add their contributions to the libs/ directory
         context.pluginInfo.classpathContributors.map {
             it.entriesFor(project)
-        }.map { deps : Collection<IClasspathDependency> ->
+        }.map { deps: Collection<IClasspathDependency> ->
             deps.forEach { dep ->
                 val jar = dep.jarFile.get()
                 KFiles.copy(Paths.get(jar.path), Paths.get(fullDir, jar.name))
@@ -60,7 +60,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
     }
 
     fun generateWar(project: Project, context: KobaltContext, war: War,
-            projects: List<ProjectDescription>) : File {
+                    projects: List<ProjectDescription>): File {
 
         val manifest = java.util.jar.Manifest()//FileInputStream(mf))
         war.attributes.forEach { attribute ->

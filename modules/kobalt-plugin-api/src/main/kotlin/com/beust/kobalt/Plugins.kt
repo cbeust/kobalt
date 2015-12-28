@@ -20,13 +20,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-public class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManager>,
-        val files: KFiles,
-        val depFactory: DepFactory,
-        val localRepo: LocalRepo,
-        val executors: KobaltExecutors,
-        val pluginInfo: PluginInfo,
-        val taskManager: TaskManager) {
+public class Plugins @Inject constructor(val taskManagerProvider: Provider<TaskManager>,
+                                         val files: KFiles,
+                                         val depFactory: DepFactory,
+                                         val localRepo: LocalRepo,
+                                         val executors: KobaltExecutors,
+                                         val pluginInfo: PluginInfo,
+                                         val taskManager: TaskManager) {
 
     companion object {
         private var pluginMap = hashMapOf<String, IPlugin>()
@@ -35,16 +35,17 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
             pluginMap.put(plugin.name, plugin)
         }
 
-        val plugins : List<IPlugin>
+        val plugins: List<IPlugin>
             get() = ArrayList(pluginMap.values)
 
         /**
          * The list of plugins found in the build file.
          */
-        val dynamicPlugins : ArrayList<IClasspathDependency> = arrayListOf()
+        val dynamicPlugins: ArrayList<IClasspathDependency> = arrayListOf()
+
         fun addDynamicPlugin(plugin: IClasspathDependency) = dynamicPlugins.add(plugin)
 
-        fun findPlugin(name: String) : IPlugin? = pluginMap[name]
+        fun findPlugin(name: String): IPlugin? = pluginMap[name]
     }
 
     fun applyPlugins(context: KobaltContext, projects: List<Project>) {
@@ -64,12 +65,12 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
                 plugin.apply(project, context)
             }
 
-            findStaticTasks(plugin, Task::class.java, { method -> isValidTaskMethod(method)}).forEach {
+            findStaticTasks(plugin, Task::class.java, { method -> isValidTaskMethod(method) }).forEach {
                 taskManager.addAnnotationTask(plugin, it.first, it.second)
             }
             findStaticTasks(plugin, IncrementalTask::class.java,
-                    { method -> isValidIncrementalTaskMethod(method)}).forEach {
-            taskManager.addIncrementalTask(plugin, it.first, it.second)
+                    { method -> isValidIncrementalTaskMethod(method) }).forEach {
+                taskManager.addIncrementalTask(plugin, it.first, it.second)
             }
         }
 
@@ -82,17 +83,17 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
         taskManager.computePluginTasks(projects)
     }
 
-    private fun <T: Annotation> findStaticTasks(plugin: IPlugin, klass: Class<T>, validate: (Method) -> Boolean)
+    private fun <T : Annotation> findStaticTasks(plugin: IPlugin, klass: Class<T>, validate: (Method) -> Boolean)
             : List<Pair<Method, T>> {
         val result = arrayListOf<Pair<Method, T>>()
 
-        var currentClass : Class<in Any> = plugin.javaClass
+        var currentClass: Class<in Any> = plugin.javaClass
 
         // Tasks can come from two different places: plugin classes and build files.
         // When a task is read from a build file, ScriptCompiler adds it right away to plugin.methodTasks.
         // The following loop introspects the current plugin, finds all the tasks using the @Task annotation
         // and adds them to plugin.methodTasks
-        while (currentClass != null && ! (klass.equals(currentClass))) {
+        while (!klass.equals(currentClass)) {
             currentClass.declaredMethods.map {
                 Pair(it, it.getAnnotation(klass))
             }.filter {
@@ -136,7 +137,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
             throw IllegalArgumentException("${t}should take exactly one parameter of type a Project")
         }
         with(method.parameterTypes) {
-            if (! Project::class.java.isAssignableFrom(get(0))) {
+            if (!Project::class.java.isAssignableFrom(get(0))) {
                 throw IllegalArgumentException("${t}first parameter should be of type Project," +
                         "not ${get(0)}")
             }
@@ -167,7 +168,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
             } else {
                 throw KobaltException("Plugin $it doesn't contain a ${PluginInfo.PLUGIN_XML} file")
             }
-       }
+        }
         executor.shutdown()
     }
 

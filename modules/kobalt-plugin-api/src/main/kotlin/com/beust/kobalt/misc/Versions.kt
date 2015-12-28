@@ -10,12 +10,12 @@ public class Versions {
         /**
          * Turn "6.9.4" into 600090004
          */
-        public fun toLongVersion(version: String) : Long {
+        public fun toLongVersion(version: String): Long {
             val count = version.countChar('.')
             val normalizedVersion = if (count == 2) version else if (count == 1) version + ".0"
             else version + ".0.0"
 
-            fun parseLong(s: String, radix: Int) : Long {
+            fun parseLong(s: String, radix: Int): Long {
                 try {
                     return java.lang.Long.parseLong(s, radix)
                 } catch(ex: NumberFormatException) {
@@ -36,7 +36,7 @@ public class Versions {
     }
 }
 
-class Version(val version: String, val snapshotTimestamp: String? = null): Comparable<Version> {
+class Version(val version: String, val snapshotTimestamp: String? = null) : Comparable<Version> {
 
     companion object {
         private val comparator = VersionComparator()
@@ -120,7 +120,7 @@ class Version(val version: String, val snapshotTimestamp: String? = null): Compa
         val split = version.drop(1).dropLast(1).split(",")
 
         val lower = Version.of(split[0].substring(1))
-        val upper = if(split.size > 1) {
+        val upper = if (split.size > 1) {
             Version.of(if (split[1].isNotBlank()) split[1] else Int.MAX_VALUE.toString())
         } else {
             lower
@@ -139,7 +139,7 @@ class Version(val version: String, val snapshotTimestamp: String? = null): Compa
 
 }
 
-class VersionComparator: Comparator<Version> {
+class VersionComparator : Comparator<Version> {
     override fun compare(left: Version, right: Version): Int {
         val these = left.items
         val those = right.items
@@ -193,6 +193,7 @@ class VersionComparator: Comparator<Version> {
 
 
 }
+
 internal class Item(private val kind: Int, private val value: Any) {
 
     // i.e. kind != string/qualifier

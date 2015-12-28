@@ -20,8 +20,8 @@ import java.nio.charset.Charset
  */
 @Singleton
 class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyManager,
-        val taskContributor : TaskContributor)
-            : ConfigPlugin<RetrolambdaConfig>(), IClasspathContributor, ITaskContributor {
+                                            val taskContributor: TaskContributor)
+: ConfigPlugin<RetrolambdaConfig>(), IClasspathContributor, ITaskContributor {
 
     override val name = PLUGIN_NAME
 
@@ -50,38 +50,38 @@ class RetrolambdaPlugin @Inject constructor(val dependencyManager: DependencyMan
     fun taskRetrolambda(project: Project): TaskResult {
         val config = configurationFor(project)
         val result =
-            if (config != null) {
-                val classesDir = project.classesDir(context)
-                val classpath = (dependencyManager.calculateDependencies(project, context, projects,
-                        project.compileDependencies)
-                        .map {
-                    it.jarFile.get()
-                } + classesDir).joinToString("\n")
+                if (config != null) {
+                    val classesDir = project.classesDir(context)
+                    val classpath = (dependencyManager.calculateDependencies(project, context, projects,
+                            project.compileDependencies)
+                            .map {
+                                it.jarFile.get()
+                            } + classesDir).joinToString("\n")
 
-                // Use retrolambda.classpathFile instead of retrolambda.classpath to avoid problems
-                // with file path separators on Windows
-                val classpathFile = File.createTempFile("kobalt-", "")
-                classpathFile.writeText(classpath, Charset.defaultCharset())
+                    // Use retrolambda.classpathFile instead of retrolambda.classpath to avoid problems
+                    // with file path separators on Windows
+                    val classpathFile = File.createTempFile("kobalt-", "")
+                    classpathFile.writeText(classpath, Charset.defaultCharset())
 
-                val args = listOf(
-                        "-Dretrolambda.inputDir=" + classesDir.replace("\\", "/"),
-                        "-Dretrolambda.classpathFile=" + classpathFile,
-                        "-Dretrolambda.bytecodeVersion=${config.byteCodeVersion}",
-                        "-jar", JAR.jarFile.get().path)
+                    val args = listOf(
+                            "-Dretrolambda.inputDir=" + classesDir.replace("\\", "/"),
+                            "-Dretrolambda.classpathFile=" + classpathFile,
+                            "-Dretrolambda.bytecodeVersion=${config.byteCodeVersion}",
+                            "-jar", JAR.jarFile.get().path)
 
-                val result = RunCommand("java").apply {
-                    directory = File(project.directory)
-                }.run(args)
-                TaskResult(result == 0)
-            } else {
-                TaskResult()
-            }
+                    val result = RunCommand("java").apply {
+                        directory = File(project.directory)
+                    }.run(args)
+                    TaskResult(result == 0)
+                } else {
+                    TaskResult()
+                }
 
         return result
     }
 
     // ITaskContributor
-    override fun tasksFor(context: KobaltContext) : List<DynamicTask> = taskContributor.dynamicTasks
+    override fun tasksFor(context: KobaltContext): List<DynamicTask> = taskContributor.dynamicTasks
 }
 
 class RetrolambdaConfig(var byteCodeVersion: Int = 50) {

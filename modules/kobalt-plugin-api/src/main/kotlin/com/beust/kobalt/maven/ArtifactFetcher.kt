@@ -30,12 +30,12 @@ class DownloadManager @Inject constructor(val factory: ArtifactFetcher.IFactory)
         }
     }
 
-    private val CACHE : LoadingCache<Key, Future<File>> = CacheBuilder.newBuilder()
-        .build(object : CacheLoader<Key, Future<File>>() {
-            override fun load(key: Key): Future<File> {
-                return key.executor.submit(factory.create(key.hostInfo, key.fileName))
-            }
-        })
+    private val CACHE: LoadingCache<Key, Future<File>> = CacheBuilder.newBuilder()
+            .build(object : CacheLoader<Key, Future<File>>() {
+                override fun load(key: Key): Future<File> {
+                    return key.executor.submit(factory.create(key.hostInfo, key.fileName))
+                }
+            })
 
     fun download(hostInfo: HostConfig, fileName: String, executor: ExecutorService)
             : Future<File> = CACHE.get(Key(hostInfo, fileName, executor))
@@ -45,22 +45,22 @@ class DownloadManager @Inject constructor(val factory: ArtifactFetcher.IFactory)
  * Fetches an artifact (a file in a Maven repo, .jar, -javadoc.jar, ...) to the given local file.
  */
 class ArtifactFetcher @Inject constructor(@Assisted("hostInfo") val hostInfo: HostConfig,
-        @Assisted("fileName") val fileName: String,
-        val files: KFiles) : Callable<File> {
+                                          @Assisted("fileName") val fileName: String,
+                                          val files: KFiles) : Callable<File> {
     interface IFactory {
-        fun create(@Assisted("hostInfo") hostInfo: HostConfig, @Assisted("fileName") fileName: String) : ArtifactFetcher
+        fun create(@Assisted("hostInfo") hostInfo: HostConfig, @Assisted("fileName") fileName: String): ArtifactFetcher
     }
 
-    override fun call() : File {
+    override fun call(): File {
         val k = Kurl(hostInfo.copy(url = hostInfo.url + ".md5"))
         val remoteMd5 =
-            if (k.exists) k.string.trim(' ', '\t', '\n').substring(0, 32)
-            else null
+                if (k.exists) k.string.trim(' ', '\t', '\n').substring(0, 32)
+                else null
 
         val tmpFile = Paths.get(fileName + ".tmp")
         val file = Paths.get(fileName)
         val url = hostInfo.url
-        if (! Files.exists(file)) {
+        if (!Files.exists(file)) {
             with(tmpFile.toFile()) {
                 parentFile.mkdirs()
                 Kurl(hostInfo).toFile(this)

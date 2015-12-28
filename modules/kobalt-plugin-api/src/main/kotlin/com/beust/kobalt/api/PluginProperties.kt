@@ -11,7 +11,7 @@ class PluginProperties @Inject constructor() {
     private val pluginProperties = hashMapOf<String, HashMap<String, Any>>()
 
     fun put(pluginName: String, key: String, value: Any) =
-        pluginProperties.getOrPut(pluginName) { hashMapOf<String, Any>() }.put(key, value)
+            pluginProperties.getOrPut(pluginName) { hashMapOf<String, Any>() }.put(key, value)
 
     fun get(pluginName: String, key: String) = pluginProperties[pluginName]?.get(key)
 

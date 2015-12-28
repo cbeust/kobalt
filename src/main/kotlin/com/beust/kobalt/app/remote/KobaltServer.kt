@@ -24,8 +24,8 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
 
     private val COMMAND_CLASSES = listOf(GetDependenciesCommand::class.java, PingCommand::class.java)
     private val COMMANDS = COMMAND_CLASSES.map {
-            Kobalt.INJECTOR.getInstance(it).let { Pair(it.name, it) }
-        }.toMap()
+        Kobalt.INJECTOR.getInstance(it).let { Pair(it.name, it) }
+    }.toMap()
 
     override fun run() {
         val portNumber = args.port

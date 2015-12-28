@@ -10,8 +10,8 @@ import javax.inject.Inject
 /**
  * Find out if any newer versions of the dependencies are available.
  */
-public class CheckVersions @Inject constructor(val depFactory : DepFactory,
-        val executors : KobaltExecutors) {
+public class CheckVersions @Inject constructor(val depFactory: DepFactory,
+                                               val executors: KobaltExecutors) {
 
     fun run(projects: List<Project>) {
         val executor = executors.newExecutor("CheckVersions", 5)
@@ -26,7 +26,7 @@ public class CheckVersions @Inject constructor(val depFactory : DepFactory,
                             if (dep is MavenDependency) {
                                 val other = compileDependency as MavenDependency
                                 if (dep.id != compileDependency.id
-                                       && Versions.toLongVersion(dep.version) > Versions.toLongVersion(other.version)) {
+                                        && Versions.toLongVersion(dep.version) > Versions.toLongVersion(other.version)) {
                                     newVersions.add(dep.id)
                                 }
                             }

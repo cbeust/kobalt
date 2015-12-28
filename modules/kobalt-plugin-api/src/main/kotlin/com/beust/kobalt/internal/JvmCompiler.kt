@@ -26,7 +26,7 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
         // Dependencies
         val allDependencies = (info.dependencies
                 + dependencyManager.calculateDependencies(project, context!!, allDependencies = info.dependencies))
-            .distinct()
+                .distinct()
 
         // Plugins that add flags to the compiler
         val contributorFlags = if (project != null) {
@@ -45,7 +45,7 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
 
     private fun validateClasspath(cp: List<String>) {
         cp.forEach {
-            if (! File(it).exists()) {
+            if (!File(it).exists()) {
                 throw KobaltException("Couldn't find $it")
             }
         }

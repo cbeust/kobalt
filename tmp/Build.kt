@@ -1,25 +1,3 @@
-
-import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.License
-import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.Scm
-import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.homeDir
-import com.beust.kobalt.plugin.application.application
-import com.beust.kobalt.plugin.java.javaCompiler
-import com.beust.kobalt.plugin.java.javaProject
-import com.beust.kobalt.plugin.kotlin.kotlinCompiler
-import com.beust.kobalt.plugin.kotlin.kotlinProject
-import com.beust.kobalt.plugin.packaging.assemble
-import com.beust.kobalt.plugin.publish.github
-import com.beust.kobalt.plugin.publish.jcenter
-import com.beust.kobalt.repos
-import com.beust.kobalt.test
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
-
 val r = repos("http://dl.bintray.com/kotlin/kotlinx.dom")
 
 val wrapper = javaProject {
@@ -77,7 +55,7 @@ val kobaltPluginApi = kotlinProject {
                 "com.google.code.gson:gson:2.4",
                 "com.squareup.retrofit:retrofit:1.9.0",
                 "com.beust:jcommander:1.48"
-                )
+        )
     }
 
 
@@ -90,9 +68,9 @@ val kobaltPluginApi = kotlinProject {
         }
     }
 
-//    install {
-//        libDir = "lib-test"
-//    }
+    //    install {
+    //        libDir = "lib-test"
+    //    }
 
     test {
         args("-log", "1", "src/test/resources/testng.xml")
@@ -165,10 +143,10 @@ val kobaltApp = kotlinProject(kobaltPluginApi, wrapper) {
     }
 }
 
-fun readVersion() : String {
+fun readVersion(): String {
     val p = java.util.Properties()
     var localFile = java.io.File("src/main/resources/kobalt.properties")
-    if (! localFile.exists()) {
+    if (!localFile.exists()) {
         localFile = File(homeDir("kotlin", "kobalt", "src/main/resources/kobalt.properties"))
     }
     p.load(java.io.FileReader(localFile))
@@ -176,7 +154,7 @@ fun readVersion() : String {
 }
 
 @Task(name = "copyVersionForWrapper", runBefore = arrayOf("assemble"), runAfter = arrayOf("compile"), description = "")
-fun taskCopyVersionForWrapper(project: Project) : TaskResult {
+fun taskCopyVersionForWrapper(project: Project): TaskResult {
     if (project.name == "kobalt-wrapper") {
         val toString = "modules/wrapper/kobaltBuild/classes"
         File(toString).mkdirs()

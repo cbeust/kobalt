@@ -11,15 +11,15 @@ import javax.inject.Singleton
 
 @Singleton
 public class DependencyManager @Inject constructor(val executors: KobaltExecutors,
-        val depFactory: DepFactory){
+                                                   val depFactory: DepFactory) {
 
     /**
      * @return the classpath for this project, including the IClasspathContributors.
      * allDependencies is typically either compileDependencies or testDependencies
      */
     fun calculateDependencies(project: Project?, context: KobaltContext,
-            dependentProjects: List<ProjectDescription> = emptyList(),
-            vararg allDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
+                              dependentProjects: List<ProjectDescription> = emptyList(),
+                              vararg allDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
         var result = arrayListOf<IClasspathDependency>()
         allDependencies.forEach { dependencies ->
             result.addAll(transitiveClosure(dependencies))
@@ -30,7 +30,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
         return result
     }
 
-    private fun runClasspathContributors(project: Project?, context: KobaltContext) :
+    private fun runClasspathContributors(project: Project?, context: KobaltContext):
             Collection<IClasspathDependency> {
         val result = hashSetOf<IClasspathDependency>()
         context.pluginInfo.classpathContributors.forEach { it: IClasspathContributor ->
@@ -43,7 +43,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
      * Return the transitive closure of the dependencies *without* running the classpath contributors.
      * TODO: This should be private, everyone should be calling calculateDependencies().
      */
-    fun transitiveClosure(dependencies : List<IClasspathDependency>): List<IClasspathDependency> {
+    fun transitiveClosure(dependencies: List<IClasspathDependency>): List<IClasspathDependency> {
         var executor = executors.newExecutor("JvmCompiler}", 10)
 
         var result = hashSetOf<IClasspathDependency>()
@@ -75,7 +75,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
      */
     public fun reorderDependencies(dependencies: Collection<IClasspathDependency>): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
-        val map : ArrayListMultimap<String, IClasspathDependency> = ArrayListMultimap.create()
+        val map: ArrayListMultimap<String, IClasspathDependency> = ArrayListMultimap.create()
         // The multilist maps each artifact to a list of all the versions found
         // (e.g. {org.testng:testng -> (6.9.5, 6.9.4, 6.1.1)}), then we return just the first one
         dependencies.forEach {
@@ -94,8 +94,8 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
      * their own dependencies
      */
     private fun dependentProjectDependencies(projectDescriptions: List<ProjectDescription>,
-            project: Project?, context: KobaltContext) :
-    List<IClasspathDependency> {
+                                             project: Project?, context: KobaltContext):
+            List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         projectDescriptions.filter {
             it.project.name == project?.name
@@ -115,7 +115,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
      * @return the compile dependencies for this project, including the contributors.
      */
     fun dependencies(project: Project, context: KobaltContext,
-            projects: List<ProjectDescription>) : List<IClasspathDependency> {
+                     projects: List<ProjectDescription>): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         result.add(FileDependency(KFiles.makeOutputDir(project).absolutePath))
         result.add(FileDependency(KFiles.makeOutputTestDir(project).absolutePath))
@@ -132,7 +132,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
      * @return the test dependencies for this project, including the contributors.
      */
     fun testDependencies(project: Project, context: KobaltContext,
-            projects: List<ProjectDescription>) : List<IClasspathDependency> {
+                         projects: List<ProjectDescription>): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         result.add(FileDependency(KFiles.makeOutputDir(project).absolutePath))
         result.add(FileDependency(KFiles.makeOutputTestDir(project).absolutePath))
@@ -145,7 +145,6 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
         val result2 = reorderDependencies(result)
         return result2
     }
-
 
 
 }

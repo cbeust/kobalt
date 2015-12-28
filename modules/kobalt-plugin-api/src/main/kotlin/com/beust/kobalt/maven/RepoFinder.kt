@@ -28,13 +28,14 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
     }
 
     data class RepoResult(val hostConfig: HostConfig, val found: Boolean, val version: Version? = null,
-            val hasJar: Boolean = true, val snapshotVersion: Version? = null)
+                          val hasJar: Boolean = true, val snapshotVersion: Version? = null)
 
     private val FOUND_REPOS: LoadingCache<String, RepoResult> = CacheBuilder.newBuilder()
             .build(object : CacheLoader<String, RepoResult>() {
-        override fun load(key: String): RepoResult {
-            return loadCorrectRepo(key)
-        }})
+                override fun load(key: String): RepoResult {
+                    return loadCorrectRepo(key)
+                }
+            })
 
     /**
      * Schedule an HTTP request to each repo in its own thread.
@@ -64,7 +65,7 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
         }
 
         if (results.size > 0) {
-//            results.sortByDescending { Versions.toLongVersion(it.version) }
+            //            results.sortByDescending { Versions.toLongVersion(it.version) }
             results.sort({ left, right -> left.version!!.compareTo(right.version!!) })
             return results[0]
         } else {
@@ -125,14 +126,14 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                     val urlJar = repo.copy(url = repo.url + dep.toJarFile(dep.version))
                     val hasJar = Kurl(urlJar).exists
                     val found =
-                        if (! hasJar) {
-                            // No jar, try to find the directory
-                            val url = repo.copy(url = repoUrl
-                                    + File(dep.toJarFile(dep.version)).parentFile.path.replace("\\", "/"))
-                            Kurl(url).exists
-                        } else {
-                            true
-                        }
+                            if (!hasJar) {
+                                // No jar, try to find the directory
+                                val url = repo.copy(url = repoUrl
+                                        + File(dep.toJarFile(dep.version)).parentFile.path.replace("\\", "/"))
+                                Kurl(url).exists
+                            } else {
+                                true
+                            }
                     log(2, "Result for $repoUrl for $id: $found")
                     return RepoResult(repo, found, Version.of(dep.version), hasJar)
                 }
@@ -154,7 +155,7 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
             val doc = parseXml(url)
             arrayListOf(XPATHS.forEach {
                 val result = it.evaluate(doc, XPathConstants.STRING) as String
-                if (! result.isEmpty()) {
+                if (!result.isEmpty()) {
                     return result
                 }
             })
@@ -166,7 +167,7 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
 
     fun findRangedVersion(dep: SimpleDep, repoUrl: String): Version? {
         val l = listOf(dep.groupId.replace(".", "/"), dep.artifactId.replace(".", "/"), "maven-metadata.xml")
-        var metadataPath =  l.joinToString("/")
+        var metadataPath = l.joinToString("/")
 
         val versionsXpath = XPATH.compile("/metadata/versioning/versions/version")
 
@@ -175,13 +176,13 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
         try {
             val doc = parseXml(url)
             val version = Version.of(dep.version)
-            if(version.isRangedVersion()) {
+            if (version.isRangedVersion()) {
                 val versions = (versionsXpath.evaluate(doc, XPathConstants.NODESET) as NodeList)
                         .asElementList().map { Version.of(it.textContent) }
                 return version.select(versions)
             } else {
                 return Version.of(XPATH.compile("/metadata/versioning/versions/version/$version")
-                      .evaluate(doc, XPathConstants.STRING) as String)
+                        .evaluate(doc, XPathConstants.STRING) as String)
             }
         } catch(ex: Exception) {
             log(2, "Couldn't find metadata at ${url}")
@@ -198,11 +199,11 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
             val doc = parseXml(url)
             val ts = timestamp.evaluate(doc, XPathConstants.STRING)
             val bn = buildNumber.evaluate(doc, XPathConstants.STRING)
-            if (! Strings.isEmpty(ts.toString()) && ! Strings.isEmpty(bn.toString())) {
+            if (!Strings.isEmpty(ts.toString()) && !Strings.isEmpty(bn.toString())) {
                 return Version(snapshotVersion, ts.toString() + "-" + bn.toString())
             } else {
                 val lastUpdated = XPATH.compile("/metadata/versioning/lastUpdated")
-                if (! lastUpdated.toString().isEmpty()) {
+                if (!lastUpdated.toString().isEmpty()) {
                     return Version.of(lastUpdated.toString())
                 }
 
@@ -212,7 +213,6 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
         }
         return null
     }
-
 
 
 }

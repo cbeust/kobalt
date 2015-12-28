@@ -14,22 +14,23 @@ import java.net.URLClassLoader
  * subclass this class and override mainClass, args and the name of the dependency that should trigger this runner.
  */
 abstract class GenericTestRunner : ITestRunnerContributor {
-    abstract val dependencyName : String
+    abstract val dependencyName: String
     abstract val mainClass: String
-    abstract fun args(project: Project, classpath: List<IClasspathDependency>) : List<String>
+    abstract fun args(project: Project, classpath: List<IClasspathDependency>): List<String>
 
     override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>)
             = TaskResult(runTests(project, classpath))
 
     override fun affinity(project: Project, context: KobaltContext) =
-            if (project.testDependencies.any { it.id.contains(dependencyName)}) IAffinity.DEFAULT_POSITIVE_AFFINITY
+            if (project.testDependencies.any { it.id.contains(dependencyName) }) IAffinity.DEFAULT_POSITIVE_AFFINITY
             else 0
 
     protected fun findTestClasses(project: Project, classpath: List<IClasspathDependency>,
-            classFilter : (Class<*>) -> Boolean = {true}): List<String> {
+                                  classFilter: (Class<*>) -> Boolean = { true }): List<String> {
         val path = KFiles.joinDir(project.directory, project.buildDirectory, KFiles.TEST_CLASSES_DIR)
         val result = KFiles.findRecursively(File(path), arrayListOf(File(".")), {
-            file -> file.endsWith(".class")
+            file ->
+            file.endsWith(".class")
         }).map {
             it.replace("/", ".").replace("\\", ".").replace(".class", "").substring(2)
         }.filter {
@@ -55,7 +56,7 @@ abstract class GenericTestRunner : ITestRunnerContributor {
     /**
      * @return true if all the tests passed
      */
-    fun runTests(project: Project, classpath: List<IClasspathDependency>) : Boolean {
+    fun runTests(project: Project, classpath: List<IClasspathDependency>): Boolean {
         val jvm = JavaInfo.create(File(SystemProperties.javaBase))
         val java = jvm.javaExecutable
         val args = args(project, classpath)

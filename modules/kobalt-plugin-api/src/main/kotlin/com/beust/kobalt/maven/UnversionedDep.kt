@@ -8,9 +8,9 @@ import java.io.File
  * eventually resolve to the latest version of the artifact.
  */
 open class UnversionedDep(open val groupId: String, open val artifactId: String) {
-    open fun toMetadataXmlPath(fileSystem: Boolean = true, isLocal: Boolean, version: String? = null) : String {
+    open fun toMetadataXmlPath(fileSystem: Boolean = true, isLocal: Boolean, version: String? = null): String {
         var result = toDirectory("", fileSystem) + if (isLocal) "maven-metadata-local.xml" else "maven-metadata.xml"
-        if (! File(result).exists() && version != null) {
+        if (!File(result).exists() && version != null) {
             result = toDirectory("", fileSystem) + version + File.separator +
                     if (isLocal) "maven-metadata-local.xml" else "maven-metadata.xml"
         }
@@ -25,6 +25,6 @@ open class UnversionedDep(open val groupId: String, open val artifactId: String)
         val sep = if (fileSystem) File.separator else "/"
         val l = listOf(groupId.replace(".", sep), artifactId, v)
         val result = Strings.Companion.join(sep, l)
-        return if (trailingSlash && ! result.endsWith(sep)) result + sep else result
+        return if (trailingSlash && !result.endsWith(sep)) result + sep else result
     }
 }

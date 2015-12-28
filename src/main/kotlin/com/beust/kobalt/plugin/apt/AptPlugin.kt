@@ -18,7 +18,7 @@ import javax.inject.Singleton
  */
 @Singleton
 public class AptPlugin @Inject constructor(val depFactory: DepFactory)
-        : ConfigPlugin<AptConfig>(), ICompilerFlagContributor {
+: ConfigPlugin<AptConfig>(), ICompilerFlagContributor {
 
     companion object {
         const val PLUGIN_NAME = "Apt"
@@ -31,21 +31,21 @@ public class AptPlugin @Inject constructor(val depFactory: DepFactory)
                     context.variant.toIntermediateDir())
 
     // ICompilerFlagContributor
-    override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>) : List<String> {
+    override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>): List<String> {
         val result = arrayListOf<String>()
         configurationFor(project)?.let { config ->
             aptDependencies[project.name]?.let { aptDependencies ->
                 val dependencyJarFiles = aptDependencies.map {
-                        JarFinder.byId(it)
-                    }.map {
-                        it.absolutePath
-                    }
+                    JarFinder.byId(it)
+                }.map {
+                    it.absolutePath
+                }
                 val deps = aptDependencies.map { depFactory.create(it) }
 
                 val dependencies = context.dependencyManager.calculateDependencies(null, context, emptyList(),
                         deps).map { it.jarFile.get().path }
 
-//                result.add("-Xbootclasspath/a:" + dependencies)
+                //                result.add("-Xbootclasspath/a:" + dependencies)
 
                 result.add("-processorpath")
                 result.add((dependencyJarFiles + dependencies).joinToString(":"))

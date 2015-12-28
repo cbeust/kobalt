@@ -8,22 +8,22 @@ import com.beust.kobalt.maven.dependency.FileDependency
 import java.io.File
 
 @Directive
-fun homeDir(vararg dirs: String) : String = SystemProperties.homeDir +
+fun homeDir(vararg dirs: String): String = SystemProperties.homeDir +
         File.separator + dirs.toArrayList().joinToString(File.separator)
 
 @Directive
 fun localMavenRepo() = homeDir(".m2" + File.separator + "repository/")
 
 @Directive
-fun file(file: String) : String = FileDependency.PREFIX_FILE + file
+fun file(file: String): String = FileDependency.PREFIX_FILE + file
 
 @Directive
-fun plugins(vararg dependency : IClasspathDependency) {
+fun plugins(vararg dependency: IClasspathDependency) {
     dependency.forEach { Plugins.addDynamicPlugin(it) }
 }
 
 @Directive
-fun plugins(vararg dependencies : String) {
+fun plugins(vararg dependencies: String) {
     val factory = Kobalt.INJECTOR.getInstance(DepFactory::class.java)
     dependencies.forEach {
         Plugins.addDynamicPlugin(factory.create(it))
@@ -31,11 +31,11 @@ fun plugins(vararg dependencies : String) {
 }
 
 data class HostConfig(var url: String = "", var username: String? = null, var password: String? = null) {
-    fun hasAuth() : Boolean {
-        return (! username.isNullOrBlank()) && (! password.isNullOrBlank())
+    fun hasAuth(): Boolean {
+        return (!username.isNullOrBlank()) && (!password.isNullOrBlank())
     }
 
-    override fun toString() : String {
+    override fun toString(): String {
         return url + if (username != null) {
             "username: $username, password: ***"
         } else {
@@ -45,12 +45,12 @@ data class HostConfig(var url: String = "", var username: String? = null, var pa
 }
 
 @Directive
-fun repos(vararg repos : String) {
+fun repos(vararg repos: String) {
     repos.forEach { Kobalt.addRepo(HostConfig(it)) }
 }
 
 @Directive
-fun authRepos(vararg repos : HostConfig) {
+fun authRepos(vararg repos: HostConfig) {
     repos.forEach { Kobalt.addRepo(it) }
 }
 
@@ -58,4 +58,4 @@ fun authRepos(vararg repos : HostConfig) {
 fun authRepo(init: HostConfig.() -> Unit) = HostConfig().apply { init() }
 
 @Directive
-fun glob(g: String) : IFileSpec.Glob = IFileSpec.Glob(g)
+fun glob(g: String): IFileSpec.Glob = IFileSpec.Glob(g)

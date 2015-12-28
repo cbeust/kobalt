@@ -5,6 +5,6 @@ package com.beust.kobalt.api
  * found in kobalt-plugin.xml.
  */
 interface IFactory {
-    fun <T> instanceOf(c: Class<T>) : T
+    fun <T> instanceOf(c: Class<T>): T
 }
 

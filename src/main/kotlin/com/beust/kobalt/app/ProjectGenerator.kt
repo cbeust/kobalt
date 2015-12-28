@@ -11,7 +11,7 @@ import java.io.FileOutputStream
 /**
  * Invoked with --init. Generate a new project.
  */
-public class ProjectGenerator @Inject constructor(val pluginInfo: PluginInfo){
+public class ProjectGenerator @Inject constructor(val pluginInfo: PluginInfo) {
     companion object {
         /**
          * Turns a dot property into a proper Kotlin identifier, e.g. common.version -> commonVersion
@@ -19,7 +19,7 @@ public class ProjectGenerator @Inject constructor(val pluginInfo: PluginInfo){
         fun toIdentifier(key: String): String {
             fun upperFirst(s: String) = if (s.isBlank()) s else s.substring(0, 1).toUpperCase() + s.substring(1)
 
-            return key.split('.').mapIndexed( { index, value -> if (index == 0) value else upperFirst(value) })
+            return key.split('.').mapIndexed({ index, value -> if (index == 0) value else upperFirst(value) })
                     .joinToString("")
         }
     }

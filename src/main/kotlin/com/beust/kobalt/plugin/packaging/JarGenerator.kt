@@ -13,8 +13,8 @@ import java.io.OutputStream
 import java.nio.file.Paths
 import java.util.jar.JarOutputStream
 
-class JarGenerator @Inject constructor(val dependencyManager: DependencyManager){
-    fun findIncludedFiles(project: Project, context: KobaltContext, jar: Jar) : List<IncludedFile> {
+class JarGenerator @Inject constructor(val dependencyManager: DependencyManager) {
+    fun findIncludedFiles(project: Project, context: KobaltContext, jar: Jar): List<IncludedFile> {
         //
         // Add all the applicable files for the current project
         //
@@ -31,7 +31,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
 
             // Class files
             val files = KFiles.findRecursively(classesDir).map { File(relClassesDir.toFile(), it) }
-            val filesNotExcluded : List<File> = files.filter { ! KFiles.isExcluded(it, jar.excludes) }
+            val filesNotExcluded: List<File> = files.filter { !KFiles.isExcluded(it, jar.excludes) }
             val fileSpecs = arrayListOf<IFileSpec>()
             filesNotExcluded.forEach {
                 fileSpecs.add(IFileSpec.FileSpec(it.path.toString().substring(prefixPath.toString().length + 1)))
@@ -59,10 +59,10 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
                     allDependencies)
             transitiveDependencies.map {
                 it.jarFile.get()
-            }.forEach { file : File ->
-                if (! seen.contains(file.path)) {
+            }.forEach { file: File ->
+                if (!seen.contains(file.path)) {
                     seen.add(file.path)
-                    if (! KFiles.isExcluded(file, jar.excludes)) {
+                    if (!KFiles.isExcluded(file, jar.excludes)) {
                         result.add(IncludedFile(arrayListOf(IFileSpec.FileSpec(file.path))))
                     }
                 }
@@ -72,7 +72,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         return result
     }
 
-    fun generateJar(project: Project, context: KobaltContext, jar: Jar) : File {
+    fun generateJar(project: Project, context: KobaltContext, jar: Jar): File {
         val allFiles = findIncludedFiles(project, context, jar)
 
         //

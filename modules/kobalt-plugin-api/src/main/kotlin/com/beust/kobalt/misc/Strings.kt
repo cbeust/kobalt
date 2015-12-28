@@ -4,7 +4,7 @@ import com.google.common.base.CharMatcher
 
 public class Strings {
     companion object {
-        fun <T> join(separator: String, strings: List<T>) : String {
+        fun <T> join(separator: String, strings: List<T>): String {
             var result = StringBuffer()
             var i = 0
             strings.forEach {
@@ -26,6 +26,6 @@ public class Strings {
 /**
  * @Return the number of times the given character occurs in the string
  */
-public infix fun String.countChar(c: Char) : Int {
+public infix fun String.countChar(c: Char): Int {
     return CharMatcher.`is`(c).countIn(this)
 }

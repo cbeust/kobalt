@@ -11,6 +11,6 @@ interface IRepoContributor : IContributor {
      * before the build file gets parsed (so we don't have any projects yet) and after the
      * build file has been parsed (then it gets called once for each project discovered).
      */
-    fun reposFor(project: Project?) : List<HostConfig>
+    fun reposFor(project: Project?): List<HostConfig>
 }
 

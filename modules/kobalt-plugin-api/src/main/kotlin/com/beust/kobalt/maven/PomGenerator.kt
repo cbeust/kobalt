@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 public class PomGenerator @Inject constructor(@Assisted val project: Project) {
     interface IFactory {
-        fun create(project: Project) : PomGenerator
+        fun create(project: Project): PomGenerator
     }
 
     fun generate() {

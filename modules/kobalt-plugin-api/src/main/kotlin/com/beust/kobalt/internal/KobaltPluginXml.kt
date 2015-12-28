@@ -17,7 +17,7 @@ import javax.xml.bind.annotation.XmlRootElement
  * If a plug-in didn't specify a factory, we use our own injector to instantiate all its components.
  */
 class GuiceFactory : IFactory {
-    override fun <T> instanceOf(c: Class<T>) : T = Kobalt.INJECTOR.getInstance(c)
+    override fun <T> instanceOf(c: Class<T>): T = Kobalt.INJECTOR.getInstance(c)
 }
 
 /////
@@ -34,7 +34,7 @@ class KobaltPluginXml {
     var name: String? = null
 
     @XmlElement(name = "plugin-actors") @JvmField
-    var pluginActors : ClassNameXml? = null
+    var pluginActors: ClassNameXml? = null
 
     @XmlElement(name = "factory-class-name") @JvmField
     var factoryClassName: String? = null
@@ -127,8 +127,8 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         }
 
         fun forName(className: String) =
-            if (classLoader != null) classLoader.loadClass(className)
-            else Class.forName(className)
+                if (classLoader != null) classLoader.loadClass(className)
+                else Class.forName(className)
 
         //
         // Populate pluginInfo with what was found in Kobalt's own kobalt-plugin.xml
