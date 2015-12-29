@@ -24,8 +24,8 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         // src/main/web app and classes
         //
         val result = arrayListOf(
-                IncludedFile(From("src/main/webapp"), To(""), listOf(IFileSpec.Glob("**"))),
-                IncludedFile(From("kobaltBuild/classes"), To("WEB-INF/classes"), listOf(IFileSpec.Glob("**")))
+                IncludedFile(From("src/main/webapp"), To(""), listOf(IFileSpec.GlobSpec("**"))),
+                IncludedFile(From("kobaltBuild/classes"), To("WEB-INF/classes"), listOf(IFileSpec.GlobSpec("**")))
         )
 
         //
@@ -55,7 +55,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
             KFiles.copy(Paths.get(it.absolutePath), Paths.get(fullDir, it.name))
         }
 
-        result.add(IncludedFile(From(fullDir), To(WEB_INF), listOf(IFileSpec.Glob("**"))))
+        result.add(IncludedFile(From(fullDir), To(WEB_INF), listOf(IFileSpec.GlobSpec("**"))))
         return result
     }
 

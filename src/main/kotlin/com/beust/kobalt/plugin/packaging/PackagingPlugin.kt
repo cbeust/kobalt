@@ -2,7 +2,7 @@ package com.beust.kobalt.plugin.packaging
 
 import com.beust.kobalt.*
 import com.beust.kobalt.IFileSpec.FileSpec
-import com.beust.kobalt.IFileSpec.Glob
+import com.beust.kobalt.IFileSpec.GlobSpec
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
@@ -43,7 +43,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         const val TASK_INSTALL: String = "install"
 
 
-        fun findIncludedFiles(directory: String, files: List<IncludedFile>, excludes: List<IFileSpec.Glob>)
+        fun findIncludedFiles(directory: String, files: List<IncludedFile>, excludes: List<IFileSpec.GlobSpec>)
                 : List<IncludedFile> {
             val result = arrayListOf<IncludedFile>()
             files.forEach { includedFile ->
@@ -313,7 +313,7 @@ class PackageConfig(val project: Project) : AttributeHolder {
 
 open class Zip(open var name: String? = null) {
 //    internal val includes = arrayListOf<IFileSpec>()
-    internal val excludes = arrayListOf<Glob>()
+    internal val excludes = arrayListOf<GlobSpec>()
 
     @Directive
     public fun from(s: String) = From(s)
@@ -323,11 +323,11 @@ open class Zip(open var name: String? = null) {
 
     @Directive
     public fun exclude(vararg files: String) {
-        files.forEach { excludes.add(Glob(it)) }
+        files.forEach { excludes.add(GlobSpec(it)) }
     }
 
     @Directive
-    public fun exclude(vararg specs: Glob) {
+    public fun exclude(vararg specs: GlobSpec) {
         specs.forEach { excludes.add(it) }
     }
 
@@ -342,7 +342,7 @@ open class Zip(open var name: String? = null) {
     }
 
     @Directive
-    public fun include(from: From, to: To, vararg specs: Glob) {
+    public fun include(from: From, to: To, vararg specs: GlobSpec) {
         includedFiles.add(IncludedFile(from, to, listOf(*specs)))
     }
 
