@@ -54,7 +54,8 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
         val pluginDependencies = pluginUrls.map { File(it.toURI()) }.map { FileDependency(it.absolutePath) }
         projects.forEach { project ->
             val compileDependencies = pluginDependencies.map { toDependencyData(it, "compile")} +
-                    allDeps(project.compileDependencies).map { toDependencyData(it, "compile") }
+                    allDeps(project.compileDependencies).map { toDependencyData(it, "compile") } +
+                    allDeps(project.compileProvidedDependencies).map { toDependencyData(it, "compile") }
             val testDependencies = allDeps(project.testDependencies).map { toDependencyData(it, "testCompile") }
 
             @Suppress("UNCHECKED_CAST")
