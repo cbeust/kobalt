@@ -29,6 +29,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
 
         private const val PROPERTY_BINTRAY_USER = "bintray.user"
         private const val PROPERTY_BINTRAY_PASSWORD = "bintray.apikey"
+        private const val PROPERTY_BINTRAY_ORG = "bintray.organization"
     }
 
     @Suppress("UNUSED_FUNCTION_LITERAL")
@@ -90,8 +91,9 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         val docUrl = DocUrl.PUBLISH_PLUGIN_URL
         val user = localProperties.get(PROPERTY_BINTRAY_USER, docUrl)
         val password = localProperties.get(PROPERTY_BINTRAY_PASSWORD, docUrl)
+        val org = localProperties.get(PROPERTY_BINTRAY_ORG, docUrl)
 
-        val jcenter = jcenterFactory.create(user, password)
+        val jcenter = jcenterFactory.create(user, password, org)
         var success = false
         val configuration = jcenterConfigurations[project.name]
         val messages = arrayListOf<String>()

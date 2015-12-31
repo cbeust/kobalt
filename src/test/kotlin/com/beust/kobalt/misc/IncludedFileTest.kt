@@ -9,7 +9,7 @@ import java.io.File
 class IncludedFileTest {
     fun simple() {
         val from = "src/main/kotlin/"
-        val inf = IncludedFile(From(from), To(""), listOf(IFileSpec.Glob("**.kt")))
+        val inf = IncludedFile(From(from), To(""), listOf(IFileSpec.GlobSpec("**.kt")))
         inf.allFromFiles().map { File(from, it.path) }.forEach {
             Assert.assertTrue(it.exists(), "Should exist: $it")
         }

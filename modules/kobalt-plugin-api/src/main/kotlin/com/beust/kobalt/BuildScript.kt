@@ -58,4 +58,4 @@ fun authRepos(vararg repos : HostConfig) {
 fun authRepo(init: HostConfig.() -> Unit) = HostConfig().apply { init() }
 
 @Directive
-fun glob(g: String) : IFileSpec.Glob = IFileSpec.Glob(g)
+fun glob(g: String) : IFileSpec.GlobSpec = IFileSpec.GlobSpec(g)

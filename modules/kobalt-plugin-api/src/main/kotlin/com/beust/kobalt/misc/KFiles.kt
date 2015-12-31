@@ -277,9 +277,9 @@ class KFiles {
 
         fun makeOutputTestDir(project: Project) : File = makeDir(project, KFiles.TEST_CLASSES_DIR)
 
-        fun isExcluded(file: File, excludes: List<IFileSpec.Glob>) = isExcluded(file.path, excludes)
+        fun isExcluded(file: File, excludes: List<IFileSpec.GlobSpec>) = isExcluded(file.path, excludes)
 
-        fun isExcluded(file: String, excludes: List<IFileSpec.Glob>) : Boolean {
+        fun isExcluded(file: String, excludes: List<IFileSpec.GlobSpec>) : Boolean {
             if (excludes.isEmpty()) {
                 return false
             } else {

@@ -9,16 +9,16 @@ sealed class IFileSpec {
     abstract fun toFiles(directory: String): List<File>
 
     class FileSpec(val spec: String) : IFileSpec() {
-        override public fun toFiles(directory: String) = arrayListOf(File(spec))
+        override public fun toFiles(directory: String) = listOf(File(spec))
 
         override public fun toString() = spec
     }
 
-    class Glob(val spec: String) : IFileSpec() {
+    class GlobSpec(val spec: String) : IFileSpec() {
         override public fun toFiles(directory: String): List<File> {
             val result = arrayListOf<File>()
 
-            val matcher = FileSystems.getDefault().getPathMatcher("glob:${spec}")
+            val matcher = FileSystems.getDefault().getPathMatcher("glob:$spec")
             Files.walkFileTree(Paths.get(directory), object : SimpleFileVisitor<Path>() {
                 override public fun visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult {
                     val rel = Paths.get(directory).relativize(path)

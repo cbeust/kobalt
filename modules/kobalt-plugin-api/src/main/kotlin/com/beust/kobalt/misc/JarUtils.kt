@@ -29,9 +29,9 @@ public class JarUtils {
         }
 
         private val DEFAULT_JAR_EXCLUDES = arrayListOf(
-                IFileSpec.Glob("META-INF/*.SF"),
-                IFileSpec.Glob("META-INF/*.DSA"),
-                IFileSpec.Glob("META-INF/*.RSA"))
+                IFileSpec.GlobSpec("META-INF/*.SF"),
+                IFileSpec.GlobSpec("META-INF/*.DSA"),
+                IFileSpec.GlobSpec("META-INF/*.RSA"))
 
         public fun addSingleFile(directory: String, file: IncludedFile, outputStream: ZipOutputStream,
                 expandJarFiles: Boolean, onError: (Exception) -> Unit = DEFAULT_HANDLER) {
@@ -57,7 +57,7 @@ public class JarUtils {
                             outputStream.closeEntry()
                         }
                     }
-                    val includedFile = IncludedFile(From(source.path), To(""), listOf(IFileSpec.Glob("**")))
+                    val includedFile = IncludedFile(From(source.path), To(""), listOf(IFileSpec.GlobSpec("**")))
                     addSingleFile(".", includedFile, outputStream, expandJarFiles)
                 } else {
                     if (expandJarFiles and source.name.endsWith(".jar")) {
