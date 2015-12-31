@@ -172,10 +172,11 @@ abstract class JvmCompilerPlugin @Inject constructor(
         val inputChecksum = Md5.toMd5Directories(project.sourceDirectories.map {
             File(project.directory, it)
         })
-        val outputChecksum = Md5.toMd5Directories(listOf(File(project.classesDir(context))))
         return IncrementalTaskInfo(
                 inputChecksum = inputChecksum,
-                outputChecksum = outputChecksum,
+                outputChecksum = {
+                    Md5.toMd5Directories(listOf(File(project.classesDir(context))))
+                },
                 task = { project -> doTaskCompile(project) }
         )
     }

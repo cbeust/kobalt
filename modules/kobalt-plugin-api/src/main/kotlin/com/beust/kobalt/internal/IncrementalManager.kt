@@ -82,10 +82,12 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
             // TODO: compare the checksums with the previous run
             val taskName = project.name + ":" + taskName
             var upToDate = false
+            var taskOutputChecksum : String? = null
             inputChecksumFor(taskName)?.let { inputChecksum ->
                 if (inputChecksum == iit.inputChecksum) {
                     outputChecksumFor(taskName)?.let { outputChecksum ->
-                        if (outputChecksum == iit.outputChecksum) {
+                        taskOutputChecksum = iit.outputChecksum()
+                        if (outputChecksum == taskOutputChecksum) {
                             upToDate = true
                         } else {
                             logIncremental(1, "Incremental task $taskName output is out of date, running it")
@@ -105,7 +107,7 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
                         saveInputChecksum(taskName, it)
                         logIncremental(1, "          input checksum \"$it\" saved")
                     }
-                    iit.outputChecksum?.let {
+                    taskOutputChecksum?.let {
                         saveOutputChecksum(taskName, it)
                         logIncremental(1, "          output checksum \"$it\" saved")
                     }
