@@ -8,6 +8,9 @@ import java.io.InputStream
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
+import kotlin.collections.arrayListOf
+import kotlin.collections.forEach
+import kotlin.text.toByteArray
 
 //
 // Operations related to the parsing of kobalt-plugin.xml: XML parsing, PluginInfo, etc...

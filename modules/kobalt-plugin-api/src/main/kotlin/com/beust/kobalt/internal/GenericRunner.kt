@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.IFileSpec.GlobSpec
 import com.beust.kobalt.JavaInfo
 import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.TaskResult
@@ -7,46 +8,35 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import java.io.File
-import java.net.URLClassLoader
+import java.util.*
+import kotlin.collections.*
+import kotlin.text.contains
+import kotlin.text.endsWith
+import kotlin.text.replace
 
 /**
  * Base class for testing frameworks that are invoked from a main class with arguments. Test runners can
  * subclass this class and override mainClass, args and the name of the dependency that should trigger this runner.
  */
 abstract class GenericTestRunner : ITestRunnerContributor {
-    abstract val dependencyName : String
+    abstract val dependencyName: String
     abstract val mainClass: String
-    abstract fun args(project: Project, classpath: List<IClasspathDependency>) : List<String>
+    abstract fun args(project: Project, classpath: List<IClasspathDependency>): List<String>
 
     override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>)
             = TaskResult(runTests(project, classpath))
 
     override fun affinity(project: Project, context: KobaltContext) =
-            if (project.testDependencies.any { it.id.contains(dependencyName)}) IAffinity.DEFAULT_POSITIVE_AFFINITY
+            if (project.testDependencies.any { it.id.contains(dependencyName) }) IAffinity.DEFAULT_POSITIVE_AFFINITY
             else 0
 
     protected fun findTestClasses(project: Project, classpath: List<IClasspathDependency>,
-            classFilter : (Class<*>) -> Boolean = {true}): List<String> {
-        val path = KFiles.joinDir(project.directory, project.buildDirectory, KFiles.TEST_CLASSES_DIR)
-        val result = KFiles.findRecursively(File(path), arrayListOf(File(".")), {
-            file -> file.endsWith(".class")
-        }).map {
-            it.replace("/", ".").replace("\\", ".").replace(".class", "").substring(2)
-        }.filter {
-            try {
-                // Only keep classes with a parameterless constructor
-                val urls = arrayOf(File(path).toURI().toURL()) +
-                        classpath.map { it.jarFile.get().toURI().toURL() }
-                val cl = URLClassLoader(urls).loadClass(it)
-                val constructor = cl.getConstructor()
-                // If we get past this, we have a default constructor
+                                  classFilter: (Class<*>) -> Boolean = { true }): List<String> {
 
-                classFilter(cl)
-            } catch(ex: Exception) {
-                log(2, "Skipping non test class $it: ${ex.message}")
-                false
-            }
-        }
+        val path = KFiles.joinDir(project.directory, project.buildDirectory, KFiles.TEST_CLASSES_DIR)
+
+        val result = GlobSpec(toClassPaths(project.testIncludes), toClassPaths(project.testExcludes))
+                .toFiles(path).map { it.toString().replace("/", ".").replace("\\", ".").replace(".class", "") }
 
         log(2, "Found ${result.size} test classes")
         return result
@@ -55,7 +45,7 @@ abstract class GenericTestRunner : ITestRunnerContributor {
     /**
      * @return true if all the tests passed
      */
-    fun runTests(project: Project, classpath: List<IClasspathDependency>) : Boolean {
+    fun runTests(project: Project, classpath: List<IClasspathDependency>): Boolean {
         val jvm = JavaInfo.create(File(SystemProperties.javaBase))
         val java = jvm.javaExecutable
         val args = args(project, classpath)
@@ -87,5 +77,8 @@ abstract class GenericTestRunner : ITestRunnerContributor {
             return true
         }
     }
+
+    private fun toClassPaths(paths: List<String>): ArrayList<String> =
+            paths.map { if (it.endsWith(".class")) it else it + ".class" }.toArrayList()
 }
 
