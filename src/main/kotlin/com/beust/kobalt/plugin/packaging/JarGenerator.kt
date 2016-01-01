@@ -31,7 +31,9 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
 
             // Class files
             val files = KFiles.findRecursively(classesDir).map { File(relClassesDir.toFile(), it) }
-            val filesNotExcluded : List<File> = files.filter { ! KFiles.isExcluded(it, jar.excludes) }
+            val filesNotExcluded : List<File> = files.filter {
+                ! KFiles.isExcluded(KFiles.joinDir(project.directory, it.path), jar.excludes)
+            }
             val fileSpecs = arrayListOf<IFileSpec>()
             filesNotExcluded.forEach {
                 fileSpecs.add(IFileSpec.FileSpec(it.path.toString().substring(prefixPath.toString().length + 1)))

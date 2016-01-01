@@ -52,13 +52,12 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                     val fromPath = directory + "/" + includedFile.from
                     if (File(fromPath).exists()) {
                         spec.toFiles(fromPath).forEach { file ->
-                            File(fromPath, file.path).let {
-                                if (!it.exists()) {
-                                    throw AssertionError("File should exist: $it")
-                                }
+                            val fullFile = File(fromPath, file.path)
+                            if (! fullFile.exists()) {
+                                throw AssertionError("File should exist: $fullFile")
                             }
 
-                            if (!KFiles.isExcluded(file, excludes)) {
+                            if (!KFiles.isExcluded(fullFile, excludes)) {
                                 includedSpecs.add(FileSpec(file.path))
                             } else {
                                 log(2, "Not adding ${file.path} to jar file because it's excluded")
