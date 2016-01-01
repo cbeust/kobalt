@@ -2,7 +2,6 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.IncrementalTaskInfo
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.IPlugin
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
@@ -75,11 +74,11 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
      * @return a closure that invokes that method and decide whether to run the task or not based
      * on the content of that IncrementalTaskInfo
      */
-    fun toIncrementalTaskClosure(plugin: IPlugin, taskName: String, method: (Project) -> IncrementalTaskInfo)
+    fun toIncrementalTaskClosure(shortTaskName: String, method: (Project) -> IncrementalTaskInfo)
             : (Project) -> TaskResult {
         return { project: Project ->
             val iit = method(project)
-            val taskName = project.name + ":" + taskName
+            val taskName = project.name + ":" + shortTaskName
             var upToDate = false
             var taskOutputChecksum : String? = null
             inputChecksumFor(taskName)?.let { inputChecksum ->
@@ -90,7 +89,6 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
                             upToDate = true
                         } else {
                             logIncremental(1, "Incremental task $taskName output is out of date, running it")
-
                         }
                     }
                 } else {

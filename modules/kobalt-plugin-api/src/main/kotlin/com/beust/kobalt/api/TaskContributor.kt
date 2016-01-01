@@ -50,7 +50,7 @@ class TaskContributor @Inject constructor(val incrementalManager: IncrementalMan
                     runBefore = runBefore.map { variant.toTask(it) },
                     runAfter = runAfter.map { variant.toTask(it) },
                     alwaysRunAfter = alwaysRunAfter.map { variant.toTask(it) },
-                    closure = incrementalManager.toIncrementalTaskClosure(plugin, taskName, runTask)))
+                    closure = incrementalManager.toIncrementalTaskClosure(taskName, runTask)))
         }
     }
 
