@@ -79,7 +79,6 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
             : (Project) -> TaskResult {
         return { project: Project ->
             val iit = method(project)
-            // TODO: compare the checksums with the previous run
             val taskName = project.name + ":" + taskName
             var upToDate = false
             var taskOutputChecksum : String? = null
