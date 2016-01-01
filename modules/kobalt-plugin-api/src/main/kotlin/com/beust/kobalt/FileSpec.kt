@@ -32,13 +32,13 @@ sealed class IFileSpec {
                     val rel = Paths.get(directory).relativize(path)
                     excludeMatchers.forEach {
                         if (it.matches(rel)) {
-                            log(3, "Removing ${rel.toFile()}")
+                            log(3, "Excluding ${rel.toFile()}")
                             return CONTINUE
                         }
                     }
                     includeMatchers.forEach {
                         if (it.matches(rel)) {
-                            log(3, "Adding ${rel.toFile()}")
+                            log(3, "Including ${rel.toFile()}")
                             result.add(rel.toFile())
                             return CONTINUE
                         }
