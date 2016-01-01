@@ -22,10 +22,12 @@ public class Md5 {
             val ds = directories.filter { it.exists() }
             if (ds.size > 0) {
                 MessageDigest.getInstance("MD5").let { md5 ->
+                    var fileCount = 0
                     directories.filter { it.exists() }.forEach { file ->
                         if (file.isFile) {
                             val bytes = file.readBytes()
                             md5.update(bytes, 0, bytes.size)
+                            fileCount++
                         } else {
                             val files = KFiles.findRecursively(file) // , { f -> f.endsWith("java")})
                             log(2, "  Calculating checksum of ${files.size} files in $file")
@@ -34,13 +36,20 @@ public class Md5 {
                             }.filter {
                                 it.isFile
                             }.forEach {
+                                fileCount++
                                 val bytes = it.readBytes()
                                 md5.update(bytes, 0, bytes.size)
                             }
                         }
                     }
-                    val result = DatatypeConverter.printHexBinary(md5.digest()).toLowerCase()
-                    return result
+                    // The output directory might exist but with no files in it, in which case
+                    // we must run the task
+                    if (fileCount > 0) {
+                        val result = DatatypeConverter.printHexBinary(md5.digest()).toLowerCase()
+                        return result
+                    } else {
+                        return null
+                    }
                 }
             } else {
                 return null

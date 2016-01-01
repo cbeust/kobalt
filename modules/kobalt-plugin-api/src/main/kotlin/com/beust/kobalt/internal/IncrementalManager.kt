@@ -104,7 +104,8 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
                         saveInputChecksum(taskName, it)
                         logIncremental(1, "          input checksum \"$it\" saved")
                     }
-                    taskOutputChecksum?.let {
+                    // Important to rerun the checksum here since the output of the task might have changed it
+                    iit.outputChecksum()?.let {
                         saveOutputChecksum(taskName, it)
                         logIncremental(1, "          output checksum \"$it\" saved")
                     }
