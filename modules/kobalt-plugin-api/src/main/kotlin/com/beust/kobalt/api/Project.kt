@@ -29,6 +29,8 @@ open class Project(
     val testJvmArgs = arrayListOf<String>()
 
     val projectProperties = ProjectProperties()
+    val testIncludes = arrayListOf("**/*Test.class")
+    val testExcludes = arrayListOf<String>()
 
     override fun equals(other: Any?): Boolean {
         return name == (other as Project).name

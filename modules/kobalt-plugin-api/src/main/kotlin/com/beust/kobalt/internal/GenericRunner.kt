@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.JavaInfo
 import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.TaskResult
@@ -7,7 +8,7 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import java.io.File
-import java.net.URLClassLoader
+import java.util.*
 
 /**
  * Base class for testing frameworks that are invoked from a main class with arguments. Test runners can
@@ -25,32 +26,20 @@ abstract class GenericTestRunner : ITestRunnerContributor {
             if (project.testDependencies.any { it.id.contains(dependencyName)}) IAffinity.DEFAULT_POSITIVE_AFFINITY
             else 0
 
-    protected fun findTestClasses(project: Project, classpath: List<IClasspathDependency>,
-            classFilter : (Class<*>) -> Boolean = {true}): List<String> {
+    protected fun findTestClasses(project: Project): List<String> {
         val path = KFiles.joinDir(project.directory, project.buildDirectory, KFiles.TEST_CLASSES_DIR)
-        val result = KFiles.findRecursively(File(path), arrayListOf(File(".")), {
-            file -> file.endsWith(".class")
-        }).map {
-            it.replace("/", ".").replace("\\", ".").replace(".class", "").substring(2)
-        }.filter {
-            try {
-                // Only keep classes with a parameterless constructor
-                val urls = arrayOf(File(path).toURI().toURL()) +
-                        classpath.map { it.jarFile.get().toURI().toURL() }
-                val cl = URLClassLoader(urls).loadClass(it)
-                val constructor = cl.getConstructor()
-                // If we get past this, we have a default constructor
 
-                classFilter(cl)
-            } catch(ex: Exception) {
-                log(2, "Skipping non test class $it: ${ex.message}")
-                false
-            }
-        }
+        val result = IFileSpec.GlobSpec(toClassPaths(project.testIncludes), toClassPaths(project.testExcludes))
+                .toFiles(path).map {
+                    it.toString().replace("/", ".").replace("\\", ".").replace(".class", "")
+                }
 
         log(2, "Found ${result.size} test classes")
         return result
     }
+
+    private fun toClassPaths(paths: List<String>): ArrayList<String> =
+            paths.map { if (it.endsWith(".class")) it else it + ".class" }.toArrayList()
 
     /**
      * @return true if all the tests passed

@@ -15,18 +15,18 @@ public class TestNgRunner() : GenericTestRunner() {
     override fun args(project: Project, classpath: List<IClasspathDependency>) = arrayListOf<String>().apply {
             if (project.testArgs.size > 0) {
                 addAll(project.testArgs)
+            }
+
+            val testngXml = File(project.directory, KFiles.joinDir("src", "test", "resources", "testng.xml"))
+            if (testngXml.exists()) {
+                add(testngXml.absolutePath)
             } else {
-                val testngXml = File(project.directory, KFiles.joinDir("src", "test", "resources", "testng.xml"))
-                if (testngXml.exists()) {
-                    add(testngXml.absolutePath)
+                val testClasses = findTestClasses(project)
+                if (testClasses.size > 0) {
+                    add("-testclass")
+                    add(testClasses.joinToString(","))
                 } else {
-                    val testClasses = findTestClasses(project, classpath)
-                    if (testClasses.size > 0) {
-                        add("-testclass")
-                        add(testClasses.joinToString(","))
-                    } else {
-                        warn("Couldn't find any test classes for ${project.name}")
-                    }
+                    warn("Couldn't find any test classes for ${project.name}")
                 }
             }
         }

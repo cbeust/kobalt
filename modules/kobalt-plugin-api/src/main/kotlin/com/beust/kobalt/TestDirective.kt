@@ -11,9 +11,21 @@ class TestConfig(val project: Project) {
     fun jvmArgs(vararg arg: String) {
         project.testJvmArgs.addAll(arg)
     }
+
+    fun includes(vararg arg: String) {
+        project.testIncludes.apply {
+            clear()
+            addAll(arg)
+        }
+    }
+
+    fun excludes(vararg arg: String) {
+        project.testExcludes.apply {
+            clear()
+            addAll(arg)
+        }
+    }
 }
 
 @Directive
 fun Project.test(init: TestConfig.() -> Unit) = TestConfig(this).apply { init() }
-
-

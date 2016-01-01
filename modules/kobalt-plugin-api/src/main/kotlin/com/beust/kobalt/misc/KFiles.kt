@@ -7,10 +7,10 @@ import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.maven.Md5
 import java.io.File
 import java.io.IOException
-import java.nio.file.*
-import kotlin.io.FileAlreadyExistsException
-import kotlin.io.FileSystemException
-import kotlin.io.NoSuchFileException
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 
 class KFiles {
     /**
@@ -277,25 +277,10 @@ class KFiles {
 
         fun makeOutputTestDir(project: Project) : File = makeDir(project, KFiles.TEST_CLASSES_DIR)
 
-        fun isExcluded(file: File, excludes: List<IFileSpec.GlobSpec>) = isExcluded(file.path, excludes)
+        fun isExcluded(file: File, excludes: IFileSpec.GlobSpec) = isExcluded(file.path, excludes)
 
-        fun isExcluded(file: String, excludes: List<IFileSpec.GlobSpec>) : Boolean {
-            if (excludes.isEmpty()) {
-                return false
-            } else {
-                val ex = excludes.map {
-                    FileSystems.getDefault().getPathMatcher("glob:${it.spec}")
-                }
-                ex.forEach {
-                    if (it.matches(Paths.get(file))) {
-                        log(3, "Excluding $file")
-                        return true
-                    }
-                }
-            }
-            return false
-        }
-
+        fun isExcluded(file: String, excludes: IFileSpec.GlobSpec): Boolean =
+                excludes.toFiles(file).isEmpty()
     }
 
     fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {

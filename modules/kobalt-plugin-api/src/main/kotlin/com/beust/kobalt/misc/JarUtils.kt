@@ -28,10 +28,9 @@ public class JarUtils {
             }
         }
 
-        private val DEFAULT_JAR_EXCLUDES = arrayListOf(
-                IFileSpec.GlobSpec("META-INF/*.SF"),
-                IFileSpec.GlobSpec("META-INF/*.DSA"),
-                IFileSpec.GlobSpec("META-INF/*.RSA"))
+        private val DEFAULT_JAR_EXCLUDES =
+                IFileSpec.GlobSpec(arrayListOf(),
+                        arrayListOf("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA"))
 
         public fun addSingleFile(directory: String, file: IncludedFile, outputStream: ZipOutputStream,
                 expandJarFiles: Boolean, onError: (Exception) -> Unit = DEFAULT_HANDLER) {
@@ -153,7 +152,7 @@ class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<I
     public val from: String get() = fromOriginal.path.replace("\\", "/")
     public val to: String get() = toOriginal.path.replace("\\", "/")
     override public fun toString() = toString("IncludedFile",
-            "files", specs.map { it.toString() }.joinToString(", "),
+            "files - ", specs.map { it.toString() },
             "from", from,
             "to", to)
 
