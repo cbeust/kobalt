@@ -16,6 +16,9 @@ import java.lang.reflect.Method
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.collections.arrayListOf
+import kotlin.collections.filter
+import kotlin.collections.forEach
 
 @Singleton
 public class TaskManager @Inject constructor(val args: Args, val incrementalManager: IncrementalManager) {

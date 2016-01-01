@@ -18,6 +18,7 @@ import java.util.*
 import java.util.jar.JarFile
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.collections.*
 
 @Singleton
 public class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManager>,

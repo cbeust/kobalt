@@ -6,6 +6,10 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.dependency.FileDependency
 import java.io.File
+import kotlin.collections.forEach
+import kotlin.collections.joinToString
+import kotlin.collections.toArrayList
+import kotlin.text.isNullOrBlank
 
 @Directive
 fun homeDir(vararg dirs: String) : String = SystemProperties.homeDir +

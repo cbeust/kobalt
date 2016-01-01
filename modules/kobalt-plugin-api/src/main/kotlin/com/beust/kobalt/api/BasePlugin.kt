@@ -2,6 +2,8 @@ package com.beust.kobalt.api
 
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.internal.TaskManager
+import kotlin.collections.arrayListOf
+import kotlin.collections.toList
 
 abstract public class BasePlugin : IPlugin {
     lateinit var context: KobaltContext

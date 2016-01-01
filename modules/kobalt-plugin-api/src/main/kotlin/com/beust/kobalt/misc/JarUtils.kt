@@ -1,6 +1,7 @@
 package com.beust.kobalt.misc
 
 import com.beust.kobalt.IFileSpec
+import com.beust.kobalt.IFileSpec.GlobSpec
 import com.google.common.io.CharStreams
 import java.io.*
 import java.util.jar.JarEntry
@@ -10,6 +11,14 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipException
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
+import kotlin.collections.arrayListOf
+import kotlin.collections.forEach
+import kotlin.collections.listOf
+import kotlin.collections.map
+import kotlin.text.contains
+import kotlin.text.endsWith
+import kotlin.text.isEmpty
+import kotlin.text.replace
 
 public class JarUtils {
     companion object {
@@ -28,10 +37,8 @@ public class JarUtils {
             }
         }
 
-        private val DEFAULT_JAR_EXCLUDES = arrayListOf(
-                IFileSpec.GlobSpec("META-INF/*.SF"),
-                IFileSpec.GlobSpec("META-INF/*.DSA"),
-                IFileSpec.GlobSpec("META-INF/*.RSA"))
+        private val DEFAULT_JAR_EXCLUDES =
+                GlobSpec(arrayListOf(), arrayListOf("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA"))
 
         public fun addSingleFile(directory: String, file: IncludedFile, outputStream: ZipOutputStream,
                 expandJarFiles: Boolean, onError: (Exception) -> Unit = DEFAULT_HANDLER) {
@@ -57,7 +64,7 @@ public class JarUtils {
                             outputStream.closeEntry()
                         }
                     }
-                    val includedFile = IncludedFile(From(source.path), To(""), listOf(IFileSpec.GlobSpec("**")))
+                    val includedFile = IncludedFile(From(source.path), To(""), listOf(GlobSpec("**")))
                     addSingleFile(".", includedFile, outputStream, expandJarFiles)
                 } else {
                     if (expandJarFiles and source.name.endsWith(".jar")) {
@@ -153,7 +160,7 @@ class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<I
     public val from: String get() = fromOriginal.path.replace("\\", "/")
     public val to: String get() = toOriginal.path.replace("\\", "/")
     override public fun toString() = toString("IncludedFile",
-            "files", specs.map { it.toString() }.joinToString(", "),
+            "files - ", specs.map { it.toString() },
             "from", from,
             "to", to)
 
