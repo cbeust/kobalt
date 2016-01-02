@@ -1,14 +1,16 @@
 package com.beust.kobalt.plugin.kotlin
 
+import com.beust.kobalt.IncrementalTaskInfo
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
+import com.beust.kobalt.maven.Md5
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
@@ -73,8 +75,21 @@ class KotlinPlugin @Inject constructor(
 //        return TaskResult(success)
 //    }
 
-    @Task(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf(TASK_COMPILE))
-    fun taskCompileTest(project: Project): TaskResult {
+    @IncrementalTask(name = TASK_COMPILE_TEST, description = "Compile the tests", runAfter = arrayOf(TASK_COMPILE))
+    fun taskCompileTest(project: Project): IncrementalTaskInfo {
+        val inputChecksum = Md5.toMd5Directories(project.sourceDirectoriesTest.map {
+            File(project.directory, it)
+        })
+        return IncrementalTaskInfo(
+                inputChecksum = inputChecksum,
+                outputChecksum = {
+                    Md5.toMd5Directories(listOf(KFiles.makeOutputTestDir(project)))
+                },
+                task = { project -> doTaskCompileTest(project) }
+        )
+    }
+
+    private fun doTaskCompileTest(project: Project) : TaskResult {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
         val projectDir = File(project.directory)
 
