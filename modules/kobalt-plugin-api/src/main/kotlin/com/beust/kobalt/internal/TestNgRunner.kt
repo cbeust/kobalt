@@ -26,16 +26,19 @@ public class TestNgRunner() : GenericTestRunner() {
         }
         addAll(project.testArgs)
 
-        val testngXml = File(project.directory, KFiles.joinDir("src", "test", "resources", "testng.xml"))
-        if (testngXml.exists()) {
-            add(testngXml.absolutePath)
-        } else {
-            val testClasses = findTestClasses(project)
-            if (testClasses.size > 0) {
-                add("-testclass")
-                add(testClasses.joinToString(","))
+        if (project.testArgs.size == 0) {
+            // No arguments, so we'll do it ourselves. Either testng.xml or the list of classes
+            val testngXml = File(project.directory, KFiles.joinDir("src", "test", "resources", "testng.xml"))
+            if (testngXml.exists()) {
+                add(testngXml.absolutePath)
             } else {
-                warn("Couldn't find any test classes for ${project.name}")
+                val testClasses = findTestClasses(project)
+                if (testClasses.size > 0) {
+                    add("-testclass")
+                    add(testClasses.joinToString(","))
+                } else {
+                    warn("Couldn't find any test classes for ${project.name}")
+                }
             }
         }
     }
