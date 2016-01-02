@@ -4,7 +4,6 @@ annotations
 !.idea/modules.xml
 buildScript
 kobaltBuild
-test-output
 local.properties
 classes
 libs
