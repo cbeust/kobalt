@@ -13,6 +13,8 @@ class JarUtilsTest @Inject constructor() {
                 listOf(IFileSpec.FileSpec("com/beust/kobalt/wrapper/Main.class")))
         val files = inf.allFromFiles("modules/wrapper")
         println("Files: $files")
-        Assert.assertEquals(files[0].path, "modules/wrapper/kobaltBuild/classes/com/beust/kobalt/wrapper/Main.class")
+        val actual = files[0].path.replace("\\", "/")
+        Assert.assertEquals(actual,
+                "com/beust/kobalt/wrapper/Main.class")
     }
 }
