@@ -125,6 +125,7 @@ public class DownloadTest @Inject constructor(
         val url = repoResult.hostConfig.url + jarFile
 
         val metadataXmlPath = dep.toMetadataXmlPath(false, false, "0.1-SNAPSHOT")
+            .replace("\\", "/")
 
         Assert.assertEquals(metadataXmlPath, "org/jetbrains/spek/spek/0.1-SNAPSHOT/maven-metadata.xml")
         Assert.assertTrue(Kurl(HostConfig(url)).exists, "Should exist: $url")
