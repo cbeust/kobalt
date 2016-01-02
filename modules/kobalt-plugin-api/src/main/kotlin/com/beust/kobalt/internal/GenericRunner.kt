@@ -1,9 +1,6 @@
 package com.beust.kobalt.internal
 
-import com.beust.kobalt.IFileSpec
-import com.beust.kobalt.JavaInfo
-import com.beust.kobalt.SystemProperties
-import com.beust.kobalt.TaskResult
+import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
@@ -29,8 +26,10 @@ abstract class GenericTestRunner : ITestRunnerContributor {
     protected fun findTestClasses(project: Project): List<String> {
         val path = KFiles.joinDir(project.directory, project.buildDirectory, KFiles.TEST_CLASSES_DIR)
 
-        val result = IFileSpec.GlobSpec(toClassPaths(project.testIncludes), toClassPaths(project.testExcludes))
-                .toFiles(path).map {
+        val result = IFileSpec.GlobSpec(toClassPaths(project.testIncludes))
+            .toFiles(path, project.testExcludes.map {
+                    Glob(it)
+                }).map {
                     it.toString().replace("/", ".").replace("\\", ".").replace(".class", "")
                 }
 
@@ -39,7 +38,7 @@ abstract class GenericTestRunner : ITestRunnerContributor {
     }
 
     private fun toClassPaths(paths: List<String>): ArrayList<String> =
-            paths.map { if (it.endsWith(".class")) it else it + ".class" }.toArrayList()
+            paths.map { if (it.endsWith("class")) it else it + "class" }.toArrayList()
 
     /**
      * @return true if all the tests passed

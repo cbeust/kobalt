@@ -277,10 +277,13 @@ class KFiles {
 
         fun makeOutputTestDir(project: Project) : File = makeDir(project, KFiles.TEST_CLASSES_DIR)
 
-        fun isExcluded(file: File, excludes: IFileSpec.GlobSpec) = isExcluded(file.path, excludes)
+        fun isExcluded(file: String, excludes: Glob) = isExcluded(file, listOf(excludes))
 
-        fun isExcluded(file: String, excludes: IFileSpec.GlobSpec): Boolean =
-                excludes.toFiles(file).isEmpty()
+        fun isExcluded(file: File, excludes: Glob) = isExcluded(file.path, listOf(excludes))
+
+        fun isExcluded(file: File, excludes: List<Glob>) = isExcluded(file.path, excludes)
+
+        fun isExcluded(file: String, excludes: List<Glob>): Boolean = excludes.any { it.matches(file) }
     }
 
     fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {

@@ -42,8 +42,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         const val TASK_ASSEMBLE: String = "assemble"
         const val TASK_INSTALL: String = "install"
 
-
-        fun findIncludedFiles(directory: String, files: List<IncludedFile>, excludes: IFileSpec.GlobSpec)
+        fun findIncludedFiles(directory: String, files: List<IncludedFile>, excludes: List<Glob>)
                 : List<IncludedFile> {
             val result = arrayListOf<IncludedFile>()
             files.forEach { includedFile ->
@@ -312,7 +311,7 @@ class PackageConfig(val project: Project) : AttributeHolder {
 
 open class Zip(open var name: String? = null) {
 //    internal val includes = arrayListOf<IFileSpec>()
-    internal val excludes = GlobSpec(arrayListOf(), arrayListOf())
+    internal val excludes = arrayListOf<Glob>()
 
     @Directive
     public fun from(s: String) = From(s)
@@ -322,12 +321,12 @@ open class Zip(open var name: String? = null) {
 
     @Directive
     public fun exclude(vararg files: String) {
-        files.forEach { excludes.excludeSpec.add(it) }
+        files.forEach { excludes.add(Glob(it)) }
     }
 
     @Directive
-    public fun exclude(vararg specs: GlobSpec) {
-        specs.forEach { excludes.excludeSpec.addAll(it.excludeSpec) }
+    public fun exclude(vararg specs: Glob) {
+        specs.forEach { excludes.add(it) }
     }
 
     @Directive

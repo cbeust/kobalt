@@ -1,5 +1,6 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.Glob
 import com.beust.kobalt.IFileSpec
 import com.google.common.io.CharStreams
 import java.io.*
@@ -29,8 +30,7 @@ public class JarUtils {
         }
 
         private val DEFAULT_JAR_EXCLUDES =
-                IFileSpec.GlobSpec(arrayListOf(),
-                        arrayListOf("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA"))
+                Glob("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
 
         public fun addSingleFile(directory: String, file: IncludedFile, outputStream: ZipOutputStream,
                 expandJarFiles: Boolean, onError: (Exception) -> Unit = DEFAULT_HANDLER) {
