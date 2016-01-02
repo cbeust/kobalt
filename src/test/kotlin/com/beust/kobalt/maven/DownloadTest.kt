@@ -99,10 +99,12 @@ public class DownloadTest @Inject constructor(
 
     @Test
     public fun shouldFindLocalJarNoVersion() {
-        MavenDependency.create("$idNoVersion$version")
-        val dep = depFactory.create(idNoVersion, executor, localFirst = false)
+        val dep = MavenDependency.create("$idNoVersion$version")
         val future = dep.jarFile
-        val file = future.get()
+        future.get().delete()
+
+        val dep2 = MavenDependency.create("$idNoVersion$version")
+        val file = dep2.jarFile.get()
         Assert.assertNotNull(file)
         Assert.assertTrue(file.exists(), "Should find $file")
     }
