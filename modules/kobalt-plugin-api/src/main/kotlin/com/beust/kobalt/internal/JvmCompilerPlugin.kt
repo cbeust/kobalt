@@ -69,7 +69,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
 
     @Task(name = TASK_TEST, description = "Run the tests",
             runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE, JvmCompilerPlugin.TASK_COMPILE_TEST))
-    fun taskTest(project: Project) : TaskResult {
+    fun taskTest(project: Project): TaskResult {
         lp(project, "Running tests")
 
         val runContributor = ActorUtils.selectAffinityActor(project, context,
@@ -84,9 +84,9 @@ abstract class JvmCompilerPlugin @Inject constructor(
     }
 
     @Task(name = TASK_CLEAN, description = "Clean the project")
-    fun taskClean(project : Project ) : TaskResult {
+    fun taskClean(project: Project): TaskResult {
         java.io.File(project.directory, project.buildDirectory).let { dir ->
-            if (! dir.deleteRecursively()) {
+            if (!dir.deleteRecursively()) {
                 warn("Couldn't delete $dir")
             }
         }
@@ -114,7 +114,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
             val absOutputDir = File(KFiles.joinDir(project.directory, project.buildDirectory, outputDir))
             sourceDirs.map { File(project.directory, it) }.filter {
                 it.exists()
-            } .forEach {
+            }.forEach {
                 log(2, "Copying from $sourceDirs to $absOutputDir")
                 KFiles.copyRecursively(it, absOutputDir, deleteFirst = false)
             }
@@ -123,7 +123,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         }
     }
 
-    protected fun compilerArgsFor(project: Project) : List<String> {
+    protected fun compilerArgsFor(project: Project): List<String> {
         val result = project.projectProperties.get(COMPILER_ARGS)
         if (result != null) {
             @Suppress("UNCHECKED_CAST")
@@ -139,8 +139,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
         project.projectProperties.put(COMPILER_ARGS, arrayListOf(*args))
     }
 
-    fun isOutdated(project: Project, context: KobaltContext, actionInfo: CompilerActionInfo) : Boolean {
-        fun stripSourceDir(sourceFile: String) : String {
+    fun isOutdated(project: Project, context: KobaltContext, actionInfo: CompilerActionInfo): Boolean {
+        fun stripSourceDir(sourceFile: String): String {
             project.sourceDirectories.forEach {
                 val d = listOf(project.directory, it).joinToString("/")
                 if (sourceFile.startsWith(d)) return sourceFile.substring(d.length + 1)
@@ -148,7 +148,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
             throw KobaltException("Couldn't strip source dir from $sourceFile")
         }
 
-        fun stripSuffix(    sourceFile: String) : String {
+        fun stripSuffix(sourceFile: String): String {
             val index = sourceFile.indexOf(project.sourceSuffix)
             if (index >= 0) return sourceFile.substring(0, index)
             else return sourceFile
@@ -158,9 +158,9 @@ abstract class JvmCompilerPlugin @Inject constructor(
             val stripped = stripSourceDir(sourceFile)
             val classFile = File(KFiles.joinDir(project.directory, project.classesDir(context),
                     toClassFile(stripSuffix(stripped))))
-            if (! classFile.exists() || File(sourceFile).lastModified() > classFile.lastModified()) {
+            if (!classFile.exists() || File(sourceFile).lastModified() > classFile.lastModified()) {
                 log(2, "Outdated $sourceFile $classFile " + Date(File(sourceFile).lastModified()) +
-                    " " + classFile.lastModified())
+                        " " + classFile.lastModified())
                 return true
             }
         }
@@ -168,7 +168,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
     }
 
     @IncrementalTask(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project")
-    fun taskCompile(project: Project) : IncrementalTaskInfo {
+    fun taskCompile(project: Project): IncrementalTaskInfo {
         val inputChecksum = Md5.toMd5Directories(project.sourceDirectories.map {
             File(project.directory, it)
         })
@@ -181,7 +181,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         )
     }
 
-    private fun doTaskCompile(project: Project) : TaskResult {
+    private fun doTaskCompile(project: Project): TaskResult {
         // Set up the source files now that we have the variant
         sourceDirectories.addAll(context.variant.sourceDirectories(project))
 
@@ -201,7 +201,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
     override fun projects() = projects
 
     @Task(name = "doc", description = "Generate the documentation for the project")
-    fun taskJavadoc(project: Project) : TaskResult {
+    fun taskJavadoc(project: Project): TaskResult {
         val docGenerator = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.docContributors)
         if (docGenerator != null) {
             return docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context,
@@ -216,43 +216,43 @@ abstract class JvmCompilerPlugin @Inject constructor(
      * Create a CompilerActionInfo (all the information that a compiler needs to know) for the given parameters.
      * Runs all the contributors and interceptors relevant to that task.
      */
-    protected fun createCompilerActionInfo(project: Project, context: KobaltContext, isTest: Boolean) :
+    protected fun createCompilerActionInfo(project: Project, context: KobaltContext, isTest: Boolean):
             CompilerActionInfo {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
 
         val classpath = if (isTest)
-                dependencyManager.testDependencies(project, context, projects)
-            else
-                dependencyManager.dependencies(project, context, projects)
+            dependencyManager.testDependencies(project, context, projects)
+        else
+            dependencyManager.dependencies(project, context, projects)
 
         val projectDirectory = File(project.directory)
         val buildDirectory = if (isTest) KFiles.makeOutputTestDir(project)
-                else File(project.classesDir(context))
+        else File(project.classesDir(context))
         buildDirectory.mkdirs()
 
         val initialSourceDirectories = arrayListOf<File>()
 
         // Source directories from the contributors
         initialSourceDirectories.addAll(
-            if (isTest) {
-                context.pluginInfo.testSourceDirContributors.flatMap { it.testSourceDirectoriesFor(project, context) }
-            } else {
-                context.pluginInfo.sourceDirContributors.flatMap { it.sourceDirectoriesFor(project, context) }
-            })
+                if (isTest) {
+                    context.pluginInfo.testSourceDirContributors.flatMap { it.testSourceDirectoriesFor(project, context) }
+                } else {
+                    context.pluginInfo.sourceDirContributors.flatMap { it.sourceDirectoriesFor(project, context) }
+                })
 
         // Transform them with the interceptors, if any
         val sourceDirectories = if (isTest) {
             initialSourceDirectories
-            } else {
-                context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories.toList(),
-                        { sd, interceptor -> interceptor.intercept(project, context, sd) })
-            }.filter {
-                File(project.directory, it.path).exists()
-            }
+        } else {
+            context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories.toList(),
+                    { sd, interceptor -> interceptor.intercept(project, context, sd) })
+        }.filter {
+            File(project.directory, it.path).exists()
+        }
 
         // Now that we have the final list of source dirs, find source files in them
         val sourceFiles = files.findRecursively(projectDirectory, sourceDirectories,
-                { it .endsWith(project.sourceSuffix) })
+                { it.endsWith(project.sourceSuffix) })
                 .map { File(projectDirectory, it).path }
 
         // Finally, alter the info with the compiler interceptors before returning it
@@ -269,5 +269,22 @@ abstract class JvmCompilerPlugin @Inject constructor(
     // ISourceDirectoryContributor
     override fun sourceDirectoriesFor(project: Project, context: KobaltContext)
             = if (accept(project)) sourceDirectories.toList() else arrayListOf()
+
+    @IncrementalTask(name = TASK_COMPILE_TEST, description = "Compile the tests",
+            runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
+    fun taskCompileTest(project: Project): IncrementalTaskInfo {
+        val inputChecksum = Md5.toMd5Directories(project.sourceDirectoriesTest.map {
+            File(project.directory, it)
+        })
+        return IncrementalTaskInfo(
+                inputChecksum = inputChecksum,
+                outputChecksum = {
+                    Md5.toMd5Directories(listOf(KFiles.makeOutputTestDir(project)))
+                },
+                task = { project -> doTaskCompileTest(project) }
+        )
+    }
+
+    abstract protected fun doTaskCompileTest(project: Project): TaskResult
 }
 

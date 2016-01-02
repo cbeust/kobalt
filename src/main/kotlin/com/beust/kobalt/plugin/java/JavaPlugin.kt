@@ -3,7 +3,6 @@ package com.beust.kobalt.plugin.java
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DepFactory
@@ -51,9 +50,7 @@ class JavaPlugin @Inject constructor(
         return result
     }
 
-    @Task(name = TASK_COMPILE_TEST, description = "Compile the tests",
-            runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
-    fun taskCompileTest(project: Project): TaskResult {
+    override fun doTaskCompileTest(project: Project): TaskResult {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
         val compilerActionInfo = createCompilerActionInfo(project, context, isTest = true)
         val result = javaCompiler.compile(project, context, compilerActionInfo)
