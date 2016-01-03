@@ -6,7 +6,6 @@ import org.testng.annotations.DataProvider
 import org.testng.annotations.Test
 import java.io.File
 import java.nio.file.Files
-import java.util.*
 
 class IncludeExcludeTest : KobaltTest() {
     private lateinit var topDirectory: File
@@ -31,21 +30,20 @@ class IncludeExcludeTest : KobaltTest() {
 
     @DataProvider
     fun dp() : Array<Array<out Any?>> = arrayOf(
-            arrayOf(directory, arrayListOf("A**class", "B**class"), arrayListOf<String>(), listOf(A1, B1, B2)),
-            arrayOf(directory, arrayListOf("A**class", "B**class"), arrayListOf("B*class"), listOf(A1)),
-            arrayOf(directory, arrayListOf("*class"), arrayListOf("B*class"), listOf(A1, C1, C2, C3)),
-            arrayOf(topDirectory, arrayListOf("**/*class"), arrayListOf<String>(), listOf(A1, B1, B2, C1, C2, C3)),
-            arrayOf(topDirectory, arrayListOf("*class"), arrayListOf<String>(), listOf<String>()),
-            arrayOf(topDirectory, arrayListOf("**/B*class"), arrayListOf<String>(), listOf(B1, B2)),
-            arrayOf(topDirectory, arrayListOf("**/A*class", "**/B*class"), arrayListOf("B*class"),
+            arrayOf(directory, listOf("A**class", "B**class"), listOf<String>(), listOf(A1, B1, B2)),
+            arrayOf(directory, listOf("A**class", "B**class"), listOf("B*class"), listOf(A1)),
+            arrayOf(directory, listOf("*class"), listOf("B*class"), listOf(A1, C1, C2, C3)),
+            arrayOf(topDirectory, listOf("**/*class"), listOf<String>(), listOf(A1, B1, B2, C1, C2, C3)),
+            arrayOf(topDirectory, listOf("*class"), listOf<String>(), listOf<String>()),
+            arrayOf(topDirectory, listOf("**/B*class"), listOf<String>(), listOf(B1, B2)),
+            arrayOf(topDirectory, listOf("**/A*class", "**/B*class"), listOf("B*class"),
                     listOf(A1, B1, B2)),
-            arrayOf(topDirectory, arrayListOf("**/A*class", "**/B*class"), arrayListOf("**/B*class"),
+            arrayOf(topDirectory, listOf("**/A*class", "**/B*class"), listOf("**/B*class"),
                 listOf(A1))
     )
 
     @Test(dataProvider = "dp")
-    fun shouldInclude(root: File, includedSpec: ArrayList<String>, excludedSpec: ArrayList<String>,
-            expectedFiles: List<String>) {
+    fun shouldInclude(root: File, includedSpec: List<String>, excludedSpec: List<String>, expectedFiles: List<String>) {
         val g = IFileSpec.GlobSpec(includedSpec)
         val files = g.toFiles(root.path, excludedSpec.map { Glob(it) })
         Assert.assertEquals(files.map { it.name }, expectedFiles)

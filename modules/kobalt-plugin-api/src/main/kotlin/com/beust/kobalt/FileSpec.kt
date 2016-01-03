@@ -4,7 +4,6 @@ import com.beust.kobalt.misc.log
 import java.io.File
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
 
 /**
  * Subclasses of IFileSpec can be turned into a list of files. There are two kings: FileSpec (a single file)
@@ -19,7 +18,7 @@ sealed class IFileSpec {
         override public fun toString() = spec
     }
 
-    class GlobSpec(val spec: ArrayList<String>) : IFileSpec() {
+    class GlobSpec(val spec: List<String>) : IFileSpec() {
 
         constructor(spec: String) : this(arrayListOf(spec))
 
