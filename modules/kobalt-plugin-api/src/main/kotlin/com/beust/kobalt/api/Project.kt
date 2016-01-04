@@ -1,5 +1,6 @@
 package com.beust.kobalt.api
 
+import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.IProjectInfo
 import com.beust.kobalt.maven.dependency.MavenDependency
@@ -23,14 +24,11 @@ open class Project(
         @Directive open var packageName: String? = group,
         val projectInfo: IProjectInfo) : IBuildConfig {
 
+    val testConfigs = arrayListOf<TestConfig>()
+
     override var buildConfig : BuildConfig? = null //BuildConfig()
 
-    val testArgs = arrayListOf<String>()
-    val testJvmArgs = arrayListOf<String>()
-
     val projectProperties = ProjectProperties()
-    val testIncludes = arrayListOf("**/*Test.class")
-    val testExcludes = arrayListOf<String>()
 
     override fun equals(other: Any?): Boolean {
         return name == (other as Project).name
