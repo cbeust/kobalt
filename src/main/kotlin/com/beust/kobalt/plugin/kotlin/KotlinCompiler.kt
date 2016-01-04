@@ -7,7 +7,6 @@ import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.kotlin.ParentLastClassLoader
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
