@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-java -jar $(dirname $0)/kobalt/wrapper/kobalt-wrapper.jar $*
+java -jar $(dirname "$(readlink -f $0)")/kobalt/wrapper/kobalt-wrapper.jar $*
