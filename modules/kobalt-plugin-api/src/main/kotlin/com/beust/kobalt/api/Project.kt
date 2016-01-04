@@ -77,7 +77,8 @@ open class Project(
 
     @Directive
     fun dependencies(init: Dependencies.() -> Unit) : Dependencies {
-        dependencies = Dependencies(this, compileDependencies, compileProvidedDependencies, compileRuntimeDependencies)
+        dependencies = Dependencies(this, compileDependencies, compileProvidedDependencies, compileRuntimeDependencies,
+                excludedDependencies)
         dependencies!!.init()
         return dependencies!!
     }
@@ -85,10 +86,12 @@ open class Project(
     val compileDependencies : ArrayList<IClasspathDependency> = arrayListOf()
     val compileProvidedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
     val compileRuntimeDependencies : ArrayList<IClasspathDependency> = arrayListOf()
+    val excludedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
 
     @Directive
     fun dependenciesTest(init: Dependencies.() -> Unit) : Dependencies {
-        dependencies = Dependencies(this, testDependencies, testProvidedDependencies, compileRuntimeDependencies)
+        dependencies = Dependencies(this, testDependencies, testProvidedDependencies, compileRuntimeDependencies,
+                excludedDependencies)
         dependencies!!.init()
         return dependencies!!
     }
@@ -130,7 +133,8 @@ class Sources(val project: Project, val sources: HashSet<String>) {
 
 class Dependencies(val project: Project, val dependencies: ArrayList<IClasspathDependency>,
         val providedDependencies: ArrayList<IClasspathDependency>,
-        val runtimeDependencies: ArrayList<IClasspathDependency>) {
+        val runtimeDependencies: ArrayList<IClasspathDependency>,
+        val excludedDependencies: ArrayList<IClasspathDependency>) {
     @Directive
     fun compile(vararg dep: String) {
         dep.forEach { dependencies.add(MavenDependency.create(it)) }
@@ -144,6 +148,11 @@ class Dependencies(val project: Project, val dependencies: ArrayList<IClasspathD
     @Directive
     fun runtime(vararg dep: String) {
         dep.forEach { runtimeDependencies.add(MavenDependency.create(it))}
+    }
+
+    @Directive
+    fun exclude(vararg dep: String) {
+        dep.forEach { excludedDependencies.add(MavenDependency.create(it))}
     }
 }
 

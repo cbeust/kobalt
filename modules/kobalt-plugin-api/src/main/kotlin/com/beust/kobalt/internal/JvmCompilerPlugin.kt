@@ -213,6 +213,14 @@ abstract class JvmCompilerPlugin @Inject constructor(
     }
 
     /**
+     * Naïve implementation: just exclude all dependencies that start with one of the excluded dependencies.
+     * Should probably make exclusion more generic (full on string) or allow exclusion to be specified
+     * formally by groupId or artifactId.
+     */
+    private fun isDependencyExcluded(id: IClasspathDependency, excluded: List<IClasspathDependency>)
+            = excluded.any { id.id.startsWith(it.id) }
+
+    /**
      * Create a CompilerActionInfo (all the information that a compiler needs to know) for the given parameters.
      * Runs all the contributors and interceptors relevant to that task.
      */
@@ -220,10 +228,15 @@ abstract class JvmCompilerPlugin @Inject constructor(
             CompilerActionInfo {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
 
-        val classpath = if (isTest)
+        val fullClasspath = if (isTest)
             dependencyManager.testDependencies(project, context, projects)
         else
             dependencyManager.dependencies(project, context, projects)
+
+        // Remove all the excluded dependencies from the classpath
+        val classpath = fullClasspath.filter {
+            ! isDependencyExcluded(it, project.excludedDependencies)
+        }
 
         val projectDirectory = File(project.directory)
         val buildDirectory = if (isTest) KFiles.makeOutputTestDir(project)
