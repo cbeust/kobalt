@@ -65,7 +65,7 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
 
         if (results.size > 0) {
 //            results.sortByDescending { Versions.toLongVersion(it.version) }
-            results.sort({ left, right -> left.version!!.compareTo(right.version!!) })
+            results.sort({ left, right -> right.version!!.compareTo(left.version!!) })
             return results[0]
         } else {
             return RepoResult(HostConfig(""), false, Version.of(id))
