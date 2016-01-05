@@ -206,7 +206,7 @@ public class Main {
         }
         log(2, "Generating " + KOBALTW + (envFile.exists() ? " with shebang" : "") + ".");
 
-        content += "java -jar $(dirname \"$(readlink -f $0)\")/kobalt/wrapper/kobalt-wrapper.jar $*\n";
+        content += "java -jar $(dirname $0)/kobalt/wrapper/kobalt-wrapper.jar $*\n";
 
         Files.write(filePath, content.getBytes());
 
