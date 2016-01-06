@@ -175,7 +175,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         return IncrementalTaskInfo(
                 inputChecksum = inputChecksum,
                 outputChecksum = {
-                    Md5.toMd5Directories(listOf(File(project.classesDir(context))))
+                    Md5.toMd5Directories(listOf(File(project.directory, project.classesDir(context))))
                 },
                 task = { project -> doTaskCompile(project) }
         )
