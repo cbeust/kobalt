@@ -88,26 +88,26 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
                         if (outputChecksum == taskOutputChecksum) {
                             upToDate = true
                         } else {
-                            logIncremental(1, "Incremental task $taskName output is out of date, running it")
+                            logIncremental(2, "Incremental task $taskName output is out of date, running it")
                         }
                     }
                 } else {
-                    logIncremental(1, "Incremental task $taskName input is out of date, running it"
+                    logIncremental(2, "Incremental task $taskName input is out of date, running it"
                             + " old: $inputChecksum new: ${iit.inputChecksum}")
                 }
             }
             if (! upToDate) {
                 val result = iit.task(project)
                 if (result.success) {
-                    logIncremental(1, "Incremental task $taskName done running, saving checksums")
+                    logIncremental(2, "Incremental task $taskName done running, saving checksums")
                     iit.inputChecksum?.let {
                         saveInputChecksum(taskName, it)
-                        logIncremental(1, "          input checksum \"$it\" saved")
+                        logIncremental(2, "          input checksum \"$it\" saved")
                     }
                     // Important to rerun the checksum here since the output of the task might have changed it
                     iit.outputChecksum()?.let {
                         saveOutputChecksum(taskName, it)
-                        logIncremental(1, "          output checksum \"$it\" saved")
+                        logIncremental(2, "          output checksum \"$it\" saved")
                     }
                 }
                 result
