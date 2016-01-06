@@ -42,6 +42,7 @@ public class Md5 {
                             }
                         }
                     }
+
                     // The output directory might exist but with no files in it, in which case
                     // we must run the task
                     if (fileCount > 0) {
