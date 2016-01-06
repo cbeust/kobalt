@@ -93,26 +93,28 @@ private class Main @Inject constructor(
             }
         }
 
-        log(1, if (result != 0) "BUILD FAILED: $result" else "BUILD SUCCESSFUL ($seconds seconds)")
+        if (! args.update) {
+            log(1, if (result != 0) "BUILD FAILED: $result" else "BUILD SUCCESSFUL ($seconds seconds)")
 
-        // Check for new version
-        try {
-            val latestVersionString = latestVersionFuture.get(1, TimeUnit.SECONDS)
-            val latestVersion = Versions.toLongVersion(latestVersionString)
-            val current = Versions.toLongVersion(Kobalt.version)
-            val distFile = File(KFiles.joinDir(KFiles.distributionsDir, latestVersionString))
-            if (latestVersion > current) {
-                if (distFile.exists()) {
-                    log(1, "**** Version $latestVersionString is installed")
-                } else {
-                    listOf("", "New Kobalt version available: $latestVersionString",
-                            "To update, run ./kobaltw --update", "").forEach {
-                        log(1, "**** $it")
+            // Check for new version
+            try {
+                val latestVersionString = latestVersionFuture.get(1, TimeUnit.SECONDS)
+                val latestVersion = Versions.toLongVersion(latestVersionString)
+                val current = Versions.toLongVersion(Kobalt.version)
+                val distFile = File(KFiles.joinDir(KFiles.distributionsDir, latestVersionString))
+                if (latestVersion > current) {
+                    if (distFile.exists()) {
+                        log(1, "**** Version $latestVersionString is installed")
+                    } else {
+                        listOf("", "New Kobalt version available: $latestVersionString",
+                                "To update, run ./kobaltw --update", "").forEach {
+                            log(1, "**** $it")
+                        }
                     }
                 }
+            } catch(ex: TimeoutException) {
+                log(2, "Didn't get the new version in time, skipping it")
             }
-        } catch(ex: TimeoutException) {
-            log(2, "Didn't get the new version in time, skipping it")
         }
         return result
     }
@@ -146,55 +148,61 @@ private class Main @Inject constructor(
         } else if (args.serverMode) {
             server.run()
         } else {
-            if (!buildFile.exists()) {
-                error(buildFile.path.toFile().path + " does not exist")
+            // Update doesn't require to parse the build file
+            if (args.update) {
+                // --update
+                updateKobalt.updateKobalt()
             } else {
-                val allProjects = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
-                        .compileBuildFiles(args)
+                //
+                // Everything below requires to parse the build file first
+                //
+                if (!buildFile.exists()) {
+                    error(buildFile.path.toFile().path + " does not exist")
+                } else {
+                    val allProjects = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
+                            .compileBuildFiles(args)
 
-                //
-                // Now that we have projects, add all the repos from repo contributors that need a Project
-                //
-                allProjects.forEach { project ->
-                    pluginInfo.repoContributors.forEach {
-                        it.reposFor(project).forEach {
-                            Kobalt.addRepo(it)
+                    //
+                    // Now that we have projects, add all the repos from repo contributors that need a Project
+                    //
+                    allProjects.forEach { project ->
+                        pluginInfo.repoContributors.forEach {
+                            it.reposFor(project).forEach {
+                                Kobalt.addRepo(it)
+                            }
                         }
                     }
-                }
 
-                //
-                // Run all their dependencies through the IDependencyInterceptors
-                //
-                runClasspathInterceptors(allProjects)
-
-                log(2, "Final list of repos:\n  " + Kobalt.repos.joinToString("\n  "))
-
-                if (args.dependency != null) {
-                    // --resolve
-                    resolveDependency.run(args.dependency as String)
-                } else if (args.tasks) {
-                    // --tasks
-                    displayTasks()
-                } else if (args.checkVersions) {
-                    // --checkVersions
-                    checkVersions.run(allProjects)
-                } else if (args.download) {
-                    // -- download
-                    updateKobalt.downloadKobalt()
-                } else if (args.update) {
-                    // --update
-                    updateKobalt.updateKobalt()
-                } else {
                     //
-                    // Launch the build
+                    // Run all their dependencies through the IDependencyInterceptors
                     //
-                    val runTargetResult = taskManager.runTargets(args.targets, allProjects)
-                    if (result == 0) {
-                        result = runTargetResult.exitCode
+                    runClasspathInterceptors(allProjects)
+
+                    log(2, "Final list of repos:\n  " + Kobalt.repos.joinToString("\n  "))
+
+                    if (args.dependency != null) {
+                        // --resolve
+                        resolveDependency.run(args.dependency as String)
+                    } else if (args.tasks) {
+                        // --tasks
+                        displayTasks()
+                    } else if (args.checkVersions) {
+                        // --checkVersions
+                        checkVersions.run(allProjects)
+                    } else if (args.download) {
+                        // -- download
+                        updateKobalt.downloadKobalt()
+                    } else {
+                        //
+                        // Launch the build
+                        //
+                        val runTargetResult = taskManager.runTargets(args.targets, allProjects)
+                        if (result == 0) {
+                            result = runTargetResult.exitCode
+                        }
+
+                        log(2, "Timings:\n  " + runTargetResult.messages.joinToString("\n  "))
                     }
-
-                    log(2, "Timings:\n  " + runTargetResult.messages.joinToString("\n  "))
                 }
             }
         }
