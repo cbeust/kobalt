@@ -36,7 +36,7 @@ public class Gpg {
         val result = arrayListOf<File>()
         val gpg = findGpgCommand()
         if (gpg != null) {
-            val directory = files.get(0).parentFile.absoluteFile
+            val directory = files[0].parentFile.absoluteFile
             files.forEach { file ->
                 val ascFile = File(file.absolutePath + ".asc")
                 ascFile.delete()
