@@ -162,8 +162,9 @@ public fun Project.github(init: GithubConfig.() -> Unit) {
 
 data class JCenterConfig(val project: Project) {
     /**
-     * If true, publish the files to JCenter. If false, the uploaded files will be available only in your
-     * personal bintray maven space
+     * If true, the uploaded file will be published in your personal space (e.g. https://dl.bintray.com/cbeust/maven).
+     * Once the file is uploaded there, it can be automatically synchronized to JCenter by linking your project to
+     * JCenter on the bintray web site. By default, files are not published.
      */
     @Directive
     var publish: Boolean = false
