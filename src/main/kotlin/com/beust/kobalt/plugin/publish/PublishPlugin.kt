@@ -161,7 +161,20 @@ public fun Project.github(init: GithubConfig.() -> Unit) {
 }
 
 data class JCenterConfig(val project: Project) {
+    /**
+     * If true, publish the files to JCenter. If false, the uploaded files will be available only in your
+     * personal bintray maven space
+     */
+    @Directive
     var publish: Boolean = false
+
+    /**
+     * If true, sign the files with GPG. This is only required if you plan to later synchronize these files
+     * from JCenter to Maven Central. Keep this to false if you are only interested in uploading to JCenter.
+     */
+    @Directive
+    var sign: Boolean = false
+
     val files = arrayListOf<Pair<String, String>>()
 
     @Directive

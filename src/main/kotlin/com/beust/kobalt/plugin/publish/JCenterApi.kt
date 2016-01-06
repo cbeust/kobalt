@@ -101,20 +101,20 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
                     .joinToString("/")
         }
 
-        return upload(files, config, fileToPath, generateMd5 = true, generateAsc = true)
+        return upload(files, config, fileToPath, generateMd5 = true)
     }
 
     fun uploadFile(file: File, url: String, config: JCenterConfig, generateMd5: Boolean = false,
             generateAsc: Boolean = false) =
         upload(arrayListOf(file), config, {
                 f: File -> "${UnauthenticatedJCenterApi.BINTRAY_URL_API_CONTENT}/$username/generic/$url"},
-                generateMd5, generateAsc)
+                generateMd5)
 
     private fun upload(files: List<File>, config: JCenterConfig?, fileToPath: (File) -> String,
-            generateMd5: Boolean = false, generateAsc: Boolean) : TaskResult {
+            generateMd5: Boolean = false) : TaskResult {
         val filesToUpload = arrayListOf<File>()
 
-        if (generateAsc) {
+        if (config != null && config.sign) {
             // Create the .asc files
             filesToUpload.addAll(gpg.runGpg(files))
         }
