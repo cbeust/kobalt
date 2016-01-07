@@ -1,6 +1,6 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="Kobalt" verbose="1">
+<suite name="Kobalt" verbose="2">
 
   <test name="Main">
       <packages>
