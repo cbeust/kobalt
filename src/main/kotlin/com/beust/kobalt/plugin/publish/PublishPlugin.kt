@@ -143,7 +143,6 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
 }
 
 data class GithubConfig(val project: Project) {
-    var publish: Boolean = false
     val files = arrayListOf<File>()
 
     @Directive

@@ -147,7 +147,7 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
         //
         val fileCount = filesToUpload.size
         if (fileCount > 0) {
-            log(1, "  Found $fileCount artifacts to upload: " + filesToUpload.get(0)
+            log(1, "  Found $fileCount artifacts to upload: " + filesToUpload[0]
                     + if (fileCount > 1) "..." else "")
             var i = 1
             val errorMessages = arrayListOf<String>()
