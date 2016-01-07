@@ -122,6 +122,7 @@ val kobaltApp = kotlinProject(kobaltPluginApi, wrapper) {
                 "com.beust:jcommander:1.48",
                 "com.squareup.retrofit:retrofit:1.9.0",
                 "org.apache.maven:maven-model:3.3.3",
+                "com.google.code.findbugs:jsr305:3.0.1",
                 "org.codehaus.plexus:plexus-utils:3.0.22")
 
     }

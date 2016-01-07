@@ -15,9 +15,9 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.inject.assistedinject.Assisted
 import com.squareup.okhttp.Response
-import org.jetbrains.annotations.Nullable
 import retrofit.mime.TypedFile
 import java.io.File
+import javax.annotation.Nullable
 import javax.inject.Inject
 
 data class JCenterPackage(val jo: JsonObject) {
@@ -52,8 +52,10 @@ open public class UnauthenticatedJCenterApi @Inject constructor(open val http: H
 //    }
 }
 
-public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val username: String?,
-        @Nullable @Assisted("password") val password: String?, @Nullable @Assisted("org") val org: String?,
+public class JCenterApi @Inject constructor (
+        @Nullable @Assisted("username") val username: String?,
+        @Nullable @Assisted("password") val password: String?,
+        @Nullable @Assisted("org") val org: String?,
         override val http: Http, val gpg: Gpg, val executors: KobaltExecutors) : UnauthenticatedJCenterApi(http) {
 
     interface IFactory {
@@ -63,8 +65,9 @@ public class JCenterApi @Inject constructor (@Nullable @Assisted("username") val
     }
 
     fun packageExists(packageName: String) : Boolean {
-        val url = arrayListOf(UnauthenticatedJCenterApi.BINTRAY_URL_API, "packages", org ?: username!!, "maven", packageName)
-                .joinToString("/")
+        val url = arrayListOf(UnauthenticatedJCenterApi.BINTRAY_URL_API, "packages", org ?: username!!,
+                "maven", packageName)
+            .joinToString("/")
         val jcResponse = parseResponse(http.get(username, password, url))
 
         if (jcResponse.errorMessage != null) {
