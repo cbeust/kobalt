@@ -93,7 +93,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         val password = localProperties.get(PROPERTY_BINTRAY_PASSWORD, docUrl)
         val org = localProperties.getNoThrows(PROPERTY_BINTRAY_ORG, docUrl)
 
-        val jcenter = jcenterFactory.create(org ?: user, password)
+        val jcenter = jcenterFactory.create(user, password, org)
         var success = false
         val configuration = jcenterConfigurations[project.name]
         val messages = arrayListOf<String>()
