@@ -5,7 +5,10 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.app.*
+import com.beust.kobalt.app.BuildFileCompiler
+import com.beust.kobalt.app.MainModule
+import com.beust.kobalt.app.ProjectGenerator
+import com.beust.kobalt.app.UpdateKobalt
 import com.beust.kobalt.app.remote.KobaltClient
 import com.beust.kobalt.app.remote.KobaltServer
 import com.beust.kobalt.internal.PluginInfo
@@ -149,8 +152,6 @@ private class Main @Inject constructor(
             if (args.update) {
                 // --update
                 updateKobalt.updateKobalt()
-            } else if (args.verifyDistribution) {
-                VerifyKobaltZip().run()
             } else {
                 //
                 // Everything below requires to parse the build file first

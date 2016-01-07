@@ -56,9 +56,5 @@ class Args {
 
     @Parameter(names = arrayOf("--update"), description = "Update to the latest version of Kobalt")
     var update: Boolean = false
-
-    @Parameter(names = arrayOf("--verifyDistribution"), description = "Verify the distribution",
-            hidden = true)
-    var verifyDistribution: Boolean = false
 }
 

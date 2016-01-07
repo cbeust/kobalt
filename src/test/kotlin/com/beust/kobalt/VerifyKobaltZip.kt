@@ -1,15 +1,16 @@
-package com.beust.kobalt.app
+package com.beust.kobalt
 
-import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
+import org.testng.annotations.Test
 import java.io.FileInputStream
 import java.util.jar.JarFile
 import java.util.jar.JarInputStream
 
-class VerifyKobaltZip {
-    fun run() {
+class VerifyKobaltZipTest : KobaltTest() {
+    @Test
+    fun verifyZipFile() {
         var success = true
         var foundKobaltw = false
         var foundJar = false
