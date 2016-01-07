@@ -44,7 +44,7 @@ public class DownloadTest @Inject constructor(
                 val future = dep.jarFile
                 Assert.assertFalse(future is CompletedFuture)
                 val file = future.get()
-                Assert.assertTrue(file.exists())
+                Assert.assertTrue(file.exists(), "Couldn't find ${file.absolutePath}")
             }
         } else {
             warn("Couldn't delete directory, not running test \"shouldDownloadWithVersion\"")
@@ -67,7 +67,7 @@ public class DownloadTest @Inject constructor(
             val file = future.get()
             Assert.assertFalse(future is CompletedFuture)
             Assert.assertNotNull(file)
-            Assert.assertTrue(file.exists())
+            Assert.assertTrue(file.exists(), "Couldn't find ${file.absolutePath}")
         } else {
             warn("Couldn't delete directory, not running test \"shouldDownloadNoVersion\"")
         }
@@ -106,7 +106,7 @@ public class DownloadTest @Inject constructor(
         val dep2 = MavenDependency.create("$idNoVersion$version")
         val file = dep2.jarFile.get()
         Assert.assertNotNull(file)
-        Assert.assertTrue(file.exists(), "Should find $file")
+        Assert.assertTrue(file.exists(), "Couldn't find ${file.absolutePath}")
     }
 
     @Test
