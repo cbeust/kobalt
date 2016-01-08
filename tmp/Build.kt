@@ -12,7 +12,7 @@ import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.kotlin.kotlinProject
 import com.beust.kobalt.plugin.packaging.assemble
 import com.beust.kobalt.plugin.publish.github
-import com.beust.kobalt.plugin.publish.jcenter
+import com.beust.kobalt.plugin.publish.bintray
 import com.beust.kobalt.repos
 import com.beust.kobalt.test
 import java.io.File
@@ -102,7 +102,7 @@ val kobaltPluginApi = kotlinProject {
         args("-nowarn")
     }
 
-    jcenter {
+    bintray {
         publish = true
     }
 }
@@ -156,7 +156,7 @@ val kobaltApp = kotlinProject(kobaltPluginApi, wrapper) {
         args("-nowarn")
     }
 
-    jcenter {
+    bintray {
         publish = true
     }
 
