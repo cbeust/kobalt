@@ -8,7 +8,7 @@ import com.beust.kobalt.maven.Pom
 import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.misc.DependencyExecutor
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.plugin.publish.JCenterApi
+import com.beust.kobalt.plugin.publish.BintrayApi
 import com.google.inject.AbstractModule
 import com.google.inject.Provider
 import com.google.inject.Singleton
@@ -24,11 +24,12 @@ public open class MainModule(val args: Args) : AbstractModule() {
     }
 
     override fun configure() {
+
         configureTest()
         val builder = FactoryModuleBuilder()
         arrayListOf(
                 PomGenerator.IFactory::class.java,
-                JCenterApi.IFactory::class.java,
+                BintrayApi.IFactory::class.java,
                 Pom.IFactory::class.java,
                 BuildFileCompiler.IFactory::class.java,
                 ArtifactFetcher.IFactory::class.java)

@@ -16,14 +16,14 @@ import javax.inject.Singleton
 @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
 @Singleton
 public class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGenerator.IFactory,
-            val jcenterFactory: JCenterApi.IFactory, val github: GithubApi, val localProperties: LocalProperties)
+            val bintrayFactory: BintrayApi.IFactory, val github: GithubApi, val localProperties: LocalProperties)
         : BasePlugin() {
 
     override val name = PLUGIN_NAME
 
     companion object {
         const val PLUGIN_NAME = "Publish"
-        private const val TASK_UPLOAD_JCENTER = "uploadJcenter"
+        private const val TASK_UPLOAD_BINTRAY = "uploadBintray"
         private const val TASK_UPLOAD_GITHUB = "uploadGithub"
         private const val TASK_GENERATE_POM = "generatePom"
 
@@ -55,47 +55,22 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         return result
     }
 
-    @Task(name = TASK_UPLOAD_JCENTER, description = "Upload files to JCenter",
+    @Task(name = TASK_UPLOAD_BINTRAY, description = "Upload files to Bintray",
             runAfter = arrayOf(TASK_GENERATE_POM))
-    fun taskUploadJcenter(project: Project): TaskResult {
+    fun taskUploadBintray(project: Project): TaskResult {
         validateProject(project)
-        return uploadJcenter(project)
+        return uploadBintray(project)
     }
 
-    @Task(name = TASK_UPLOAD_GITHUB, description = "Upload files to Github",
-            runAfter = arrayOf(TASK_GENERATE_POM))
-    fun taskUploadGithub(project: Project): TaskResult {
-        validateProject(project)
-        return uploadGithub(project)
-    }
-
-    private fun uploadGithub(project: Project) : TaskResult {
-        val configuration = githubConfigurations[project.name]
-
-        //
-        // Upload individual files, if applicable
-        //
-        if (configuration != null) {
-            configuration.files.forEach {
-                log(2, "Uploading $it tag: ${project.version}")
-                github.uploadRelease(project.name, project.version!!, it)
-            }
-        } else {
-            warn("Couldn't find any github{} configuration, not uploading anything")
-        }
-
-        return TaskResult()
-    }
-
-    private fun uploadJcenter(project: Project) : TaskResult {
+    private fun uploadBintray(project: Project) : TaskResult {
         val docUrl = DocUrl.PUBLISH_PLUGIN_URL
         val user = localProperties.get(PROPERTY_BINTRAY_USER, docUrl)
         val password = localProperties.get(PROPERTY_BINTRAY_PASSWORD, docUrl)
         val org = localProperties.getNoThrows(PROPERTY_BINTRAY_ORG, docUrl)
 
-        val jcenter = jcenterFactory.create(user, password, org)
+        val jcenter = bintrayFactory.create(user, password, org)
         var success = false
-        val configuration = jcenterConfigurations[project.name]
+        val configuration = bintrayConfigurations[project.name]
         val messages = arrayListOf<String>()
 
         if (configuration != null) {
@@ -125,12 +100,37 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         return TaskResult(success, messages.joinToString("\n  "))
     }
 
+    @Task(name = TASK_UPLOAD_GITHUB, description = "Upload files to Github",
+            runAfter = arrayOf(TASK_GENERATE_POM))
+    fun taskUploadGithub(project: Project): TaskResult {
+        validateProject(project)
+        return uploadGithub(project)
+    }
+
+    private fun uploadGithub(project: Project) : TaskResult {
+        val configuration = githubConfigurations[project.name]
+
+        //
+        // Upload individual files, if applicable
+        //
+        if (configuration != null) {
+            configuration.files.forEach {
+                log(2, "Uploading $it tag: ${project.version}")
+                github.uploadRelease(project.name, project.version!!, it)
+            }
+        } else {
+            warn("Couldn't find any github{} configuration, not uploading anything")
+        }
+
+        return TaskResult()
+    }
+
     /**
-     * Map of project name -> JCenterConfiguration
+     * Map of project name -> BintrayConfig
      */
-    private val jcenterConfigurations = hashMapOf<String, JCenterConfig>()
-    fun addJCenterConfiguration(projectName: String, config: JCenterConfig) {
-        jcenterConfigurations.put(projectName, config)
+    private val bintrayConfigurations = hashMapOf<String, BintrayConfig>()
+    fun addBintrayConfiguration(projectName: String, config: BintrayConfig) {
+        bintrayConfigurations.put(projectName, config)
     }
 
     /**
@@ -159,18 +159,18 @@ public fun Project.github(init: GithubConfig.() -> Unit) {
     }
 }
 
-data class JCenterConfig(val project: Project) {
+data class BintrayConfig(val project: Project) {
     /**
      * If true, the uploaded file will be published in your personal space (e.g. https://dl.bintray.com/cbeust/maven).
      * Once the file is uploaded there, it can be automatically synchronized to JCenter by linking your project to
-     * JCenter on the bintray web site. By default, files are not published.
+     * Bintray. By default, files are not published.
      */
     @Directive
     var publish: Boolean = false
 
     /**
      * If true, sign the files with GPG. This is only required if you plan to later synchronize these files
-     * from JCenter to Maven Central. Keep this to false if you are only interested in uploading to JCenter.
+     * from Bintray to Maven Central. Keep this to false if you are only interested in uploading to JCenter.
      */
     @Directive
     var sign: Boolean = false
@@ -184,9 +184,9 @@ data class JCenterConfig(val project: Project) {
 }
 
 @Directive
-public fun Project.jcenter(init: JCenterConfig.() -> Unit) {
-    with(JCenterConfig(this)) {
+public fun Project.bintray(init: BintrayConfig.() -> Unit) {
+    with(BintrayConfig(this)) {
         init()
-        (Kobalt.findPlugin(PublishPlugin.PLUGIN_NAME) as PublishPlugin).addJCenterConfiguration(name, this)
+        (Kobalt.findPlugin(PublishPlugin.PLUGIN_NAME) as PublishPlugin).addBintrayConfiguration(name, this)
     }
 }

@@ -20,72 +20,57 @@ import java.io.File
 import javax.annotation.Nullable
 import javax.inject.Inject
 
-data class JCenterPackage(val jo: JsonObject) {
+data class BintrayPackage(val jo: JsonObject) {
 //    @Suppress("UNCHECKED_CAST")
 //    val latestPublishedVersion = (jo.get("versions") as JsonArray).get(0) as JsonObject).
 }
 
-open public class UnauthenticatedJCenterApi @Inject constructor(open val http: Http){
+open public class UnauthenticatedBintrayApi @Inject constructor(open val http: Http) {
     companion object {
         const val BINTRAY_URL_API = "https://api.bintray.com"
         const val BINTRAY_URL_API_CONTENT = BINTRAY_URL_API + "/content"
     }
 
-    class JCenterResponse(val jo: JsonObject?, val errorMessage: String?)
+    class BintrayResponse(val jo: JsonObject?, val errorMessage: String?)
 
-    fun parseResponse(r: Response) : JCenterResponse {
+    fun parseResponse(r: Response): BintrayResponse {
         val networkResponse = r.networkResponse()
         if (networkResponse.code() != 200) {
             val message = networkResponse.message()
             val errorObject = JsonParser().parse(r.body().string()).asJsonObject
-            return JCenterResponse(null, message + ": " + errorObject.get("message").asString)
+            return BintrayResponse(null, message + ": " + errorObject.get("message").asString)
         } else {
-            return JCenterResponse(JsonParser().parse(r.body().string()).asJsonObject, null)
+            return BintrayResponse(JsonParser().parse(r.body().string()).asJsonObject, null)
         }
     }
-
-//    fun getPackage() : JCenterPackage {
-//        val url = arrayListOf(BINTRAY_URL_API, "packages", "cbeust", "maven", "kobalt").joinToString("/")
-//        val response = http.get(url).getAsString()
-//        val result = parseResponse(response)
-//        return JCenterPackage(result)
-//    }
 }
 
-public class JCenterApi @Inject constructor (
+class BintrayApi @Inject constructor (
         @Nullable @Assisted("username") val username: String?,
         @Nullable @Assisted("password") val password: String?,
         @Nullable @Assisted("org") val org: String?,
-        override val http: Http, val gpg: Gpg, val executors: KobaltExecutors) : UnauthenticatedJCenterApi(http) {
+        override val http: Http, val gpg: Gpg, val executors: KobaltExecutors) : UnauthenticatedBintrayApi(http) {
 
     interface IFactory {
         fun create(@Nullable @Assisted("username") username: String?,
                    @Nullable @Assisted("password") password: String?,
-                   @Nullable @Assisted("org") org: String?) : JCenterApi
+                   @Nullable @Assisted("org") org: String?) : BintrayApi
     }
 
     fun packageExists(packageName: String) : Boolean {
-        val url = arrayListOf(UnauthenticatedJCenterApi.BINTRAY_URL_API, "packages", org ?: username!!,
+        val url = arrayListOf(UnauthenticatedBintrayApi.BINTRAY_URL_API, "packages", org ?: username!!,
                 "maven", packageName)
             .joinToString("/")
         val jcResponse = parseResponse(http.get(username, password, url))
 
         if (jcResponse.errorMessage != null) {
-            throw KobaltException("Error from JCenter: ${jcResponse.errorMessage}")
+            throw KobaltException("Error from Bintray: ${jcResponse.errorMessage}")
         }
 
         return jcResponse.jo!!.get("name").asString == packageName
     }
 
-//    class ForPost(val name: String, val license: Array<String>)
-//
-//    fun createPackage(packageName: String) : String {
-//        val url = arrayListOf(UnauthenticatedJCenterApi.BINTRAY_URL_API, "packages", username!!, "maven").join("/")
-//        val jsonString = Gson().toJson(ForPost(packageName, arrayOf("Apache 2.0")))
-//        return http.post(username, password, url, jsonString)
-//    }
-
-    fun uploadMaven(project: Project, files: List<File>, config: JCenterConfig?) : TaskResult {
+    fun uploadMaven(project: Project, files: List<File>, config: BintrayConfig?) : TaskResult {
         if (! packageExists(project.name)) {
             throw KobaltException("Couldn't find a package called ${project.name} on bintray, please create one first" +
                     " as explained at https://bintray.com/docs/usermanual/uploads/uploads_creatinganewpackage.html")
@@ -93,7 +78,7 @@ public class JCenterApi @Inject constructor (
 
         val fileToPath: (File) -> String = { f: File ->
             arrayListOf(
-                    UnauthenticatedJCenterApi.BINTRAY_URL_API_CONTENT,
+                    UnauthenticatedBintrayApi.BINTRAY_URL_API_CONTENT,
                     org ?: username!!,
                     "maven",
                     project.name,
@@ -108,12 +93,12 @@ public class JCenterApi @Inject constructor (
         return upload(files, config, fileToPath, generateMd5 = true)
     }
 
-    fun uploadFile(file: File, url: String, config: JCenterConfig, generateMd5: Boolean = false) =
+    fun uploadFile(file: File, url: String, config: BintrayConfig?, generateMd5: Boolean = false) =
         upload(arrayListOf(file), config, {
-                f: File -> "${UnauthenticatedJCenterApi.BINTRAY_URL_API_CONTENT}/${org ?: username}/generic/$url"},
+                f: File -> "${UnauthenticatedBintrayApi.BINTRAY_URL_API_CONTENT}/${org ?: username}/generic/$url"},
                 generateMd5)
 
-    private fun upload(files: List<File>, config: JCenterConfig?, fileToPath: (File) -> String,
+    private fun upload(files: List<File>, config: BintrayConfig?, fileToPath: (File) -> String,
             generateMd5: Boolean = false) : TaskResult {
         val filesToUpload = arrayListOf<File>()
 
@@ -146,7 +131,7 @@ public class JCenterApi @Inject constructor (
         }
 
         //
-        // Uploads can'be done in parallel or JCenter rejects them
+        // Uploads can'be done in parallel or Bintray rejects them
         //
         val fileCount = filesToUpload.size
         if (fileCount > 0) {
@@ -165,7 +150,7 @@ public class JCenterApi @Inject constructor (
             filesToUpload.forEach { file ->
                 http.uploadFile(username, password, fileToPath(file) + optionPath,
                         TypedFile(MediaType.ANY_APPLICATION_TYPE.toString(), file),
-                        post = false, // JCenter requires PUT
+                        post = false, // Bintray requires PUT
                         success = { r: Response -> results.add(true) },
                         error = { r: Response ->
                             results.add(false)
