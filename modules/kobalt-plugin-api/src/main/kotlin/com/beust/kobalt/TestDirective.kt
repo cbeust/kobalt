@@ -34,7 +34,7 @@ class TestConfig(val project: Project) {
 
 @Directive
 fun Project.test(init: TestConfig.() -> Unit) = let { project ->
-    with(this.testConfigs) {
+    with(testConfigs) {
         clear()
         add(TestConfig(project).apply { init() })
     }
