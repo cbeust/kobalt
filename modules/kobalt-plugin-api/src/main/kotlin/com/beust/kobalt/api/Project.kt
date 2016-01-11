@@ -24,7 +24,7 @@ open class Project(
         @Directive open var packageName: String? = group,
         val projectInfo: IProjectInfo) : IBuildConfig {
 
-    val testConfigs = arrayListOf<TestConfig>()
+    val testConfigs = arrayListOf(TestConfig(this))
 
     override var buildConfig : BuildConfig? = null //BuildConfig()
 
