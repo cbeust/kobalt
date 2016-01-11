@@ -33,4 +33,9 @@ class TestConfig(val project: Project) {
 }
 
 @Directive
-fun Project.test(init: TestConfig.() -> Unit) = this.testConfigs.add(TestConfig(this).apply { init() })
+fun Project.test(init: TestConfig.() -> Unit) = let { project ->
+    with(this.testConfigs) {
+        clear()
+        add(TestConfig(project).apply { init() })
+    }
+}
