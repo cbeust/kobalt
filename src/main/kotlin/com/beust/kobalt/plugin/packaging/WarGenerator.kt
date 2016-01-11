@@ -56,6 +56,12 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         }
 
         result.add(IncludedFile(From(fullDir), To(WEB_INF), listOf(IFileSpec.GlobSpec("**"))))
+
+        //
+        // Finally, all the included/excluded files specified in the war{} directive
+        //
+        result.addAll(PackagingPlugin.findIncludedFiles(project.directory, war.includedFiles, war.excludes))
+
         return result
     }
 
