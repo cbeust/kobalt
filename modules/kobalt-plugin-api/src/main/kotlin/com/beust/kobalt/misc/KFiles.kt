@@ -49,9 +49,6 @@ class KFiles {
         const val KOBALT_DIR : String = "kobalt"
         const val KOBALT_BUILD_DIR = "kobaltBuild"
 
-        // Directories under ~/.kobalt
-        val localRepo = homeDir(KOBALT_DOT_DIR, "repository")
-
         /** Where all the .zip files are extracted */
         val distributionsDir = homeDir(KOBALT_DOT_DIR, "wrapper", "dist")
 

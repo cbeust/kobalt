@@ -1,6 +1,7 @@
 package com.beust.kobalt.app
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.maven.ArtifactFetcher
 import com.beust.kobalt.maven.LocalRepo
@@ -16,7 +17,7 @@ import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import java.util.concurrent.ExecutorService
 
-public open class MainModule(val args: Args) : AbstractModule() {
+public open class MainModule(val args: Args, val settings: KobaltSettings) : AbstractModule() {
     val executors = KobaltExecutors()
 
     open fun configureTest() {
@@ -48,7 +49,9 @@ public open class MainModule(val args: Args) : AbstractModule() {
         bind(PluginInfo::class.java).toProvider(Provider<PluginInfo> {
             PluginInfo.readKobaltPluginXml()
         }).`in`(Singleton::class.java)
-
+        bind(KobaltSettings::class.java).toProvider(Provider<KobaltSettings> {
+            settings
+        }).`in`(Singleton::class.java)
 
 //        bindListener(Matchers.any(), object: TypeListener {
 //            override fun <I> hear(typeLiteral: TypeLiteral<I>?, typeEncounter: TypeEncounter<I>?) {

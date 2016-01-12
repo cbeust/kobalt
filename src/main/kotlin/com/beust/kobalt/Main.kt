@@ -11,6 +11,7 @@ import com.beust.kobalt.app.ProjectGenerator
 import com.beust.kobalt.app.UpdateKobalt
 import com.beust.kobalt.app.remote.KobaltClient
 import com.beust.kobalt.app.remote.KobaltServer
+import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
@@ -43,7 +44,7 @@ private fun parseArgs(argv: Array<String>): Main.RunInfo {
 
 public fun mainNoExit(argv: Array<String>): Int {
     val (jc, args) = parseArgs(argv)
-    Kobalt.INJECTOR = Guice.createInjector(MainModule(args))
+    Kobalt.INJECTOR = Guice.createInjector(MainModule(args, KobaltSettings.readSettingsXml()))
     return Kobalt.INJECTOR.getInstance(Main::class.java).run(jc, args, argv)
 }
 

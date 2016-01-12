@@ -1,19 +1,24 @@
 package com.beust.kobalt.maven
 
+import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Versions
+import com.google.inject.Inject
 import java.io.File
-import java.util.Collections
+import java.util.*
 import javax.inject.Singleton
 
 @Singleton
-open public class LocalRepo(open val localRepo: String = KFiles.localRepo) {
+open public class LocalRepo @Inject constructor(val kobaltSettings: KobaltSettings) {
     init {
         val l = File(localRepo)
         if (! l.exists()) {
             l.mkdirs()
         }
     }
+
+    val localRepo: String
+        get() = kobaltSettings.localRepo
 
     fun existsPom(d: LocalDep, v: String) : Boolean {
         return File(d.toAbsolutePomFile(v)).exists()
