@@ -17,7 +17,7 @@ import javax.xml.bind.annotation.XmlRootElement
 @XmlRootElement(name = "kobalt-settings")
 class KobaltSettingsXml {
     @XmlElement @JvmField
-    var localRepo: String = homeDir(KFiles.KOBALT_DOT_DIR, "repository")
+    var localRepo: String = homeDir(KFiles.KOBALT_DIR, "repository")
 }
 
 /**
@@ -31,7 +31,7 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
     var localRepo = xmlFile.localRepo
 
     companion object {
-        val SETTINGS_FILE_PATH = homeDir(KFiles.KOBALT_DOT_DIR, "settings.xml")
+        val SETTINGS_FILE_PATH = homeDir(KFiles.KOBALT_DIR, "settings.xml")
 
         fun readSettingsXml() : KobaltSettings {
             val file = File(KobaltSettings.SETTINGS_FILE_PATH)
