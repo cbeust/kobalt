@@ -19,6 +19,8 @@ public class Strings {
         fun isEmpty(s: String?): Boolean {
             return s == null || s.isEmpty()
         }
+
+        fun pluralize(s: String, n: Int) = s + (if (n != 1) "s" else "")
     }
 
 }

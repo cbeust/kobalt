@@ -7,6 +7,7 @@ import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.misc.Strings
 import com.beust.kobalt.misc.benchmarkMillis
 import com.beust.kobalt.misc.kobaltError
 import com.beust.kobalt.misc.log
@@ -60,11 +61,16 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
             // Does the current project depend on any failed projects?
             val fp = project.projectInfo.dependsOn.filter {
                 failedProjects.contains(it.name)
+            }.map {
+                it.name
             }
+
             if (fp.size > 0) {
+                log(2, "Marking project ${project.name} as skipped")
                 failedProjects.add(project.name)
-                kobaltError("Not building project ${project.name} since it depends on failed projects "
-                        + fp.joinToString(","))
+                kobaltError("Not building project ${project.name} since it depends on failed "
+                        + Strings.pluralize("project", fp.size)
+                        + " " + fp.joinToString(","))
             } else {
                 val projectName = project.name
                 // There can be multiple tasks by the same name (e.g. PackagingPlugin and AndroidPlugin both
@@ -168,11 +174,12 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
 
                 val executor = DynamicGraphExecutor(graph, factory)
                 val thisResult = executor.run()
+                if (thisResult != 0) {
+                    log(2, "Marking project ${project.name} as failed")
+                    failedProjects.add(project.name)
+                }
                 if (result == 0) {
                     result = thisResult
-                }
-                if (result != 0) {
-                    failedProjects.add(project.name)
                 }
             }
         }
