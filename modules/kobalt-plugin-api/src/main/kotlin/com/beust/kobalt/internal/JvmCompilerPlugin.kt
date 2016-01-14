@@ -75,8 +75,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         val runContributor = ActorUtils.selectAffinityActor(project, context,
                 context.pluginInfo.testRunnerContributors)
         if (runContributor != null && runContributor.affinity(project, context) > 0) {
-            return runContributor.run(project, context, dependencyManager.testDependencies(project, context,
-                    projects()))
+            return runContributor.run(project, context, dependencyManager.testDependencies(project, context))
         } else {
             log(1, "Couldn't find a test runner for project ${project.name}, not running any tests")
             return TaskResult()
@@ -198,7 +197,18 @@ abstract class JvmCompilerPlugin @Inject constructor(
         }
     }
 
-    override fun projects() = projects
+    val allProjects = arrayListOf<ProjectDescription>()
+
+    fun addDependentProjects(project: Project, dependents: List<Project>) {
+        project.projectInfo.dependsOn.addAll(dependents)
+        with(ProjectDescription(project, dependents)) {
+            allProjects.add(this)
+        }
+    }
+
+    override fun projects() : List<ProjectDescription> {
+        return allProjects
+    }
 
     @Task(name = "doc", description = "Generate the documentation for the project")
     fun taskJavadoc(project: Project): TaskResult {
@@ -229,9 +239,9 @@ abstract class JvmCompilerPlugin @Inject constructor(
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
 
         val fullClasspath = if (isTest)
-            dependencyManager.testDependencies(project, context, projects)
+            dependencyManager.testDependencies(project, context)
         else
-            dependencyManager.dependencies(project, context, projects)
+            dependencyManager.dependencies(project, context)
 
         // Remove all the excluded dependencies from the classpath
         val classpath = fullClasspath.filter {

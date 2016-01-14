@@ -82,7 +82,7 @@ class KotlinPlugin @Inject constructor(
 
         val result =
                 if (sourceFiles.size > 0) {
-                    compilePrivate(project, dependencyManager.testDependencies(project, context, projects()),
+                    compilePrivate(project, dependencyManager.testDependencies(project, context),
                             sourceFiles,
                             KFiles.makeOutputTestDir(project))
                 } else {
@@ -153,10 +153,10 @@ class KotlinPlugin @Inject constructor(
  * @param project: the list of projects that need to be built before this one.
  */
 @Directive
-fun kotlinProject(vararg project: Project, init: KotlinProject.() -> Unit): KotlinProject {
+fun kotlinProject(vararg projects: Project, init: KotlinProject.() -> Unit): KotlinProject {
     return KotlinProject().apply {
         init()
-        (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as BasePlugin).addProject(this, project)
+        (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as JvmCompilerPlugin).addDependentProjects(this, projects.toList())
     }
 }
 

@@ -8,6 +8,7 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.misc.benchmarkMillis
+import com.beust.kobalt.misc.kobaltError
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
@@ -51,116 +52,129 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
 
     public fun runTargets(taskNames: List<String>, projects: List<Project>) : RunTargetResult {
         var result = 0
+        val failedProjects = hashSetOf<String>()
         val messages = Collections.synchronizedList(arrayListOf<String>())
         projects.forEach { project ->
-            val projectName = project.name
-            // There can be multiple tasks by the same name (e.g. PackagingPlugin and AndroidPlugin both
-            // define "install"), so use a multimap
-            val tasksByNames = ArrayListMultimap.create<String, PluginTask>()
-            annotationTasks.filter {
-                it.project.name == project.name
-            }.forEach {
-                tasksByNames.put(it.name, it)
-            }
-
             AsciiArt.logBox("Building ${project.name}")
 
-            log(3, "Tasks:")
-            tasksByNames.keys().forEach {
-                log(3, "  $it: " + tasksByNames.get(it))
+            // Does the current project depend on any failed projects?
+            val fp = project.projectInfo.dependsOn.filter {
+                failedProjects.contains(it.name)
             }
-            val graph = DynamicGraph<PluginTask>()
-            taskNames.forEach { taskName ->
-                val ti = TaskInfo(taskName)
-                if (! tasksByNames.keys().contains(ti.taskName)) {
-                    throw KobaltException("Unknown task: $taskName")
+            if (fp.size > 0) {
+                failedProjects.add(project.name)
+                kobaltError("Not building project ${project.name} since it depends on failed projects "
+                        + fp.joinToString(","))
+            } else {
+                val projectName = project.name
+                // There can be multiple tasks by the same name (e.g. PackagingPlugin and AndroidPlugin both
+                // define "install"), so use a multimap
+                val tasksByNames = ArrayListMultimap.create<String, PluginTask>()
+                annotationTasks.filter {
+                    it.project.name == project.name
+                }.forEach {
+                    tasksByNames.put(it.name, it)
                 }
 
-                if (ti.matches(projectName)) {
-                    tasksByNames[ti.taskName].forEach { task ->
-                        if (task != null && task.plugin.accept(project)) {
-                            val reverseAfter = hashMapOf<String, String>()
-                            alwaysRunAfter.keys().forEach { from ->
-                                val tasks = alwaysRunAfter.get(from)
-                                tasks.forEach {
-                                    reverseAfter.put(it, from)
-                                }
-                            }
+                log(3, "Tasks:")
+                tasksByNames.keys().forEach {
+                    log(3, "  $it: " + tasksByNames.get(it))
+                }
+                val graph = DynamicGraph<PluginTask>()
+                taskNames.forEach { taskName ->
+                    val ti = TaskInfo(taskName)
+                    if (!tasksByNames.keys().contains(ti.taskName)) {
+                        throw KobaltException("Unknown task: $taskName")
+                    }
 
-                            //
-                            // If the current target is free, add it as a single node to the graph
-                            //
-                            val allFreeTasks = calculateFreeTasks(tasksByNames, reverseAfter)
-                            val currentFreeTask = allFreeTasks.filter {
-                                TaskInfo(projectName, it.name).taskName == task.name
-                            }
-                            if (currentFreeTask.size == 1) {
-                                currentFreeTask[0].let {
-                                    graph.addNode(it)
-                                }
-                            }
-
-                            //
-                            // Add the transitive closure of the current task as edges to the graph
-                            //
-                            val transitiveClosure = calculateTransitiveClosure(project, tasksByNames, ti)
-                            transitiveClosure.forEach { pluginTask ->
-                                val rb = runBefore.get(pluginTask.name)
-                                rb.forEach {
-                                    val tos = tasksByNames[it]
-                                    if (tos != null && tos.size > 0) {
-                                        tos.forEach { to ->
-                                            graph.addEdge(pluginTask, to)
-                                        }
-                                    } else {
-                                        log(1, "Couldn't find node $it: not applicable to project ${project.name}")
+                    if (ti.matches(projectName)) {
+                        tasksByNames[ti.taskName].forEach { task ->
+                            if (task != null && task.plugin.accept(project)) {
+                                val reverseAfter = hashMapOf<String, String>()
+                                alwaysRunAfter.keys().forEach { from ->
+                                    val tasks = alwaysRunAfter.get(from)
+                                    tasks.forEach {
+                                        reverseAfter.put(it, from)
                                     }
                                 }
-                            }
 
-                            //
-                            // If any of the nodes in the graph has an "alwaysRunAfter", add that edge too
-                            //
-                            val allNodes = arrayListOf<PluginTask>()
-                            allNodes.addAll(graph.nodes)
-                            allNodes.forEach { node ->
-                                val other = alwaysRunAfter.get(node.name)
-                                other?.forEach { o ->
-                                    tasksByNames[o]?.forEach {
-                                        graph.addEdge(it, node)
+                                //
+                                // If the current target is free, add it as a single node to the graph
+                                //
+                                val allFreeTasks = calculateFreeTasks(tasksByNames, reverseAfter)
+                                val currentFreeTask = allFreeTasks.filter {
+                                    TaskInfo(projectName, it.name).taskName == task.name
+                                }
+                                if (currentFreeTask.size == 1) {
+                                    currentFreeTask[0].let {
+                                        graph.addNode(it)
+                                    }
+                                }
+
+                                //
+                                // Add the transitive closure of the current task as edges to the graph
+                                //
+                                val transitiveClosure = calculateTransitiveClosure(project, tasksByNames, ti)
+                                transitiveClosure.forEach { pluginTask ->
+                                    val rb = runBefore.get(pluginTask.name)
+                                    rb.forEach {
+                                        val tos = tasksByNames[it]
+                                        if (tos != null && tos.size > 0) {
+                                            tos.forEach { to ->
+                                                graph.addEdge(pluginTask, to)
+                                            }
+                                        } else {
+                                            log(1, "Couldn't find node $it: not applicable to project ${project.name}")
+                                        }
+                                    }
+                                }
+
+                                //
+                                // If any of the nodes in the graph has an "alwaysRunAfter", add that edge too
+                                //
+                                val allNodes = arrayListOf<PluginTask>()
+                                allNodes.addAll(graph.nodes)
+                                allNodes.forEach { node ->
+                                    val other = alwaysRunAfter.get(node.name)
+                                    other?.forEach { o ->
+                                        tasksByNames[o]?.forEach {
+                                            graph.addEdge(it, node)
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            //
-            // Now that we have a full graph, run it
-            //
-            log(3, "About to run graph:\n  ${graph.dump()}  ")
+                //
+                // Now that we have a full graph, run it
+                //
+                log(3, "About to run graph:\n  ${graph.dump()}  ")
 
-            val factory = object : IThreadWorkerFactory<PluginTask> {
-                override public fun createWorkers(nodes: List<PluginTask>): List<IWorker<PluginTask>> {
+                val factory = object : IThreadWorkerFactory<PluginTask> {
+                    override public fun createWorkers(nodes: List<PluginTask>): List<IWorker<PluginTask>> {
 //                    val tr = nodes.reduce { workers: List<TaskWorker>, node: PluginTask ->
 //                        val result: List<TaskWorker> = workers + TaskWorker(listOf(node), args.dryRun, messages)
 //                        result
 //                    }
-                    val thisResult = arrayListOf<IWorker<PluginTask>>()
-                    nodes.forEach {
-                        thisResult.add(TaskWorker(listOf(it), args.dryRun, messages))
+                        val thisResult = arrayListOf<IWorker<PluginTask>>()
+                        nodes.forEach {
+                            thisResult.add(TaskWorker(listOf(it), args.dryRun, messages))
+                        }
+                        return thisResult
                     }
-                    return thisResult
+                }
+
+                val executor = DynamicGraphExecutor(graph, factory)
+                val thisResult = executor.run()
+                if (result == 0) {
+                    result = thisResult
+                }
+                if (result != 0) {
+                    failedProjects.add(project.name)
                 }
             }
-
-            val executor = DynamicGraphExecutor(graph, factory)
-            val thisResult = executor.run()
-            if (result == 0) {
-                result = thisResult
-            }
-
         }
         return RunTargetResult(result, messages)
     }

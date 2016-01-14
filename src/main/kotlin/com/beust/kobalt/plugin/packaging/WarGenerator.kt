@@ -18,8 +18,7 @@ import java.util.jar.JarOutputStream
 
 class WarGenerator @Inject constructor(val dependencyManager: DependencyManager){
 
-    fun findIncludedFiles(project: Project, context: KobaltContext, war: War,
-            projects: List<ProjectDescription>) : List<IncludedFile> {
+    fun findIncludedFiles(project: Project, context: KobaltContext, war: War) : List<IncludedFile> {
         //
         // src/main/web app and classes
         //
@@ -32,7 +31,8 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         // The transitive closure of libraries goes into WEB-INF/libs.
         // Copy them all in kobaltBuild/war/WEB-INF/libs and create one IncludedFile out of that directory
         //
-        val allDependencies = dependencyManager.calculateDependencies(project, context, projects,
+        val dependentProjects = listOf(ProjectDescription(project, project.projectInfo.dependsOn))
+        val allDependencies = dependencyManager.calculateDependencies(project, context, dependentProjects,
                 project.compileDependencies)
 
         val WEB_INF = "WEB-INF/lib"
@@ -65,15 +65,14 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         return result
     }
 
-    fun generateWar(project: Project, context: KobaltContext, war: War,
-            projects: List<ProjectDescription>) : File {
+    fun generateWar(project: Project, context: KobaltContext, war: War) : File {
 
         val manifest = java.util.jar.Manifest()//FileInputStream(mf))
         war.attributes.forEach { attribute ->
             manifest.mainAttributes.putValue(attribute.first, attribute.second)
         }
 
-        val allFiles = findIncludedFiles(project, context, war, projects)
+        val allFiles = findIncludedFiles(project, context, war)
         val jarFactory = { os: OutputStream -> JarOutputStream(os, manifest) }
         return PackagingPlugin.generateArchive(project, context, war.name, ".war", allFiles,
                 false /* don't expand jar files */, jarFactory)

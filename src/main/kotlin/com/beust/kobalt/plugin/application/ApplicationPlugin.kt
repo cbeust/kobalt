@@ -55,7 +55,7 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
         val runContributor = ActorUtils.selectAffinityActor(project, context,
                 context.pluginInfo.runnerContributors)
         if (runContributor != null && runContributor.affinity(project, context) > 0) {
-            return runContributor.run(project, context, dependencyManager.dependencies(project, context, projects()))
+            return runContributor.run(project, context, dependencyManager.dependencies(project, context))
         } else {
             warn("Couldn't find a runner for project ${project.name}")
             return TaskResult()

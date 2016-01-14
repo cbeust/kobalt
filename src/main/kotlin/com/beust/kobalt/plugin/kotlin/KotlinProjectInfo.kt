@@ -9,7 +9,7 @@ import com.beust.kobalt.internal.BaseProjectInfo
 import com.google.inject.Singleton
 
 @Singleton
-class KotlinProjectInfo : BaseProjectInfo {
+class KotlinProjectInfo : BaseProjectInfo() {
     override val sourceDirectory = "kotlin"
     override val defaultSourceDirectories = hashSetOf("src/main/kotlin", "src/main/resources", "src/main/res")
     override val defaultTestDirectories = hashSetOf("src/test/kotlin", "src/test/resources", "src/test/res")

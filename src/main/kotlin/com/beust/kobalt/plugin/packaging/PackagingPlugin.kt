@@ -142,7 +142,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val inf = arrayListOf<IncludedFile>()
         packages.filter { it.project.name == project.name }.forEach { pkg ->
             pkg.jars.forEach { inf.addAll(jarGenerator.findIncludedFiles(pkg.project, context, it)) }
-            pkg.wars.forEach { inf.addAll(warGenerator.findIncludedFiles(pkg.project, context, it, projects)) }
+            pkg.wars.forEach { inf.addAll(warGenerator.findIncludedFiles(pkg.project, context, it)) }
             pkg.zips.forEach { inf.addAll(zipGenerator.findIncludedFiles(pkg.project, context, it)) }
         }
 
@@ -176,7 +176,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             project.projectProperties.put(PACKAGES, packages)
             packages.filter { it.project.name == project.name }.forEach { pkg ->
                 pkg.jars.forEach { jarGenerator.generateJar(pkg.project, context, it) }
-                pkg.wars.forEach { warGenerator.generateWar(pkg.project, context, it, projects) }
+                pkg.wars.forEach { warGenerator.generateWar(pkg.project, context, it) }
                 pkg.zips.forEach { zipGenerator.generateZip(pkg.project, context, it) }
                 if (pkg.generatePom) {
                     pomFactory.create(project).generate()

@@ -75,10 +75,10 @@ class JavaPlugin @Inject constructor(
 }
 
 @Directive
-public fun javaProject(vararg project: Project, init: JavaProject.() -> Unit): JavaProject {
+public fun javaProject(vararg projects: Project, init: JavaProject.() -> Unit): JavaProject {
     return JavaProject().apply {
         init()
-        (Kobalt.findPlugin(JavaPlugin.PLUGIN_NAME) as BasePlugin).addProject(this, project)
+        (Kobalt.findPlugin(JavaPlugin.PLUGIN_NAME) as JvmCompilerPlugin).addDependentProjects(this, projects.toList())
     }
 }
 

@@ -30,6 +30,8 @@ fun Any.warn(text: String) {
     KobaltLogger.logger.warn(javaClass.simpleName, text)
 }
 
+fun Any.kobaltError(text: String, e: Throwable? = null) = error(text, e)
+
 fun Any.error(text: String, e: Throwable? = null) {
     KobaltLogger.logger.error(javaClass.simpleName, text, e)
 }

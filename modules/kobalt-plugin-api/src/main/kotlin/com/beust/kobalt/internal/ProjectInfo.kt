@@ -23,10 +23,16 @@ interface IProjectInfo {
      */
     fun generateBuildConfig(project: Project, context: KobaltContext, packageName: String, variant: Variant,
             buildConfigs: List<BuildConfig>) : String
+
+    /**
+     * The list of projects that this project depends on
+     */
+    val dependsOn: ArrayList<Project>
 }
 
-interface BaseProjectInfo : IProjectInfo {
-    fun generate(field: BuildConfigField) : String
+abstract class BaseProjectInfo : IProjectInfo {
+    abstract fun generate(field: BuildConfigField) : String
+
     fun generate(type: String, name: String, value: Any) = generate(BuildConfigField(type, name, value))
 
     fun generateFieldsFromContributors(project: Project, context: KobaltContext)
@@ -35,4 +41,6 @@ interface BaseProjectInfo : IProjectInfo {
             }.map {
                 generate(it)
             }
+
+    override val dependsOn = arrayListOf<Project>()
 }

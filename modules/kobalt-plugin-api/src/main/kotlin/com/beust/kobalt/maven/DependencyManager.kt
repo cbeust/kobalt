@@ -114,9 +114,9 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
     /**
      * @return the compile dependencies for this project, including the contributors.
      */
-    fun dependencies(project: Project, context: KobaltContext,
-            projects: List<ProjectDescription>) : List<IClasspathDependency> {
+    fun dependencies(project: Project, context: KobaltContext) : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
+        val projects = listOf(ProjectDescription(project, project.projectInfo.dependsOn))
         result.add(FileDependency(KFiles.makeOutputDir(project).absolutePath))
         result.add(FileDependency(KFiles.makeOutputTestDir(project).absolutePath))
         with(project) {
@@ -131,9 +131,9 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
     /**
      * @return the test dependencies for this project, including the contributors.
      */
-    fun testDependencies(project: Project, context: KobaltContext,
-            projects: List<ProjectDescription>) : List<IClasspathDependency> {
+    fun testDependencies(project: Project, context: KobaltContext) : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
+        val projects = listOf(ProjectDescription(project, project.projectInfo.dependsOn))
         result.add(FileDependency(KFiles.makeOutputDir(project).absolutePath))
         result.add(FileDependency(KFiles.makeOutputTestDir(project).absolutePath))
         with(project) {
