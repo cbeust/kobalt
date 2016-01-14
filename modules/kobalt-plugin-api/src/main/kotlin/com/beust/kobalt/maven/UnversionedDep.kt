@@ -1,6 +1,5 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.misc.Strings
 import java.io.File
 
 /**
@@ -24,7 +23,7 @@ open class UnversionedDep(open val groupId: String, open val artifactId: String)
     fun toDirectory(v: String, fileSystem: Boolean = true, trailingSlash: Boolean = true): String {
         val sep = if (fileSystem) File.separator else "/"
         val l = listOf(groupId.replace(".", sep), artifactId, v)
-        val result = Strings.Companion.join(sep, l)
+        val result = l.joinToString(sep)
         return if (trailingSlash && ! result.endsWith(sep)) result + sep else result
     }
 }

@@ -4,22 +4,6 @@ import com.google.common.base.CharMatcher
 
 public class Strings {
     companion object {
-        fun <T> join(separator: String, strings: List<T>) : String {
-            var result = StringBuffer()
-            var i = 0
-            strings.forEach {
-                if (i++ > 0) {
-                    result.append(separator)
-                }
-                result.append(it)
-            }
-            return result.toString()
-        }
-
-        fun isEmpty(s: String?): Boolean {
-            return s == null || s.isEmpty()
-        }
-
         fun pluralize(s: String, n: Int) = s + (if (n != 1) "s" else "")
     }
 

@@ -3,7 +3,10 @@ package com.beust.kobalt.maven
 import com.beust.kobalt.HostConfig
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.maven.dependency.FileDependency
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.Version
+import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.warn
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
@@ -198,7 +201,7 @@ public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
             val doc = parseXml(url)
             val ts = timestamp.evaluate(doc, XPathConstants.STRING)
             val bn = buildNumber.evaluate(doc, XPathConstants.STRING)
-            if (! Strings.isEmpty(ts.toString()) && ! Strings.isEmpty(bn.toString())) {
+            if (! ts.toString().isEmpty() && ! bn.toString().isEmpty()) {
                 return Version(snapshotVersion, ts.toString() + "-" + bn.toString())
             } else {
                 val lastUpdated = XPATH.compile("/metadata/versioning/lastUpdated")
