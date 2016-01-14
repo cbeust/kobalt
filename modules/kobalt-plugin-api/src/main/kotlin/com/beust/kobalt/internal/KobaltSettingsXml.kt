@@ -17,7 +17,7 @@ import javax.xml.bind.annotation.XmlRootElement
 @XmlRootElement(name = "kobalt-settings")
 class KobaltSettingsXml {
     @XmlElement @JvmField
-    var localRepo: String = homeDir(KFiles.KOBALT_DIR, "repository")
+    var localRepo: String = homeDir(KFiles.KOBALT_DOT_DIR, "repository")
 }
 
 /**
