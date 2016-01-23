@@ -57,7 +57,8 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
         if (runContributor != null && runContributor.affinity(project, context) > 0) {
             return runContributor.run(project, context, dependencyManager.dependencies(project, context))
         } else {
-            warn("Couldn't find a runner for project ${project.name}")
+            warn("Couldn't find a runner for project ${project.name}. Please make sure your build file contains " +
+                    "an application{} directive with a mainClass=... in it")
             return TaskResult()
         }
     }
