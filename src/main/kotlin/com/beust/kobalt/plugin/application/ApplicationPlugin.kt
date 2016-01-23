@@ -63,8 +63,6 @@ class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
         }
     }
 
-    private fun projects() = context.pluginInfo.projectContributors.flatMap { it.projects() }
-
     private fun isFatJar(packages: List<PackageConfig>, jarName: String): Boolean {
         packages.forEach { pc ->
             (pc.jars as List<Jar>).forEach { jar ->
