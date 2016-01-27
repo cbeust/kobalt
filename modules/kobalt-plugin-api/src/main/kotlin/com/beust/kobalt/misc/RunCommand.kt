@@ -53,7 +53,7 @@ open class RunCommand(val command: String) {
         val isSuccess = isSuccess(callSucceeded, input, error)
 
         if (isSuccess) {
-            successCallback(fromStream(process.inputStream))
+            successCallback(input)
         } else {
             errorCallback(error + input)
         }
