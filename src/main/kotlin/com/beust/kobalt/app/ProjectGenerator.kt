@@ -28,8 +28,14 @@ public class ProjectGenerator @Inject constructor(val pluginInfo: PluginInfo){
         val contributor = ActorUtils.selectAffinityActor(pluginInfo.initContributors, File("."))
         File(args.buildFile).parentFile.mkdirs()
         if (contributor != null) {
-            contributor.generateBuildFile(FileOutputStream(File(args.buildFile)))
-            log(1, "Created ${args.buildFile}")
+            with(File(args.buildFile)) {
+                if (exists()) {
+                    log(1, "Build file $path already exists, not overwriting it")
+                } else {
+                    contributor.generateBuildFile(FileOutputStream(this))
+                    log(1, "Created $path")
+                }
+            }
         } else {
             log(1, "Couldn't identify project, not generating any build file")
         }
