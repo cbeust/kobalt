@@ -30,4 +30,9 @@ class MavenIdTest {
         Assert.assertEquals(mi.packaging, packaging)
 //        Assert.assertEquals(mi.qualifier, qualifier)
     }
+
+    fun versionWithVCharacter() {
+        val mi = MavenId.createNoInterceptors("com.github.AntennaPod:AntennaPod-AudioPlayer:v1.0.9")
+        Assert.assertEquals(mi.version, "v1.0.9")
+    }
 }

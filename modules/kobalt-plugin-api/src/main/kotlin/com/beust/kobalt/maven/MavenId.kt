@@ -21,7 +21,7 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
         }
 
         private fun isVersion(s: String): Boolean {
-           return Character.isDigit(s[0]) || isRangedVersion(s)
+           return s[0] == 'v' || Character.isDigit(s[0]) || isRangedVersion(s)
         }
 
         fun isRangedVersion(s: String): Boolean {
