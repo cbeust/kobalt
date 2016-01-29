@@ -4,6 +4,7 @@ import com.beust.kobalt.api.Kobalt
 import com.google.inject.Inject
 import java.io.File
 import java.io.FileReader
+import java.sql.Timestamp
 import java.util.*
 
 /**
@@ -13,12 +14,14 @@ class KobaltWrapperProperties @Inject constructor() {
     private val WRAPPER_DIR = KFiles.KOBALT_DIR + "/wrapper"
     private val KOBALT_WRAPPER_PROPERTIES = "kobalt-wrapper.properties"
     private val PROPERTY_VERSION = "kobalt.version"
+    private val PROPERTY_VERSION_LAST_CHECKED = "kobalt.version.last_checked"
     private val PROPERTY_DOWNLOAD_URL = "kobalt.downloadUrl"
 
-    fun create(version: String) {
+    fun create(version: String, versionLastChecked: Timestamp) {
         log(2, "Creating $file with $version and ${defaultUrlFor(version)}")
         KFiles.saveFile(file, listOf(
-                "$PROPERTY_VERSION=$version"
+                "$PROPERTY_VERSION=$version",
+                "$PROPERTY_VERSION_LAST_CHECKED=$versionLastChecked"
 //                "$PROPERTY_DOWNLOAD_URL=${defaultUrlFor(version)}"
         ).joinToString("\n"))
     }
@@ -33,7 +36,7 @@ class KobaltWrapperProperties @Inject constructor() {
         get() {
             val config = file
             if (!config.exists()) {
-                create(Kobalt.version)
+                create(Kobalt.version, Timestamp(0))
             }
 
             val result = Properties()
@@ -43,6 +46,9 @@ class KobaltWrapperProperties @Inject constructor() {
 
     val version : String
         get() = properties.getProperty(PROPERTY_VERSION)
+
+    val versionLastChecked: Timestamp
+        get() = Timestamp.valueOf(properties.getProperty(PROPERTY_VERSION_LAST_CHECKED))
 
     val downloadUrl : String
         get() = properties.getProperty(PROPERTY_DOWNLOAD_URL)
