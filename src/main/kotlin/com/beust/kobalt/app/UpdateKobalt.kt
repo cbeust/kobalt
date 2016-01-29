@@ -4,6 +4,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.misc.*
 import com.beust.kobalt.wrapper.Main
 import java.io.File
+import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeoutException
 import javax.inject.Inject
@@ -26,6 +27,10 @@ public class UpdateKobalt @Inject constructor(val github: GithubApi, val wrapper
     }
 
     fun checkForNewVersion(latestVersionString: String) {
+        if(Kobalt.versionCheckTimeout
+                > Duration.between(wrapperProperties.versionLastChecked, Instant.now()))
+            return  // waits `Kobalt.versionCheckTimeout` before the next check
+
         try {
             val latestVersion = Versions.toLongVersion(latestVersionString)
             val current = Versions.toLongVersion(Kobalt.version)
