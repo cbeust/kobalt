@@ -113,6 +113,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
 
     /**
      * @return the compile dependencies for this project, including the contributors.
+     * TODO: very similar to the method below, refactor.
      */
     fun dependencies(project: Project, context: KobaltContext) : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
