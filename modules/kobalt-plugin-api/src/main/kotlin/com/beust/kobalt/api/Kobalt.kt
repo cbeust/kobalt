@@ -76,7 +76,7 @@ public class Kobalt {
 
         val version = kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION)
         val versionCheckTimeout = Duration.parse(
-                kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION_CHECK_TIMEOUT) ?: "P1D2H")
+                kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION_CHECK_TIMEOUT) ?: "P1D")
 
         fun findPlugin(name: String) = Plugins.findPlugin(name)
     }
