@@ -34,7 +34,7 @@ public class KobaltClient @Inject constructor() : Runnable {
                 while (! done && line != null) {
                     log(1, "Received from server:\n" + line)
                     val jo = JsonParser().parse(line) as JsonObject
-                    if (jo.has("name") && "Quit" == jo.get("name").asString) {
+                    if (jo.has("name") && "quit" == jo.get("name").asString.toLowerCase()) {
                         log(1, "Quitting")
 //                        outgoing!!.println("{ \"name\": \"Quit\" }")
                         done = true
