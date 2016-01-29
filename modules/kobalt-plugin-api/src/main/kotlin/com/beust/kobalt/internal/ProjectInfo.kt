@@ -28,6 +28,13 @@ interface IProjectInfo {
      * The list of projects that this project depends on
      */
     val dependsOn: ArrayList<Project>
+
+    var isDirty: Boolean
+
+    /**
+     * @return true if any of the projects we depend on is dirty.
+     */
+    fun dependsOnDirtyProjects(project: Project) = project.projectInfo.dependsOn.any { it.projectInfo.isDirty }
 }
 
 abstract class BaseProjectInfo : IProjectInfo {
@@ -43,4 +50,6 @@ abstract class BaseProjectInfo : IProjectInfo {
             }
 
     override val dependsOn = arrayListOf<Project>()
+
+    override var isDirty = false
 }

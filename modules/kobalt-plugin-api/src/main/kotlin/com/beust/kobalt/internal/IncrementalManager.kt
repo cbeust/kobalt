@@ -82,7 +82,8 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
             var upToDate = false
             var taskOutputChecksum : String? = null
             inputChecksumFor(taskName)?.let { inputChecksum ->
-                if (inputChecksum == iit.inputChecksum) {
+                val dependsOnDirtyProjects = project.projectInfo.dependsOnDirtyProjects(project)
+                if (inputChecksum == iit.inputChecksum && ! dependsOnDirtyProjects) {
                     outputChecksumFor(taskName)?.let { outputChecksum ->
                         taskOutputChecksum = iit.outputChecksum()
                         if (outputChecksum == taskOutputChecksum) {
@@ -92,8 +93,13 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
                         }
                     }
                 } else {
-                    logIncremental(2, "Incremental task $taskName input is out of date, running it"
-                            + " old: $inputChecksum new: ${iit.inputChecksum}")
+                    if (dependsOnDirtyProjects) {
+                        logIncremental(2, "Project ${project.name} depends on dirty project, running $taskName")
+                    } else {
+                        logIncremental(2, "Incremental task $taskName input is out of date, running it"
+                                + " old: $inputChecksum new: ${iit.inputChecksum}")
+                    }
+                    project.projectInfo.isDirty = true
                 }
             }
             if (! upToDate) {
