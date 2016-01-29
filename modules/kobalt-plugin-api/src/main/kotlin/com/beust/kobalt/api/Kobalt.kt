@@ -5,6 +5,7 @@ import com.beust.kobalt.HostConfig
 import com.beust.kobalt.Plugins
 import com.google.inject.Injector
 import java.io.InputStream
+import java.time.Duration
 import java.util.*
 
 public class Kobalt {
@@ -34,8 +35,9 @@ public class Kobalt {
                 if (repo.url.endsWith("/")) repo
                 else repo.copy(url = (repo.url + "/")))
 
-        private val PROPERTY_KOBALT_VERSION = "kobalt.version"
         private val KOBALT_PROPERTIES = "kobalt.properties"
+        private val PROPERTY_KOBALT_VERSION = "kobalt.version"
+        private val PROPERTY_KOBALT_VERSION_CHECK_TIMEOUT = "kobalt.version.check_timeout"  // ISO-8601
 
         /** kobalt.properties */
         private val kobaltProperties: Properties by lazy { readProperties() }
@@ -73,6 +75,7 @@ public class Kobalt {
         }
 
         val version = kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION)
+        val versionCheckTimeout = Duration.parse(kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION_CHECK_TIMEOUT))
 
         fun findPlugin(name: String) = Plugins.findPlugin(name)
     }

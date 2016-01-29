@@ -22,8 +22,6 @@ import com.google.inject.Guice
 import java.io.File
 import java.nio.file.Paths
 import java.util.*
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 import javax.inject.Inject
 
 public fun main(argv: Array<String>) {
@@ -83,6 +81,7 @@ private class Main @Inject constructor(
 
         var result = 0
         val latestVersionFuture = github.latestKobaltVersion
+
         val seconds = benchmarkSeconds {
             try {
                 result = runWithArgs(jc, args, argv)
@@ -97,25 +96,7 @@ private class Main @Inject constructor(
         if (! args.update) {
             log(1, if (result != 0) "BUILD FAILED: $result" else "BUILD SUCCESSFUL ($seconds seconds)")
 
-            // Check for new version
-            try {
-                val latestVersionString = latestVersionFuture.get(1, TimeUnit.SECONDS)
-                val latestVersion = Versions.toLongVersion(latestVersionString)
-                val current = Versions.toLongVersion(Kobalt.version)
-                val distFile = File(KFiles.joinDir(KFiles.distributionsDir, latestVersionString))
-                if (latestVersion > current) {
-                    if (distFile.exists()) {
-                        log(1, "**** Version $latestVersionString is installed")
-                    } else {
-                        listOf("", "New Kobalt version available: $latestVersionString",
-                                "To update, run ./kobaltw --update", "").forEach {
-                            log(1, "**** $it")
-                        }
-                    }
-                }
-            } catch(ex: TimeoutException) {
-                log(2, "Didn't get the new version in time, skipping it")
-            }
+            updateKobalt.checkForNewVersion(latestVersionFuture)
         }
         return result
     }
