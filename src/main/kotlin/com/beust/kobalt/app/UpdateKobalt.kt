@@ -4,7 +4,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.misc.*
 import com.beust.kobalt.wrapper.Main
 import java.io.File
-import java.sql.Timestamp
+import java.time.Instant
 import java.util.concurrent.TimeoutException
 import javax.inject.Inject
 
@@ -14,7 +14,7 @@ import javax.inject.Inject
 public class UpdateKobalt @Inject constructor(val github: GithubApi, val wrapperProperties: KobaltWrapperProperties) {
     fun updateKobalt() {
         val newVersion = github.latestKobaltVersion
-        wrapperProperties.create(newVersion.get(), Timestamp(System.currentTimeMillis()))
+        wrapperProperties.create(newVersion.get(), Instant.now())
         Main.main(arrayOf())
     }
 
@@ -40,7 +40,7 @@ public class UpdateKobalt @Inject constructor(val github: GithubApi, val wrapper
                     }
                 }
             }
-            wrapperProperties.create(wrapperProperties.version, Timestamp(System.currentTimeMillis()))
+            wrapperProperties.create(wrapperProperties.version, Instant.now())
         } catch(ex: TimeoutException) {
             log(2, "Didn't get the new version in time, skipping it")
         }
