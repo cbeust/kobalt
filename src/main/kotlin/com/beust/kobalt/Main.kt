@@ -81,6 +81,7 @@ private class Main @Inject constructor(
 
         var result = 0
         val latestVersionFuture = github.latestKobaltVersion
+
         val seconds = benchmarkSeconds {
             try {
                 result = runWithArgs(jc, args, argv)
@@ -95,8 +96,7 @@ private class Main @Inject constructor(
         if (! args.update) {
             log(1, if (result != 0) "BUILD FAILED: $result" else "BUILD SUCCESSFUL ($seconds seconds)")
 
-            // Check for new version
-            updateKobalt.checkForNewVersion(latestVersionFuture.get())
+            updateKobalt.checkForNewVersion(latestVersionFuture)
         }
         return result
     }
