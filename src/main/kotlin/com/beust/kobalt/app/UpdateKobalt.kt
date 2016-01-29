@@ -33,9 +33,9 @@ public class UpdateKobalt @Inject constructor(val github: GithubApi, val wrapper
      * Accepts Future<String> as `latestVersionFuture` to allow getting `latestVersion` in the background
      * */
     fun checkForNewVersion(latestVersionFuture: Future<String>) {
-        if(Kobalt.versionCheckTimeout
-                > Duration.between(VersionCheckTimestampFile.getTimestamp(), Instant.now()))
+        if (Kobalt.versionCheckTimeout > Duration.between(VersionCheckTimestampFile.timestamp, Instant.now())) {
             return  // waits `Kobalt.versionCheckTimeout` before the next check
+        }
 
         try {
             val latestVersionString = latestVersionFuture.get()

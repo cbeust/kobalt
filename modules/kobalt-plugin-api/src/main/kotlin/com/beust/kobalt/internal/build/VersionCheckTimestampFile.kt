@@ -7,17 +7,16 @@ import java.time.Instant
 class VersionCheckTimestampFile {
     companion object {
         private val KOBALT_VERSION_CHECK_TIMESTAMP_FILE = "versionCheckTimestamp.txt"
-        private val checkTimestampFile = File(KFiles.KOBALT_DOT_DIR, KOBALT_VERSION_CHECK_TIMESTAMP_FILE)
+        private val CHECK_TIMESTAMP_FILE = File(KFiles.KOBALT_DOT_DIR, KOBALT_VERSION_CHECK_TIMESTAMP_FILE)
 
-        fun updateTimestamp(timestamp: Instant) = KFiles.saveFile(checkTimestampFile, timestamp.toString())
+        fun updateTimestamp(timestamp: Instant) = KFiles.saveFile(CHECK_TIMESTAMP_FILE, timestamp.toString())
 
-        fun getTimestamp(): Instant {
-            return if(checkTimestampFile.exists())
-                Instant.parse(checkTimestampFile.readText())
-            else {
+        val timestamp : Instant
+            get() = if (CHECK_TIMESTAMP_FILE.exists()) {
+                Instant.parse(CHECK_TIMESTAMP_FILE.readText())
+            } else {
                 updateTimestamp(Instant.MIN)
                 Instant.MIN
             }
-        }
     }
 }

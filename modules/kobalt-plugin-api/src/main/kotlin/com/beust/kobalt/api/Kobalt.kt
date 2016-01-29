@@ -37,7 +37,7 @@ public class Kobalt {
 
         private val KOBALT_PROPERTIES = "kobalt.properties"
         private val PROPERTY_KOBALT_VERSION = "kobalt.version"
-        private val PROPERTY_KOBALT_VERSION_CHECK_TIMEOUT = "kobalt.version.check_timeout"  // ISO-8601
+        private val PROPERTY_KOBALT_VERSION_CHECK_TIMEOUT = "kobalt.version.checkTimeout"  // ISO-8601
 
         /** kobalt.properties */
         private val kobaltProperties: Properties by lazy { readProperties() }
@@ -75,7 +75,8 @@ public class Kobalt {
         }
 
         val version = kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION)
-        val versionCheckTimeout = Duration.parse(kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION_CHECK_TIMEOUT))
+        val versionCheckTimeout = Duration.parse(
+                kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION_CHECK_TIMEOUT) ?: "P1D2H")
 
         fun findPlugin(name: String) = Plugins.findPlugin(name)
     }
