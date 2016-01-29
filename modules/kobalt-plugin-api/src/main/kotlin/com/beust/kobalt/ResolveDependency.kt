@@ -28,13 +28,15 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder, val loca
 
         val indent = -1
         val originalDep = MavenDependency.create(id)
+        val mavenId = MavenId.create(id)
+        val packaging = if (mavenId.packaging != null) "@" + mavenId.packaging else ""
         // We want to display the dependencies of the id we found, not the one we queries
-        val dep = MavenDependency.create(originalDep.shortId + repoResult.version)
+        val dep = MavenDependency.create(originalDep.shortId + repoResult.version + packaging)
         val root = Node(Dep(dep, indent))
         val seen = hashSetOf(id)
         root.addChildren(findChildren(root, seen))
 
-        val simpleDep = SimpleDep(MavenId.create(id))
+        val simpleDep = SimpleDep(mavenId)
         val url = repoResult.hostConfig.url + simpleDep.toJarFile(repoResult)
         val localFile = localRepo.toFullPath(simpleDep.toJarFile(repoResult))
         AsciiArt.logBox(listOf(id, url, localFile).map { "          $it" }, {s -> println(s) })
