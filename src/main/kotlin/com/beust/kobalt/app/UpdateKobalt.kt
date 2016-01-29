@@ -1,6 +1,7 @@
 package com.beust.kobalt.app
 
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.internal.build.VersionCheckTimestampFile
 import com.beust.kobalt.misc.*
 import com.beust.kobalt.wrapper.Main
 import java.io.File
@@ -16,7 +17,8 @@ import javax.inject.Inject
 public class UpdateKobalt @Inject constructor(val github: GithubApi, val wrapperProperties: KobaltWrapperProperties) {
     fun updateKobalt() {
         val newVersion = github.latestKobaltVersion
-        wrapperProperties.create(newVersion.get(), Instant.now())
+        wrapperProperties.create(newVersion.get())
+        VersionCheckTimestampFile.updateTimestamp(Instant.now())
         Main.main(arrayOf())
     }
 
@@ -32,7 +34,7 @@ public class UpdateKobalt @Inject constructor(val github: GithubApi, val wrapper
      * */
     fun checkForNewVersion(latestVersionFuture: Future<String>) {
         if(Kobalt.versionCheckTimeout
-                > Duration.between(wrapperProperties.versionLastChecked, Instant.now()))
+                > Duration.between(VersionCheckTimestampFile.getTimestamp(), Instant.now()))
             return  // waits `Kobalt.versionCheckTimeout` before the next check
 
         try {
@@ -50,7 +52,7 @@ public class UpdateKobalt @Inject constructor(val github: GithubApi, val wrapper
                     }
                 }
             }
-            wrapperProperties.create(wrapperProperties.version, Instant.now())
+            VersionCheckTimestampFile.updateTimestamp(Instant.now())
         } catch(ex: TimeoutException) {
             log(2, "Didn't get the new version in time, skipping it")
         }
