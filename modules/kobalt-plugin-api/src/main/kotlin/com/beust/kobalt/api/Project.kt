@@ -5,6 +5,7 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.IProjectInfo
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
+import java.io.File
 import java.util.*
 
 open class Project(
@@ -133,25 +134,29 @@ class Dependencies(val project: Project, val dependencies: ArrayList<IClasspathD
         val providedDependencies: ArrayList<IClasspathDependency>,
         val runtimeDependencies: ArrayList<IClasspathDependency>,
         val excludedDependencies: ArrayList<IClasspathDependency>) {
-    @Directive
-    fun compile(vararg dep: String) {
-        dep.forEach { dependencies.add(MavenDependency.create(it)) }
+
+    /**
+     * Add the dependencies to the given ArrayList and return a list of jar files corresponding to
+     * these dependencies.
+     */
+    private fun addToDependencies(dependencies: ArrayList<IClasspathDependency>, dep: Array<out String>)
+            : List<File>
+        = with(dep.map { MavenDependency.create(it)}) {
+            dependencies.addAll(this)
+            this.map { it.jarFile.get() }
     }
 
     @Directive
-    fun provided(vararg dep: String) {
-        dep.forEach { providedDependencies.add(MavenDependency.create(it))}
-    }
+    fun compile(vararg dep: String) = addToDependencies(dependencies, dep)
 
     @Directive
-    fun runtime(vararg dep: String) {
-        dep.forEach { runtimeDependencies.add(MavenDependency.create(it))}
-    }
+    fun provided(vararg dep: String) = addToDependencies(providedDependencies, dep)
 
     @Directive
-    fun exclude(vararg dep: String) {
-        dep.forEach { excludedDependencies.add(MavenDependency.create(it))}
-    }
+    fun runtime(vararg dep: String) = addToDependencies(runtimeDependencies, dep)
+
+    @Directive
+    fun exclude(vararg dep: String) = addToDependencies(excludedDependencies, dep)
 }
 
 class Scm(val connection: String, val developerConnection: String, val url: String)

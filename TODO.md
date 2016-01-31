@@ -15,7 +15,7 @@ General
 - [ ] Fetch .pom with DynamicGraph
 - [ ] Centralize all the executors
 - [ ] Archetypes (e.g. "--initWith kobalt-plug-in")
-- [ ] Compile TestNG (including generating Version.java and OSGi headers)
+- [ ] Compile TestNG (last piece missing: OSGi headers)
 - [ ] Support additional .kt files in ~/.kobalt/src
 - [ ] --init: import dependencies from build.gradle
 - [ ] --init: also extract kobalt.bat (or generate it along with kobaltw)
