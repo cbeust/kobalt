@@ -249,8 +249,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
         }
 
         val projectDirectory = File(project.directory)
-        val buildDirectory = if (isTest) KFiles.makeOutputTestDir(project)
-        else File(project.classesDir(context))
+        val buildDirectory = if (isTest) File(project.buildDirectory, KFiles.TEST_CLASSES_DIR)
+            else File(project.classesDir(context))
         buildDirectory.mkdirs()
 
         val initialSourceDirectories = arrayListOf<File>()
