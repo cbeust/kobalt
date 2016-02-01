@@ -238,10 +238,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
             CompilerActionInfo {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
 
-        val fullClasspath = if (isTest)
-            dependencyManager.testDependencies(project, context)
-        else
-            dependencyManager.dependencies(project, context)
+        val fullClasspath = if (isTest) dependencyManager.testDependencies(project, context)
+            else dependencyManager.dependencies(project, context)
 
         // Remove all the excluded dependencies from the classpath
         val classpath = fullClasspath.filter {
@@ -257,11 +255,11 @@ abstract class JvmCompilerPlugin @Inject constructor(
 
         // Source directories from the contributors
         initialSourceDirectories.addAll(
-                if (isTest) {
-                    context.pluginInfo.testSourceDirContributors.flatMap { it.testSourceDirectoriesFor(project, context) }
-                } else {
-                    context.pluginInfo.sourceDirContributors.flatMap { it.sourceDirectoriesFor(project, context) }
-                })
+            if (isTest) {
+                context.pluginInfo.testSourceDirContributors.flatMap { it.testSourceDirectoriesFor(project, context) }
+            } else {
+                context.pluginInfo.sourceDirContributors.flatMap { it.sourceDirectoriesFor(project, context) }
+            })
 
         // Transform them with the interceptors, if any
         val sourceDirectories = if (isTest) {
