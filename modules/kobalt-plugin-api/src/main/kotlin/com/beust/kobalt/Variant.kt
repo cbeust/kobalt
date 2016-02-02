@@ -36,8 +36,9 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
 
     fun resDirectories(project: Project) : List<File> = sourceDirectories(project, "res")
 
-    fun sourceDirectories(project: Project) : List<File> =
-            sourceDirectories(project, project.projectInfo.sourceDirectory)
+    fun sourceDirectories(project: Project) = project.projectInfo.sourceSuffixes.flatMap {
+            sourceDirectories(project, it)
+        }
 
     /**
      * suffix is either "java" (to find source files) or "res" (to find resources)

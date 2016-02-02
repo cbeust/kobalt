@@ -6,11 +6,11 @@ import com.beust.kobalt.api.BuildConfigField
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.BaseProjectInfo
+import com.beust.kobalt.internal.LanguageInfo
 import com.google.inject.Singleton
 
 @Singleton
-class KotlinProjectInfo : BaseProjectInfo() {
-    override val sourceDirectory = "kotlin"
+class KotlinProjectInfo : BaseProjectInfo(listOf(LanguageInfo("kotlin", "kt"))) {
     override val defaultSourceDirectories = hashSetOf("src/main/kotlin", "src/main/resources", "src/main/res")
     override val defaultTestDirectories = hashSetOf("src/test/kotlin", "src/test/resources", "src/test/res")
 

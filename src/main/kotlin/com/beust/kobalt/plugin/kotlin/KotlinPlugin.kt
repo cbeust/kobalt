@@ -125,7 +125,7 @@ class KotlinPlugin @Inject constructor(
     // ICompilerContributor
 
     override fun affinity(project: Project, context: KobaltContext) =
-            if (project.sourceSuffix == ".kt") 1 else 0
+            if (project.sourceDirectories.any { it.contains("kotlin") }) 2 else 0
 
     override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val result =

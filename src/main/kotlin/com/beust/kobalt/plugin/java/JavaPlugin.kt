@@ -37,7 +37,7 @@ class JavaPlugin @Inject constructor(
 
     // IDocContributor
     override fun affinity(project: Project, context: KobaltContext) =
-            if (project.sourceSuffix == ".java") 1 else 0
+            if (project.sourceDirectories.any { it.contains("java") }) 1 else 0
 
     override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val result =
