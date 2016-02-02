@@ -43,31 +43,18 @@ open class Project(
     //
 
     @Directive
-    fun sourceDirectories(init: Sources.() -> Unit) : Sources {
-        val sources = Sources(this, sourceDirectories)
-        sources.init()
-        return sources
-    }
+    fun sourceDirectories(init: Sources.() -> Unit) = Sources(this, sourceDirectories).apply { init() }
 
     var sourceDirectories : HashSet<String> = hashSetOf()
         get() = if (field.isEmpty()) projectInfo.defaultSourceDirectories else field
-        set(value) {
-            field = value
-        }
+        set(value) { field = value }
 
     @Directive
-    fun sourceDirectoriesTest(init: Sources.() -> Unit) : Sources {
-        val sources = Sources(this, sourceDirectoriesTest)
-        sources.init()
-        return sources
-    }
+    fun sourceDirectoriesTest(init: Sources.() -> Unit) = Sources(this, sourceDirectoriesTest).apply { init() }
 
     var sourceDirectoriesTest : HashSet<String> = hashSetOf()
-        get() = if (field.isEmpty()) projectInfo.defaultTestDirectories
-                else field
-        set(value) {
-            field = value
-        }
+        get() = if (field.isEmpty()) projectInfo.defaultTestDirectories else field
+        set(value) { field = value }
 
     //
     // Dependencies
