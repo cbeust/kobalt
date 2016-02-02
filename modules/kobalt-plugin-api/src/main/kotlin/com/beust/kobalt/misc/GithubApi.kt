@@ -137,8 +137,15 @@ public class GithubApi @Inject constructor(val executors: KobaltExecutors,
                     }
                 } catch(e: RetrofitError) {
                     val error = parseRetrofitError(e)
-                    throw KobaltException("Couldn't retrieve releases, ${error.message ?: e}: "
-                            + error.errors[0].code + " field: " + error.errors[0].field)
+                    val details = if (error.errors != null) {
+                        error.errors[0]
+                    } else {
+                        null
+                    }
+                    // TODO: If the credentials didn't work ("bad credentials"), should start again
+                    // using cbeust/kobalt, like above. Right now, just bailing.
+                    log(2, "Couldn't retrieve releases from github, ${error.message ?: e}: "
+                            + details?.code + " field: " + details?.field)
                 }
                 result
             }
