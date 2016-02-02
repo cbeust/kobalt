@@ -7,16 +7,10 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import java.util.*
 
-class LanguageInfo(val name: String, val suffix : String = name)
-
 /**
  * Data that is useful for projects to have but should not be specified in the DSL.
  */
 interface IProjectInfo {
-    val languageInfos: List<LanguageInfo>
-
-    val sourceSuffixes: List<String>
-
     val defaultSourceDirectories: HashSet<String>
     val defaultTestDirectories: HashSet<String>
 
@@ -40,10 +34,8 @@ interface IProjectInfo {
     fun dependsOnDirtyProjects(project: Project) = project.projectInfo.dependsOn.any { it.projectInfo.isDirty }
 }
 
-abstract class BaseProjectInfo(override val languageInfos: List<LanguageInfo>) : IProjectInfo {
+abstract class BaseProjectInfo : IProjectInfo {
     abstract fun generate(field: BuildConfigField) : String
-
-    override val sourceSuffixes = languageInfos.map { it.suffix }
 
     fun generate(type: String, name: String, value: Any) = generate(BuildConfigField(type, name, value))
 

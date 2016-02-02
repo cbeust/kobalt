@@ -1,6 +1,7 @@
 package com.beust.kobalt
 
 import com.beust.kobalt.api.*
+import com.beust.kobalt.internal.ActorUtils
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import java.io.File
@@ -34,11 +35,14 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
         return result
     }
 
-    fun resDirectories(project: Project) : List<File> = sourceDirectories(project, "res")
-
-    fun sourceDirectories(project: Project) = project.projectInfo.sourceSuffixes.flatMap {
+    fun sourceDirectories(project: Project, context: KobaltContext) : List<File> {
+        val compilers = ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
+        val sourceSuffixes = compilers.flatMap { it.sourceSuffixes }
+        val result = sourceSuffixes.flatMap {
             sourceDirectories(project, it)
-        }
+        }.toHashSet()
+        return result.toList()
+    }
 
     /**
      * suffix is either "java" (to find source files) or "res" (to find resources)
@@ -141,7 +145,9 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
             // that directory will be added when trying to find recursively all the sources in it
             generatedSourceDirectory = File(result.relativeTo(File(project.directory)))
             val outputGeneratedSourceDirectory = File(result, pkg.replace('.', File.separatorChar))
-            val outputDir = File(outputGeneratedSourceDirectory, "BuildConfig" + project.sourceSuffix)
+            val compilers = ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
+            val outputDir = File(outputGeneratedSourceDirectory,
+                    "BuildConfig" + compilers[0].sourceSuffixes[0])
             KFiles.saveFile(outputDir, code)
             log(2, "Generated ${outputDir.path}")
             return result

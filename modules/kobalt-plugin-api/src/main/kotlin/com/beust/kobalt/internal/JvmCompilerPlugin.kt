@@ -138,34 +138,6 @@ abstract class JvmCompilerPlugin @Inject constructor(
         project.projectProperties.put(COMPILER_ARGS, arrayListOf(*args))
     }
 
-    fun isOutdated(project: Project, context: KobaltContext, actionInfo: CompilerActionInfo): Boolean {
-        fun stripSourceDir(sourceFile: String): String {
-            project.sourceDirectories.forEach {
-                val d = listOf(project.directory, it).joinToString("/")
-                if (sourceFile.startsWith(d)) return sourceFile.substring(d.length + 1)
-            }
-            throw KobaltException("Couldn't strip source dir from $sourceFile")
-        }
-
-        fun stripSuffix(sourceFile: String): String {
-            val index = sourceFile.indexOf(project.sourceSuffix)
-            if (index >= 0) return sourceFile.substring(0, index)
-            else return sourceFile
-        }
-
-        actionInfo.sourceFiles.map { it.replace("\\", "/") }.forEach { sourceFile ->
-            val stripped = stripSourceDir(sourceFile)
-            val classFile = File(KFiles.joinDir(project.directory, project.classesDir(context),
-                    toClassFile(stripSuffix(stripped))))
-            if (!classFile.exists() || File(sourceFile).lastModified() > classFile.lastModified()) {
-                log(2, "Outdated $sourceFile $classFile " + Date(File(sourceFile).lastModified()) +
-                        " " + classFile.lastModified())
-                return true
-            }
-        }
-        return false
-    }
-
     @IncrementalTask(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project): IncrementalTaskInfo {
         val inputChecksum = Md5.toMd5Directories(project.sourceDirectories.map {
@@ -182,18 +154,32 @@ abstract class JvmCompilerPlugin @Inject constructor(
 
     private fun doTaskCompile(project: Project): TaskResult {
         // Set up the source files now that we have the variant
-        sourceDirectories.addAll(context.variant.sourceDirectories(project))
+        sourceDirectories.addAll(context.variant.sourceDirectories(project, context))
 
         val sourceDirectory = context.variant.maybeGenerateBuildConfig(project, context)
         if (sourceDirectory != null) {
             sourceDirectories.add(sourceDirectory)
         }
-        val info = createCompilerActionInfo(project, context, isTest = false)
-        val compiler = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.compilerContributors)
-        if (compiler != null) {
-            return compiler.compile(project, context, info)
-        } else {
+//        val info = createCompilerActionInfo(project, context, isTest = false)
+//        val compiler = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.compilerContributors)
+        val results = arrayListOf<TaskResult>()
+        val compilers = ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
+
+        var failedResult: TaskResult? = null
+        if (compilers.isEmpty()) {
             throw KobaltException("Couldn't find any compiler for project ${project.name}")
+        } else {
+            compilers.forEach { compiler ->
+                val info = createCompilerActionInfo(project, context, isTest = false,
+                        sourceSuffixes = compiler.sourceSuffixes)
+                val thisResult = compiler.compile(project, context, info)
+                results.add(thisResult)
+                if (! thisResult.success && failedResult == null) {
+                    failedResult = thisResult
+                }
+            }
+            return if (failedResult != null) failedResult!!
+                else results[0]
         }
     }
 
@@ -214,8 +200,13 @@ abstract class JvmCompilerPlugin @Inject constructor(
     fun taskJavadoc(project: Project): TaskResult {
         val docGenerator = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.docContributors)
         if (docGenerator != null) {
-            return docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context,
-                    isTest = false))
+            val compilers = ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
+            var result: TaskResult? = null
+            compilers.forEach { compiler ->
+                result = docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context,
+                        isTest = false, sourceSuffixes =  compiler.sourceSuffixes))
+            }
+            return result!!
         } else {
             warn("Couldn't find any doc contributor for project ${project.name}")
             return TaskResult()
@@ -234,8 +225,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
      * Create a CompilerActionInfo (all the information that a compiler needs to know) for the given parameters.
      * Runs all the contributors and interceptors relevant to that task.
      */
-    protected fun createCompilerActionInfo(project: Project, context: KobaltContext, isTest: Boolean):
-            CompilerActionInfo {
+    protected fun createCompilerActionInfo(project: Project, context: KobaltContext, isTest: Boolean,
+            sourceSuffixes: List<String>): CompilerActionInfo {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
 
         val fullClasspath = if (isTest) dependencyManager.testDependencies(project, context)
@@ -271,14 +262,23 @@ abstract class JvmCompilerPlugin @Inject constructor(
             File(project.directory, it.path).exists()
         }
 
-        // Now that we have the final list of source dirs, find source files in them
         val sourceFiles = files.findRecursively(projectDirectory, sourceDirectories,
-                { it.endsWith(project.sourceSuffix) })
+                { file -> sourceSuffixes.any { file.endsWith(it) }})
                 .map { File(projectDirectory, it).path }
 
+        // Special treatment if we are compiling Kotlin files and the project also has a java source
+        // directory. In this case, also pass that java source directory to the Kotlin compiler as is
+        // so that it can parse its symbols
+        val extraSourceFiles = arrayListOf<String>()
+        if (sourceSuffixes.any { it.contains("kt")}) {
+            project.sourceDirectories.forEach {
+                if (it.contains("java")) extraSourceFiles.add(it)
+            }
+        }
+
         // Finally, alter the info with the compiler interceptors before returning it
-        val initialActionInfo = CompilerActionInfo(projectDirectory.path, classpath, sourceFiles, buildDirectory,
-                emptyList())
+        val initialActionInfo = CompilerActionInfo(projectDirectory.path, classpath, sourceFiles + extraSourceFiles,
+                buildDirectory, emptyList())
         val result = context.pluginInfo.compilerInterceptors.fold(initialActionInfo, { ai, interceptor ->
             interceptor.intercept(project, context, ai)
         })

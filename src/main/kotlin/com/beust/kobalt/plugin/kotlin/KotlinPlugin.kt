@@ -76,8 +76,9 @@ class KotlinPlugin @Inject constructor(
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
         val projectDir = File(project.directory)
 
+
         val sourceFiles = files.findRecursively(projectDir, project.sourceDirectoriesTest.map { File(it) })
-        { it: String -> it.endsWith(project.sourceSuffix) }
+            { file: String -> sourceSuffixes.any { file.endsWith(it) } }
                 .map { File(projectDir, it).absolutePath }
 
         val result =
@@ -123,6 +124,8 @@ class KotlinPlugin @Inject constructor(
             }
 
     // ICompilerContributor
+
+    override val sourceSuffixes = listOf("kt")
 
     override fun affinity(project: Project, context: KobaltContext) =
             if (project.sourceDirectories.any { it.contains("kotlin") }) 2 else 0

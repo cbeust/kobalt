@@ -16,7 +16,6 @@ open class Project(
         @Directive open var artifactId: String? = null,
         @Directive open var packaging: String? = null,
         @Directive open var dependencies: Dependencies? = null,
-        @Directive open var sourceSuffix : String = "",
         @Directive open var description : String = "",
         @Directive open var scm : Scm? = null,
         @Directive open var url: String? = null,
