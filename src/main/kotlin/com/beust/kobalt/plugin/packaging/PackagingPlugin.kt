@@ -276,7 +276,7 @@ class PackageConfig(val project: Project) : AttributeHolder {
         jar {
             name = "${project.name}-${project.version}-sources.jar"
             project.sourceDirectories.forEach {
-                include(from(it), to(""), glob("**${project.sourceSuffix}"))
+                include(from(it), to(""), glob("src/**"))
             }
         }
         jar {

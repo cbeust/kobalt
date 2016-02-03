@@ -37,7 +37,7 @@ class JavaPlugin @Inject constructor(
 
     // IDocContributor
     override fun affinity(project: Project, context: KobaltContext) =
-            if (project.sourceSuffix == ".java") 1 else 0
+            if (project.sourceDirectories.any { it.contains("java") }) 1 else 0
 
     override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val result =
@@ -52,12 +52,15 @@ class JavaPlugin @Inject constructor(
 
     override fun doTaskCompileTest(project: Project): TaskResult {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
-        val compilerActionInfo = createCompilerActionInfo(project, context, isTest = true)
+        val compilerActionInfo = createCompilerActionInfo(project, context, isTest = true,
+                sourceSuffixes = sourceSuffixes)
         val result = javaCompiler.compile(project, context, compilerActionInfo)
         return result
     }
 
     // ICompilerContributor
+    override val sourceSuffixes = listOf("java")
+
     override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val result =
             if (info.sourceFiles.size > 0) {
