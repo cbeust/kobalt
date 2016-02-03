@@ -33,9 +33,17 @@ class KotlinPlugin @Inject constructor(
         const val PLUGIN_NAME = "Kotlin"
     }
 
+    override fun apply(project: Project, context: KobaltContext) {
+        super.apply(project, context)
+    }
+
     override val name = PLUGIN_NAME
 
-    override fun accept(project: Project) = project is KotlinProject
+    override fun accept(project: Project) = project.sourceDirectories.any { it.contains("kotlin") }
+
+    // IDocContributor
+    override fun affinity(project: Project, context: KobaltContext) =
+            if (project.sourceDirectories.any { it.contains("kotlin") }) 2 else 0
 
     override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         return TaskResult()
@@ -126,9 +134,6 @@ class KotlinPlugin @Inject constructor(
     // ICompilerContributor
 
     override val sourceSuffixes = listOf("kt")
-
-    override fun affinity(project: Project, context: KobaltContext) =
-            if (project.sourceDirectories.any { it.contains("kotlin") }) 2 else 0
 
     override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val result =
