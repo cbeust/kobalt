@@ -272,7 +272,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
         val extraSourceFiles = arrayListOf<String>()
         if (sourceSuffixes.any { it.contains("kt")}) {
             project.sourceDirectories.forEach {
-                if (it.contains("java")) extraSourceFiles.add(it)
+                if (it.contains("java")) extraSourceFiles.add(KFiles.joinDir(project.directory, it))
             }
         }
 
