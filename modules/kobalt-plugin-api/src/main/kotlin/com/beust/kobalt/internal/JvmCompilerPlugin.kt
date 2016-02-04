@@ -4,6 +4,7 @@ import com.beust.kobalt.IncrementalTaskInfo
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
+import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
@@ -36,6 +37,8 @@ open class JvmCompilerPlugin @Inject constructor(
             : BasePlugin(), ISourceDirectoryContributor, IProjectContributor, ITaskContributor by taskContributor {
 
     companion object {
+        val PLUGIN_NAME = "JvmCompiler"
+
         @ExportedProjectProperty(doc = "Projects this project depends on", type = "List<ProjectDescription>")
         const val DEPENDENT_PROJECTS = "dependentProjects"
 
@@ -52,7 +55,7 @@ open class JvmCompilerPlugin @Inject constructor(
         const val DOCS_DIRECTORY = "docs/javadoc"
     }
 
-    override val name: String = "JvmCompiler"
+    override val name: String = PLUGIN_NAME
 
     override fun accept(project: Project) = true
 
@@ -184,8 +187,13 @@ open class JvmCompilerPlugin @Inject constructor(
 
     val allProjects = arrayListOf<ProjectDescription>()
 
-    override fun projects() : List<ProjectDescription> {
-        return allProjects
+    override fun projects() = allProjects
+
+    fun addDependentProjects(project: Project, dependents: List<Project>) {
+        project.projectExtra.dependsOn.addAll(dependents)
+        with(ProjectDescription(project, dependents)) {
+            allProjects.add(this)
+        }
     }
 
     @Task(name = "doc", description = "Generate the documentation for the project")
@@ -301,3 +309,11 @@ open class JvmCompilerPlugin @Inject constructor(
     open val compiler: ICompilerContributor? = null
 }
 
+@Directive
+public fun project(vararg projects: Project, init: Project.() -> Unit): Project {
+    return Project("").apply {
+        init()
+        (Kobalt.findPlugin(JvmCompilerPlugin.PLUGIN_NAME) as JvmCompilerPlugin)
+                .addDependentProjects(this, projects.toList())
+    }
+}

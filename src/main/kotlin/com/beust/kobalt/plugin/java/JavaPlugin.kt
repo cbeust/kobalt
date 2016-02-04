@@ -5,6 +5,7 @@ import com.beust.kobalt.Variant
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.BaseJvmPlugin
+import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.misc.warn
 import java.io.File
 import javax.inject.Inject
@@ -76,7 +77,8 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
 public fun javaProject(vararg projects: Project, init: JavaProject.() -> Unit): JavaProject {
     return JavaProject().apply {
         init()
-        (Kobalt.findPlugin(JavaPlugin.PLUGIN_NAME) as JavaPlugin).addDependentProjects(this, projects.toList())
+        (Kobalt.findPlugin(JvmCompilerPlugin.PLUGIN_NAME) as JvmCompilerPlugin)
+                .addDependentProjects(this, projects.toList())
     }
 }
 

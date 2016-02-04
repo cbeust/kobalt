@@ -5,6 +5,7 @@ import com.beust.kobalt.Variant
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.BaseJvmPlugin
+import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KobaltExecutors
@@ -142,7 +143,8 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
 fun kotlinProject(vararg projects: Project, init: KotlinProject.() -> Unit): KotlinProject {
     return KotlinProject().apply {
         init()
-        (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as KotlinPlugin).addDependentProjects(this, projects.toList())
+        (Kobalt.findPlugin(JvmCompilerPlugin.PLUGIN_NAME) as JvmCompilerPlugin)
+                .addDependentProjects(this, projects.toList())
     }
 }
 
