@@ -1,19 +1,14 @@
-import com.beust.kobalt.*
-import com.beust.kobalt.plugin.packaging.assemble
-import com.beust.kobalt.plugin.java.*
-import com.beust.kobalt.plugin.kotlin.*
 
-val javaFirst = kotlinProject {
+import com.beust.kobalt.plugin.packaging.assemble
+import com.beust.kobalt.project
+
+val javaFirst = project {
     name = "javaFirst"
     group = "com.example"
     artifactId = name
     version = "0.1"
     directory = name
 
-    sourceDirectories {
-        path("src/main/java", "src/main/kotlin")
-    }
-
     assemble {
         jar {
             fatJar = true
@@ -24,17 +19,13 @@ val javaFirst = kotlinProject {
     }
 }
 
-val kotlinFirst = kotlinProject {
+val kotlinFirst = project {
     name = "kotlinFirst"
     group = "com.example"
     artifactId = name
     version = "0.1"
     directory = name
 
-    sourceDirectories {
-        path("src/main/java", "src/main/kotlin")
-    }
-
     assemble {
         jar {
             fatJar = true
@@ -45,21 +36,12 @@ val kotlinFirst = kotlinProject {
     }
 }
 
-val javaFirst2 = javaProject {
-    name = "javaFirst2"
+val mixed1 = project {
+    name = "mixed1"
     group = "com.guatec"
     artifactId = name
     version = "0.1"
     directory = name
-    buildDirectory = "javaBuild"
-
-    sourceDirectories {
-        path("src/main/java", "src/main/kotlin")
-    }
-
-    sourceDirectoriesTest {
-        path("src/test/java", "src/test/kotlin")
-    }
 
     dependenciesTest {
         compile("org.testng:testng:6.9.5")
