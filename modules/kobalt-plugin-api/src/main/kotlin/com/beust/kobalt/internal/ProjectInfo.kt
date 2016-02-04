@@ -5,7 +5,6 @@ import com.beust.kobalt.api.BuildConfig
 import com.beust.kobalt.api.BuildConfigField
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import java.util.*
 
 /**
  * Data that is useful for projects to have but should not be specified in the DSL.
@@ -18,17 +17,6 @@ interface IProjectInfo {
     fun generateBuildConfig(project: Project, context: KobaltContext, packageName: String, variant: Variant,
             buildConfigs: List<BuildConfig>) : String
 
-    /**
-     * The list of projects that this project depends on
-     */
-    val dependsOn: ArrayList<Project>
-
-    var isDirty: Boolean
-
-    /**
-     * @return true if any of the projects we depend on is dirty.
-     */
-    fun dependsOnDirtyProjects(project: Project) = project.projectInfo.dependsOn.any { it.projectInfo.isDirty }
 }
 
 abstract class BaseProjectInfo : IProjectInfo {
@@ -42,8 +30,4 @@ abstract class BaseProjectInfo : IProjectInfo {
             }.map {
                 generate(it)
             }
-
-    override val dependsOn = arrayListOf<Project>()
-
-    override var isDirty = false
 }

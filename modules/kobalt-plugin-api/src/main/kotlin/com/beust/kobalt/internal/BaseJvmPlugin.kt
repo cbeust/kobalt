@@ -15,7 +15,7 @@ abstract class BaseJvmPlugin<T>: ConfigPlugin<T>(), IProjectContributor, ICompil
     private val allProjects = arrayListOf<ProjectDescription>()
 
     fun addDependentProjects(project: Project, dependents: List<Project>) {
-        project.projectInfo.dependsOn.addAll(dependents)
+        project.projectExtra.dependsOn.addAll(dependents)
         with(ProjectDescription(project, dependents)) {
             allProjects.add(this)
         }

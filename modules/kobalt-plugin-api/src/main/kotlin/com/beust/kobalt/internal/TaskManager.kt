@@ -59,7 +59,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
             AsciiArt.logBox("Building ${project.name}")
 
             // Does the current project depend on any failed projects?
-            val fp = project.projectInfo.dependsOn.filter {
+            val fp = project.projectExtra.dependsOn.filter {
                 failedProjects.contains(it.name)
             }.map {
                 it.name

@@ -25,30 +25,41 @@ open class Project(
         val projectInfo: IProjectInfo) : IBuildConfig {
 
     class ProjectExtra(project: Project) {
-        val suffixesFound = hashSetOf<String>()
-
-        init {
+        val suffixesFound : Set<String> by lazy {
+            val sf = hashSetOf<String>()
             Kobalt.context?.let {
                 project.sourceDirectories.forEach { source ->
                     val sourceDir = File(KFiles.joinDir(project.directory, source))
                     KFiles.findRecursively(sourceDir, { file ->
                         val ind = file.lastIndexOf(".")
                         if (ind >= 0) {
-                            suffixesFound.add(file.substring(ind + 1))
+                            sf.add(file.substring(ind + 1))
                         }
                         false
                     })
                 }
-                println("Suffixes: " + suffixesFound)
             }
+            sf
+        }
+
+        val dependsOn = arrayListOf<Project>()
+
+        var isDirty = false
+
+        /**
+         * @return true if any of the projects we depend on is dirty.
+         */
+        fun dependsOnDirtyProjects(project: Project) = project.projectExtra.dependsOn.any { it.projectExtra.isDirty }
+
+        init {
         }
     }
 
     /**
-     * Initialized as soon as all the projects are parsed. This field caches a bunch of things we don't
-     * want to recalculate all the time, such as the list of suffixes found in this project.
+     * This field caches a bunch of things we don't want to recalculate all the time, such as the list of suffixes
+     * found in this project.
      */
-    lateinit var projectExtra : ProjectExtra
+    val projectExtra = ProjectExtra(this)
 
     val testConfigs = arrayListOf(TestConfig(this))
 

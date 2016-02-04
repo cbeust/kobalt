@@ -31,7 +31,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         // The transitive closure of libraries goes into WEB-INF/libs.
         // Copy them all in kobaltBuild/war/WEB-INF/libs and create one IncludedFile out of that directory
         //
-        val dependentProjects = listOf(ProjectDescription(project, project.projectInfo.dependsOn))
+        val dependentProjects = listOf(ProjectDescription(project, project.projectExtra.dependsOn))
         val allDependencies = dependencyManager.calculateDependencies(project, context, dependentProjects,
                 project.compileDependencies)
 

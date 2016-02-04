@@ -55,9 +55,6 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         // Find all the projects in the build file, possibly compiling them
         //
         val allProjects = findProjects(context)
-        allProjects.forEach {
-            it.projectExtra = Project.ProjectExtra(it)
-        }
         plugins.applyPlugins(context, allProjects)
 
         return allProjects
