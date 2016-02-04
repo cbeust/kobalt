@@ -183,7 +183,7 @@ private class Main @Inject constructor(
                             result = runTargetResult.exitCode
                         }
 
-                        log(2, "Timings:\n  " + runTargetResult.messages.joinToString("\n  "))
+                        log(3, "Timings:\n  " + runTargetResult.messages.joinToString("\n  "))
                     }
                 }
             }
