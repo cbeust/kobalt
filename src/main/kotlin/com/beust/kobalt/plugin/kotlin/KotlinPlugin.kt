@@ -3,43 +3,27 @@ package com.beust.kobalt.plugin.kotlin
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.internal.JvmCompiler
-import com.beust.kobalt.internal.JvmCompilerPlugin
-import com.beust.kobalt.maven.DepFactory
-import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.LocalRepo
+import com.beust.kobalt.internal.BaseJvmPlugin
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
-import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class KotlinPlugin @Inject constructor(
-        override val localRepo: LocalRepo,
-        override val files: KFiles,
-        override val depFactory: DepFactory,
-        override val dependencyManager: DependencyManager,
-        override val executors: KobaltExecutors,
-        override val jvmCompiler: JvmCompiler,
-        override val taskContributor : TaskContributor)
-        : JvmCompilerPlugin(localRepo, files, depFactory, dependencyManager, executors, jvmCompiler, taskContributor),
-            IClasspathContributor, ICompilerContributor, IDocContributor {
+class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
+    : BaseJvmPlugin<KotlinConfig>(), IDocContributor, IClasspathContributor, ICompilerContributor {
 
     companion object {
         const val PLUGIN_NAME = "Kotlin"
     }
 
-    override fun apply(project: Project, context: KobaltContext) {
-        super.apply(project, context)
-    }
-
     override val name = PLUGIN_NAME
 
-    override fun accept(project: Project) = project.sourceDirectories.any { it.contains("kotlin") }
+    override fun accept(project: Project) = project.projectExtra.suffixesFound.contains("kt")
 
     // IDocContributor
     override fun affinity(project: Project, context: KobaltContext) =
@@ -49,7 +33,11 @@ class KotlinPlugin @Inject constructor(
         return TaskResult()
     }
 
-//    override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
+    // ICompilerFlagsContributor
+    override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>)
+        = configurationFor(project)?.compilerArgs ?: listOf<String>()
+
+    //    override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
 //        val configs = dokkaConfigurations[project.name]
 //        val classpath = context.dependencyManager.calculateDependencies(project, context)
 //        val buildDir = project.buildDirectory
@@ -80,35 +68,12 @@ class KotlinPlugin @Inject constructor(
 //        return TaskResult(success)
 //    }
 
-    override protected fun doTaskCompileTest(project: Project) : TaskResult {
-        copyResources(project, JvmCompilerPlugin.SOURCE_SET_TEST)
-        val projectDir = File(project.directory)
-
-
-        val sourceFiles = files.findRecursively(projectDir, project.sourceDirectoriesTest.map { File(it) })
-            { file: String -> sourceSuffixes.any { file.endsWith(it) } }
-                .map { File(projectDir, it).absolutePath }
-
-        val result =
-                if (sourceFiles.size > 0) {
-                    compilePrivate(project, dependencyManager.testDependencies(project, context),
-                            sourceFiles,
-                            KFiles.makeOutputTestDir(project))
-                } else {
-                    warn("Couldn't find any source test files")
-                    TaskResult()
-                }
-
-        lp(project, "Compilation of tests succeeded")
-        return result
-    }
-
     private fun compilePrivate(project: Project, cpList: List<IClasspathDependency>, sources: List<String>,
-            outputDirectory: File): TaskResult {
+            outputDirectory: File, compilerArgs: List<String>): TaskResult {
         return kotlinCompilePrivate {
             classpath(cpList.map { it.jarFile.get().absolutePath })
             sourceFiles(sources)
-            compilerArgs(compilerArgsFor(project))
+            compilerArgs(compilerArgs)
             output = outputDirectory
         }.compile(project, context)
     }
@@ -120,10 +85,9 @@ class KotlinPlugin @Inject constructor(
         return result
     }
 
-
     // interface IClasspathContributor
     override fun entriesFor(project: Project?): List<IClasspathDependency> =
-            if (project == null || project is KotlinProject) {
+            if (project == null || accept(project)) {
                 // All Kotlin projects automatically get the Kotlin runtime added to their class path
                 listOf(getKotlinCompilerJar("kotlin-stdlib"), getKotlinCompilerJar("kotlin-runtime"))
                         .map { FileDependency(it) }
@@ -138,7 +102,7 @@ class KotlinPlugin @Inject constructor(
     override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val result =
             if (info.sourceFiles.size > 0) {
-                compilePrivate(project, info.dependencies, info.sourceFiles, info.outputDir)
+                compilePrivate(project, info.dependencies, info.sourceFiles, info.outputDir, info.compilerArgs)
             } else {
                 warn("Couldn't find any source files")
                 TaskResult()
@@ -154,7 +118,10 @@ class KotlinPlugin @Inject constructor(
 //        dokkaConfigurations.put(project.name, dokkaConfig)
 //    }
 
-    override fun toClassFile(sourceFile: String) = sourceFile + "Kt.class"
+    protected fun lp(project: Project, s: String) {
+        log(2, "${project.name}: $s")
+    }
+
 }
 
 /**
@@ -164,19 +131,20 @@ class KotlinPlugin @Inject constructor(
 fun kotlinProject(vararg projects: Project, init: KotlinProject.() -> Unit): KotlinProject {
     return KotlinProject().apply {
         init()
-        (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as JvmCompilerPlugin).addDependentProjects(this, projects.toList())
+        (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as KotlinPlugin).addDependentProjects(this, projects.toList())
     }
 }
 
-class KotlinCompilerConfig(val project: Project) {
-    fun args(vararg options: String) {
-        (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as JvmCompilerPlugin).addCompilerArgs(project, *options)
-    }
+class KotlinConfig(val project: Project) {
+    val compilerArgs = arrayListOf<String>()
+    fun args(vararg options: String) = compilerArgs.addAll(options)
 }
 
 @Directive
-fun Project.kotlinCompiler(init: KotlinCompilerConfig.() -> Unit) = let {
-    KotlinCompilerConfig(it).init()
+fun Project.kotlinCompiler(init: KotlinConfig.() -> Unit) = let {
+    val config = KotlinConfig(it)
+    config.init()
+    (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as KotlinPlugin).addConfiguration(this, config)
 }
 
 //class SourceLinkMapItem {

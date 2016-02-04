@@ -21,12 +21,11 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Base classes for plug-ins that compile files on the JVM. This base class requires the bare minimum
- * contributors (source files, projects and tasks). Subclasses can add more as they see fit (e.g. test
- * source directory, etc...).
+ * This plug-in takes care of compilation: it declares a bunch of tasks ("compile", "compileTest") and
+ * and picks up all the compiler contributors in order to run them whenever a compilation is requested.
  */
 @Singleton
-abstract class JvmCompilerPlugin @Inject constructor(
+open class JvmCompilerPlugin @Inject constructor(
         open val localRepo: LocalRepo,
         open val files: KFiles,
         open val depFactory: DepFactory,
@@ -52,6 +51,10 @@ abstract class JvmCompilerPlugin @Inject constructor(
         const val SOURCE_SET_TEST = "test"
         const val DOCS_DIRECTORY = "docs/javadoc"
     }
+
+    override val name: String = "JvmCompiler"
+
+    override fun accept(project: Project) = true
 
     /**
      * Log with a project.
@@ -132,12 +135,6 @@ abstract class JvmCompilerPlugin @Inject constructor(
         }
     }
 
-    open fun toClassFile(sourceFile: String) = sourceFile + ".class"
-
-    fun addCompilerArgs(project: Project, vararg args: String) {
-        project.projectProperties.put(COMPILER_ARGS, arrayListOf(*args))
-    }
-
     @IncrementalTask(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project): IncrementalTaskInfo {
         val inputChecksum = Md5.toMd5Directories(project.sourceDirectories.map {
@@ -152,7 +149,11 @@ abstract class JvmCompilerPlugin @Inject constructor(
         )
     }
 
-    private fun doTaskCompile(project: Project): TaskResult {
+    private fun doTaskCompile(project: Project) = doTaskCompile(project, isTest = false)
+
+    private fun doTaskCompileTest(project: Project) = doTaskCompile(project, isTest = true)
+
+    private fun doTaskCompile(project: Project, isTest: Boolean): TaskResult {
         // Set up the source files now that we have the variant
         sourceDirectories.addAll(context.variant.sourceDirectories(project, context))
 
@@ -160,9 +161,8 @@ abstract class JvmCompilerPlugin @Inject constructor(
         if (sourceDirectory != null) {
             sourceDirectories.add(sourceDirectory)
         }
-//        val info = createCompilerActionInfo(project, context, isTest = false)
-//        val compiler = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.compilerContributors)
         val results = arrayListOf<TaskResult>()
+
         val compilers = ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
 
         var failedResult: TaskResult? = null
@@ -170,8 +170,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
             throw KobaltException("Couldn't find any compiler for project ${project.name}")
         } else {
             compilers.forEach { compiler ->
-                val info = createCompilerActionInfo(project, context, isTest = false,
-                        sourceSuffixes = compiler.sourceSuffixes)
+                val info = createCompilerActionInfo(project, context, isTest, sourceSuffixes = compiler.sourceSuffixes)
                 val thisResult = compiler.compile(project, context, info)
                 results.add(thisResult)
                 if (! thisResult.success && failedResult == null) {
@@ -179,18 +178,11 @@ abstract class JvmCompilerPlugin @Inject constructor(
                 }
             }
             return if (failedResult != null) failedResult!!
-                else results[0]
+            else results[0]
         }
     }
 
     val allProjects = arrayListOf<ProjectDescription>()
-
-    fun addDependentProjects(project: Project, dependents: List<Project>) {
-        project.projectInfo.dependsOn.addAll(dependents)
-        with(ProjectDescription(project, dependents)) {
-            allProjects.add(this)
-        }
-    }
 
     override fun projects() : List<ProjectDescription> {
         return allProjects
@@ -204,7 +196,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
             var result: TaskResult? = null
             compilers.forEach { compiler ->
                 result = docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context,
-                        isTest = false, sourceSuffixes =  compiler.sourceSuffixes))
+                        isTest = false, sourceSuffixes = compiler.sourceSuffixes))
             }
             return result!!
         } else {
@@ -278,7 +270,7 @@ abstract class JvmCompilerPlugin @Inject constructor(
 
         // Finally, alter the info with the compiler interceptors before returning it
         val initialActionInfo = CompilerActionInfo(projectDirectory.path, classpath, sourceFiles + extraSourceFiles,
-                buildDirectory, emptyList())
+                buildDirectory, emptyList() /* the flags will be provided by flag contributors */)
         val result = context.pluginInfo.compilerInterceptors.fold(initialActionInfo, { ai, interceptor ->
             interceptor.intercept(project, context, ai)
         })
@@ -306,6 +298,6 @@ abstract class JvmCompilerPlugin @Inject constructor(
         )
     }
 
-    abstract protected fun doTaskCompileTest(project: Project): TaskResult
+    open val compiler: ICompilerContributor? = null
 }
 

@@ -11,9 +11,6 @@ import java.util.*
  * Data that is useful for projects to have but should not be specified in the DSL.
  */
 interface IProjectInfo {
-    val defaultSourceDirectories: HashSet<String>
-    val defaultTestDirectories: HashSet<String>
-
     /**
      * If at least one build config was found either on the project or the variant, this function
      * will be used to generate the BuildConfig file with the correct language.

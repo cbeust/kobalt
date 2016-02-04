@@ -10,9 +10,6 @@ import com.google.inject.Singleton
 
 @Singleton
 class KotlinProjectInfo : BaseProjectInfo() {
-    override val defaultSourceDirectories = hashSetOf("src/main/kotlin", "src/main/resources")
-    override val defaultTestDirectories = hashSetOf("src/test/kotlin", "src/test/resources")
-
     override fun generate(field: BuildConfigField) = with(field) {
         "        val $name : $type = $value"
     }

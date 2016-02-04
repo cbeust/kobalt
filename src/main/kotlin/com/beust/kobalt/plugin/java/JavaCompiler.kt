@@ -52,6 +52,7 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
                     command = "javac " + allArgs.joinToString(" ") + " " + info.sourceFiles.joinToString(" ")
                     log(2, "Launching\n$command")
 
+                    log(1, "  Java compiling ${info.sourceFiles.size} files")
                     val result = task.call()
                     errorMessage = dc.diagnostics.joinToString("\n")
                     result
@@ -71,8 +72,8 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
                     val pb = ProcessBuilder(allArgs)
                     pb.inheritIO()
                     val line = allArgs.joinToString(" ")
-                    log(1, "  Compiling ${info.sourceFiles.size} files")
-                    log(2, "  Compiling $line")
+                    log(1, "  Java compiling ${info.sourceFiles.size} files")
+                    log(2, "  Java compiling $line")
 
                     command = allArgs.joinToString(" ") + " " + info.sourceFiles.joinToString(" ")
                     val process = pb.start()

@@ -24,6 +24,32 @@ open class Project(
         @Directive open var packageName: String? = group,
         val projectInfo: IProjectInfo) : IBuildConfig {
 
+    class ProjectExtra(project: Project) {
+        val suffixesFound = hashSetOf<String>()
+
+        init {
+            Kobalt.context?.let {
+                project.sourceDirectories.forEach { source ->
+                    val sourceDir = File(KFiles.joinDir(project.directory, source))
+                    KFiles.findRecursively(sourceDir, { file ->
+                        val ind = file.lastIndexOf(".")
+                        if (ind >= 0) {
+                            suffixesFound.add(file.substring(ind + 1))
+                        }
+                        false
+                    })
+                }
+                println("Suffixes: " + suffixesFound)
+            }
+        }
+    }
+
+    /**
+     * Initialized as soon as all the projects are parsed. This field caches a bunch of things we don't
+     * want to recalculate all the time, such as the list of suffixes found in this project.
+     */
+    lateinit var projectExtra : ProjectExtra
+
     val testConfigs = arrayListOf(TestConfig(this))
 
     override var buildConfig : BuildConfig? = null //BuildConfig()
@@ -38,23 +64,39 @@ open class Project(
         return name.hashCode()
     }
 
+    companion object {
+        val DEFAULT_SOURCE_DIRECTORIES = hashSetOf("src/main/java", "src/main/kotlin", "src/main/resources")
+        val DEFAULT_SOURCE_DIRECTORIES_TEST = hashSetOf("src/test/java", "src/test/kotlin")
+    }
+
     //
     // Directories
     //
 
     @Directive
-    fun sourceDirectories(init: Sources.() -> Unit) = Sources(this, sourceDirectories).apply { init() }
+    fun sourceDirectories(init: Sources.() -> Unit) : Sources {
+        return Sources(this, sourceDirectories).apply { init() }
+    }
 
-    var sourceDirectories : HashSet<String> = hashSetOf()
-        get() = if (field.isEmpty()) projectInfo.defaultSourceDirectories else field
+    private fun existing(dirs: Set<String>) = dirs.filter { File(directory, it).exists() }.toHashSet()
+
+    var sourceDirectories = hashSetOf<String>()
+        get() = existing(if (field.isEmpty()) DEFAULT_SOURCE_DIRECTORIES else field)
         set(value) { field = value }
 
     @Directive
-    fun sourceDirectoriesTest(init: Sources.() -> Unit) = Sources(this, sourceDirectoriesTest).apply { init() }
+    fun sourceDirectoriesTest(init: Sources.() -> Unit) : Sources {
+        return Sources(this, sourceDirectoriesTest).apply { init() }
+    }
 
-    var sourceDirectoriesTest : HashSet<String> = hashSetOf()
-        get() = if (field.isEmpty()) projectInfo.defaultTestDirectories else field
+    var sourceDirectoriesTest = hashSetOf<String>()
+        get() = existing(if (field.isEmpty()) DEFAULT_SOURCE_DIRECTORIES_TEST else field)
         set(value) { field = value }
+
+    init {
+        sourceDirectories = hashSetOf()
+        sourceDirectoriesTest = hashSetOf()
+    }
 
     //
     // Dependencies
