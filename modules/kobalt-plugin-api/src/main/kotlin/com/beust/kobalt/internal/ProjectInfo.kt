@@ -9,7 +9,7 @@ import com.beust.kobalt.api.Project
 /**
  * Data that is useful for projects to have but should not be specified in the DSL.
  */
-interface IProjectInfo {
+interface IBuildConfig {
     /**
      * If at least one build config was found either on the project or the variant, this function
      * will be used to generate the BuildConfig file with the correct language.
@@ -19,7 +19,7 @@ interface IProjectInfo {
 
 }
 
-abstract class BaseProjectInfo : IProjectInfo {
+abstract class BaseBuildConfig : IBuildConfig {
     abstract fun generate(field: BuildConfigField) : String
 
     fun generate(type: String, name: String, value: Any) = generate(BuildConfigField(type, name, value))

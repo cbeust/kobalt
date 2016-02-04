@@ -131,7 +131,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
 
     override fun generateBuildConfig(project: Project, context: KobaltContext, packageName: String,
             variant: Variant, buildConfigs: List<BuildConfig>): String {
-        return KotlinProjectInfo().generateBuildConfig(project, context, packageName, variant, buildConfigs)
+        return KotlinBuildConfig().generateBuildConfig(project, context, packageName, variant, buildConfigs)
     }
 }
 

@@ -66,7 +66,7 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
 
     override fun generateBuildConfig(project: Project, context: KobaltContext, packageName: String,
             variant: Variant, buildConfigs: List<BuildConfig>): String {
-        return JavaProjectInfo().generateBuildConfig(project, context, packageName, variant, buildConfigs)
+        return JavaBuildConfig().generateBuildConfig(project, context, packageName, variant, buildConfigs)
     }
 
 
