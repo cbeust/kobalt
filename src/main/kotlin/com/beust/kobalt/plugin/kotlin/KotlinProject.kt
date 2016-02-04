@@ -24,8 +24,7 @@ public class KotlinProject(
         override var dependencies: Dependencies? = null,
         @Directive
         override var packaging: String? = null)
-        : Project(name, version, directory, buildDirectory, group, artifactId, packaging, dependencies, ".kt",
-                projectInfo = KotlinProjectInfo()) {
+        : Project(name, version, directory, buildDirectory, group, artifactId, packaging, dependencies, ".kt") {
 
     override public fun toString() = toString("KotlinProject", "name", name)
 }

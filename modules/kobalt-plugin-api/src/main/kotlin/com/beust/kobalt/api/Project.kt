@@ -2,7 +2,6 @@ package com.beust.kobalt.api
 
 import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.internal.IProjectInfo
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
 import java.io.File
@@ -21,8 +20,7 @@ open class Project(
         @Directive open var scm : Scm? = null,
         @Directive open var url: String? = null,
         @Directive open var licenses: List<License> = arrayListOf<License>(),
-        @Directive open var packageName: String? = group,
-        val projectInfo: IProjectInfo) : IBuildConfig {
+        @Directive open var packageName: String? = group) : IBuildConfig {
 
     class ProjectExtra(project: Project) {
         val suffixesFound : Set<String> by lazy {

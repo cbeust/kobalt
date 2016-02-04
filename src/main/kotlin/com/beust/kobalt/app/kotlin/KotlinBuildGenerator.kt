@@ -1,10 +1,8 @@
 package com.beust.kobalt.app.kotlin
 
 import com.beust.kobalt.app.BuildGenerator
-import com.beust.kobalt.plugin.kotlin.KotlinProjectInfo
-import com.google.inject.Inject
 
-public class KotlinBuildGenerator @Inject constructor (val projectInfo: KotlinProjectInfo) : BuildGenerator() {
+public class KotlinBuildGenerator : BuildGenerator() {
     override val defaultSourceDirectories = hashSetOf("src/main/kotlin")
     override val defaultTestDirectories = hashSetOf("src/test/kotlin")
     override val directive = "kotlinProject"

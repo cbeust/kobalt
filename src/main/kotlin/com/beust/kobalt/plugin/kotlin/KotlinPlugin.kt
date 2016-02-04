@@ -1,6 +1,7 @@
 package com.beust.kobalt.plugin.kotlin
 
 import com.beust.kobalt.TaskResult
+import com.beust.kobalt.Variant
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.BaseJvmPlugin
@@ -15,7 +16,8 @@ import javax.inject.Singleton
 
 @Singleton
 class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
-    : BaseJvmPlugin<KotlinConfig>(), IDocContributor, IClasspathContributor, ICompilerContributor {
+    : BaseJvmPlugin<KotlinConfig>(), IDocContributor, IClasspathContributor, ICompilerContributor,
+        IBuildConfigContributor {
 
     companion object {
         const val PLUGIN_NAME = "Kotlin"
@@ -122,6 +124,15 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
         log(2, "${project.name}: $s")
     }
 
+    // IBuildConfigContributor
+    override fun affinity(project: Project): Int {
+        return if (project.projectExtra.suffixesFound.contains("kotlin")) 2 else 0
+    }
+
+    override fun generateBuildConfig(project: Project, context: KobaltContext, packageName: String,
+            variant: Variant, buildConfigs: List<BuildConfig>): String {
+        return KotlinProjectInfo().generateBuildConfig(project, context, packageName, variant, buildConfigs)
+    }
 }
 
 /**

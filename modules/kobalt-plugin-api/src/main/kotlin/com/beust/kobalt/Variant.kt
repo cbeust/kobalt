@@ -139,18 +139,23 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
                     ?: throw KobaltException(
                     "packageName needs to be defined on the project in order to generate BuildConfig")
 
-            val code = project.projectInfo.generateBuildConfig(project, context, pkg, this, buildConfigs)
-            val result = KFiles.makeDir(KFiles.generatedSourceDir(project, this, "buildConfig"))
-            // Make sure the generatedSourceDirectory doesn't contain the project.directory since
-            // that directory will be added when trying to find recursively all the sources in it
-            generatedSourceDirectory = File(result.relativeTo(File(project.directory)))
-            val outputGeneratedSourceDirectory = File(result, pkg.replace('.', File.separatorChar))
-            val compilers = ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
-            val outputDir = File(outputGeneratedSourceDirectory,
-                    "BuildConfig" + compilers[0].sourceSuffixes[0])
-            KFiles.saveFile(outputDir, code)
-            log(2, "Generated ${outputDir.path}")
-            return result
+            val contributor = ActorUtils.selectAffinityActor(context.pluginInfo.buildConfigContributors, project)
+            if (contributor != null) {
+                val code = contributor.generateBuildConfig(project, context, pkg, this, buildConfigs)
+                val result = KFiles.makeDir(KFiles.generatedSourceDir(project, this, "buildConfig"))
+                // Make sure the generatedSourceDirectory doesn't contain the project.directory since
+                // that directory will be added when trying to find recursively all the sources in it
+                generatedSourceDirectory = File(result.relativeTo(File(project.directory)))
+                val outputGeneratedSourceDirectory = File(result, pkg.replace('.', File.separatorChar))
+                val compilers = ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
+                val outputDir = File(outputGeneratedSourceDirectory,
+                        "BuildConfig" + compilers[0].sourceSuffixes[0])
+                KFiles.saveFile(outputDir, code)
+                log(2, "Generated ${outputDir.path}")
+                return result
+            } else {
+                throw KobaltException("Couldn't find a contributor to generate BuildConfig")
+            }
         } else {
             return null
         }

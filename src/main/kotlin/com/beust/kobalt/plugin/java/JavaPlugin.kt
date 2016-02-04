@@ -1,6 +1,7 @@
 package com.beust.kobalt.plugin.java
 
 import com.beust.kobalt.TaskResult
+import com.beust.kobalt.Variant
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.BaseJvmPlugin
@@ -11,7 +12,8 @@ import javax.inject.Singleton
 
 @Singleton
 class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
-        : BaseJvmPlugin<JavaConfig>(), IDocContributor, ICompilerContributor, ITestSourceDirectoryContributor {
+        : BaseJvmPlugin<JavaConfig>(), IDocContributor, ICompilerContributor, ITestSourceDirectoryContributor,
+            IBuildConfigContributor {
     companion object {
         const val PLUGIN_NAME = "Java"
     }
@@ -56,6 +58,17 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     // ITestSourceDirectoryContributor
     override fun testSourceDirectoriesFor(project: Project, context: KobaltContext)
         = project.sourceDirectoriesTest.map { File(it) }.toList()
+
+    // IBuildConfigContributor
+    override fun affinity(project: Project): Int {
+        return if (project.projectExtra.suffixesFound.contains("java")) 1 else 0
+    }
+
+    override fun generateBuildConfig(project: Project, context: KobaltContext, packageName: String,
+            variant: Variant, buildConfigs: List<BuildConfig>): String {
+        return JavaProjectInfo().generateBuildConfig(project, context, packageName, variant, buildConfigs)
+    }
+
 
 }
 
