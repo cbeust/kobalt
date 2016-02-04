@@ -76,6 +76,7 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
 @Directive
 public fun javaProject(vararg projects: Project, init: JavaProject.() -> Unit): JavaProject {
     return JavaProject().apply {
+        warn("javaProject{} is deprecated, please use project{}")
         init()
         (Kobalt.findPlugin(JvmCompilerPlugin.PLUGIN_NAME) as JvmCompilerPlugin)
                 .addDependentProjects(this, projects.toList())

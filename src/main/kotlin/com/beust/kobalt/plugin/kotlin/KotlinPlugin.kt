@@ -142,6 +142,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
 @Directive
 fun kotlinProject(vararg projects: Project, init: KotlinProject.() -> Unit): KotlinProject {
     return KotlinProject().apply {
+        warn("kotlinProject{} is deprecated, please use project{}")
         init()
         (Kobalt.findPlugin(JvmCompilerPlugin.PLUGIN_NAME) as JvmCompilerPlugin)
                 .addDependentProjects(this, projects.toList())

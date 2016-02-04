@@ -1,5 +1,5 @@
 
-import com.beust.kobalt.TaskResult
+import com.beust.kobalt.*
 import com.beust.kobalt.api.License
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.Scm
@@ -22,7 +22,7 @@ import java.nio.file.StandardCopyOption
 
 val r = repos("http://dl.bintray.com/kotlin/kotlinx.dom")
 
-val wrapper = javaProject {
+val wrapper = project {
     name = "kobalt-wrapper"
     version = readVersion()
     directory = "modules/wrapper"
@@ -46,7 +46,7 @@ val wrapper = javaProject {
 }
 
 
-val kobaltPluginApi = kotlinProject {
+val kobaltPluginApi = project {
     name = "kobalt-plugin-api"
     group = "com.beust"
     artifactId = name
@@ -103,7 +103,7 @@ val kobaltPluginApi = kotlinProject {
     }
 }
 
-val kobaltApp = kotlinProject(kobaltPluginApi, wrapper) {
+val kobaltApp = project(kobaltPluginApi, wrapper) {
     name = "kobalt"
     group = "com.beust"
     artifactId = name

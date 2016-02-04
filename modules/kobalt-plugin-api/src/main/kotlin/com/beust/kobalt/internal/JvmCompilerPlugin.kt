@@ -308,12 +308,3 @@ open class JvmCompilerPlugin @Inject constructor(
 
     open val compiler: ICompilerContributor? = null
 }
-
-@Directive
-public fun project(vararg projects: Project, init: Project.() -> Unit): Project {
-    return Project("").apply {
-        init()
-        (Kobalt.findPlugin(JvmCompilerPlugin.PLUGIN_NAME) as JvmCompilerPlugin)
-                .addDependentProjects(this, projects.toList())
-    }
-}
