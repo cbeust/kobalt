@@ -111,42 +111,30 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
         return result
     }
 
-    /**
-     * @return the compile dependencies for this project, including the contributors.
-     * TODO: very similar to the method below, refactor.
-     */
-    fun dependencies(project: Project, context: KobaltContext) : List<IClasspathDependency> {
+    private fun dependencies(project: Project, context: KobaltContext, isTest: Boolean)
+            : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         val projects = listOf(ProjectDescription(project, project.projectExtra.dependsOn))
         result.add(FileDependency(KFiles.makeOutputDir(project).absolutePath))
         result.add(FileDependency(KFiles.makeOutputTestDir(project).absolutePath))
         with(project) {
-            arrayListOf(compileDependencies, compileProvidedDependencies).forEach {
+            val deps = arrayListOf(compileDependencies, compileProvidedDependencies)
+            if (isTest) {
+                deps.add(testDependencies)
+                deps.add(testProvidedDependencies)
+            }
+            deps.forEach {
                 result.addAll(calculateDependencies(project, context, projects, it))
             }
         }
         val result2 = reorderDependencies(result)
         return result2
     }
+
+    fun dependencies(project: Project, context: KobaltContext) = dependencies(project, context, false)
 
     /**
      * @return the test dependencies for this project, including the contributors.
      */
-    fun testDependencies(project: Project, context: KobaltContext) : List<IClasspathDependency> {
-        val result = arrayListOf<IClasspathDependency>()
-        val projects = listOf(ProjectDescription(project, project.projectExtra.dependsOn))
-        result.add(FileDependency(KFiles.makeOutputDir(project).absolutePath))
-        result.add(FileDependency(KFiles.makeOutputTestDir(project).absolutePath))
-        with(project) {
-            arrayListOf(compileDependencies, compileProvidedDependencies, testDependencies,
-                    testProvidedDependencies).forEach {
-                result.addAll(calculateDependencies(project, context, projects, it))
-            }
-        }
-        val result2 = reorderDependencies(result)
-        return result2
-    }
-
-
-
+    fun testDependencies(project: Project, context: KobaltContext) = dependencies(project, context, true)
 }
