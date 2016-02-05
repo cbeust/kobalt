@@ -2,10 +2,8 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.misc.NamedThreadFactory
-import com.beust.kobalt.misc.error
-import com.beust.kobalt.misc.log
-import com.beust.kobalt.misc.toString
+import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.misc.*
 import com.google.common.collect.HashMultimap
 import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.*
@@ -94,8 +92,12 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
         }
         executor.shutdown()
         if (graph.freeNodes.size == 0 && graph.nodesReady.size > 0) {
-            throw KobaltException("Couldn't find any free nodes but a few nodes still haven't run, there is " +
-                    "a cycle in the dependencies.\n  Nodes left: " + graph.dump(graph.nodesReady))
+            if (KobaltLogger.LOG_LEVEL > 1) {
+                throw KobaltException("Couldn't find any free nodes but a few nodes still haven't run, there is " +
+                        "a cycle in the dependencies.\n  Nodes left: " + graph.dump(graph.nodesReady))
+            } else {
+                error("Error during the build")
+            }
         }
         return if (lastResult.success) 0 else 1
     }
