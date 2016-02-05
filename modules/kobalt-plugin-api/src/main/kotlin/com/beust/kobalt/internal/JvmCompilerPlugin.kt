@@ -4,7 +4,6 @@ import com.beust.kobalt.IncrementalTaskInfo
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
-import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
@@ -173,16 +172,27 @@ open class JvmCompilerPlugin @Inject constructor(
             throw KobaltException("Couldn't find any compiler for project ${project.name}")
         } else {
             compilers.forEach { compiler ->
-                val info = createCompilerActionInfo(project, context, isTest, sourceSuffixes = compiler.sourceSuffixes)
-                val thisResult = compiler.compile(project, context, info)
-                results.add(thisResult)
-                if (! thisResult.success && failedResult == null) {
-                    failedResult = thisResult
+                if (containsSourceFiles(project, compiler)) {
+                    val info = createCompilerActionInfo(project, context, isTest, sourceSuffixes = compiler.sourceSuffixes)
+                    val thisResult = compiler.compile(project, context, info)
+                    results.add(thisResult)
+                    if (!thisResult.success && failedResult == null) {
+                        failedResult = thisResult
+                    }
+                } else {
+                    log(2, "Compiler $compiler not running on ${project.name} since no source files were found")
                 }
             }
             return if (failedResult != null) failedResult!!
             else results[0]
         }
+    }
+
+    private fun containsSourceFiles(project: Project, compiler: ICompilerContributor): Boolean {
+        project.projectExtra.suffixesFound.forEach {
+            if (compiler.sourceSuffixes.contains(it)) return true
+        }
+        return false
     }
 
     val allProjects = arrayListOf<ProjectDescription>()

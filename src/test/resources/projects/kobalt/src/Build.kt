@@ -11,10 +11,6 @@ val javaFirst = project {
 
     assemble {
         jar {
-            fatJar = true
-            manifest {
-                attributes("Main-Class", "example.KotlinMainKt")
-            }
         }
     }
 }
@@ -28,10 +24,6 @@ val kotlinFirst = project {
 
     assemble {
         jar {
-            fatJar = true
-            manifest {
-                attributes("Main-Class", "example.KotlinMainKt")
-            }
         }
     }
 }
@@ -43,8 +35,20 @@ val mixed1 = project {
     version = "0.1"
     directory = name
 
-    dependenciesTest {
-        compile("org.testng:testng:6.9.5")
+    assemble {
+        jar {
+        }
+    }
+}
+
+
+val nonStandard = project {
+    name = "nonStandard"
+    group = "com.example"
+    directory = name
+
+    sourceDirectories {
+        path("src/generated/java")
     }
 
     assemble {
