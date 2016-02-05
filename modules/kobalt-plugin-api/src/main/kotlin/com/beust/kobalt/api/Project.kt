@@ -89,10 +89,7 @@ open class Project(
         return Sources(this, sourceDirectories).apply { init() }
     }
 
-    private fun existing(dirs: Set<String>) = dirs.filter { File(directory, it).exists() }.toHashSet()
-
     var sourceDirectories = hashSetOf<String>().apply { addAll(DEFAULT_SOURCE_DIRECTORIES)}
-        get() = existing(field)
 
     @Directive
     fun sourceDirectoriesTest(init: Sources.() -> Unit) : Sources {
@@ -100,7 +97,6 @@ open class Project(
     }
 
     var sourceDirectoriesTest = hashSetOf<String>().apply { addAll(DEFAULT_SOURCE_DIRECTORIES_TEST)}
-        get() = existing(field)
 
     //
     // Dependencies
