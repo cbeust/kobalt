@@ -24,7 +24,7 @@ class BuildInfo(var tasks: List<TaskInfo>)
  */
 class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FILE) {
     companion object {
-        val BUILD_INFO_FILE = KFiles.joinDir(KFiles.KOBALT_DOT_DIR, "build-info.json")
+        val BUILD_INFO_FILE = KFiles.joinDir(KFiles.KOBALT_DOT_DIR, "buildInfo.json")
     }
 
     private fun buildInfo() = File(fileName).let { file ->
