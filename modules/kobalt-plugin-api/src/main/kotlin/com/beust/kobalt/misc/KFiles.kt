@@ -78,7 +78,7 @@ class KFiles {
         /**
          * Join the paths elements with the file separator.
          */
-        fun joinDir(vararg ts: String): String = ts.toArrayList().joinToString(File.separator)
+        fun joinDir(vararg ts: String): String = ts.toMutableList().joinToString(File.separator)
 
         /**
          * The paths elements are expected to be a directory. Make that directory and join the
@@ -176,14 +176,16 @@ class KFiles {
             }
             try {
                 // We cannot break for loop from inside a lambda, so we have to use an exception here
-                for (src in from.walkTopDown().fail { f, e -> if (onError(f, e) == OnErrorAction.TERMINATE) throw TerminateException(f) }) {
+                for (src in from.walkTopDown().onFail { f, e ->
+                    if (onError(f, e) == OnErrorAction.TERMINATE) throw TerminateException(f)
+                }) {
                     if (!src.exists()) {
                         if (onError(src, NoSuchFileException(file = src, reason = "The source file doesn't exist")) ==
                                 OnErrorAction.TERMINATE)
                             return false
                     } else {
                         val relPath = src.relativeTo(from)
-                        val dstFile = File(dst, relPath)
+                        val dstFile = File(KFiles.joinDir(dst.path, relPath.path))
                         if (dstFile.exists() && !replaceExisting && !(src.isDirectory && dstFile.isDirectory)) {
                             if (onError(dstFile, FileAlreadyExistsException(file = src,
                                     other = dstFile,
@@ -195,7 +197,8 @@ class KFiles {
                             if (Features.USE_TIMESTAMPS && dstFile.exists() && Md5.toMd5(src) == Md5.toMd5(dstFile)) {
                                 log(2, "  Identical files, not copying $src to $dstFile")
                             } else {
-                                if (src.copyTo(dstFile, true) != src.length()) {
+                                val target = src.copyTo(dstFile, true)
+                                if (target.length() != src.length()) {
                                     if (onError(src,
                                             IOException("src.length() != dst.length()")) == OnErrorAction.TERMINATE)
                                         return false

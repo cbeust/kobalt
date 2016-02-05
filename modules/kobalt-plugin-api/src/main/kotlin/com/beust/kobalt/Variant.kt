@@ -105,12 +105,12 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
 
     private fun findBuildTypeBuildConfig(project: Project, variant: Variant?) : BuildConfig? {
         val buildTypeName = variant?.buildType?.name
-        return project.buildTypes.getRaw(buildTypeName)?.buildConfig ?: null
+        return project.buildTypes[buildTypeName]?.buildConfig ?: null
     }
 
     private fun findProductFlavorBuildConfig(project: Project, variant: Variant?) : BuildConfig? {
         val buildTypeName = variant?.productFlavor?.name
-        return project.productFlavors.getRaw(buildTypeName)?.buildConfig ?: null
+        return project.productFlavors[buildTypeName]?.buildConfig ?: null
     }
 
     /**
@@ -145,7 +145,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
                 val result = KFiles.makeDir(KFiles.generatedSourceDir(project, this, "buildConfig"))
                 // Make sure the generatedSourceDirectory doesn't contain the project.directory since
                 // that directory will be added when trying to find recursively all the sources in it
-                generatedSourceDirectory = File(result.relativeTo(File(project.directory)))
+                generatedSourceDirectory = File(result.relativeTo(File(project.directory)).absolutePath)
                 val outputGeneratedSourceDirectory = File(result, pkg.replace('.', File.separatorChar))
                 val compilers = ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
                 val outputDir = File(outputGeneratedSourceDirectory,

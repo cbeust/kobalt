@@ -16,7 +16,7 @@ class Topological<T> {
     }
 
     fun addEdge(t: T, others: Array<out T>) {
-        dependingOn.putAll(t, others.toArrayList())
+        dependingOn.putAll(t, others.toMutableList())
     }
 
     /**

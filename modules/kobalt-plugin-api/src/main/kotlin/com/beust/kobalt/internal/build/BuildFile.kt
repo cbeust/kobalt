@@ -14,5 +14,5 @@ class BuildFile(val path: Path, val name: String, val realPath: Path = path) {
     public val lastModified : Long
         get() = Files.readAttributes(realPath, BasicFileAttributes::class.java).lastModifiedTime().toMillis()
 
-    public val directory : File get() = path.toFile().directory
+    public val directory : File get() = path.toFile().parentFile
 }

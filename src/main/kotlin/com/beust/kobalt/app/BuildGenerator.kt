@@ -37,7 +37,7 @@ abstract class BuildGenerator : IInitContributor<File> {
         }
 
         val properties = pom.properties
-        val mapped = properties.entries.toMapBy({ it.key }, { ProjectGenerator.toIdentifier(it.key) })
+        val mapped = properties.entries.associateBy({ it.key }, { ProjectGenerator.toIdentifier(it.key) })
 
         map.put("properties", properties.entries.map({ Pair(mapped[it.key], it.value) }))
 

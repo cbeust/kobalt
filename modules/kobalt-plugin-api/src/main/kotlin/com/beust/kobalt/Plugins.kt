@@ -86,7 +86,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
             : List<Pair<Method, T>> {
         val result = arrayListOf<Pair<Method, T>>()
 
-        var currentClass : Class<in Any> = plugin.javaClass
+        var currentClass : Class<in Any>? = plugin.javaClass
 
         // Tasks can come from two different places: plugin classes and build files.
         // When a task is read from a build file, ScriptCompiler adds it right away to plugin.methodTasks.

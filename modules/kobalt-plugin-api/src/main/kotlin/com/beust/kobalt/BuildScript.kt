@@ -9,7 +9,7 @@ import java.io.File
 
 @Directive
 fun homeDir(vararg dirs: String) : String = SystemProperties.homeDir +
-        File.separator + dirs.toArrayList().joinToString(File.separator)
+        File.separator + dirs.toMutableList().joinToString(File.separator)
 
 @Directive
 fun localMavenRepo() = homeDir(".m2" + File.separator + "repository/")

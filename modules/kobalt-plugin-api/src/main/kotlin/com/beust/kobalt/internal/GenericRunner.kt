@@ -38,7 +38,7 @@ abstract class GenericTestRunner : ITestRunnerContributor {
     }
 
     private fun toClassPaths(paths: List<String>): ArrayList<String> =
-            paths.map { if (it.endsWith("class")) it else it + "class" }.toArrayList()
+            paths.map { if (it.endsWith("class")) it else it + "class" }.toCollection(ArrayList())
 
     /**
      * @return true if all the tests passed

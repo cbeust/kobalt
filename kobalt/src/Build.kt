@@ -64,7 +64,7 @@ val kobaltPluginApi = project {
     }
 
     dependencies {
-        compile("org.jetbrains.kotlinx:kotlinx.dom:0.0.4",
+        compile("org.jetbrains.kotlinx:kotlinx.dom:0.0.8",
 
                 "com.squareup.okhttp:okhttp:2.5.0",
                 "com.squareup.okio:okio:1.6.0",
@@ -111,7 +111,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
     dependencies {
         // Used by the plugins
-        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.0-beta-4584")
+        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.0-rc-1036")
 
         // Used by the main app
         compile("com.github.spullara.mustache.java:compiler:0.9.1",
