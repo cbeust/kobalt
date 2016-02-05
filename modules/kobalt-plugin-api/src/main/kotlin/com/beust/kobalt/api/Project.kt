@@ -4,6 +4,7 @@ import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.log
 import java.io.File
 import java.util.*
 
@@ -28,13 +29,17 @@ open class Project(
             Kobalt.context?.let {
                 project.sourceDirectories.forEach { source ->
                     val sourceDir = File(KFiles.joinDir(project.directory, source))
-                    KFiles.findRecursively(sourceDir, { file ->
-                        val ind = file.lastIndexOf(".")
-                        if (ind >= 0) {
-                            sf.add(file.substring(ind + 1))
-                        }
-                        false
-                    })
+                    if (sourceDir.exists()) {
+                        KFiles.findRecursively(sourceDir, { file ->
+                            val ind = file.lastIndexOf(".")
+                            if (ind >= 0) {
+                                sf.add(file.substring(ind + 1))
+                            }
+                            false
+                        })
+                    } else {
+                        log(2, "Skipping nonexistent directory $sourceDir")
+                    }
                 }
             }
             sf
@@ -48,9 +53,6 @@ open class Project(
          * @return true if any of the projects we depend on is dirty.
          */
         fun dependsOnDirtyProjects(project: Project) = project.projectExtra.dependsOn.any { it.projectExtra.isDirty }
-
-        init {
-        }
     }
 
     /**
@@ -89,23 +91,14 @@ open class Project(
 
     private fun existing(dirs: Set<String>) = dirs.filter { File(directory, it).exists() }.toHashSet()
 
-    var sourceDirectories = hashSetOf<String>()
-        get() = existing(if (field.isEmpty()) DEFAULT_SOURCE_DIRECTORIES else field)
-        set(value) { field = value }
+    var sourceDirectories = hashSetOf<String>().apply { addAll(DEFAULT_SOURCE_DIRECTORIES)}
 
     @Directive
     fun sourceDirectoriesTest(init: Sources.() -> Unit) : Sources {
         return Sources(this, sourceDirectoriesTest).apply { init() }
     }
 
-    var sourceDirectoriesTest = hashSetOf<String>()
-        get() = existing(if (field.isEmpty()) DEFAULT_SOURCE_DIRECTORIES_TEST else field)
-        set(value) { field = value }
-
-    init {
-        sourceDirectories = hashSetOf()
-        sourceDirectoriesTest = hashSetOf()
-    }
+    var sourceDirectoriesTest = hashSetOf<String>().apply { addAll(DEFAULT_SOURCE_DIRECTORIES_TEST)}
 
     //
     // Dependencies
