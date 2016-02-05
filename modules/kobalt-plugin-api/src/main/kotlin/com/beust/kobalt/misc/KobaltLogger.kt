@@ -37,7 +37,7 @@ fun Any.error(text: String, e: Throwable? = null) {
 }
 
 object KobaltLogger {
-    public var LOG_LEVEL: Int = 1
+    var LOG_LEVEL: Int = 1
 
     val logger: Logger get() =
     if (Kobalt.context != null) {
