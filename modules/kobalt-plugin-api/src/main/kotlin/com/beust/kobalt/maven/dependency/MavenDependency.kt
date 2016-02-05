@@ -63,11 +63,11 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
 
     override val id = mavenId.toId
 
-    override fun toMavenDependencies(): Dependency {
-        return Dependency().apply {
-            setGroupId(groupId)
-            setArtifactId(artifactId)
-            setVersion(version)
+    override fun toMavenDependencies() = let { md ->
+        Dependency().apply {
+            groupId = md.groupId
+            artifactId = md.artifactId
+            version = md.version
         }
     }
 
