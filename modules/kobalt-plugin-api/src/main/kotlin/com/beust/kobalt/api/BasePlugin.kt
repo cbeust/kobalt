@@ -3,7 +3,7 @@ package com.beust.kobalt.api
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.internal.TaskManager
 
-abstract public class BasePlugin : IPlugin {
+abstract class BasePlugin : IPlugin {
     lateinit var context: KobaltContext
 
     override fun accept(project: Project) = true
