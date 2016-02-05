@@ -44,10 +44,12 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
         return result.toList()
     }
 
+    fun resDirectories(project: Project) : List<File> = sourceDirectories(project, "res")
+
     /**
      * suffix is either "java" (to find source files) or "res" (to find resources)
      */
-    private fun sourceDirectories(project: Project, suffix: String) : List<File> {
+    fun sourceDirectories(project: Project, suffix: String) : List<File> {
         val result = arrayListOf<File>()
         val sourceDirectories = project.sourceDirectories.map { File(it) }
         if (isDefault) {
