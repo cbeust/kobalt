@@ -24,6 +24,8 @@ val r = repos("http://dl.bintray.com/kotlin/kotlinx.dom")
 
 val wrapper = project {
     name = "kobalt-wrapper"
+    group = "com.beust"
+    artifactId = name
     version = readVersion()
     directory = "modules/wrapper"
 
