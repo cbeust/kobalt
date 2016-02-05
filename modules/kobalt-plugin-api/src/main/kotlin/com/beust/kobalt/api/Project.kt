@@ -76,8 +76,8 @@ open class Project(
     }
 
     companion object {
-        val DEFAULT_SOURCE_DIRECTORIES = hashSetOf("src/main/java", "src/main/kotlin", "src/main/resources")
-        val DEFAULT_SOURCE_DIRECTORIES_TEST = hashSetOf("src/test/java", "src/test/kotlin")
+        val DEFAULT_SOURCE_DIRECTORIES = setOf("src/main/java", "src/main/kotlin", "src/main/resources")
+        val DEFAULT_SOURCE_DIRECTORIES_TEST = setOf("src/test/java", "src/test/kotlin")
     }
 
     //
@@ -92,6 +92,7 @@ open class Project(
     private fun existing(dirs: Set<String>) = dirs.filter { File(directory, it).exists() }.toHashSet()
 
     var sourceDirectories = hashSetOf<String>().apply { addAll(DEFAULT_SOURCE_DIRECTORIES)}
+        get() = existing(field)
 
     @Directive
     fun sourceDirectoriesTest(init: Sources.() -> Unit) : Sources {
@@ -99,6 +100,7 @@ open class Project(
     }
 
     var sourceDirectoriesTest = hashSetOf<String>().apply { addAll(DEFAULT_SOURCE_DIRECTORIES_TEST)}
+        get() = existing(field)
 
     //
     // Dependencies
