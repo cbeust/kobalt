@@ -152,7 +152,7 @@ class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
     fun compilerArgs(s: List<String>) = args.addAll(s)
 
     fun compile(project: Project? = null, context: KobaltContext? = null) : TaskResult {
-        return compiler.compile(project, context, dependencies, classpath, source, output, args + "-no-stdlib")
+        return compiler.compile(project, context, dependencies, classpath, source, output, args)
     }
 }
 

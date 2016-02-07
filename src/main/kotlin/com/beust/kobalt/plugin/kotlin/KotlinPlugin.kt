@@ -38,7 +38,8 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
 
     // ICompilerFlagsContributor
     override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>)
-        = configurationFor(project)?.compilerArgs ?: listOf<String>()
+            = maybeCompilerArgs(project, (configurationFor(project)?.compilerArgs ?: listOf<String>()) +
+                    listOf("-no-stdlib"))
 
     //    override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
 //        val configs = dokkaConfigurations[project.name]

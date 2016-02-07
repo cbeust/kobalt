@@ -39,8 +39,9 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     }
 
     // ICompilerFlagsContributor
+    // ICompilerFlagsContributor
     override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>)
-            = configurationFor(project)?.compilerArgs ?: listOf<String>()
+            = maybeCompilerArgs(project, configurationFor(project)?.compilerArgs ?: listOf<String>())
 
     // ICompilerContributor
     override val sourceSuffixes = listOf("java")
