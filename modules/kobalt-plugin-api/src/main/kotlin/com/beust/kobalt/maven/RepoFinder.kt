@@ -25,10 +25,8 @@ import javax.xml.xpath.XPathFactory
  * Find the repo that contains the given dependency among a list of repos. Searches are performed in parallel and
  * cached so we never make a network call for the same dependency more than once.
  */
-public class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
-    public fun findCorrectRepo(id: String): RepoResult {
-        return FOUND_REPOS.get(id)
-    }
+class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
+    fun findCorrectRepo(id: String) = FOUND_REPOS.get(id)
 
     data class RepoResult(val hostConfig: HostConfig, val found: Boolean, val version: Version? = null,
             val hasJar: Boolean = true, val snapshotVersion: Version? = null)
