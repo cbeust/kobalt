@@ -8,6 +8,7 @@ import java.io.File
 data class CompilerActionInfo(val directory: String?,
         val dependencies: List<IClasspathDependency>,
         val sourceFiles: List<String>,
+        val suffixesBeingCompiled: List<String>,
         val outputDir: File,
         val compilerArgs: List<String>)
 

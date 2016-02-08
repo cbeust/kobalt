@@ -31,7 +31,8 @@ public class AptPlugin @Inject constructor(val depFactory: DepFactory)
                     context.variant.toIntermediateDir())
 
     // ICompilerFlagContributor
-    override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>) : List<String> {
+    override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
+            suffixesBeingCompiled: List<String>) : List<String> {
         val result = arrayListOf<String>()
         configurationFor(project)?.let { config ->
             aptDependencies[project.name]?.let { aptDependencies ->

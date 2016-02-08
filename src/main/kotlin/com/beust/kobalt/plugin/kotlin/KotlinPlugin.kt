@@ -37,9 +37,12 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
     }
 
     // ICompilerFlagsContributor
-    override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>)
-            = maybeCompilerArgs(project, (configurationFor(project)?.compilerArgs ?: listOf<String>()) +
-                    listOf("-no-stdlib"))
+    override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
+            suffixesBeingCompiled: List<String>) : List<String> {
+            val result = maybeCompilerArgs(sourceSuffixes, suffixesBeingCompiled,
+                    configurationFor(project)?.compilerArgs ?: listOf<String>())
+            return result
+    }
 
     //    override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
 //        val configs = dokkaConfigurations[project.name]
@@ -101,7 +104,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
 
     // ICompilerContributor
 
-    override val sourceSuffixes = listOf(".kt")
+    override val sourceSuffixes = listOf("kt")
 
     override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val result =
@@ -129,7 +132,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
     // IBuildConfigContributor
     override fun affinity(project: Project) = if (project.projectExtra.suffixesFound.contains("kotlin")) 2 else 0
 
-    override val buildConfigSuffix = ".kt"
+    override val buildConfigSuffix = "kt"
 
     override fun generateBuildConfig(project: Project, context: KobaltContext, packageName: String,
             variant: Variant, buildConfigs: List<BuildConfig>): String {

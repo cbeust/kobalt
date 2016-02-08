@@ -293,7 +293,7 @@ open class JvmCompilerPlugin @Inject constructor(
 
         // Finally, alter the info with the compiler interceptors before returning it
         val initialActionInfo = CompilerActionInfo(projectDirectory.path, classpath, sourceFiles + extraSourceFiles,
-                buildDirectory, emptyList() /* the flags will be provided by flag contributors */)
+                sourceSuffixes, buildDirectory, emptyList() /* the flags will be provided by flag contributors */)
         val result = context.pluginInfo.compilerInterceptors.fold(initialActionInfo, { ai, interceptor ->
             interceptor.intercept(project, context, ai)
         })

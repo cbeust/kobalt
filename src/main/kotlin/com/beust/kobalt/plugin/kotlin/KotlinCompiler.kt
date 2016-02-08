@@ -129,7 +129,7 @@ class KotlinCompiler @Inject constructor(
         //            .map { FileDependency(it) }
 
         val dependencies = compileDependencies + otherClasspath.map { FileDependency(it) }
-        val info = CompilerActionInfo(project?.directory, dependencies, sourceFiles, outputDir, args)
+        val info = CompilerActionInfo(project?.directory, dependencies, sourceFiles, listOf("kt"), outputDir, args)
         return jvmCompiler.doCompile(project, context, compilerAction, info)
     }
 }

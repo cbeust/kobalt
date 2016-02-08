@@ -149,7 +149,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
                 // that directory will be added when trying to find recursively all the sources in it
                 generatedSourceDirectory = File(result.relativeTo(File(project.directory)).absolutePath)
                 val outputGeneratedSourceDirectory = File(result, pkg.replace('.', File.separatorChar))
-                val outputDir = File(outputGeneratedSourceDirectory, "BuildConfig" + contributor.buildConfigSuffix)
+                val outputDir = File(outputGeneratedSourceDirectory, "BuildConfig." + contributor.buildConfigSuffix)
                 KFiles.saveFile(outputDir, code)
                 log(2, "Generated ${outputDir.path}")
                 return result

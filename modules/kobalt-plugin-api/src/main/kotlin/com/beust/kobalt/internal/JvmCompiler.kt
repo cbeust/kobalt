@@ -34,7 +34,7 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
             val contributors = context.pluginInfo.compilerFlagContributors
             contributors.sortBy { it.flagPriority }
             context.pluginInfo.compilerFlagContributors.forEach {
-                currentFlags.addAll(it.flagsFor(project, context, currentFlags))
+                currentFlags.addAll(it.flagsFor(project, context, currentFlags, info.suffixesBeingCompiled))
             }
             currentFlags
         } else {
