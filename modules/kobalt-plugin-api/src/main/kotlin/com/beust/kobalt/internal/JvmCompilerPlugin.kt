@@ -173,7 +173,8 @@ open class JvmCompilerPlugin @Inject constructor(
         } else {
             compilers.forEach { compiler ->
                 if (containsSourceFiles(project, compiler)) {
-                    val info = createCompilerActionInfo(project, context, isTest, sourceSuffixes = compiler.sourceSuffixes)
+                    val info = createCompilerActionInfo(project, context, isTest, sourceDirectories,
+                            sourceSuffixes = compiler.sourceSuffixes)
                     val thisResult = compiler.compile(project, context, info)
                     results.add(thisResult)
                     if (!thisResult.success && failedResult == null) {
@@ -214,7 +215,8 @@ open class JvmCompilerPlugin @Inject constructor(
             var result: TaskResult? = null
             compilers.forEach { compiler ->
                 result = docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context,
-                        isTest = false, sourceSuffixes = compiler.sourceSuffixes))
+                        isTest = false, sourceDirectories = sourceDirectories,
+                        sourceSuffixes = compiler.sourceSuffixes))
             }
             return result!!
         } else {
@@ -236,7 +238,7 @@ open class JvmCompilerPlugin @Inject constructor(
      * Runs all the contributors and interceptors relevant to that task.
      */
     protected fun createCompilerActionInfo(project: Project, context: KobaltContext, isTest: Boolean,
-            sourceSuffixes: List<String>): CompilerActionInfo {
+            sourceDirectories: Set<File>, sourceSuffixes: List<String>): CompilerActionInfo {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
 
         val fullClasspath = if (isTest) dependencyManager.testDependencies(project, context)
@@ -252,8 +254,8 @@ open class JvmCompilerPlugin @Inject constructor(
             else File(project.classesDir(context))
         buildDirectory.mkdirs()
 
-        val initialSourceDirectories = arrayListOf<File>()
 
+        val initialSourceDirectories = ArrayList<File>(sourceDirectories)
         // Source directories from the contributors
         initialSourceDirectories.addAll(
             if (isTest) {
