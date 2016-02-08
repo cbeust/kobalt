@@ -9,7 +9,7 @@ import java.io.File
 import java.util.*
 
 open class Project(
-        @Directive open var name: String,
+        @Directive open var name: String = "",
         @Directive open var version: String? = null,
         @Directive open var directory: String = ".",
         @Directive open var buildDirectory: String = KFiles.KOBALT_BUILD_DIR,
