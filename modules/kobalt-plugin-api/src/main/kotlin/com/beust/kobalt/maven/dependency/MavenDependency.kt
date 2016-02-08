@@ -29,7 +29,7 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
     init {
         val jar = File(localRepo.toFullPath(toJarFile(version)))
         val pom = File(localRepo.toFullPath(toPomFile(version)))
-        if (jar.exists() && pom.exists()) {
+        if (pom.exists()) {
             jarFile = CompletedFuture(jar)
             pomFile = CompletedFuture(pom)
         } else {
