@@ -28,17 +28,18 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
 
     init {
         val jar = File(localRepo.toFullPath(toJarFile(version)))
+        val aar = File(localRepo.toFullPath(toAarFile(version)))
         val pom = File(localRepo.toFullPath(toPomFile(version)))
-        if (pom.exists()) {
-            jarFile = CompletedFuture(jar)
+        if (pom.exists() && (jar.exists() || aar.exists())) {
+            jarFile = CompletedFuture(if (jar.exists()) jar else aar)
             pomFile = CompletedFuture(pom)
         } else {
             val repoResult = repoFinder.findCorrectRepo(mavenId.toId)
             if (repoResult.found) {
+                val path = if (jar.exists()) jar.absolutePath else aar.absolutePath
                 jarFile =
-                    if (repoResult.hasJar) {
-                        downloadManager.download(HostConfig(url = repoResult.hostConfig.url + toJarFile(repoResult)),
-                                jar.absolutePath, executor)
+                    if (repoResult.archiveUrl != null) {
+                        downloadManager.download(HostConfig(url = repoResult.archiveUrl), path, executor)
                     } else {
                         CompletedFuture(File("nonexistentFile")) // will be filtered out
                 }

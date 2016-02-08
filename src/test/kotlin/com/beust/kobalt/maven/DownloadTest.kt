@@ -120,8 +120,9 @@ public class DownloadTest @Inject constructor(
         // For now, just hardcoding the result we should have received
 //        val repoResult = repoFinder.findCorrectRepo(id)
 
-        val repoResult = RepoFinder.RepoResult(HostConfig("http://repository.jetbrains.com/all/"),
-                true, Version.of("0.1-SNAPSHOT"), true, Version("0.1-SNAPSHOT", "20151011.112011-29"))
+        val hc = HostConfig("http://repository.jetbrains.com/all/")
+        val repoResult = RepoFinder.RepoResult(hc,
+                Version.of("0.1-SNAPSHOT"), hc.url, Version("0.1-SNAPSHOT", "20151011.112011-29"))
 
         val jarFile = dep.toJarFile(repoResult)
         val url = repoResult.hostConfig.url + jarFile

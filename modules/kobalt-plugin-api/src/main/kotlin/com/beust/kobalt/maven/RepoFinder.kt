@@ -28,8 +28,12 @@ import javax.xml.xpath.XPathFactory
 class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
     fun findCorrectRepo(id: String) = FOUND_REPOS.get(id)
 
-    data class RepoResult(val hostConfig: HostConfig, val found: Boolean, val version: Version? = null,
-            val hasJar: Boolean = true, val snapshotVersion: Version? = null)
+    data class RepoResult(val hostConfig: HostConfig, val version: Version? = null,
+            val archiveUrl: String? = null, val snapshotVersion: Version? = null) {
+        val found = archiveUrl != null
+
+        val path = archiveUrl?.substring(hostConfig.url.length)
+    }
 
     private val FOUND_REPOS: LoadingCache<String, RepoResult> = CacheBuilder.newBuilder()
             .build(object : CacheLoader<String, RepoResult>() {
@@ -69,7 +73,7 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
             results.sort({ left, right -> right.version!!.compareTo(left.version!!) })
             return results[0]
         } else {
-            return RepoResult(HostConfig(""), false, Version.of(id))
+            return RepoResult(HostConfig(""), Version.of(id))
         }
     }
 
@@ -88,11 +92,12 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
             if (mavenId.version == null) {
                 val ud = UnversionedDep(groupId, artifactId)
                 val isLocal = repoUrl.startsWith(FileDependency.PREFIX_FILE)
-                val foundVersion = findCorrectVersionRelease(ud.toMetadataXmlPath(false, isLocal), repoUrl)
+                val path = ud.toMetadataXmlPath(false, isLocal)
+                val foundVersion = findCorrectVersionRelease(path, repoUrl)
                 if (foundVersion != null) {
-                    return RepoResult(repo, true, Version.of(foundVersion))
+                    return RepoResult(repo, Version.of(foundVersion), path)
                 } else {
-                    return RepoResult(repo, false)
+                    return RepoResult(repo)
                 }
             } else {
                 val version = Version.of(mavenId.version)
@@ -107,35 +112,48 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                         val url = repoUrl + metadataXmlPath
                         val kurl = Kurl(HostConfig(url))
                         val found = kurl.exists
-                        return RepoResult(repo, found, version, true /* hasJar, potential bug here */,
-                                snapshotVersion)
+                        return RepoResult(repo, version, url, snapshotVersion)
                     } else {
-                        return RepoResult(repo, false)
+                        return RepoResult(repo)
                     }
                 } else if (version.isRangedVersion() ) {
                     val foundVersion = findRangedVersion(SimpleDep(mavenId), repoUrl)
                     if (foundVersion != null) {
-                        return RepoResult(repo, true, foundVersion)
+                        return RepoResult(repo, foundVersion)
                     } else {
-                        return RepoResult(repo, false)
+                        return RepoResult(repo)
                     }
 
                 } else {
                     val dep = SimpleDep(mavenId)
                     // Try to find the jar file
-                    val urlJar = repo.copy(url = repo.url + dep.toJarFile(dep.version))
-                    val hasJar = Kurl(urlJar).exists
-                    val found =
-                        if (! hasJar) {
-                            // No jar, try to find the directory
-                            val url = repo.copy(url = repoUrl
-                                    + File(dep.toJarFile(dep.version)).parentFile.path.replace("\\", "/"))
-                            Kurl(url).exists
-                        } else {
-                            true
-                        }
-                    log(2, "Result for $repoUrl for $id: $found")
-                    return RepoResult(repo, found, Version.of(dep.version), hasJar)
+                    val attemptPaths = listOf(dep.toJarFile(dep.version), dep.toAarFile(dep.version))
+                    val attemptUrls = attemptPaths.map { repo.copy(url = repo.url + it )} +
+                        attemptPaths.map { repo.copy(url = repo.url + File(it).parentFile.path.replace("\\", "/")) }
+
+                    val firstFound = attemptUrls.map { Kurl(it)}.firstOrNull { it.exists }
+//                    val urlJar = repo.copy(url = repo.url + dep.toJarFile(dep.version))
+//                    var foundPath = ""
+//                    if (Kurl(urlJar).exists) {
+//                        foundPath = dep.toJarFile(dep.version)
+//                    } else {
+//                        val urlAar = repo.copy(url = repo.url + dep.toAarFile(dep.version))
+//                        if (Kurl(urlAar).exists) {
+//                            foundPath = dep.toAarFile(dep.version)
+//                        }
+//                    }
+//                    val hasJar = true
+//                    val found =
+//                        if (! hasJar) {
+//                            // No jar, try to find the directory
+//                            val url = repo.copy(url = repoUrl
+//                                    + File(dep.toJarFile(dep.version)).parentFile.path.replace("\\", "/"))
+//                            Kurl(url).exists
+//                        } else {
+//                            true
+//                        }
+                    log(2, "Result for $repoUrl for $id: $firstFound")
+                    return RepoResult(repo, Version.of(dep.version), firstFound?.hostInfo?.url)
                 }
             }
         }

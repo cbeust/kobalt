@@ -4,7 +4,6 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.RepoFinder
-import com.beust.kobalt.maven.SimpleDep
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.Node
 import com.beust.kobalt.misc.log
@@ -36,9 +35,8 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder, val loca
         val seen = hashSetOf(id)
         root.addChildren(findChildren(root, seen))
 
-        val simpleDep = SimpleDep(mavenId)
-        val url = repoResult.hostConfig.url + simpleDep.toJarFile(repoResult)
-        val localFile = localRepo.toFullPath(simpleDep.toJarFile(repoResult))
+        val url = repoResult.hostConfig.url + repoResult.path
+        val localFile = localRepo.toFullPath(repoResult.path!!)
         AsciiArt.logBox(listOf(id, url, localFile).map { "          $it" }, {s -> println(s) })
 
         display(root.children)

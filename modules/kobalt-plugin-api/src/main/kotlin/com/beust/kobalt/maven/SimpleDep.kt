@@ -27,6 +27,7 @@ open class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.groupId
     fun toPomFile(r: RepoFinder.RepoResult) = toFile(r.snapshotVersion ?: r.version!!, ".pom")
 
     fun toJarFile(v: String = version) = toFile(Version.of(v), suffix)
+    fun toAarFile(v: String = version) = toFile(Version.of(v), ".aar")
 
     fun toPomFileName() = "$artifactId-$version.pom"
 
