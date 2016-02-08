@@ -274,6 +274,7 @@ open class JvmCompilerPlugin @Inject constructor(
             File(project.directory, it.path).exists()
         }
 
+        // Now that we have all the source directories, find all the source files in them
         val sourceFiles = files.findRecursively(projectDirectory, sourceDirectories,
                 { file -> sourceSuffixes.any { file.endsWith(it) }})
                 .map { File(projectDirectory, it).path }
@@ -286,7 +287,15 @@ open class JvmCompilerPlugin @Inject constructor(
             project.sourceDirectories.forEach {
                 val javaDir = KFiles.joinDir(project.directory, it)
                 if (File(javaDir).exists()) {
-                    if (it.contains("java")) extraSourceFiles.add(javaDir)
+                    if (it.contains("java")) {
+                        extraSourceFiles.add(javaDir)
+                        // Add all the source directories contributed as potential Java directories too
+                        // (except our own)
+                        context.pluginInfo.sourceDirContributors.filter { it != this }.forEach {
+                            extraSourceFiles.addAll(it.sourceDirectoriesFor(project, context).map { it.path })
+                        }
+
+                    }
                 }
             }
         }
