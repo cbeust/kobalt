@@ -44,7 +44,7 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
             = maybeCompilerArgs(project, configurationFor(project)?.compilerArgs ?: listOf<String>())
 
     // ICompilerContributor
-    override val sourceSuffixes = listOf("java")
+    override val sourceSuffixes = listOf(".java")
 
     override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val result =
@@ -64,7 +64,7 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     // IBuildConfigContributor
     override fun affinity(project: Project) = if (project.projectExtra.suffixesFound.contains("java")) 1 else 0
 
-    override val suffix = ".java"
+    override val buildConfigSuffix = ".java"
 
     override fun generateBuildConfig(project: Project, context: KobaltContext, packageName: String,
             variant: Variant, buildConfigs: List<BuildConfig>): String {

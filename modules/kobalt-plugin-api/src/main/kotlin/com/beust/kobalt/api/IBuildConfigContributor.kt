@@ -12,5 +12,5 @@ interface IBuildConfigContributor : ISimpleAffinity<Project> {
     /**
      * The suffix of the generated BuildConfig, e.g. ".java".
      */
-    val suffix: String
+    val buildConfigSuffix: String
 }

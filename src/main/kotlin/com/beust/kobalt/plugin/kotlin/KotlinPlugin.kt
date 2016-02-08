@@ -101,7 +101,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
 
     // ICompilerContributor
 
-    override val sourceSuffixes = listOf("kt")
+    override val sourceSuffixes = listOf(".kt")
 
     override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val result =
@@ -129,7 +129,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
     // IBuildConfigContributor
     override fun affinity(project: Project) = if (project.projectExtra.suffixesFound.contains("kotlin")) 2 else 0
 
-    override val suffix = ".kt"
+    override val buildConfigSuffix = ".kt"
 
     override fun generateBuildConfig(project: Project, context: KobaltContext, packageName: String,
             variant: Variant, buildConfigs: List<BuildConfig>): String {
