@@ -55,10 +55,11 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
             for (i in 0..Kobalt.repos.size - 1) {
                 try {
                     val result = cs.take().get(2000, TimeUnit.MILLISECONDS)
-                    log(2, "  Result for repo #$i: $result")
                     if (result.found) {
                         log(2, "Located $id in ${result.hostConfig.url}")
                         results.add(result)
+                    } else {
+                        log(3, "  Result for repo #$i: $result")
                     }
                 } catch(ex: Exception) {
                     warn("Error: $ex")
@@ -132,27 +133,7 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                         attemptPaths.map { repo.copy(url = repo.url + File(it).parentFile.path.replace("\\", "/")) }
 
                     val firstFound = attemptUrls.map { Kurl(it)}.firstOrNull { it.exists }
-//                    val urlJar = repo.copy(url = repo.url + dep.toJarFile(dep.version))
-//                    var foundPath = ""
-//                    if (Kurl(urlJar).exists) {
-//                        foundPath = dep.toJarFile(dep.version)
-//                    } else {
-//                        val urlAar = repo.copy(url = repo.url + dep.toAarFile(dep.version))
-//                        if (Kurl(urlAar).exists) {
-//                            foundPath = dep.toAarFile(dep.version)
-//                        }
-//                    }
-//                    val hasJar = true
-//                    val found =
-//                        if (! hasJar) {
-//                            // No jar, try to find the directory
-//                            val url = repo.copy(url = repoUrl
-//                                    + File(dep.toJarFile(dep.version)).parentFile.path.replace("\\", "/"))
-//                            Kurl(url).exists
-//                        } else {
-//                            true
-//                        }
-                    log(2, "Result for $repoUrl for $id: $firstFound")
+                    log(3, "Result for $repoUrl for $id: $firstFound")
                     return RepoResult(repo, Version.of(dep.version), firstFound?.hostInfo?.url)
                 }
             }
