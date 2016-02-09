@@ -14,6 +14,13 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
         val depFactory: DepFactory){
 
     /**
+     * Transitive dependencies for the compilation of this project.
+     */
+    fun calculateTransitiveDependencies(project: Project, context: KobaltContext)
+        = calculateDependencies(project, context, project.dependentProjects,
+            project.compileDependencies + project.compileRuntimeDependencies)
+
+    /**
      * @return the classpath for this project, including the IClasspathContributors.
      * allDependencies is typically either compileDependencies or testDependencies
      */
