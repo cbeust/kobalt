@@ -66,7 +66,7 @@ class Kurl(val hostInfo: HostConfig) {
                     if (connection is HttpURLConnection) {
                         val responseCode = (connection as HttpURLConnection).responseCode
                         checkResponseCode(responseCode)
-                        responseCode == 200
+                        responseCode == 200 || responseCode == 301
                     } else if (url.startsWith(FileDependency.PREFIX_FILE)) {
                         val fileName = url.substring(FileDependency.PREFIX_FILE.length)
                         File(fileName).exists()

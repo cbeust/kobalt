@@ -17,7 +17,8 @@ import kotlin.properties.Delegates
 /**
  * TODO: test snapshots  https://repository.jboss.org/nexus/content/repositories/root_repository//commons-lang/commons-lang/2.7-SNAPSHOT/commons-lang-2.7-SNAPSHOT.jar
  */
-public class DownloadTest @Inject constructor(
+@Test
+class DownloadTest @Inject constructor(
         val depFactory: DepFactory,
         val localRepo: LocalRepo,
         val executors: KobaltExecutors) : KobaltTest() {
@@ -134,5 +135,10 @@ public class DownloadTest @Inject constructor(
         Assert.assertTrue(Kurl(HostConfig(url)).exists, "Should exist: $url")
     }
 
+    @Test
+    fun jitpackTest() {
+        val id = "http://jitpack.io/com/github/JakeWharton/RxBinding/rxbinding-kotlin/542cd7e8a4/rxbinding-kotlin-542cd7e8a4.aar"
+        Assert.assertTrue(Kurl(HostConfig(id)).exists)
+    }
 }
 
