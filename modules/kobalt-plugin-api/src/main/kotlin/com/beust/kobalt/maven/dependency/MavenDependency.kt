@@ -36,13 +36,13 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
         } else {
             val repoResult = repoFinder.findCorrectRepo(mavenId.toId)
             if (repoResult.found) {
-                val path = if (jar.exists()) jar.absolutePath else aar.absolutePath
                 jarFile =
                     if (repoResult.archiveUrl != null) {
+                        val path = localRepo.toFullPath(repoResult.path!!)
                         downloadManager.download(HostConfig(url = repoResult.archiveUrl), path, executor)
                     } else {
                         CompletedFuture(File("nonexistentFile")) // will be filtered out
-                }
+                    }
                 pomFile = downloadManager.download(HostConfig(url = repoResult.hostConfig.url + toPomFile(repoResult)),
                         pom.absolutePath, executor)
             } else {
