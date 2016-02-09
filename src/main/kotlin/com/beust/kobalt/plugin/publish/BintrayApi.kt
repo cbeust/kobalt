@@ -37,8 +37,12 @@ open public class UnauthenticatedBintrayApi @Inject constructor(open val http: H
         val networkResponse = r.networkResponse()
         if (networkResponse.code() != 200) {
             val message = networkResponse.message()
-            val errorObject = JsonParser().parse(r.body().string()).asJsonObject
-            return BintrayResponse(null, message + ": " + errorObject.get("message").asString)
+            try {
+                val errorObject = JsonParser().parse(r.body().string()).asJsonObject
+                return BintrayResponse(null, message + ": " + errorObject.get("message").asString)
+            } catch(ex: Exception) {
+                return BintrayResponse(null, message)
+            }
         } else {
             return BintrayResponse(JsonParser().parse(r.body().string()).asJsonObject, null)
         }
