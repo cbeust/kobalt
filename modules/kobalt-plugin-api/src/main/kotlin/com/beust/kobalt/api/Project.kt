@@ -2,9 +2,11 @@ package com.beust.kobalt.api
 
 import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.annotation.Directive
+import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.project
 import java.io.File
 import java.util.*
 
@@ -67,13 +69,12 @@ open class Project(
 
     val projectProperties = ProjectProperties()
 
-    override fun equals(other: Any?): Boolean {
-        return name == (other as Project).name
-    }
+    override fun equals(other: Any?) = name == (other as Project).name
+    override fun hashCode() = name.hashCode()
 
-    override fun hashCode(): Int {
-        return name.hashCode()
-    }
+    /** Can be used by plug-ins */
+    val dependentProjects : List<ProjectDescription>
+            get() = projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS) as List<ProjectDescription>
 
     companion object {
         val DEFAULT_SOURCE_DIRECTORIES = setOf("src/main/java", "src/main/kotlin", "src/main/resources")
