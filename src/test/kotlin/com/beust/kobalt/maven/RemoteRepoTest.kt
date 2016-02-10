@@ -36,10 +36,10 @@ class RemoteRepoTest @Inject constructor(val repoFinder: RepoFinder,
         }
     }
 
-//    fun resolveAarWithoutVersion() {
-//        val repoResult = repoFinder.findCorrectRepo("com.jakewharton.timber:timber:")
-//        with(repoResult) {
-//            Assert.assertEquals(path, "com/jakewharton/timber/timber/4.1.0/timber-4.1.0.aar")
-//        }
-//    }
+    fun resolveAarWithoutVersion() {
+        val repoResult = repoFinder.findCorrectRepo("com.jakewharton.timber:timber:")
+        with(repoResult) {
+            Assert.assertEquals(path, "com/jakewharton/timber/timber/4.1.0/timber-4.1.0.aar")
+        }
+    }
 }
