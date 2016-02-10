@@ -41,7 +41,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
             Collection<IClasspathDependency> {
         val result = hashSetOf<IClasspathDependency>()
         context.pluginInfo.classpathContributors.forEach { it: IClasspathContributor ->
-            result.addAll(it.entriesFor(project))
+            result.addAll(it.classpathEntriesFor(project, context))
         }
         return result
     }

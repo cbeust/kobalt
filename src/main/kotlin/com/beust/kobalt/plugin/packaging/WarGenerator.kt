@@ -42,7 +42,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
 
         // Run through all the classpath contributors and add their contributions to the libs/ directory
         context.pluginInfo.classpathContributors.map {
-            it.entriesFor(project)
+            it.classpathEntriesFor(project, context)
         }.map { deps : Collection<IClasspathDependency> ->
             deps.forEach { dep ->
                 val jar = dep.jarFile.get()
