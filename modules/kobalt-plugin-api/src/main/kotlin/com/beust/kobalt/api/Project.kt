@@ -6,7 +6,6 @@ import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.project
 import java.io.File
 import java.util.*
 
@@ -65,7 +64,7 @@ open class Project(
 
     val testConfigs = arrayListOf(TestConfig(this))
 
-    override var buildConfig : BuildConfig? = null //BuildConfig()
+    override var buildConfig : BuildConfig? = BuildConfig()
 
     val projectProperties = ProjectProperties()
 
