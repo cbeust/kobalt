@@ -6,6 +6,8 @@ Android:
 
 General
 
+- [ ] Need a -resolve with no dependency which gives the tree for the whole project
+- [ ] If jitpack specified with http and not https, 301 is not handled correctly
 - [ ] Apt should run from serviceloader
 - [ ] Console mode with watch service, so recompilation can occur as soon as a source file is modified
 - [ ] ProjectGenerator: support migration from pom.xml (starting with dependencies)
