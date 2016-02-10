@@ -41,22 +41,27 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     // ICompilerFlagsContributor
     override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
             suffixesBeingCompiled: List<String>) =
-                maybeCompilerArgs(sourceSuffixes, suffixesBeingCompiled,
+                maybeCompilerArgs(compiler.sourceSuffixes, suffixesBeingCompiled,
                         configurationFor(project)?.compilerArgs ?: listOf<String>())
 
     // ICompilerContributor
-    override val sourceSuffixes = listOf("java")
+    val compiler = object: ICompiler {
+        // ICompilerContributor
+        override val sourceSuffixes = listOf("java")
 
-    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
-        val result =
-            if (info.sourceFiles.size > 0) {
-                javaCompiler.compile(project, context, info)
-            } else {
-                warn("Couldn't find any source files to compile")
-                TaskResult()
-            }
-        return result
+        override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
+            val result =
+                    if (info.sourceFiles.size > 0) {
+                        javaCompiler.compile(project, context, info)
+                    } else {
+                        warn("Couldn't find any source files to compile")
+                        TaskResult()
+                    }
+            return result
+        }
     }
+
+    override fun compilersFor(project: Project, context: KobaltContext) = arrayListOf(compiler)
 
     // ITestSourceDirectoryContributor
     override fun testSourceDirectoriesFor(project: Project, context: KobaltContext)
@@ -65,7 +70,7 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     // IBuildConfigContributor
     override fun affinity(project: Project) = if (project.projectExtra.suffixesFound.contains("java")) 1 else 0
 
-    override val buildConfigSuffix = sourceSuffixes[0]
+    override val buildConfigSuffix = compiler.sourceSuffixes[0]
 
     override fun generateBuildConfig(project: Project, context: KobaltContext, packageName: String,
             variant: Variant, buildConfigs: List<BuildConfig>): String {

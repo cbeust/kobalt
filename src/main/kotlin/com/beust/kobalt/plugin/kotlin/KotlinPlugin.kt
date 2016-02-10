@@ -39,7 +39,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
     // ICompilerFlagsContributor
     override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
             suffixesBeingCompiled: List<String>) : List<String> {
-            val result = maybeCompilerArgs(sourceSuffixes, suffixesBeingCompiled,
+            val result = maybeCompilerArgs(compiler.sourceSuffixes, suffixesBeingCompiled,
                     configurationFor(project)?.compilerArgs ?: listOf<String>())
             return result
     }
@@ -105,22 +105,26 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
 
     // ICompilerContributor
 
-    override val sourceSuffixes = listOf("kt")
+    val compiler = object: ICompiler {
+        override val sourceSuffixes = listOf("kt")
 
-    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
-        val result =
-            if (info.sourceFiles.size > 0) {
-                compilePrivate(project, info.dependencies, info.sourceFiles, info.outputDir, info.compilerArgs)
-            } else {
-                warn("Couldn't find any source files")
-                TaskResult()
-            }
+        override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
+            val result =
+                    if (info.sourceFiles.size > 0) {
+                        compilePrivate(project, info.dependencies, info.sourceFiles, info.outputDir, info.compilerArgs)
+                    } else {
+                        warn("Couldn't find any source files")
+                        TaskResult()
+                    }
 
-        lp(project, "Compilation " + if (result.success) "succeeded" else "failed")
-        return result
+            lp(project, "Compilation " + if (result.success) "succeeded" else "failed")
+            return result
+        }
     }
 
-//    private val dokkaConfigurations = ArrayListMultimap.create<String, DokkaConfig>()
+    override fun compilersFor(project: Project, context: KobaltContext) = arrayListOf(compiler)
+
+    //    private val dokkaConfigurations = ArrayListMultimap.create<String, DokkaConfig>()
 //
 //    fun addDokkaConfiguration(project: Project, dokkaConfig: DokkaConfig) {
 //        dokkaConfigurations.put(project.name, dokkaConfig)

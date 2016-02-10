@@ -165,23 +165,26 @@ open class JvmCompilerPlugin @Inject constructor(
         }
         val results = arrayListOf<TaskResult>()
 
-        val compilers = ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
+        val compilerContributors = ActorUtils.selectAffinityActors(project, context,
+                context.pluginInfo.compilerContributors)
 
         var failedResult: TaskResult? = null
-        if (compilers.isEmpty()) {
+        if (compilerContributors.isEmpty()) {
             throw KobaltException("Couldn't find any compiler for project ${project.name}")
         } else {
-            compilers.forEach { compiler ->
-                if (containsSourceFiles(project, compiler)) {
-                    val info = createCompilerActionInfo(project, context, isTest, sourceDirectories,
-                            sourceSuffixes = compiler.sourceSuffixes)
-                    val thisResult = compiler.compile(project, context, info)
-                    results.add(thisResult)
-                    if (!thisResult.success && failedResult == null) {
-                        failedResult = thisResult
+            compilerContributors.forEach { contributor ->
+                contributor.compilersFor(project, context).forEach { compiler ->
+                    if (containsSourceFiles(project, compiler)) {
+                        val info = createCompilerActionInfo(project, context, isTest, sourceDirectories,
+                                sourceSuffixes = compiler.sourceSuffixes)
+                        val thisResult = compiler.compile(project, context, info)
+                        results.add(thisResult)
+                        if (!thisResult.success && failedResult == null) {
+                            failedResult = thisResult
+                        }
+                    } else {
+                        log(2, "Compiler $compiler not running on ${project.name} since no source files were found")
                     }
-                } else {
-                    log(2, "Compiler $compiler not running on ${project.name} since no source files were found")
                 }
             }
             return if (failedResult != null) failedResult!!
@@ -189,7 +192,7 @@ open class JvmCompilerPlugin @Inject constructor(
         }
     }
 
-    private fun containsSourceFiles(project: Project, compiler: ICompilerContributor): Boolean {
+    private fun containsSourceFiles(project: Project, compiler: ICompiler): Boolean {
         project.projectExtra.suffixesFound.forEach {
             if (compiler.sourceSuffixes.contains(it)) return true
         }
@@ -211,12 +214,14 @@ open class JvmCompilerPlugin @Inject constructor(
     fun taskJavadoc(project: Project): TaskResult {
         val docGenerator = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.docContributors)
         if (docGenerator != null) {
-            val compilers = ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
+            val contributors = ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
             var result: TaskResult? = null
-            compilers.forEach { compiler ->
-                result = docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context,
-                        isTest = false, sourceDirectories = sourceDirectories,
-                        sourceSuffixes = compiler.sourceSuffixes))
+            contributors.forEach {
+                it.compilersFor(project, context).forEach { compiler ->
+                    result = docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context,
+                            isTest = false, sourceDirectories = sourceDirectories,
+                            sourceSuffixes = compiler.sourceSuffixes))
+                }
             }
             return result!!
         } else {

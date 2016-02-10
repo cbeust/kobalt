@@ -36,14 +36,24 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     }
 
     fun sourceDirectories(project: Project, context: KobaltContext) : List<File> {
-        val compilers = ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
-        val sourceSuffixes = compilers.flatMap { it.sourceSuffixes }
-        val result = sourceSuffixes.flatMap {
-            sourceDirectories(project, it)
-        }.toHashSet()
+        val result = hashSetOf<File>()
+        val compilerContributors = ActorUtils.selectAffinityActors(project, context,
+                context.pluginInfo.compilerContributors)
+        compilerContributors.forEach {
+            it.compilersFor(project, context).forEach { compiler ->
+                val sourceSuffixes = compilerContributors.flatMap { compiler.sourceSuffixes }
+                result.addAll(sourceSuffixes.flatMap {
+                    sourceDirectories(project, it)
+                })
+            }
+
+        }
         return result.toList()
     }
 
+    /**
+     * Might be used by plug-ins.
+     */
     fun resDirectories(project: Project) : List<File> = sourceDirectories(project, "res")
 
     /**
