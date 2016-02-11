@@ -46,7 +46,6 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
 
     // ICompilerContributor
     val compiler = object: ICompiler {
-        // ICompilerContributor
         override val sourceSuffixes = listOf("java")
 
         override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
