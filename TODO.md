@@ -6,6 +6,8 @@ Android:
 
 General
 
+- [ ] KFiles.findSourceFiles should cache its results
+- [ ] createCompilerAction should calculate source files once and for all, including contributors and interceptors
 - [ ] Need a -resolve with no dependency which gives the tree for the whole project
 - [ ] If jitpack specified with http and not https, 301 is not handled correctly
 - [ ] Apt should run from serviceloader
