@@ -8,6 +8,7 @@ import com.beust.kobalt.internal.BaseJvmPlugin
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
@@ -26,7 +27,14 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
 
     override val name = PLUGIN_NAME
 
-    override fun accept(project: Project) = project.projectExtra.suffixesFound.contains("kt")
+    override fun accept(project: Project) = hasSourceFiles(project)
+
+    // IBuildConfigContributor
+
+    private fun hasSourceFiles(project: Project)
+            = KFiles.findSourceFiles(project, project.sourceDirectories, listOf("kt")).size > 0
+
+    override fun affinity(project: Project) = if (hasSourceFiles(project)) 1 else 0
 
     // IDocContributor
     override fun affinity(project: Project, context: KobaltContext) =
@@ -133,9 +141,6 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
     protected fun lp(project: Project, s: String) {
         log(2, "${project.name}: $s")
     }
-
-    // IBuildConfigContributor
-    override fun affinity(project: Project) = if (project.projectExtra.suffixesFound.contains("kotlin")) 2 else 0
 
     override val buildConfigSuffix = "kt"
 

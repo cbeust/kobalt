@@ -8,3 +8,10 @@ import java.io.File
 interface ISourceDirectoryContributor {
     fun sourceDirectoriesFor(project: Project, context: KobaltContext): List<File>
 }
+
+fun KobaltContext.sourceDirectories(project: Project) : List<File> {
+    val result = pluginInfo.sourceDirContributors.flatMap {
+        it.sourceDirectoriesFor(project, this)
+    }
+    return result
+}

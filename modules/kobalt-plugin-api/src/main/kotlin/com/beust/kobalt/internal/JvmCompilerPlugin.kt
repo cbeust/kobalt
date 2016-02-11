@@ -174,7 +174,11 @@ open class JvmCompilerPlugin @Inject constructor(
         } else {
             compilerContributors.forEach { contributor ->
                 contributor.compilersFor(project, context).forEach { compiler ->
-                    if (containsSourceFiles(project, compiler)) {
+                    val sourceFiles = KFiles.findSourceFiles(project,
+                            context.sourceDirectories(project).map { it.path }, compiler.sourceSuffixes)
+                    if (sourceFiles.size > 0) {
+                        // TODO: createCompilerActionInfo recalculates the source files, only compute them
+                        // once and pass them
                         val info = createCompilerActionInfo(project, context, isTest, sourceDirectories,
                                 sourceSuffixes = compiler.sourceSuffixes)
                         val thisResult = compiler.compile(project, context, info)
@@ -190,13 +194,6 @@ open class JvmCompilerPlugin @Inject constructor(
             return if (failedResult != null) failedResult!!
             else results[0]
         }
-    }
-
-    private fun containsSourceFiles(project: Project, compiler: ICompiler): Boolean {
-        project.projectExtra.suffixesFound.forEach {
-            if (compiler.sourceSuffixes.contains(it)) return true
-        }
-        return false
     }
 
     val allProjects = arrayListOf<ProjectDescription>()
@@ -270,7 +267,7 @@ open class JvmCompilerPlugin @Inject constructor(
             })
 
         // Transform them with the interceptors, if any
-        val sourceDirectories = if (isTest) {
+        val allSourceDirectories = if (isTest) {
             initialSourceDirectories
         } else {
             context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories.toList(),
@@ -280,7 +277,7 @@ open class JvmCompilerPlugin @Inject constructor(
         }
 
         // Now that we have all the source directories, find all the source files in them
-        val sourceFiles = files.findRecursively(projectDirectory, sourceDirectories,
+        val sourceFiles = files.findRecursively(projectDirectory, allSourceDirectories,
                 { file -> sourceSuffixes.any { file.endsWith(it) }})
                 .map { File(projectDirectory, it).path }
 

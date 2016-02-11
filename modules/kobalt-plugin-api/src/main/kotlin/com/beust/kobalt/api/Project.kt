@@ -5,7 +5,6 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
 import java.io.File
 import java.util.*
 
@@ -25,27 +24,6 @@ open class Project(
         @Directive open var packageName: String? = group) : IBuildConfig {
 
     class ProjectExtra(project: Project) {
-        val suffixesFound : Set<String> by lazy {
-            val sf = hashSetOf<String>()
-            Kobalt.context?.let {
-                project.sourceDirectories.forEach { source ->
-                    val sourceDir = File(KFiles.joinDir(project.directory, source))
-                    if (sourceDir.exists()) {
-                        KFiles.findRecursively(sourceDir, { file ->
-                            val ind = file.lastIndexOf(".")
-                            if (ind >= 0) {
-                                sf.add(file.substring(ind + 1))
-                            }
-                            false
-                        })
-                    } else {
-                        log(2, "Skipping nonexistent directory $sourceDir")
-                    }
-                }
-            }
-            sf
-        }
-
         val dependsOn = arrayListOf<Project>()
 
         var isDirty = false
@@ -64,7 +42,8 @@ open class Project(
 
     val testConfigs = arrayListOf(TestConfig(this))
 
-    override var buildConfig : BuildConfig? = BuildConfig()
+    // If one is specified by default, we only generate a BuildConfig, find a way to fix that
+    override var buildConfig : BuildConfig? = null // BuildConfig()
 
     val projectProperties = ProjectProperties()
 

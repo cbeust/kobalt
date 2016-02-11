@@ -6,6 +6,7 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.BaseJvmPlugin
 import com.beust.kobalt.internal.JvmCompilerPlugin
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.warn
 import java.io.File
 import javax.inject.Inject
@@ -21,7 +22,14 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
 
     override val name = PLUGIN_NAME
 
-    override fun accept(project: Project) = project.projectExtra.suffixesFound.contains("java")
+    override fun accept(project: Project) = hasSourceFiles(project)
+
+    // IBuildConfigContributor
+
+    private fun hasSourceFiles(project: Project)
+            = KFiles.findSourceFiles(project, project.sourceDirectories, listOf("java")).size > 0
+
+    override fun affinity(project: Project) = if (hasSourceFiles(project)) 1 else 0
 
     // IDocContributor
     override fun affinity(project: Project, context: KobaltContext) =
@@ -65,9 +73,6 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     // ITestSourceDirectoryContributor
     override fun testSourceDirectoriesFor(project: Project, context: KobaltContext)
         = project.sourceDirectoriesTest.map { File(it) }.toList()
-
-    // IBuildConfigContributor
-    override fun affinity(project: Project) = if (project.projectExtra.suffixesFound.contains("java")) 1 else 0
 
     override val buildConfigSuffix = compiler.sourceSuffixes[0]
 
