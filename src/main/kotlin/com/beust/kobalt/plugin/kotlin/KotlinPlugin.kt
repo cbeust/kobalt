@@ -47,9 +47,8 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
     // ICompilerFlagsContributor
     override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
             suffixesBeingCompiled: List<String>) : List<String> {
-            val result = maybeCompilerArgs(compiler.sourceSuffixes, suffixesBeingCompiled,
-                    configurationFor(project)?.compilerArgs ?: listOf<String>())
-            return result
+        val args = (configurationFor(project)?.compilerArgs ?: listOf<String>()) + "-no-stdlib"
+        return maybeCompilerArgs(compiler.sourceSuffixes, suffixesBeingCompiled, args)
     }
 
     //    override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
