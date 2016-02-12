@@ -7,6 +7,7 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
 import com.google.inject.Inject
+import java.io.File
 import javax.inject.Singleton
 
 /**
@@ -18,7 +19,22 @@ import javax.inject.Singleton
  */
 @Singleton
 public class AptPlugin @Inject constructor(val depFactory: DepFactory)
-        : ConfigPlugin<AptConfig>(), ICompilerFlagContributor {
+: ConfigPlugin<AptConfig>(), ICompilerFlagContributor, ISourceDirectoryContributor {
+
+    // ISourceDirectoryContributor
+
+    override fun sourceDirectoriesFor(project: Project, context: KobaltContext): List<File> {
+        val config = configurationFor(project)
+        val result =
+            if (config != null) {
+                listOf(File(
+                        KFiles.joinDir(KFiles.KOBALT_BUILD_DIR, config.outputDir, context.variant.toIntermediateDir())))
+            } else {
+                emptyList()
+            }
+
+        return result
+    }
 
     companion object {
         const val PLUGIN_NAME = "Apt"
@@ -32,24 +48,19 @@ public class AptPlugin @Inject constructor(val depFactory: DepFactory)
 
     // ICompilerFlagContributor
     override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
-            suffixesBeingCompiled: List<String>) : List<String> {
+            suffixesBeingCompiled: List<String>): List<String> {
+        if (!suffixesBeingCompiled.contains("java")) return emptyList()
+
         val result = arrayListOf<String>()
         configurationFor(project)?.let { config ->
             aptDependencies[project.name]?.let { aptDependencies ->
-                val dependencyJarFiles = aptDependencies.map {
-                        JarFinder.byId(it)
-                    }.map {
-                        it.absolutePath
-                    }
                 val deps = aptDependencies.map { depFactory.create(it) }
 
-                val dependencies = context.dependencyManager.calculateDependencies(null, context, emptyList(),
-                        deps).map { it.jarFile.get().path }
-
-//                result.add("-Xbootclasspath/a:" + dependencies)
+                val dependencies = context.dependencyManager.calculateDependencies(null, context, emptyList(), deps)
+                        .map { it.jarFile.get().path }
 
                 result.add("-processorpath")
-                result.add((dependencyJarFiles + dependencies).joinToString(":"))
+                result.add((dependencies).joinToString(":"))
                 result.add("-s")
                 result.add(generated(project, context, config.outputDir))
             }
