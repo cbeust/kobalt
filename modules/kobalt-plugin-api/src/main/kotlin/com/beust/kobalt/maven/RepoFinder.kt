@@ -28,6 +28,9 @@ import javax.xml.xpath.XPathFactory
 class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
     fun findCorrectRepo(id: String) = FOUND_REPOS.get(id)
 
+    /**
+     * archiveUrl: full URL
+     */
     data class RepoResult(val hostConfig: HostConfig, val version: Version? = null,
             val archiveUrl: String? = null, val snapshotVersion: Version? = null) {
         val found = archiveUrl != null
@@ -96,7 +99,7 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                 val path = ud.toMetadataXmlPath(false, isLocal)
                 val foundVersion = findCorrectVersionRelease(path, repoUrl)
                 if (foundVersion != null) {
-                    return RepoResult(repo, Version.of(foundVersion), path)
+                    return RepoResult(repo, Version.of(foundVersion), repoUrl + path)
                 } else {
                     return RepoResult(repo)
                 }

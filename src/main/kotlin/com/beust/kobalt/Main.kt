@@ -118,7 +118,7 @@ private class Main @Inject constructor(
             println(AsciiArt.banner + Kobalt.version + "\n")
         }
 
-        if (args.init) {
+        if (args.archetypes != null) {
             //
             // --init: create a new build project and install the wrapper
             // Make sure the wrapper won't call us back with --noLaunch

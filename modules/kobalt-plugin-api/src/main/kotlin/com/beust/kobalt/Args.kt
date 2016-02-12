@@ -29,8 +29,8 @@ class Args {
     @Parameter(names = arrayOf("--help", "--usage"), description = "Display the help")
     var usage: Boolean = false
 
-    @Parameter(names = arrayOf("-i", "--init"), description = "Create a build file based on the current project")
-    var init: Boolean = false
+    @Parameter(names = arrayOf("-i", "--init"), description = "Invoke the archetypes named, separated by a comma")
+    var archetypes : String? = null
 
     @Parameter(names = arrayOf("--log"), description = "Define the log level (1-3)")
     var log: Int = 1

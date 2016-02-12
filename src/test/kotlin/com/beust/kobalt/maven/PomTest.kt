@@ -3,6 +3,7 @@ package com.beust.kobalt.maven
 import com.beust.kobalt.Args
 import com.beust.kobalt.KobaltTest
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.app.BuildGenerator
 import com.beust.kobalt.app.ProjectGenerator
 import com.beust.kobalt.internal.PluginInfo
 import com.google.inject.Inject
@@ -55,7 +56,7 @@ class PomTest @Inject constructor() : KobaltTest() {
             file.deleteOnExit()
             val args = Args()
             args.buildFile = file.absolutePath
-            args.init = true
+            args.archetypes = "java"
 
             ProjectGenerator(Kobalt.INJECTOR.getInstance(PluginInfo::class.java)).run(args)
 
@@ -64,8 +65,9 @@ class PomTest @Inject constructor() : KobaltTest() {
             Assert.assertTrue(contents.contains("name = \"${pom.name}\""), "Should find the name defined")
             Assert.assertTrue(contents.contains("version = \"${pom.version}\""), "Should find the version defined")
             pom.properties.forEach {
-                Assert.assertTrue(contents.contains("val ${ProjectGenerator.toIdentifier(it.key)} = \"${it.value}\""), "Should find the " +
-                      "property defined")
+                Assert.assertTrue(contents.contains(
+                        "val ${BuildGenerator.toIdentifier(it.key)} = \"${it.value}\""), "Should find the " +
+                        "property defined")
             }
             pom.repositories.forEach {
                 Assert.assertTrue(contents.contains(it), "Should find the repository defined")

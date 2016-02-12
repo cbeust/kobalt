@@ -1,8 +1,11 @@
 package com.beust.kobalt
 
+import com.beust.kobalt.misc.KFiles
+
 object Constants {
     val BUILD_FILE_NAME = "Build.kt"
     val BUILD_FILE_DIRECTORY = "kobalt/src"
+    val BUILD_FILE_PATH = KFiles.joinDir(BUILD_FILE_DIRECTORY, BUILD_FILE_NAME)
 
     internal val DEFAULT_REPOS = listOf(
             "http://repo1.maven.org/maven2/",
