@@ -7,8 +7,16 @@ import com.beust.kobalt.Args
  * a new project).
  */
 interface IInitContributor {
+    /**
+     * The name of this archetype. This is the name that will be looked up when passed to the --init
+     * argument.
+     */
     val name: String
 
+    /**
+     * Generate the files for this archetype. The parameter is the arguments that were passed to the kobaltw
+     * command.
+     */
     fun generateArchetype(args: Args)
 }
 
