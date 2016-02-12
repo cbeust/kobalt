@@ -167,7 +167,7 @@ public class Main {
                 Path to = Paths.get(new File(".").getAbsolutePath(), file);
 
                 if (Files.exists(to)) {
-                    log(2, "  $to already exists, not overwriting it");
+                    log(2, to + " already exists, not overwriting it");
                     continue;
                 } else if (file.equals(KOBALTW)) {
                     generateKobaltW(to);
