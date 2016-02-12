@@ -107,7 +107,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
                 listOf(getKotlinCompilerJar("kotlin-stdlib"), getKotlinCompilerJar("kotlin-runtime"))
                         .map { FileDependency(it) }
             } else {
-                listOf()
+                emptyList()
             }
 
     // ICompilerContributor
