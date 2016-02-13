@@ -45,11 +45,28 @@ class MavenDependency @Inject constructor(
             pomFile = CompletedFuture(pom)
         } else {
             val repoResult = repoFinder.findCorrectRepo(mavenId.toId)
+
+            fun toSuffix(name: String, suffix: String = "") : String {
+                val dot = name.lastIndexOf(".")
+                return name.substring(0, dot) + suffix + name.substring(dot)
+            }
+
+            fun download(url: String, fileName: String, suffix: String = "") : Future<File> {
+                val localPath = localRepo.toFullPath(toSuffix(fileName, suffix))
+                return downloadManager.download(HostConfig(toSuffix(url, suffix)), localPath, executor)
+            }
+
             if (repoResult.found) {
                 jarFile =
                     if (repoResult.archiveUrl != null) {
-                        val path = localRepo.toFullPath(repoResult.path!!)
-                        downloadManager.download(HostConfig(url = repoResult.archiveUrl), path, executor)
+                        val result = download(repoResult.archiveUrl, repoResult.path!!)
+                        if (downloadSources) {
+                            download(repoResult.archiveUrl, repoResult.path, "-sources")
+                        }
+                        if (downloadJavadocs) {
+                            download(repoResult.archiveUrl, repoResult.path, "-javadoc")
+                        }
+                        result
                     } else {
                         CompletedFuture(File("nonexistentFile")) // will be filtered out
                     }
