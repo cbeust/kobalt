@@ -40,33 +40,27 @@ class MavenDependency @Inject constructor(
         val jar = File(localRepo.toFullPath(toJarFile(version)))
         val aar = File(localRepo.toFullPath(toAarFile(version)))
         val pom = File(localRepo.toFullPath(toPomFile(version)))
+
+        fun toSuffix(name: String, suffix: String = "") : String {
+            val dot = name.lastIndexOf(".")
+            return name.substring(0, dot) + suffix + name.substring(dot)
+        }
+
+        fun download(url: String, fileName: String, suffix: String = "") : Future<File> {
+            val localPath = localRepo.toFullPath(toSuffix(fileName, suffix))
+            return downloadManager.download(HostConfig(toSuffix(url, suffix)), localPath, executor)
+        }
+
         if (pom.exists() && (jar.exists() || aar.exists())) {
             jarFile = CompletedFuture(if (jar.exists()) jar else aar)
             pomFile = CompletedFuture(pom)
         } else {
             val repoResult = repoFinder.findCorrectRepo(mavenId.toId)
 
-            fun toSuffix(name: String, suffix: String = "") : String {
-                val dot = name.lastIndexOf(".")
-                return name.substring(0, dot) + suffix + name.substring(dot)
-            }
-
-            fun download(url: String, fileName: String, suffix: String = "") : Future<File> {
-                val localPath = localRepo.toFullPath(toSuffix(fileName, suffix))
-                return downloadManager.download(HostConfig(toSuffix(url, suffix)), localPath, executor)
-            }
-
             if (repoResult.found) {
                 jarFile =
                     if (repoResult.archiveUrl != null) {
-                        val result = download(repoResult.archiveUrl, repoResult.path!!)
-                        if (downloadSources) {
-                            download(repoResult.archiveUrl, repoResult.path, "-sources")
-                        }
-                        if (downloadJavadocs) {
-                            download(repoResult.archiveUrl, repoResult.path, "-javadoc")
-                        }
-                        result
+                        download(repoResult.archiveUrl, repoResult.path!!)
                     } else {
                         CompletedFuture(File("nonexistentFile")) // will be filtered out
                     }
@@ -76,6 +70,19 @@ class MavenDependency @Inject constructor(
                 throw KobaltException("Couldn't resolve ${mavenId.toId}")
             }
         }
+
+        if (downloadSources || downloadJavadocs) {
+            val repoResult = repoFinder.findCorrectRepo(mavenId.toId)
+            if (repoResult.archiveUrl != null && repoResult.path != null) {
+                if (downloadSources) {
+                    download(repoResult.archiveUrl, repoResult.path, "-sources")
+                }
+                if (downloadJavadocs) {
+                    download(repoResult.archiveUrl, repoResult.path, "-javadoc")
+                }
+            }
+        }
+
     }
 
     companion object {
