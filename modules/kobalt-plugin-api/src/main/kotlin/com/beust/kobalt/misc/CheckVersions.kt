@@ -22,7 +22,8 @@ public class CheckVersions @Inject constructor(val depFactory : DepFactory,
                 cds.forEach { compileDependency ->
                     if (MavenId.isMavenId(compileDependency.id)) {
                         try {
-                            val dep = depFactory.create(compileDependency.shortId, executor, localFirst = false)
+                            val dep = depFactory.create(compileDependency.shortId, localFirst = false,
+                                    executor = executor)
                             if (dep is MavenDependency) {
                                 val other = compileDependency as MavenDependency
                                 if (dep.id != compileDependency.id

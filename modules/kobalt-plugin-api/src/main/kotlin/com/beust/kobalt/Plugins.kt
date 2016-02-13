@@ -152,7 +152,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
             //
             // Load all the jar files synchronously (can't compile the build script until
             // they are installed locally).
-            depFactory.create(it.id, executor)
+            depFactory.create(it.id, executor = executor)
 
             //
             // Open the jar, parse its kobalt-plugin.xml and add the resulting PluginInfo to pluginInfo

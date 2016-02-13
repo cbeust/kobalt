@@ -41,7 +41,7 @@ class DownloadTest @Inject constructor(
 
         if (success) {
             arrayListOf("$groupId:$artifactId:$version", "$groupId:$artifactId:$previousVersion").forEach {
-                val dep = depFactory.create(it, executor)
+                val dep = depFactory.create(it, executor = executor)
                 val future = dep.jarFile
                 Assert.assertFalse(future is CompletedFuture)
                 val file = future.get()
@@ -62,7 +62,7 @@ class DownloadTest @Inject constructor(
     public fun shouldDownloadNoVersion() {
         val success = deleteDir()
         if (success) {
-            val dep = depFactory.create(idNoVersion, executor)
+            val dep = depFactory.create(idNoVersion, executor = executor)
 
             val future = dep.jarFile
             val file = future.get()
@@ -80,7 +80,7 @@ class DownloadTest @Inject constructor(
         val range = "[2.5,)"
         val expected = "3.0-alpha-1"
 
-        val dep = depFactory.create("javax.servlet:servlet-api:$range", executor)
+        val dep = depFactory.create("javax.servlet:servlet-api:$range", executor = executor)
         val future = dep.jarFile
         val file = future.get()
         Assert.assertFalse(future is CompletedFuture)
@@ -91,7 +91,7 @@ class DownloadTest @Inject constructor(
     @Test
     public fun shouldFindLocalJar() {
         MavenDependency.create("$idNoVersion$version")
-        val dep = depFactory.create("$idNoVersion$version", executor)
+        val dep = depFactory.create("$idNoVersion$version", executor = executor)
         val future = dep.jarFile
         //        Assert.assertTrue(future is CompletedFuture)
         val file = future.get()

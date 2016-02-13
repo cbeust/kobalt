@@ -13,7 +13,7 @@ public class JarFinder {
         fun byIdFuture(id: String) : Future<File> {
             val executor = Kobalt.INJECTOR.getInstance(KobaltExecutors::class.java).miscExecutor
             val depFactory = Kobalt.INJECTOR.getInstance(DepFactory::class.java)
-            return depFactory.create(id, executor).jarFile
+            return depFactory.create(id, executor = executor).jarFile
         }
 
         /**

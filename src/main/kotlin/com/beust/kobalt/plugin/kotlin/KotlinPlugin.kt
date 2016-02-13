@@ -94,7 +94,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
 
     private fun getKotlinCompilerJar(name: String): String {
         val id = "org.jetbrains.kotlin:$name:${KotlinCompiler.KOTLIN_VERSION}"
-        val dep = MavenDependency.create(id, executors.miscExecutor)
+        val dep = MavenDependency.create(id, executor = executors.miscExecutor)
         val result = dep.jarFile.get().absolutePath
         return result
     }

@@ -7,6 +7,7 @@ import com.beust.kobalt.maven.ArtifactFetcher
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.Pom
 import com.beust.kobalt.maven.PomGenerator
+import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.DependencyExecutor
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.plugin.publish.BintrayApi
@@ -33,7 +34,8 @@ public open class MainModule(val args: Args, val settings: KobaltSettings) : Abs
                 BintrayApi.IFactory::class.java,
                 Pom.IFactory::class.java,
                 BuildFileCompiler.IFactory::class.java,
-                ArtifactFetcher.IFactory::class.java)
+                ArtifactFetcher.IFactory::class.java,
+                MavenDependency.IFactory::class.java)
             .forEach {
                 install(builder.build(it))
             }

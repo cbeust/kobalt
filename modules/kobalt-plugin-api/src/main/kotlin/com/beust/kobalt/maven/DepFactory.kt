@@ -14,8 +14,7 @@ import javax.inject.Inject
 public class DepFactory @Inject constructor(val localRepo: LocalRepo,
         val remoteRepo: RepoFinder,
         val executors: KobaltExecutors,
-        val downloadManager: DownloadManager,
-        val pomFactory: Pom.IFactory) {
+        val mavenDependencyFactory: MavenDependency.IFactory) {
 
     companion object {
         val defExecutor : ExecutorService by lazy {
@@ -26,7 +25,8 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
     /**
      * Parse the id and return the correct IClasspathDependency
      */
-    public fun create(id: String, executor: ExecutorService = defExecutor, localFirst : Boolean = true)
+    fun create(id: String, downloadSources: Boolean = false, downloadJavadocs: Boolean = false,
+            localFirst : Boolean = true, executor: ExecutorService = defExecutor)
             : IClasspathDependency {
         if (id.startsWith(FileDependency.PREFIX_FILE)) {
             return FileDependency(id.substring(FileDependency.PREFIX_FILE.length))
@@ -53,8 +53,9 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
                     }
                 }
 
-            return MavenDependency(MavenId.create(mavenId.groupId, mavenId.artifactId, packaging, version),
-                    executor, localRepo, remoteRepo, pomFactory, downloadManager)
+
+            val resultMavenId = MavenId.create(mavenId.groupId, mavenId.artifactId, packaging, version)
+            return mavenDependencyFactory.create(resultMavenId, executor, downloadSources, downloadJavadocs)
         }
     }
 }

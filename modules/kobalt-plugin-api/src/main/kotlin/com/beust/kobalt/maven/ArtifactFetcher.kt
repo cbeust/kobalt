@@ -18,6 +18,9 @@ import java.util.concurrent.Future
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Manages the download of files from a given HostConfig.
+ */
 @Singleton
 class DownloadManager @Inject constructor(val factory: ArtifactFetcher.IFactory) {
     class Key(val hostInfo: HostConfig, val fileName: String, val executor: ExecutorService) {

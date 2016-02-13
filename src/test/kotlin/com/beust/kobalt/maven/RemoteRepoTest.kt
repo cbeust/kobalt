@@ -24,8 +24,8 @@ class RemoteRepoTest @Inject constructor(val repoFinder: RepoFinder,
 
     @Test(enabled = false)
     fun metadataForSnapshots() {
-        val jar = MavenDependency.create("org.apache.maven.wagon:wagon-provider-test:2.10-SNAPSHOT", executor)
-                .jarFile
+        val jar = MavenDependency.create("org.apache.maven.wagon:wagon-provider-test:2.10-SNAPSHOT",
+                executor = executor).jarFile
         Assert.assertTrue(jar.get().exists())
     }
 

@@ -115,7 +115,8 @@ class KotlinCompiler @Inject constructor(
             otherClasspath: List<String>, sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult {
 
         val executor = executors.newExecutor("KotlinCompiler", 10)
-        val compilerDep = depFactory.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION", executor)
+        val compilerDep = depFactory.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION",
+                executor = executor)
         val deps = dependencyManager.transitiveClosure(listOf(compilerDep))
 
         // Force a download of the compiler dependencies

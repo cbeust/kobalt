@@ -9,6 +9,7 @@ import com.beust.kobalt.misc.DependencyExecutor
 import com.beust.kobalt.misc.Versions
 import com.beust.kobalt.misc.warn
 import com.google.inject.Key
+import com.google.inject.assistedinject.Assisted
 import org.apache.maven.model.Dependency
 import java.io.File
 import java.util.concurrent.ExecutorService
@@ -16,8 +17,11 @@ import java.util.concurrent.Future
 import javax.inject.Inject
 import kotlin.properties.Delegates
 
-public class MavenDependency @Inject constructor(mavenId: MavenId,
-        val executor: ExecutorService,
+class MavenDependency @Inject constructor(
+        @Assisted mavenId: MavenId,
+        @Assisted val executor: ExecutorService,
+        @Assisted("downloadSources") val downloadSources: Boolean,
+        @Assisted("downloadJavadocs") val downloadJavadocs: Boolean,
         override val localRepo: LocalRepo,
         val repoFinder: RepoFinder,
         val pomFactory: Pom.IFactory,
@@ -25,6 +29,12 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
             : LocalDep(mavenId, localRepo), IClasspathDependency, Comparable<MavenDependency> {
     override var jarFile: Future<File> by Delegates.notNull()
     var pomFile: Future<File> by Delegates.notNull()
+
+    interface IFactory {
+        fun create(mavenId: MavenId, executor: ExecutorService,
+                @Assisted("downloadSources") downloadSources: Boolean,
+                @Assisted("downloadJavadocs") downloadJavadocs: Boolean) : MavenDependency
+    }
 
     init {
         val jar = File(localRepo.toFullPath(toJarFile(version)))
@@ -52,12 +62,17 @@ public class MavenDependency @Inject constructor(mavenId: MavenId,
     }
 
     companion object {
-        val executor = Kobalt.INJECTOR.getInstance(Key.get(ExecutorService::class.java, DependencyExecutor::class.java))
+        val defaultExecutor =
+                Kobalt.INJECTOR.getInstance(Key.get(ExecutorService::class.java, DependencyExecutor::class.java))
         val depFactory = Kobalt.INJECTOR.getInstance(DepFactory::class.java)
 
-        fun create(id: String, ex: ExecutorService = executor) = depFactory.create(id, ex)
+        fun create(id: String, downloadSources: Boolean = false, downloadJavadocs: Boolean = false,
+                executor: ExecutorService = defaultExecutor)
+                    = depFactory.create(id, downloadSources, downloadJavadocs, executor = executor)
 
-        fun create(mavenId: MavenId, ex: ExecutorService = executor) = depFactory.create(mavenId.toId, ex)
+        fun create(mavenId: MavenId, downloadSources: Boolean = false, downloadJavadocs: Boolean = false,
+                executor: ExecutorService = defaultExecutor)
+                    = create(mavenId.toId, downloadSources, downloadJavadocs, executor)
     }
 
     override fun toString() = mavenId.toId

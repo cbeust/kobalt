@@ -58,7 +58,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
         dependencies.forEach { projectDependency ->
             result.add(projectDependency)
             projectDependency.id.let {
-                result.add(depFactory.create(it, executor))
+                result.add(depFactory.create(it, executor = executor))
                 val downloaded = transitiveClosure(projectDependency.directDependencies())
 
                 result.addAll(downloaded)

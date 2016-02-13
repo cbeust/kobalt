@@ -45,7 +45,7 @@ class GetDependenciesCommand @Inject constructor(val executors: KobaltExecutors,
         val executor = executors.miscExecutor
 
         fun toDependencyData(d: IClasspathDependency, scope: String) : DependencyData {
-            val dep = MavenDependency.create(d.id, executor)
+            val dep = MavenDependency.create(d.id, executor = executor)
             return DependencyData(d.id, scope, dep.jarFile.get().absolutePath)
         }
 

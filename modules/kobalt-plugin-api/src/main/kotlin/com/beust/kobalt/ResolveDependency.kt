@@ -5,6 +5,7 @@ import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.RepoFinder
 import com.beust.kobalt.maven.dependency.MavenDependency
+import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.Node
 import com.beust.kobalt.misc.log
 import com.google.inject.Inject
@@ -13,7 +14,10 @@ import java.util.*
 /**
  * Display information about a Maven id.
  */
-class ResolveDependency @Inject constructor(val repoFinder: RepoFinder, val localRepo: LocalRepo) {
+class ResolveDependency @Inject constructor(val repoFinder: RepoFinder,
+        val localRepo: LocalRepo,
+        val executors: KobaltExecutors,
+        val mdFactory: MavenDependency.IFactory) {
     val increment = 8
     val leftFirst = "\u2558"
     val leftMiddle = "\u255f"
@@ -26,11 +30,13 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder, val loca
         val repoResult = repoFinder.findCorrectRepo(id)
 
         val indent = -1
-        val originalDep = MavenDependency.create(id)
         val mavenId = MavenId.create(id)
+        val originalDep = mdFactory.create(mavenId, executors.dependencyExecutor, true, true)
         val packaging = if (mavenId.packaging != null) "@" + mavenId.packaging else ""
+
         // We want to display the dependencies of the id we found, not the one we queries
-        val dep = MavenDependency.create(originalDep.shortId + repoResult.version + packaging)
+        val dep = mdFactory.create(MavenId.create(originalDep.shortId + repoResult.version + packaging),
+                executors.dependencyExecutor, true, true)
         val root = Node(Dep(dep, indent))
         val seen = hashSetOf(id)
         root.addChildren(findChildren(root, seen))
