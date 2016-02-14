@@ -1,14 +1,8 @@
 package com.beust.kobalt
 
 import com.beust.jcommander.JCommander
-import com.beust.kobalt.api.IClasspathDependency
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.PluginTask
-import com.beust.kobalt.api.Project
-import com.beust.kobalt.app.BuildFileCompiler
-import com.beust.kobalt.app.MainModule
-import com.beust.kobalt.app.ProjectGenerator
-import com.beust.kobalt.app.UpdateKobalt
+import com.beust.kobalt.api.*
+import com.beust.kobalt.app.*
 import com.beust.kobalt.app.remote.KobaltClient
 import com.beust.kobalt.app.remote.KobaltServer
 import com.beust.kobalt.internal.KobaltSettings
@@ -18,6 +12,7 @@ import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.misc.*
+import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.HashMultimap
 import com.google.inject.Guice
 import java.io.File
@@ -81,6 +76,12 @@ private class Main @Inject constructor(
         // build file do not have access to the KobaltContext).
         //
         pluginInfo.plugins.forEach { Plugins.addPluginInstance(it) }
+
+        // --listArchetypes
+        if (args.listArchetypes) {
+            Archetypes().list(pluginInfo)
+            return 0
+        }
 
         if (args.client) {
             client.run()

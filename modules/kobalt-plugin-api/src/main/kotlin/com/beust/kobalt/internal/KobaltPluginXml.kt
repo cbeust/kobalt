@@ -147,7 +147,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
                 if (this is ICompilerFlagContributor) compilerFlagContributors.add(this)
                 if (this is ICompilerInterceptor) compilerInterceptors.add(this)
                 if (this is IDocContributor) docContributors.add(this)
-                if (this is IInitContributor) initContributors.add(this as IInitContributor)
+                if (this is IInitContributor) initContributors.add(this)
                 if (this is IPlugin) plugins.add(this)
                 if (this is IProjectContributor) projectContributors.add(this)
                 if (this is IRepoContributor) repoContributors.add(this)

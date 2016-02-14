@@ -7,5 +7,6 @@ class JavaBuildGenerator: BuildGenerator() {
     override val defaultTestDirectories = hashSetOf("src/test/java")
     override val directive = "project"
     override val archetypeName = "java"
+    override val archetypeDescription = "Generates a simple Java project"
     override val fileMatch = { f: String -> f.endsWith(".java") }
 }

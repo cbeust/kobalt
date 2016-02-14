@@ -32,6 +32,9 @@ class Args {
     @Parameter(names = arrayOf("-i", "--init"), description = "Invoke the archetypes named, separated by a comma")
     var archetypes : String? = null
 
+    @Parameter(names = arrayOf("--listArchetypes"), description = "List the available archetypes")
+    var listArchetypes: Boolean = false
+
     @Parameter(names = arrayOf("--log"), description = "Define the log level (1-3)")
     var log: Int = 1
 

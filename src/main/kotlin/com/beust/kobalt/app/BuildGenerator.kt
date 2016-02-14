@@ -1,9 +1,11 @@
 package com.beust.kobalt.app
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.api.IArchetype
 import com.beust.kobalt.api.IInitContributor
 import com.beust.kobalt.maven.Pom
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.plugin.KobaltPlugin
 import com.github.mustachejava.DefaultMustacheFactory
 import java.io.*
 import java.util.*
@@ -11,11 +13,12 @@ import java.util.*
 /**
  * Abstract base class for the build generators that use build-template.mustache.
  */
-abstract class BuildGenerator : IInitContributor {
+abstract class BuildGenerator : IArchetype {
+    override val pluginName = KobaltPlugin.PLUGIN_NAME
+
     abstract val defaultSourceDirectories : HashSet<String>
     abstract val defaultTestDirectories : HashSet<String>
     abstract val directive : String
-    override abstract val archetypeName: String
     abstract val fileMatch : (String) -> Boolean
 
     companion object {
