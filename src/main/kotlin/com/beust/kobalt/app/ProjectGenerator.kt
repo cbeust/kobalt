@@ -13,7 +13,7 @@ import java.io.File
  * Invoked with --init. Generate a new project.
  */
 class ProjectGenerator @Inject constructor(val pluginInfo: PluginInfo){
-    fun run(args: Args) {
+    fun run(args: Args, classLoader: ClassLoader) {
         File(args.buildFile).parentFile.mkdirs()
         val map = hashMapOf<String, IArchetype>()
         pluginInfo.initContributors.forEach {
@@ -26,7 +26,7 @@ class ProjectGenerator @Inject constructor(val pluginInfo: PluginInfo){
             val archetype = map[archetypeName]
             if (archetype != null) {
                 log(2, "Running archetype $archetypeName")
-                archetype.generateArchetype(args)
+                archetype.generateArchetype(args, classLoader)
             } else {
                 warn("Couldn't find any archetype named $archetypeName")
             }

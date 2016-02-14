@@ -58,7 +58,7 @@ class PomTest @Inject constructor() : KobaltTest() {
             args.buildFile = file.absolutePath
             args.archetypes = "java"
 
-            ProjectGenerator(Kobalt.INJECTOR.getInstance(PluginInfo::class.java)).run(args)
+            ProjectGenerator(Kobalt.INJECTOR.getInstance(PluginInfo::class.java)).run(args, javaClass.classLoader)
 
             var contents = file.readText()
             Assert.assertTrue(contents.contains("group = \"${pom.groupId}\""), "Should find the group defined")

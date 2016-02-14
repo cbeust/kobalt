@@ -33,7 +33,7 @@ abstract class BuildGenerator : IArchetype {
         }
     }
 
-    override fun generateArchetype(args: Args) {
+    override fun generateArchetype(args: Args, classLoader: ClassLoader) {
         val file = File(args.buildFile)
         if (! file.exists()) {
             PrintWriter(FileOutputStream(file)).use {

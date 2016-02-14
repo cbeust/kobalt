@@ -68,10 +68,12 @@ private class Main @Inject constructor(
 
     public fun run(jc: JCommander, args: Args, argv: Array<String>): Int {
         // Install plug-ins requested from the command line
+        var pluginClassLoader = javaClass.classLoader
         args.pluginIds?.let {
             val dependencies = it.split(",").map { depFactory.create(it) }
             val urls = dependencies.map { it.jarFile.get().toURI().toURL() }
-            plugins.installPlugins(dependencies, URLClassLoader(urls.toTypedArray()))
+            pluginClassLoader = URLClassLoader(urls.toTypedArray())
+            plugins.installPlugins(dependencies, pluginClassLoader)
         }
 
         //
@@ -97,7 +99,7 @@ private class Main @Inject constructor(
 
         val seconds = benchmarkSeconds {
             try {
-                result = runWithArgs(jc, args, argv)
+                result = runWithArgs(jc, args, argv, pluginClassLoader)
             } catch(ex: KobaltException) {
                 error("", ex.cause ?: ex)
                 result = 1
@@ -116,7 +118,7 @@ private class Main @Inject constructor(
     //        val file = File("src\\main\\resources\\META-INF\\plugin.ml")
     //    }
 
-    private fun runWithArgs(jc: JCommander, args: Args, argv: Array<String>): Int {
+    private fun runWithArgs(jc: JCommander, args: Args, argv: Array<String>, pluginClassLoader: ClassLoader): Int {
 //        val file = File("/Users/beust/.kobalt/repository/com/google/guava/guava/19.0-rc2/guava-19.0-rc2.pom")
 //        val md5 = Md5.toMd5(file)
 //        val md52 = MessageDigest.getInstance("MD5").digest(file.readBytes()).toHexString()
@@ -135,7 +137,7 @@ private class Main @Inject constructor(
             // Make sure the wrapper won't call us back with --noLaunch
             //
             com.beust.kobalt.wrapper.Main.main(arrayOf("--noLaunch") + argv)
-            projectGenerator.run(args)
+            projectGenerator.run(args, pluginClassLoader)
         } else if (args.usage) {
             jc.usage()
         } else if (args.serverMode) {

@@ -31,6 +31,6 @@ interface IArchetype {
      * Generate the files for this archetype. The parameter is the arguments that were passed to the kobaltw
      * command.
      */
-    fun generateArchetype(args: Args)
+    fun generateArchetype(args: Args, classLoader: ClassLoader)
 }
 
