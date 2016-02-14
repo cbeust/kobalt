@@ -192,7 +192,8 @@ open class JvmCompilerPlugin @Inject constructor(
                 }
             }
             return if (failedResult != null) failedResult!!
-            else results[0]
+                else if (results.size > 0) results[0]
+                else TaskResult(false)
         }
     }
 
