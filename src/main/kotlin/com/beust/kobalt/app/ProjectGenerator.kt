@@ -1,8 +1,10 @@
 package com.beust.kobalt.app
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.api.IInitContributor
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.warn
 import com.google.inject.Inject
 import java.io.File
 
@@ -12,15 +14,17 @@ import java.io.File
 public class ProjectGenerator @Inject constructor(val pluginInfo: PluginInfo){
     fun run(args: Args) {
         File(args.buildFile).parentFile.mkdirs()
-        args.archetypes?.let { archetypes ->
-            val contributors = pluginInfo.initContributors.filter { archetypes.contains(it.archetypeName) }
-            if (contributors.size > 0) {
-                contributors.forEach {
-                    log(2, "Running archetype ${it.archetypeName}")
-                    it.generateArchetype(args)
-                }
+        val map = hashMapOf<String, IInitContributor>()
+        pluginInfo.initContributors.forEach {
+            map.put(it.archetypeName, it)
+        }
+        args.archetypes?.split(",")?.forEach { archetypeName ->
+            val contributor = map[archetypeName]
+            if (contributor != null) {
+                log(2, "Running archetype $archetypeName")
+                contributor.generateArchetype(args)
             } else {
-                log(1, "Couldn't find any archetype named ${args.archetypes}")
+                warn("Couldn't find any archetype named $archetypeName")
             }
         }
     }
