@@ -14,9 +14,13 @@ public class ProjectGenerator @Inject constructor(val pluginInfo: PluginInfo){
         File(args.buildFile).parentFile.mkdirs()
         args.archetypes?.let { archetypes ->
             val contributors = pluginInfo.initContributors.filter { archetypes.contains(it.archetypeName) }
-            contributors.forEach {
-                log(2, "Running archetype ${it.archetypeName}")
-                it.generateArchetype(args)
+            if (contributors.size > 0) {
+                contributors.forEach {
+                    log(2, "Running archetype ${it.archetypeName}")
+                    it.generateArchetype(args)
+                }
+            } else {
+                log(1, "Couldn't find any archetype named ${args.archetypes}")
             }
         }
     }

@@ -39,6 +39,9 @@ class Args {
         const val DEFAULT_SERVER_PORT = 1234
     }
 
+    @Parameter(names = arrayOf("--plugins"), description = "Comma-separated list of plug-in Maven id's")
+    var pluginIds: String? = null
+
     @Parameter(names = arrayOf("--port"), description = "Port, if --server was specified")
     var port: Int = DEFAULT_SERVER_PORT
 

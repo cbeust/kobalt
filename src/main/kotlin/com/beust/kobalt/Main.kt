@@ -15,11 +15,13 @@ import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.misc.*
 import com.google.common.collect.HashMultimap
 import com.google.inject.Guice
 import java.io.File
+import java.net.URLClassLoader
 import java.nio.file.Paths
 import java.util.*
 import javax.inject.Inject
@@ -60,12 +62,18 @@ private class Main @Inject constructor(
         val server: KobaltServer,
         val pluginInfo: PluginInfo,
         val projectGenerator: ProjectGenerator,
+        val depFactory: DepFactory,
         val resolveDependency: ResolveDependency) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
     public fun run(jc: JCommander, args: Args, argv: Array<String>): Int {
-//        github.uploadRelease("kobalt", "0.101", File("/Users/beust/t/a.zip"))
+        // Install plug-ins requested from the command line
+        args.pluginIds?.let {
+            val dependencies = it.split(",").map { depFactory.create(it) }
+            val urls = dependencies.map { it.jarFile.get().toURI().toURL() }
+            plugins.installPlugins(dependencies, URLClassLoader(urls.toTypedArray()))
+        }
 
         //
         // Add all the plugins read in kobalt-plugin.xml to the Plugins singleton, so that code
