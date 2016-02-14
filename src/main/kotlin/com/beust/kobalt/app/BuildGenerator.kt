@@ -15,7 +15,7 @@ abstract class BuildGenerator : IInitContributor {
     abstract val defaultSourceDirectories : HashSet<String>
     abstract val defaultTestDirectories : HashSet<String>
     abstract val directive : String
-    override abstract val name : String
+    override abstract val archetypeName: String
     abstract val fileMatch : (String) -> Boolean
 
     companion object {
@@ -88,8 +88,8 @@ abstract class BuildGenerator : IInitContributor {
                 put("directory", currentDir.absolutePath)
                 put("sourceDirectories", defaultSourceDirectories)
                 put("sourceDirectoriesTest", defaultTestDirectories)
-                put("imports", "import com.beust.kobalt.plugin.$name.*")
-                put("directive", name + "Project")
+                put("imports", "import com.beust.kobalt.plugin.$archetypeName.*")
+                put("directive", "project")
             }
 
             var mainDeps = arrayListOf<Pom.Dependency>()
