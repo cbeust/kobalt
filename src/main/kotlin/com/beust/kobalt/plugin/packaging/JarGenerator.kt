@@ -39,6 +39,11 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
                 fileSpecs.add(IFileSpec.FileSpec(it.path.toString().substring(prefixPath.toString().length + 1)))
             }
             result.add(IncludedFile(From(prefixPath.toString() + "/"), To(""), fileSpecs))
+
+            // Resources, if applicable
+            project.sourceDirectories.filter { it.contains("resources") }.forEach {
+                result.add(IncludedFile(From(it), To(""), listOf(IFileSpec.GlobSpec("**"))))
+            }
         } else {
             //
             // The user specified an include, just use it verbatim
