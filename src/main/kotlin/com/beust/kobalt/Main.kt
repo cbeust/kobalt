@@ -36,12 +36,14 @@ private fun parseArgs(argv: Array<String>): Main.RunInfo {
     return Main.RunInfo(result, args)
 }
 
-
-public fun mainNoExit(argv: Array<String>): Int {
+fun mainNoExit(argv: Array<String>): Int {
     val (jc, args) = parseArgs(argv)
     Kobalt.INJECTOR = Guice.createInjector(MainModule(args, KobaltSettings.readSettingsXml()))
-    val result = Kobalt.INJECTOR.getInstance(Main::class.java).run(jc, args, argv)
-    Kobalt.INJECTOR.getInstance(KobaltExecutors::class.java).shutdown()
+    val result = Kobalt.INJECTOR.getInstance(Main::class.java).run {
+        val runResult = run(jc, args, argv)
+        executors.shutdown()
+        runResult
+    }
     return result
 }
 
