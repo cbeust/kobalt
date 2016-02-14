@@ -2,7 +2,7 @@ package com.beust.kobalt.app.kotlin
 
 import com.beust.kobalt.app.BuildGenerator
 
-public class KotlinBuildGenerator : BuildGenerator() {
+class KotlinBuildGenerator : BuildGenerator() {
     override val defaultSourceDirectories = hashSetOf("src/main/kotlin")
     override val defaultTestDirectories = hashSetOf("src/test/kotlin")
     override val directive = "project"
