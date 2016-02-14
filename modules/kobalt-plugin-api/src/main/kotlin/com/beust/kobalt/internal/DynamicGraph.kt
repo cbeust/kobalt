@@ -74,8 +74,8 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
                     } catch(ex: TimeoutException) {
                         log(2, "Time out")
                     } catch(ex: Exception) {
-                        if (ex.cause is InvocationTargetException) {
-                            val ite = ex.cause
+                        val ite = ex.cause
+                        if (ite is InvocationTargetException) {
                             if (ite.targetException is KobaltException) {
                                 throw (ex.cause as InvocationTargetException).targetException
                             } else {
