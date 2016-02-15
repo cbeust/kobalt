@@ -30,14 +30,14 @@ sealed class IFileSpec {
                 }
             }
             if (includeMatchers.matches(rel)) {
-                log(2, "Including ${rel.toFile()}")
+                log(2, "Including ${rel.toFile().absolutePath}")
                 return true
             }
             log(2, "Excluding ${rel.toFile()} (not matching any include pattern")
             return false
         }
 
-        override public fun toFiles(filePath: String, excludes: List<Glob>): List<File> {
+        override fun toFiles(filePath: String, excludes: List<Glob>): List<File> {
             val result = arrayListOf<File>()
             val includes = Glob(*spec.toTypedArray())
 
@@ -60,7 +60,7 @@ sealed class IFileSpec {
             return result
         }
 
-        override public fun toString(): String {
+        override fun toString(): String {
             var result = ""
             spec.apply {
                 if (!isEmpty()) {
