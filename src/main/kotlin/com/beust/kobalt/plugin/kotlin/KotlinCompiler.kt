@@ -32,7 +32,7 @@ class KotlinCompiler @Inject constructor(
         val executors: KobaltExecutors,
         val jvmCompiler: JvmCompiler) {
     companion object {
-        val KOTLIN_VERSION = "1.0.0-rc-1036"
+        val KOTLIN_VERSION = "1.0.0"
     }
 
     val compilerAction = object: ICompilerAction {
