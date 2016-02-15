@@ -18,13 +18,19 @@ import java.util.jar.JarOutputStream
 
 class WarGenerator @Inject constructor(val dependencyManager: DependencyManager){
 
+    companion object {
+        val WEB_INF = "WEB-INF"
+        val CLASSES = "$WEB_INF/classes"
+        val LIB = "$WEB_INF/lib"
+    }
+
     fun findIncludedFiles(project: Project, context: KobaltContext, war: War) : List<IncludedFile> {
         //
         // src/main/web app and classes
         //
         val result = arrayListOf(
                 IncludedFile(From("src/main/webapp"), To(""), listOf(IFileSpec.GlobSpec("**"))),
-                IncludedFile(From("kobaltBuild/classes"), To("WEB-INF/classes"), listOf(IFileSpec.GlobSpec("**")))
+                IncludedFile(From("kobaltBuild/classes"), To(CLASSES), listOf(IFileSpec.GlobSpec("**")))
         )
 
         //
@@ -35,9 +41,8 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         val allDependencies = dependencyManager.calculateDependencies(project, context, dependentProjects,
                 project.compileDependencies)
 
-        val WEB_INF = "WEB-INF/lib"
         val outDir = project.buildDirectory + "/war"
-        val fullDir = outDir + "/" + WEB_INF
+        val fullDir = outDir + "/" + LIB
         File(fullDir).mkdirs()
 
         // Run through all the classpath contributors and add their contributions to the libs/ directory
@@ -62,7 +67,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
             result.add(IncludedFile(From(it.path), To(""), listOf(IFileSpec.GlobSpec("**"))))
         }
 
-        result.add(IncludedFile(From(fullDir), To(WEB_INF), listOf(IFileSpec.GlobSpec("**"))))
+        result.add(IncludedFile(From(fullDir), To(LIB), listOf(IFileSpec.GlobSpec("**"))))
 
         //
         // Finally, all the included/excluded files specified in the war{} directive
