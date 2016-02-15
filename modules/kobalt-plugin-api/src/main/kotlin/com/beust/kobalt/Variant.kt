@@ -41,10 +41,11 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
                 context.pluginInfo.compilerContributors)
         compilerContributors.forEach {
             it.compilersFor(project, context).forEach { compiler ->
-                val sourceSuffixes = compilerContributors.flatMap { compiler.sourceSuffixes }
-                result.addAll(sourceSuffixes.flatMap {
-                    sourceDirectories(project, it)
-                })
+                val sourceSuffixes = compiler.sourceSuffixes
+                val suffixes = sourceSuffixes.flatMap { thisSuffix ->
+                    sourceDirectories(project, thisSuffix)
+                }
+                result.addAll(suffixes)
             }
 
         }
@@ -54,13 +55,13 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     /**
      * Might be used by plug-ins.
      */
-    fun resDirectories(project: Project) : List<File> = sourceDirectories(project, "res")
+    fun resourceDirectories(project: Project) = sourceDirectories(project, "resources")
 
     /**
-     * suffix is either "java" (to find source files) or "res" (to find resources)
+     * suffix is either "java" (to find source files) or "resources" (to find resources)
      */
-    fun sourceDirectories(project: Project, suffix: String) : List<File> {
-        val result = arrayListOf<File>()
+    private fun sourceDirectories(project: Project, suffix: String) : Set<File> {
+        val result = hashSetOf<File>()
         val sourceDirectories = project.sourceDirectories.map { File(it) }
         if (isDefault) {
             result.addAll(sourceDirectories)
@@ -85,7 +86,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
 
             // Now that all the variant source directories have been added, add the project's default ones
             result.addAll(sourceDirectories)
-            return result
+            return result.filter { it.exists() }.toHashSet()
         }
 
         // Generated directory, if applicable
@@ -93,7 +94,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
             result.add(it)
         }
 
-        return result
+        return result.filter { File(project.directory, it.path).exists() }.toHashSet()
     }
 
     fun archiveName(project: Project, archiveName: String?, suffix: String) : String {
@@ -102,9 +103,10 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
                 archiveName ?: project.name + "-" + project.version + suffix
             } else {
                 val base = if (archiveName != null) archiveName.substring(0, archiveName.length - suffix.length)
-                else project.name + "-" + project.version
-                val result: String =
-                        base + "-${productFlavor.name}" + "-${buildType.name}"
+                    else project.name + "-" + project.version
+                val flavor = if (productFlavor.name.isEmpty()) "" else "-" + productFlavor.name
+                val type = if (buildType.name.isEmpty()) "" else "-" + buildType.name
+                val result: String = base + flavor + type + suffix
 
                 result
             }

@@ -27,7 +27,7 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     // IBuildConfigContributor
 
     private fun hasSourceFiles(project: Project)
-            = KFiles.findSourceFiles(project, project.sourceDirectories, listOf("java")).size > 0
+            = KFiles.findSourceFiles(project.directory, project.sourceDirectories, listOf("java")).size > 0
 
     override fun affinity(project: Project) = if (hasSourceFiles(project)) 1 else 0
 

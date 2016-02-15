@@ -32,7 +32,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
     // IBuildConfigContributor
 
     private fun hasSourceFiles(project: Project)
-            = KFiles.findSourceFiles(project, project.sourceDirectories, listOf("kt")).size > 0
+            = KFiles.findSourceFiles(project.directory, project.sourceDirectories, listOf("kt")).size > 0
 
     override fun affinity(project: Project) = if (hasSourceFiles(project)) 1 else 0
 

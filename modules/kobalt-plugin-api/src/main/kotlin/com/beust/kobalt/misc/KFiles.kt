@@ -288,26 +288,24 @@ class KFiles {
         /**
          * TODO: cache these per project so we don't do it more than once.
          */
-        fun findSourceFiles(project: Project, sourceDirectories: Collection<String>,
+        fun findSourceFiles(projectDirectory: String, sourceDirectories: Collection<String>,
                 suffixes: List<String>) : Set<String> {
             val result = hashSetOf<String>()
-            Kobalt.context?.let {
-                sourceDirectories.forEach { source ->
-                    val sourceDir = File(KFiles.joinDir(project.directory, source))
-                    if (sourceDir.exists()) {
-                        KFiles.findRecursively(sourceDir, { file ->
-                            val ind = file.lastIndexOf(".")
-                            if (ind >= 0) {
-                                val suffix = file.substring(ind + 1)
-                                if (suffixes.contains(suffix)) {
-                                    result.add(file)
-                                }
+            sourceDirectories.forEach { source ->
+                val sourceDir = File(KFiles.joinDir(projectDirectory, source))
+                if (sourceDir.exists()) {
+                    KFiles.findRecursively(sourceDir, { file ->
+                        val ind = file.lastIndexOf(".")
+                        if (ind >= 0) {
+                            val suffix = file.substring(ind + 1)
+                            if (suffixes.contains(suffix)) {
+                                result.add(file)
                             }
-                            false
-                        })
-                    } else {
-                        log(2, "Skipping nonexistent directory $sourceDir")
-                    }
+                        }
+                        false
+                    })
+                } else {
+                    log(2, "Skipping nonexistent directory $sourceDir")
                 }
             }
             return result

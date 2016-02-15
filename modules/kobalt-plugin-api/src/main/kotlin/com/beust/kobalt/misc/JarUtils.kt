@@ -21,7 +21,7 @@ public class JarUtils {
             }
         }
 
-        public fun addFiles(directory: String, files: List<IncludedFile>, target: ZipOutputStream,
+        fun addFiles(directory: String, files: List<IncludedFile>, target: ZipOutputStream,
                 expandJarFiles: Boolean,
                 onError: (Exception) -> Unit = DEFAULT_HANDLER) {
             files.forEach {
@@ -32,7 +32,7 @@ public class JarUtils {
         private val DEFAULT_JAR_EXCLUDES =
                 Glob("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
 
-        public fun addSingleFile(directory: String, file: IncludedFile, outputStream: ZipOutputStream,
+        fun addSingleFile(directory: String, file: IncludedFile, outputStream: ZipOutputStream,
                 expandJarFiles: Boolean, onError: (Exception) -> Unit = DEFAULT_HANDLER) {
             val allFiles = file.allFromFiles(directory)
             allFiles.forEach { relSource ->

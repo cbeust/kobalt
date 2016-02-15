@@ -41,8 +41,8 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
             result.add(IncludedFile(From(prefixPath.toString() + "/"), To(""), fileSpecs))
 
             // Resources, if applicable
-            project.sourceDirectories.filter { it.contains("resources") }.forEach {
-                result.add(IncludedFile(From(it), To(""), listOf(IFileSpec.GlobSpec("**"))))
+            context.variant.resourceDirectories(project).forEach {
+                result.add(IncludedFile(From(it.path), To(""), listOf(IFileSpec.GlobSpec("**"))))
             }
         } else {
             //

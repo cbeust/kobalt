@@ -174,7 +174,7 @@ open class JvmCompilerPlugin @Inject constructor(
         } else {
             compilerContributors.forEach { contributor ->
                 contributor.compilersFor(project, context).forEach { compiler ->
-                    val sourceFiles = KFiles.findSourceFiles(project,
+                    val sourceFiles = KFiles.findSourceFiles(project.directory,
                             context.sourceDirectories(project).map { it.path }, compiler.sourceSuffixes)
                     if (sourceFiles.size > 0) {
                         // TODO: createCompilerActionInfo recalculates the source files, only compute them
