@@ -41,8 +41,9 @@ class KotlinCompiler @Inject constructor(
                 log(1, "  Kotlin compiling ${info.sourceFiles.size} files")
             }
             val cp = compilerFirst(info.dependencies.map {it.jarFile.get()})
-            val outputDir = if (info.directory != null) {
-                KFiles.joinDir(info.directory, info.outputDir.path)
+            val infoDir = info.directory
+            val outputDir = if (infoDir != null) {
+                KFiles.joinDir(infoDir, info.outputDir.path)
             } else {
                 info.outputDir.path
             }
