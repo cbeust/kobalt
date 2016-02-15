@@ -16,7 +16,7 @@ class Args {
     @Parameter(names = arrayOf("--client"))
     var client: Boolean = false
 
-    @Parameter(names = arrayOf("--dev"), description = "Turn of dev mode, resulting in a more verbose log output")
+    @Parameter(names = arrayOf("--dev"), description = "Turn on dev mode, resulting in a more verbose log output")
     var dev: Boolean = false
 
     @Parameter(names = arrayOf("--download"), description = "Force a download from the downloadUrl in the wrapper")
@@ -44,6 +44,9 @@ class Args {
 
     @Parameter(names = arrayOf("--plugins"), description = "Comma-separated list of plug-in Maven id's")
     var pluginIds: String? = null
+
+    @Parameter(names = arrayOf("--pluginJarFiles"), description = "Comma-separated list of plug-in jar files")
+    var pluginJarFiles: String? = null
 
     @Parameter(names = arrayOf("--port"), description = "Port, if --server was specified")
     var port: Int = DEFAULT_SERVER_PORT

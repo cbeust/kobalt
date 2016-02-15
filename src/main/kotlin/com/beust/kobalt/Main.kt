@@ -1,7 +1,10 @@
 package com.beust.kobalt
 
 import com.beust.jcommander.JCommander
-import com.beust.kobalt.api.*
+import com.beust.kobalt.api.IClasspathDependency
+import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.PluginTask
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.*
 import com.beust.kobalt.app.remote.KobaltClient
 import com.beust.kobalt.app.remote.KobaltServer
@@ -11,8 +14,8 @@ import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.Http
+import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.*
-import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.HashMultimap
 import com.google.inject.Guice
 import java.io.File
@@ -66,15 +69,29 @@ private class Main @Inject constructor(
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
-    public fun run(jc: JCommander, args: Args, argv: Array<String>): Int {
-        // Install plug-ins requested from the command line
+    private fun installCommandLinePlugins(args: Args) : ClassLoader {
         var pluginClassLoader = javaClass.classLoader
+        val dependencies = arrayListOf<IClasspathDependency>()
         args.pluginIds?.let {
-            val dependencies = it.split(",").map { depFactory.create(it) }
+            dependencies.addAll(it.split(",").map { depFactory.create(it) })
+        }
+        args.pluginJarFiles?.let {
+            dependencies.addAll(it.split(",").map { FileDependency(it) })
+        }
+        if (dependencies.size > 0) {
             val urls = dependencies.map { it.jarFile.get().toURI().toURL() }
             pluginClassLoader = URLClassLoader(urls.toTypedArray())
             plugins.installPlugins(dependencies, pluginClassLoader)
         }
+
+        return pluginClassLoader
+    }
+
+    public fun run(jc: JCommander, args: Args, argv: Array<String>): Int {
+        //
+        // Install plug-ins requested from the command line
+        //
+        val pluginClassLoader = installCommandLinePlugins(args)
 
         //
         // Add all the plugins read in kobalt-plugin.xml to the Plugins singleton, so that code
