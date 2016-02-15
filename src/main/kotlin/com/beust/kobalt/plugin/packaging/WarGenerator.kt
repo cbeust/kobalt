@@ -55,6 +55,13 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
             KFiles.copy(Paths.get(it.absolutePath), Paths.get(fullDir, it.name))
         }
 
+        //
+        // The resources
+        //
+        context.variant.resourceDirectories(project).forEach {
+            result.add(IncludedFile(From(it.path), To(""), listOf(IFileSpec.GlobSpec("**"))))
+        }
+
         result.add(IncludedFile(From(fullDir), To(WEB_INF), listOf(IFileSpec.GlobSpec("**"))))
 
         //
