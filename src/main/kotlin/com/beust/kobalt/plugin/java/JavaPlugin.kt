@@ -56,6 +56,8 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
     val compiler = object: ICompiler {
         override val sourceSuffixes = listOf("java")
 
+        override val sourceDirectory = "java"
+
         override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
             val result =
                     if (info.sourceFiles.size > 0) {

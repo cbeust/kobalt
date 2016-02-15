@@ -46,6 +46,7 @@ class TaskContributor @Inject constructor(val incrementalManager: IncrementalMan
             runTask: (Project) -> IncrementalTaskInfo) {
         Variant.allVariants(project).forEach { variant ->
             val variantTaskName = variant.toTask(taskName)
+            context.variant = variant
             dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName,
                     runBefore = runBefore.map { variant.toTask(it) },
                     runAfter = runAfter.map { variant.toTask(it) },

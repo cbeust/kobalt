@@ -9,6 +9,11 @@ interface ICompiler {
     val sourceSuffixes: List<String>
 
     /**
+     * The trailing end of the source directory (e.g. "kotlin" in "src/main/kotlin")
+     */
+    val sourceDirectory: String
+
+    /**
      * Run the compilation based on the info.
      */
     fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult

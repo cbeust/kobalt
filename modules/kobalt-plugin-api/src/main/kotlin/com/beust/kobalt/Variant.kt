@@ -5,6 +5,7 @@ import com.beust.kobalt.internal.ActorUtils
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import java.io.File
+import java.util.*
 
 /**
  * Capture the product flavor and the build type of a build.
@@ -41,11 +42,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
                 context.pluginInfo.compilerContributors)
         compilerContributors.forEach {
             it.compilersFor(project, context).forEach { compiler ->
-                val sourceSuffixes = compiler.sourceSuffixes
-                val suffixes = sourceSuffixes.flatMap { thisSuffix ->
-                    sourceDirectories(project, thisSuffix)
-                }
-                result.addAll(suffixes)
+                result.addAll(sourceDirectories(project, compiler.sourceDirectory, variantFirst = true))
             }
 
         }
@@ -55,23 +52,21 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     /**
      * Might be used by plug-ins.
      */
-    fun resourceDirectories(project: Project) = sourceDirectories(project, "resources")
+    fun resourceDirectories(project: Project) = sourceDirectories(project, "resources", variantFirst = false)
 
     /**
-     * suffix is either "java" (to find source files) or "resources" (to find resources)
+     * suffix is either "java" (to find source files) or "resources" (to find resources).
+     * The priority directory is always returned first. For example, if a "pro" product flavor
+     * is requested, "src/pro/kotlin" will appear in the result before "src/main/kotlin". Later,
+     * files that have already been seen get skipped, which is how compilation and resources
+     * receive the correct priority in the final jar.
      */
-    private fun sourceDirectories(project: Project, suffix: String) : Set<File> {
-        val result = hashSetOf<File>()
+    private fun sourceDirectories(project: Project, suffix: String, variantFirst: Boolean) : List<File> {
+        val result = arrayListOf<File>()
         val sourceDirectories = project.sourceDirectories.map { File(it) }
         if (isDefault) {
             result.addAll(sourceDirectories)
         } else {
-            result.addAll(allDirectories(project).map {
-                File(KFiles.joinDir("src", it, suffix))
-                }.filter {
-                    it.exists()
-                })
-
 //            // The ordering of files is: 1) build type 2) product flavor 3) default
             buildType.let {
                 val dir = File(KFiles.joinDir("src", it.name, suffix))
@@ -84,9 +79,14 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
                 result.add(dir)
             }
 
+            result.addAll(allDirectories(project).map {
+                File(KFiles.joinDir("src", it, suffix))
+            }.filter {
+                it.exists()
+            })
+
             // Now that all the variant source directories have been added, add the project's default ones
             result.addAll(sourceDirectories)
-            return result.filter { it.exists() }.toHashSet()
         }
 
         // Generated directory, if applicable
@@ -94,7 +94,10 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
             result.add(it)
         }
 
-        return result.filter { File(project.directory, it.path).exists() }.toHashSet()
+        val filteredResult = result.filter { File(project.directory, it.path).exists() }
+        val sortedResult = if (variantFirst) filteredResult
+            else filteredResult.reversed().toList()
+        return LinkedHashSet(sortedResult).toList()
     }
 
     fun archiveName(project: Project, archiveName: String?, suffix: String) : String {

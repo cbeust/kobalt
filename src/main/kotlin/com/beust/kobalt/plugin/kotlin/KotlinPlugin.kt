@@ -115,6 +115,8 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
     val compiler = object: ICompiler {
         override val sourceSuffixes = listOf("kt")
 
+        override val sourceDirectory = "kotlin"
+
         override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
             val result =
                     if (info.sourceFiles.size > 0) {
