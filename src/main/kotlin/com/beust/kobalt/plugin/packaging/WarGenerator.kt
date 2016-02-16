@@ -64,7 +64,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         // The resources
         //
         context.variant.resourceDirectories(project).forEach {
-            result.add(IncludedFile(From(it.path), To(""), listOf(IFileSpec.GlobSpec("**"))))
+            result.add(IncludedFile(From(it.path), To(CLASSES), listOf(IFileSpec.GlobSpec("**"))))
         }
 
         result.add(IncludedFile(From(fullDir), To(LIB), listOf(IFileSpec.GlobSpec("**"))))
