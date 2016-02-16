@@ -37,7 +37,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     }
 
     fun sourceDirectories(project: Project, context: KobaltContext) : List<File> {
-        val result = hashSetOf<File>()
+        val result = arrayListOf<File>()
         val compilerContributors = ActorUtils.selectAffinityActors(project, context,
                 context.pluginInfo.compilerContributors)
         compilerContributors.forEach {
@@ -53,6 +53,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
      * Might be used by plug-ins.
      */
     fun resourceDirectories(project: Project) = sourceDirectories(project, "resources", variantFirst = false)
+        .filter { it.path.contains("resources") || it.path.contains("res") }
 
     /**
      * suffix is either "java" (to find source files) or "resources" (to find resources).
@@ -97,7 +98,8 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
         val filteredResult = result.filter { File(project.directory, it.path).exists() }
         val sortedResult = if (variantFirst) filteredResult
             else filteredResult.reversed().toList()
-        return LinkedHashSet(sortedResult).toList()
+        val deduplicatedResult = LinkedHashSet(sortedResult).toList()
+        return deduplicatedResult
     }
 
     fun archiveName(project: Project, archiveName: String?, suffix: String) : String {

@@ -113,13 +113,14 @@ open class JvmCompilerPlugin @Inject constructor(
             throw IllegalArgumentException("Custom source sets not supported yet: $sourceSet")
         }
 
-        if (sourceDirs.size > 0) {
+        val variantSourceDirs = context.variant.resourceDirectories(project)
+        if (variantSourceDirs.size > 0) {
             lp(project, "Copying $sourceSet resources")
             val absOutputDir = File(KFiles.joinDir(project.directory, project.buildDirectory, outputDir))
-            sourceDirs.map { File(project.directory, it) }.filter {
+            variantSourceDirs.map { File(project.directory, it.path) }.filter {
                 it.exists()
             }.forEach {
-                log(2, "Copying from $sourceDirs to $absOutputDir")
+                log(2, "Copying from $it to $absOutputDir")
                 KFiles.copyRecursively(it, absOutputDir, deleteFirst = false)
             }
         } else {
@@ -241,7 +242,7 @@ open class JvmCompilerPlugin @Inject constructor(
      * Runs all the contributors and interceptors relevant to that task.
      */
     protected fun createCompilerActionInfo(project: Project, context: KobaltContext, isTest: Boolean,
-            sourceDirectories: Set<File>, sourceSuffixes: List<String>): CompilerActionInfo {
+            sourceDirectories: List<File>, sourceSuffixes: List<String>): CompilerActionInfo {
         copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
 
         val fullClasspath = if (isTest) dependencyManager.testDependencies(project, context)
@@ -312,7 +313,7 @@ open class JvmCompilerPlugin @Inject constructor(
         return result
     }
 
-    val sourceDirectories = hashSetOf<File>()
+    val sourceDirectories = arrayListOf<File>()
 
     // ISourceDirectoryContributor
     override fun sourceDirectoriesFor(project: Project, context: KobaltContext)
