@@ -35,7 +35,18 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
             val archiveUrl: String? = null, val snapshotVersion: Version? = null) {
         val found = archiveUrl != null
 
-        val path = archiveUrl?.substring(hostConfig.url.length)
+        val localPath = archiveUrl?.substring(hostConfig.url.length)
+        // If it's a snapshot, we download a specific timestamped jar file but we need to save it under
+        // the SNAPSHOT-3.2.jar name.
+        val path = if (snapshotVersion != null && snapshotVersion.snapshotTimestamp != null && localPath != null) {
+                val ind = localPath.indexOf(snapshotVersion.snapshotTimestamp)
+                val lastDot = localPath.lastIndexOf(".")
+                val result = localPath.substring(0, ind) + "SNAPSHOT" +
+                    localPath.substring(lastDot)
+                result
+        } else {
+                localPath
+            }
     }
 
     private val FOUND_REPOS: LoadingCache<String, RepoResult> = CacheBuilder.newBuilder()
@@ -113,8 +124,9 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                             if (isLocal) version
                             else findSnapshotVersion(metadataXmlPath, repoUrl, mavenId.version)
                     if (snapshotVersion != null) {
-                        val url = repoUrl + metadataXmlPath
-                        val kurl = Kurl(HostConfig(url))
+                        val url = repoUrl + dep.toDirectory(fileSystem = false, v = dep.version) +
+                            dep.artifactId + "-" + snapshotVersion.noSnapshotVersion +
+                                "-" + snapshotVersion.snapshotTimestamp + ".jar"
                         return RepoResult(repo, version, url, snapshotVersion)
                     } else {
                         return RepoResult(repo)
