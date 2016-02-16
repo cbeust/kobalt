@@ -115,7 +115,6 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                     if (snapshotVersion != null) {
                         val url = repoUrl + metadataXmlPath
                         val kurl = Kurl(HostConfig(url))
-                        val found = kurl.exists
                         return RepoResult(repo, version, url, snapshotVersion)
                     } else {
                         return RepoResult(repo)
