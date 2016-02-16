@@ -4,23 +4,22 @@ import com.beust.kobalt.api.License
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.Scm
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.homeDir
 import com.beust.kobalt.plugin.application.application
 import com.beust.kobalt.plugin.java.javaCompiler
-import com.beust.kobalt.plugin.java.javaProject
 import com.beust.kobalt.plugin.kotlin.kotlinCompiler
-import com.beust.kobalt.plugin.kotlin.kotlinProject
 import com.beust.kobalt.plugin.packaging.assemble
-import com.beust.kobalt.plugin.publish.github
 import com.beust.kobalt.plugin.publish.bintray
-import com.beust.kobalt.repos
-import com.beust.kobalt.test
+import com.beust.kobalt.plugin.publish.github
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
 val r = repos("http://dl.bintray.com/kotlin/kotlinx.dom")
+
+//val pl = plugins(file(homeDir("kotlin/kobalt-android/kobaltBuild/libs/kobalt-android-0.22.jar")))
+
+//val pl = plugins("com.beust:kobalt-android:0.20")
 
 val wrapper = project {
     name = "kobalt-wrapper"
