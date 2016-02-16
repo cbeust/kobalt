@@ -85,30 +85,20 @@ class Version(val version: String, val snapshotTimestamp: String? = null): Compa
         }
     }
 
-    override fun compareTo(other: Version): Int {
-        return comparator.compare(this, other)
-    }
+    override fun compareTo(other: Version) = comparator.compare(this, other)
 
-    override fun equals(other: Any?): Boolean {
-        return (other is Version) && comparator.compare(this, other) == 0
-    }
+    override fun equals(other: Any?) = (other is Version) && comparator.compare(this, other) == 0
 
     override fun hashCode(): Int {
         if ( hash == -1 ) hash = Arrays.hashCode(items.toTypedArray())
         return hash
     }
 
-    override fun toString(): String {
-        return version
-    }
+    override fun toString() = version
 
-    fun isSnapshot(): Boolean {
-        return items.firstOrNull { it.isSnapshot } != null
-    }
+    fun isSnapshot() = items.firstOrNull { it.isSnapshot } != null
 
-    fun isRangedVersion(): Boolean {
-        return MavenId.isRangedVersion(version)
-    }
+    fun isRangedVersion() = MavenId.isRangedVersion(version)
 
     fun select(list: List<Version>): Version? {
         if (!(version.first() in listOf('[', '(') && version.last() in listOf(']', ')'))) {
