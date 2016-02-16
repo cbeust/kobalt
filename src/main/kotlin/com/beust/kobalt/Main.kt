@@ -24,7 +24,7 @@ import java.nio.file.Paths
 import java.util.*
 import javax.inject.Inject
 
-public fun main(argv: Array<String>) {
+fun main(argv: Array<String>) {
     val result = mainNoExit(argv)
     if (result != 0) {
         System.exit(result)
