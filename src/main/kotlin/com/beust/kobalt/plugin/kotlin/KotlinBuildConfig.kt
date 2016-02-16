@@ -24,7 +24,7 @@ class KotlinBuildConfig : BaseBuildConfig() {
             add("    companion object {")
             add(generate("String", "PRODUCT_FLAVOR", "\"" + variant.productFlavor.name + "\""))
             add(generate("String", "BUILD_TYPE", "\"" + variant.buildType.name + "\""))
-            add(generate("String", "DEBUG",
+            add(generate("Boolean", "DEBUG",
                     if (variant.productFlavor.name.equals("debug", ignoreCase = true)) {
                         "true"
                     } else {
