@@ -1,7 +1,6 @@
-package com.beust.kobalt.app
+package com.beust.kobalt.api
 
 import com.beust.kobalt.Args
-import com.beust.kobalt.api.ITemplate
 import com.beust.kobalt.misc.log
 import java.io.File
 import java.io.FileOutputStream
@@ -32,10 +31,6 @@ abstract class JarTemplate(val jarName: String) : ITemplate {
                 }
                 entry = ins.nextEntry
             }
-        }
-
-        fun log(level: Int, s: String) {
-            println("   " + s)
         }
     }
 

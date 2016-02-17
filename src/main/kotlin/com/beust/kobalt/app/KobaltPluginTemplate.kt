@@ -1,6 +1,7 @@
 package com.beust.kobalt.app
 
 import com.beust.kobalt.api.ITemplateContributor
+import com.beust.kobalt.api.JarTemplate
 import com.beust.kobalt.plugin.KobaltPlugin
 
 /**
