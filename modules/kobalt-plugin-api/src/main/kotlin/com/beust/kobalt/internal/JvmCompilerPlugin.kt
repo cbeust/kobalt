@@ -259,7 +259,7 @@ open class JvmCompilerPlugin @Inject constructor(
         buildDirectory.mkdirs()
 
 
-        val initialSourceDirectories = ArrayList<File>(sourceDirectories)
+        val initialSourceDirectories = ArrayList<File>()
         // Source directories from the contributors
         initialSourceDirectories.addAll(
             if (isTest) {
@@ -270,18 +270,23 @@ open class JvmCompilerPlugin @Inject constructor(
 
         // Transform them with the interceptors, if any
         val allSourceDirectories = if (isTest) {
-            initialSourceDirectories
-        } else {
-            context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories.toList(),
-                    { sd, interceptor -> interceptor.intercept(project, context, sd) })
-        }.filter {
-            File(project.directory, it.path).exists()
-        }
+                initialSourceDirectories
+            } else {
+                context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories.toList(),
+                        { sd, interceptor -> interceptor.intercept(project, context, sd) })
+            }.filter {
+                File(project.directory, it.path).exists()
+            }
 
         // Now that we have all the source directories, find all the source files in them
-        val sourceFiles = files.findRecursively(projectDirectory, allSourceDirectories,
-                { file -> sourceSuffixes.any { file.endsWith(it) }})
-                .map { File(projectDirectory, it).path }
+
+        val sourceFiles = if (allSourceDirectories.size > 0) {
+                files.findRecursively(projectDirectory, allSourceDirectories,
+                        { file -> sourceSuffixes.any { file.endsWith(it) } })
+                        .map { File(projectDirectory, it).path }
+            } else {
+                emptyList()
+            }
 
         // Special treatment if we are compiling Kotlin files and the project also has a java source
         // directory. In this case, also pass that java source directory to the Kotlin compiler as is
