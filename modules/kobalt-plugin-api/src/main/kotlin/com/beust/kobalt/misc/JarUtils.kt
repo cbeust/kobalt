@@ -34,27 +34,26 @@ public class JarUtils {
 
         fun addSingleFile(directory: String, file: IncludedFile, outputStream: ZipOutputStream,
                 expandJarFiles: Boolean, onError: (Exception) -> Unit = DEFAULT_HANDLER) {
-            val allFiles = file.allFromFiles(directory)
-            allFiles.forEach { relSource ->
-                val source = relSource
+            val foundFiles = file.allFromFiles(directory)
+            foundFiles.forEach { foundFile ->
 
-                val entryFile = if (File(source.path).isAbsolute) File(source.path)
-                    else if (! file.fromOriginal.isCurrentDir()) File(KFiles.joinDir(file.from, source.path))
-                    else File(source.path)
+                // Turn the found file into the local physical file that will be put in the jar file
+                val localFile = if (File(foundFile.path).isAbsolute) File(foundFile.path)
+                    else file.from(foundFile.path)
 
-                if (!entryFile.exists()) {
-                    throw AssertionError("File should exist: $entryFile")
+                if (!localFile.exists()) {
+                    throw AssertionError("File should exist: $localFile")
                 }
 
-                if (source.isDirectory) {
-                    log(2, "Writing contents of directory $source")
+                if (foundFile.isDirectory) {
+                    log(2, "Writing contents of directory $foundFile")
 
                     // Directory
-                    var name = source.name
+                    var name = foundFile.name
                     if (!name.isEmpty()) {
                         if (!name.endsWith("/")) name += "/"
                         val entry = JarEntry(name)
-                        entry.time = source.lastModified()
+                        entry.time = foundFile.lastModified()
                         try {
                             outputStream.putNextEntry(entry)
                         } catch(ex: ZipException) {
@@ -63,27 +62,25 @@ public class JarUtils {
                             outputStream.closeEntry()
                         }
                     }
-                    val includedFile = IncludedFile(From(source.path), To(""), listOf(IFileSpec.GlobSpec("**")))
+                    val includedFile = IncludedFile(From(foundFile.path), To(""), listOf(IFileSpec.GlobSpec("**")))
                     addSingleFile(".", includedFile, outputStream, expandJarFiles)
                 } else {
-                    if (expandJarFiles && source.name.endsWith(".jar") && ! source.path.contains("resources")) {
-                        log(2, "Writing contents of jar file $source")
-                        val stream = JarInputStream(FileInputStream(entryFile))
+                    if (expandJarFiles && foundFile.name.endsWith(".jar") && ! foundFile.path.contains("resources")) {
+                        log(2, "Writing contents of jar file $foundFile")
+                        val stream = JarInputStream(FileInputStream(localFile))
                         var entry = stream.nextEntry
                         while (entry != null) {
                             if (!entry.isDirectory && !KFiles.isExcluded(entry.name, DEFAULT_JAR_EXCLUDES)) {
-                                val ins = JarFile(entryFile).getInputStream(entry)
+                                val ins = JarFile(localFile).getInputStream(entry)
                                 addEntry(ins, JarEntry(entry), outputStream, onError)
                             }
                             entry = stream.nextEntry
                         }
                     } else {
-                        val fixedSource = relSource.path.replace("\\", "/")
-                        val entryFileName = if (file.toOriginal.isCurrentDir()) fixedSource
-                            else file.to + fixedSource
+                        val entryFileName = file.to(foundFile.path).path
                         val entry = JarEntry(entryFileName)
-                        entry.time = source.lastModified()
-                        addEntry(FileInputStream(entryFile), entry, outputStream, onError)
+                        entry.time = foundFile.lastModified()
+                        addEntry(FileInputStream(localFile), entry, outputStream, onError)
                     }
                 }
             }
@@ -159,8 +156,10 @@ open class Direction(open val p: String) {
 
 class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<IFileSpec>) {
     constructor(specs: List<IFileSpec>) : this(From(""), To(""), specs)
-    public val from: String get() = fromOriginal.path.replace("\\", "/")
-    public val to: String get() = toOriginal.path.replace("\\", "/")
+    fun from(s: String) = File(if (fromOriginal.isCurrentDir()) s else KFiles.joinDir(from, s))
+    val from: String get() = fromOriginal.path.replace("\\", "/")
+    fun to(s: String) = File(if (toOriginal.isCurrentDir()) s else KFiles.joinDir(to, s))
+    val to: String get() = toOriginal.path.replace("\\", "/")
     override public fun toString() = toString("IncludedFile",
             "files - ", specs.map { it.toString() },
             "from", from,
