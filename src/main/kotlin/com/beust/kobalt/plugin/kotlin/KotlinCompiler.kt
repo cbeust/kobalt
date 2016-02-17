@@ -52,12 +52,18 @@ class KotlinCompiler @Inject constructor(
             if (! outputDir.endsWith(".jar")) {
                 File(outputDir).mkdirs()
             }
-            val allArgs : Array<String> = arrayOf(
+            val allArgs = arrayListOf(
                     "-d", outputDir,
                     "-classpath", cp.joinToString(File.pathSeparator),
                     *(info.compilerArgs.toTypedArray()),
                     *(info.sourceFiles.toTypedArray())
             )
+
+            // Get rid of annoying and useless warning
+            if (! info.compilerArgs.contains("-no-stdlib")) {
+                allArgs.add("-no-stdlib")
+            }
+
             val success = invokeCompiler(projectName ?: "kobalt-" + Random().nextInt(), cp, allArgs)
             return TaskResult(success)
         }
@@ -72,7 +78,7 @@ class KotlinCompiler @Inject constructor(
          * There are plenty of ways in which this method can break but this will be immediately
          * apparent if it happens.
          */
-        private fun invokeCompiler(projectName: String, cp: List<File>, args: Array<String>): Boolean {
+        private fun invokeCompiler(projectName: String, cp: List<File>, args: List<String>): Boolean {
             val allArgs = listOf("-module-name", "project-" + projectName) + args
             log(2, "Calling kotlinc " + allArgs.joinToString(" "))
             val result : Boolean =
@@ -81,7 +87,7 @@ class KotlinCompiler @Inject constructor(
                         val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
                         val compilerMain = compiler.declaredMethods.filter {
                             it.name == "doMainNoExit" && it.parameterTypes.size == 2
-                        }.get(0)
+                        }[0]
                         val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
                         val compilerInstance = kCompiler.newInstance()
                         val exitCode = compilerMain.invoke(null, compilerInstance, allArgs.toTypedArray())
