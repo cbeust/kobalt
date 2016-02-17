@@ -22,32 +22,37 @@ sealed class IFileSpec {
 
         constructor(spec: String) : this(arrayListOf(spec))
 
-        private fun isIncluded(excludes: List<Glob>, rel: Path) : Boolean {
+        private fun isIncluded(includeMatchers: Glob, excludes: List<Glob>, rel: Path) : Boolean {
             excludes.forEach {
                 if (it.matches(rel)) {
                     log(2, "Excluding ${rel.toFile()}")
                     return false
                 }
             }
-            log(2, "Including ${rel.toFile().absolutePath}")
-            return true
+            if (includeMatchers.matches(rel)) {
+                log(2, "Including ${rel.toFile().absolutePath}")
+                return true
+            }
+            log(2, "Excluding ${rel.toFile()} (not matching any include pattern")
+            return false
         }
 
         override fun toFiles(filePath: String, excludes: List<Glob>): List<File> {
             val result = arrayListOf<File>()
+            val includes = Glob(*spec.toTypedArray())
 
             if (File(filePath).isDirectory) {
                 Files.walkFileTree(Paths.get(filePath), object : SimpleFileVisitor<Path>() {
                     override public fun visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult {
                         val rel = Paths.get(filePath).relativize(path)
-                        if (isIncluded(excludes, rel)) {
+                        if (isIncluded(includes, excludes, rel)) {
                             result.add(rel.toFile())
                         }
                         return FileVisitResult.CONTINUE
                     }
                 })
             } else {
-                if (isIncluded(excludes, Paths.get(filePath))) {
+                if (isIncluded(includes, excludes, Paths.get(filePath))) {
                     result.add(File(filePath))
                 }
             }
