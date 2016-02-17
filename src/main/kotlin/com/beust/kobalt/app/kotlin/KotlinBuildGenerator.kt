@@ -7,7 +7,7 @@ class KotlinBuildGenerator : BuildGenerator() {
     override val defaultTestDirectories = hashSetOf("src/test/kotlin")
     override val directive = "project"
     override val templateName = "kotlin"
-    override val templateDescription = "Generates a simple Kotlin project"
+    override val templateDescription = "Generate a simple Kotlin project"
     override val fileMatch = { f: String -> f.endsWith(".kt") }
 }
 
