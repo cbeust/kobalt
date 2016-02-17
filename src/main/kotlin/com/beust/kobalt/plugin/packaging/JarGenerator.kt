@@ -70,7 +70,8 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
                 if (! seen.contains(file.path)) {
                     seen.add(file.path)
                     if (! KFiles.isExcluded(file, jar.excludes)) {
-                        result.add(IncludedFile(arrayListOf(IFileSpec.FileSpec(file.path))))
+                        result.add(IncludedFile(specs = arrayListOf(IFileSpec.FileSpec(file.path)),
+                                expandJarFiles = true))
                     }
                 }
             }

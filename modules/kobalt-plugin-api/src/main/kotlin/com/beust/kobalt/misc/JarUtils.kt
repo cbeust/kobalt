@@ -65,7 +65,7 @@ public class JarUtils {
                     val includedFile = IncludedFile(From(foundFile.path), To(""), listOf(IFileSpec.GlobSpec("**")))
                     addSingleFile(".", includedFile, outputStream, expandJarFiles)
                 } else {
-                    if (expandJarFiles && foundFile.name.endsWith(".jar") && ! foundFile.path.contains("resources")) {
+                    if (file.expandJarFiles && foundFile.name.endsWith(".jar") && ! file.from.contains("resources")) {
                         log(2, "Writing contents of jar file $foundFile")
                         val stream = JarInputStream(FileInputStream(localFile))
                         var entry = stream.nextEntry
@@ -154,8 +154,9 @@ open class Direction(open val p: String) {
         else p + "/"
 }
 
-class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<IFileSpec>) {
-    constructor(specs: List<IFileSpec>) : this(From(""), To(""), specs)
+class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<IFileSpec>,
+        val expandJarFiles: Boolean = false) {
+    constructor(specs: List<IFileSpec>, expandJarFiles: Boolean = false) : this(From(""), To(""), specs, expandJarFiles)
     fun from(s: String) = File(if (fromOriginal.isCurrentDir()) s else KFiles.joinDir(from, s))
     val from: String get() = fromOriginal.path.replace("\\", "/")
     fun to(s: String) = File(if (toOriginal.isCurrentDir()) s else KFiles.joinDir(to, s))

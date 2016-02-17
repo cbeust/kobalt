@@ -3,6 +3,7 @@ package com.beust.kobalt
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
+import org.testng.Assert
 import org.testng.annotations.Test
 import java.io.File
 import java.io.FileInputStream
@@ -11,6 +12,9 @@ import java.util.jar.JarFile
 import java.util.jar.JarInputStream
 
 class VerifyKobaltZipTest : KobaltTest() {
+    private fun verifyMainJarFile(ins: InputStream) {
+        assertExistsInJarInputStream(JarInputStream(ins), "com/beust/kobalt/MainKt.class", "templates/plugin.jar")
+    }
     @Test
     fun verifySourceJarFile() {
         assertExistsInJar("kobalt-" + Kobalt.version + "-sources.jar", "com/beust/kobalt/Main.kt")
@@ -60,24 +64,26 @@ class VerifyKobaltZipTest : KobaltTest() {
         log(1, "$zipFilePath looks correct")
     }
 
-    private fun assertExistsInJar(jarName: String, fileName: String) {
-        val sourceJarPath = KFiles.joinDir("kobaltBuild", "libs", jarName)
-        assertExistsInJar(JarInputStream(FileInputStream(File(sourceJarPath))), fileName)
+    private fun assertExistsInJarInputStream(ins: JarInputStream, vararg fileNames: String) {
+        with(jarContents(ins)) {
+            fileNames.forEach { fileName ->
+                Assert.assertTrue(contains(fileName), "Couldn't find $fileName")
+            }
+        }
     }
 
-    private fun assertExistsInJar(stream: JarInputStream, fileName: String) {
+    private fun assertExistsInJar(jarName: String, vararg fileNames: String) {
+        val sourceJarPath = KFiles.joinDir("kobaltBuild", "libs", jarName)
+        assertExistsInJarInputStream(JarInputStream(FileInputStream(File(sourceJarPath))), *fileNames)
+    }
+
+    private fun jarContents(stream: JarInputStream) : Set<String> {
+        val result = hashSetOf<String>()
         var entry = stream.nextEntry
-        var found = false
         while (entry != null) {
-            if (entry.name == fileName) found = true
+            result.add(entry.name)
             entry = stream.nextEntry
         }
-        if (! found) {
-            throw AssertionError("Couldn't find Main.kt in $fileName")
-        }
-    }
-
-    private fun verifyMainJarFile(ins: InputStream) {
-        assertExistsInJar(JarInputStream(ins), "com/beust/kobalt/MainKt.class")
+        return result
     }
 }
