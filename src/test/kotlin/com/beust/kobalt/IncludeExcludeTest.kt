@@ -1,5 +1,8 @@
 package com.beust.kobalt
 
+import com.beust.kobalt.misc.From
+import com.beust.kobalt.misc.IncludedFile
+import com.beust.kobalt.misc.To
 import org.testng.Assert
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.DataProvider
@@ -45,7 +48,16 @@ class IncludeExcludeTest : KobaltTest() {
     @Test(dataProvider = "dp")
     fun shouldInclude(root: File, includedSpec: List<String>, excludedSpec: List<String>, expectedFiles: List<String>) {
         val g = IFileSpec.GlobSpec(includedSpec)
-        val files = g.toFiles(root.path, excludedSpec.map { Glob(it) })
+        val files = g.toFiles("", root.path, excludedSpec.map { Glob(it) })
         Assert.assertEquals(files.map { it.name }, expectedFiles)
+    }
+
+    @Test
+    private fun f() {
+        val spec = IFileSpec.GlobSpec("src/**")
+        val files = spec.toFiles(homeDir("kotlin/kobalt"), "src/main/kotlin")
+        val inc = IncludedFile(From("src/main/kotlin"), To(""), listOf(IFileSpec.GlobSpec("**")))
+//        val files = inc.allFromFiles(homeDir("kotlin/kobalt"))
+        println("FILES: " + files)
     }
 }

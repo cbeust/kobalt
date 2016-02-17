@@ -36,9 +36,16 @@ public class JarUtils {
                 expandJarFiles: Boolean, onError: (Exception) -> Unit = DEFAULT_HANDLER) {
             val allFiles = file.allFromFiles(directory)
             allFiles.forEach { relSource ->
-                val source =
-                        if (relSource.isAbsolute) relSource
-                        else File(KFiles.joinDir(directory, file.from, relSource.path))
+                val source = relSource
+
+                val entryFile = if (File(source.path).isAbsolute) File(source.path)
+                    else if (! file.fromOriginal.isCurrentDir()) File(KFiles.joinDir(file.from, source.path))
+                    else File(source.path)
+
+                if (!entryFile.exists()) {
+                    throw AssertionError("File should exist: $entryFile")
+                }
+
                 if (source.isDirectory) {
                     log(2, "Writing contents of directory $source")
 
@@ -61,22 +68,21 @@ public class JarUtils {
                 } else {
                     if (expandJarFiles && source.name.endsWith(".jar") && ! source.path.contains("resources")) {
                         log(2, "Writing contents of jar file $source")
-                        val stream = JarInputStream(FileInputStream(source))
+                        val stream = JarInputStream(FileInputStream(entryFile))
                         var entry = stream.nextEntry
                         while (entry != null) {
                             if (!entry.isDirectory && !KFiles.isExcluded(entry.name, DEFAULT_JAR_EXCLUDES)) {
-                                val ins = JarFile(source).getInputStream(entry)
+                                val ins = JarFile(entryFile).getInputStream(entry)
                                 addEntry(ins, JarEntry(entry), outputStream, onError)
                             }
                             entry = stream.nextEntry
                         }
                     } else {
-                        val entry = JarEntry(file.to + relSource.path.replace("\\", "/"))
+                        val fixedSource = relSource.path.replace("\\", "/")
+                        val entryFileName = if (file.toOriginal.isCurrentDir()) fixedSource
+                            else file.to + fixedSource
+                        val entry = JarEntry(entryFileName)
                         entry.time = source.lastModified()
-                        val entryFile = source
-                        if (!entryFile.exists()) {
-                            throw AssertionError("File should exist: $entryFile")
-                        }
                         addEntry(FileInputStream(entryFile), entry, outputStream, onError)
                     }
                 }
@@ -143,8 +149,12 @@ public class JarUtils {
 }
 
 open class Direction(open val p: String) {
-    override public fun toString() = path
-    public val path: String get() = if (p.isEmpty() or p.endsWith("/")) p else p + "/"
+    override fun toString() = path
+    fun isCurrentDir() = path == "./"
+    val path: String get() =
+        if (p.isEmpty()) "./"
+        else if (p.startsWith("/") || p.endsWith("/")) p
+        else p + "/"
 }
 
 class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<IFileSpec>) {
@@ -159,8 +169,8 @@ class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<I
     fun allFromFiles(directory: String? = null): List<File> {
         val result = arrayListOf<File>()
         specs.forEach { spec ->
-            val fullDir = if (directory == null) from else KFiles.joinDir(directory, from)
-            spec.toFiles(fullDir).forEach { source ->
+//            val fullDir = if (directory == null) from else KFiles.joinDir(directory, from)
+            spec.toFiles(directory, from).forEach { source ->
                 result.add(if (source.isAbsolute) source else File(source.path))
             }
         }

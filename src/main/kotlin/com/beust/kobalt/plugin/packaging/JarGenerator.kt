@@ -38,7 +38,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
             filesNotExcluded.forEach {
                 fileSpecs.add(IFileSpec.FileSpec(it.path.toString().substring(prefixPath.toString().length + 1)))
             }
-            result.add(IncludedFile(From(prefixPath.toString() + "/"), To(""), fileSpecs))
+            result.add(IncludedFile(From(project.directory + "/" + prefixPath.toString() + "/"), To(""), fileSpecs))
 
             // Resources, if applicable
             context.variant.resourceDirectories(project).forEach {

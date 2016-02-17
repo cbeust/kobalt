@@ -10,10 +10,10 @@ import java.nio.file.attribute.BasicFileAttributes
  * and GlobSpec (a spec defined by a glob, e.g. ** slash *Test.class)
  */
 sealed class IFileSpec {
-    abstract fun toFiles(filePath: String, excludes: List<Glob> = emptyList<Glob>()): List<File>
+    abstract fun toFiles(baseDir: String?, filePath: String, excludes: List<Glob> = emptyList<Glob>()): List<File>
 
     class FileSpec(val spec: String) : IFileSpec() {
-        override public fun toFiles(filePath: String, excludes: List<Glob>) = listOf(File(spec))
+        override public fun toFiles(baseDir: String?, filePath: String, excludes: List<Glob>) = listOf(File(spec))
 
         override public fun toString() = spec
     }
@@ -30,14 +30,14 @@ sealed class IFileSpec {
                 }
             }
             if (includeMatchers.matches(rel)) {
-                log(2, "Including ${rel.toFile().absolutePath}")
+                log(2, "Including ${rel.toFile().path}")
                 return true
             }
             log(2, "Excluding ${rel.toFile()} (not matching any include pattern")
             return false
         }
 
-        override fun toFiles(filePath: String, excludes: List<Glob>): List<File> {
+        override fun toFiles(baseDir: String?, filePath: String, excludes: List<Glob>): List<File> {
             val result = arrayListOf<File>()
             val includes = Glob(*spec.toTypedArray())
 
@@ -45,7 +45,7 @@ sealed class IFileSpec {
                 Files.walkFileTree(Paths.get(filePath), object : SimpleFileVisitor<Path>() {
                     override public fun visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult {
                         val rel = Paths.get(filePath).relativize(path)
-                        if (isIncluded(includes, excludes, rel)) {
+                        if (isIncluded(includes, excludes, path)) {
                             result.add(rel.toFile())
                         }
                         return FileVisitResult.CONTINUE

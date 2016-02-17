@@ -48,9 +48,9 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             files.forEach { includedFile ->
                 val includedSpecs = arrayListOf<IFileSpec>()
                 includedFile.specs.forEach { spec ->
-                    val fromPath = directory + "/" + includedFile.from
+                    val fromPath = includedFile.from
                     if (File(fromPath).exists()) {
-                        spec.toFiles(fromPath).forEach { file ->
+                        spec.toFiles(directory, fromPath).forEach { file ->
                             val fullFile = File(fromPath, file.path)
                             if (! fullFile.exists()) {
                                 throw AssertionError("File should exist: $fullFile")
@@ -245,7 +245,7 @@ class PackageConfig(val project: Project) : AttributeHolder {
         jar {
             name = "${project.name}-${project.version}-sources.jar"
             project.sourceDirectories.forEach {
-                include(from(it), to(""), glob("src/**"))
+                include(from(project.directory + "/" + it), to(""), glob("**"))
             }
         }
         jar {

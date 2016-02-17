@@ -24,10 +24,10 @@ abstract class GenericTestRunner : ITestRunnerContributor {
             else 0
 
     protected fun findTestClasses(project: Project, testConfig: TestConfig): List<String> {
-        val path = KFiles.joinDir(project.directory, project.buildDirectory, KFiles.TEST_CLASSES_DIR)
+        val path = KFiles.joinDir(project.buildDirectory, KFiles.TEST_CLASSES_DIR)
 
         val result = IFileSpec.GlobSpec(toClassPaths(testConfig.testIncludes))
-            .toFiles(path, testConfig.testExcludes.map {
+            .toFiles(project.directory, path, testConfig.testExcludes.map {
                     Glob(it)
                 }).map {
                     it.toString().replace("/", ".").replace("\\", ".").replace(".class", "")
