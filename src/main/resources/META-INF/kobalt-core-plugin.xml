@@ -21,5 +21,8 @@
         <class-name>com.beust.kobalt.internal.TestNgRunner</class-name>
         <class-name>com.beust.kobalt.internal.SpekRunner</class-name>
 
+        <!-- Templates -->
+        <class-name>com.beust.kobalt.app.KobaltPluginTemplate</class-name>
+
     </plugin-actors>
 </kobalt-plugin>

@@ -2,7 +2,6 @@ package com.beust.kobalt.app
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.IArchetype
-import com.beust.kobalt.api.IInitContributor
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
@@ -27,6 +26,7 @@ class ProjectGenerator @Inject constructor(val pluginInfo: PluginInfo){
             if (archetype != null) {
                 log(2, "Running archetype $archetypeName")
                 archetype.generateArchetype(args, classLoader)
+                log(1, "\n\n" + archetype.instructions)
             } else {
                 warn("Couldn't find any archetype named $archetypeName")
             }
