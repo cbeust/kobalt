@@ -100,9 +100,9 @@ private class Main @Inject constructor(
         //
         pluginInfo.plugins.forEach { Plugins.addPluginInstance(it) }
 
-        // --listArchetypes
-        if (args.listArchetypes) {
-            Archetypes().list(pluginInfo)
+        // --listTemplates
+        if (args.listTemplates) {
+            Templates().list(pluginInfo)
             return 0
         }
 
@@ -148,7 +148,7 @@ private class Main @Inject constructor(
             println(AsciiArt.banner + Kobalt.version + "\n")
         }
 
-        if (args.archetypes != null) {
+        if (args.templates != null) {
             //
             // --init: create a new build project and install the wrapper
             // Make sure the wrapper won't call us back with --noLaunch

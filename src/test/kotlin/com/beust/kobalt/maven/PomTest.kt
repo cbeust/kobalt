@@ -56,7 +56,7 @@ class PomTest @Inject constructor() : KobaltTest() {
             file.deleteOnExit()
             val args = Args()
             args.buildFile = file.absolutePath
-            args.archetypes = "java"
+            args.templates = "java"
 
             ProjectGenerator(Kobalt.INJECTOR.getInstance(PluginInfo::class.java)).run(args, javaClass.classLoader)
 

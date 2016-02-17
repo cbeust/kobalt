@@ -14,7 +14,7 @@
         <class-name>com.beust.kobalt.internal.JvmCompilerPlugin</class-name>
 
         <!-- These classes manage -init for Java and Kotlin -->
-        <class-name>com.beust.kobalt.app.Archetypes</class-name>
+        <class-name>com.beust.kobalt.app.Templates</class-name>
 
         <!-- Test runners -->
         <class-name>com.beust.kobalt.internal.JUnitRunner</class-name>

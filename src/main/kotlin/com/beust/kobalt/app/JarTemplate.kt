@@ -1,7 +1,7 @@
 package com.beust.kobalt.app
 
 import com.beust.kobalt.Args
-import com.beust.kobalt.api.IArchetype
+import com.beust.kobalt.api.ITemplate
 import com.beust.kobalt.misc.log
 import java.io.File
 import java.io.FileOutputStream
@@ -10,7 +10,7 @@ import java.util.jar.JarInputStream
 /**
  * Base class for templates that simply decompress a jar file to generate their project.
  */
-abstract class JarTemplate(val jarName: String) : IArchetype {
+abstract class JarTemplate(val jarName: String) : ITemplate {
     companion object {
         fun extractFile(ins: JarInputStream, destDir: File) {
             var entry = ins.nextEntry
@@ -39,8 +39,8 @@ abstract class JarTemplate(val jarName: String) : IArchetype {
         }
     }
 
-    override fun generateArchetype(args: Args, classLoader: ClassLoader) {
-        log(1, "Generating archetype for Android with class loader $classLoader")
+    override fun generateTemplate(args: Args, classLoader: ClassLoader) {
+        log(2, "Generating template with class loader $classLoader")
         val destDir = File(".")
         val ins = JarInputStream(classLoader.getResource(jarName).openConnection().inputStream)
         extractFile(ins, destDir)

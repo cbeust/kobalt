@@ -29,11 +29,11 @@ class Args {
     @Parameter(names = arrayOf("--help", "--usage"), description = "Display the help")
     var usage: Boolean = false
 
-    @Parameter(names = arrayOf("-i", "--init"), description = "Invoke the archetypes named, separated by a comma")
-    var archetypes : String? = null
+    @Parameter(names = arrayOf("-i", "--init"), description = "Invoke the templates named, separated by a comma")
+    var templates: String? = null
 
-    @Parameter(names = arrayOf("--listArchetypes"), description = "List the available archetypes")
-    var listArchetypes: Boolean = false
+    @Parameter(names = arrayOf("--listTemplates"), description = "List the available templates")
+    var listTemplates: Boolean = false
 
     @Parameter(names = arrayOf("--log"), description = "Define the log level (1-3)")
     var log: Int = 1

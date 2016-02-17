@@ -1,8 +1,7 @@
 package com.beust.kobalt.app
 
 import com.beust.kobalt.Args
-import com.beust.kobalt.api.IArchetype
-import com.beust.kobalt.api.IInitContributor
+import com.beust.kobalt.api.ITemplate
 import com.beust.kobalt.maven.Pom
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.KobaltPlugin
@@ -13,7 +12,7 @@ import java.util.*
 /**
  * Abstract base class for the build generators that use build-template.mustache.
  */
-abstract class BuildGenerator : IArchetype {
+abstract class BuildGenerator : ITemplate {
     override val pluginName = KobaltPlugin.PLUGIN_NAME
 
     abstract val defaultSourceDirectories : HashSet<String>
@@ -33,7 +32,7 @@ abstract class BuildGenerator : IArchetype {
         }
     }
 
-    override fun generateArchetype(args: Args, classLoader: ClassLoader) {
+    override fun generateTemplate(args: Args, classLoader: ClassLoader) {
         val file = File(args.buildFile)
         if (! file.exists()) {
             PrintWriter(FileOutputStream(file)).use {
@@ -91,7 +90,7 @@ abstract class BuildGenerator : IArchetype {
                 put("directory", currentDir.absolutePath)
                 put("sourceDirectories", defaultSourceDirectories)
                 put("sourceDirectoriesTest", defaultTestDirectories)
-                put("imports", "import com.beust.kobalt.plugin.$archetypeName.*")
+                put("imports", "import com.beust.kobalt.plugin.$templateName.*")
                 put("directive", "project")
             }
 
