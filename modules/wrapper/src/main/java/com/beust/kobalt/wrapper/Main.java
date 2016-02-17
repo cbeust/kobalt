@@ -12,7 +12,8 @@ import java.util.zip.ZipFile;
 //@com.beust.apt.processor.Version("1.3")
 public class Main {
     public static void main(String[] argv) throws IOException, InterruptedException {
-        new Main().installAndLaunchMain(argv);
+        int exitCode = new Main().installAndLaunchMain(argv);
+        System.exit(exitCode);
     }
 
     private static final String KOBALT_PROPERTIES = "kobalt.properties";
@@ -29,7 +30,7 @@ public class Main {
     private static int logLevel = 1;
     private boolean noOverwrite = false;
 
-    private void installAndLaunchMain(String[] argv) throws IOException, InterruptedException {
+    private int installAndLaunchMain(String[] argv) throws IOException, InterruptedException {
         List<String> kobaltArgv = new ArrayList<>();
         boolean noLaunch = false;
         for (int i = 0; i < argv.length; i++) {
@@ -53,9 +54,11 @@ public class Main {
             }
         }
         Path kobaltJarFile = installDistribution();
+        int result = 0;
         if (! noLaunch) {
-            launchMain(kobaltJarFile, kobaltArgv.toArray(new String[kobaltArgv.size()]));
+            result = launchMain(kobaltJarFile, kobaltArgv.toArray(new String[kobaltArgv.size()]));
         }
+        return result;
     }
 
     private void readProperties(Properties properties, InputStream ins) throws IOException {
@@ -375,7 +378,7 @@ public class Main {
         System.out.println("[Wrapper error] *** " + s);
     }
 
-    private void launchMain(Path kobaltJarFile, String[] argv) throws IOException, InterruptedException {
+    private int launchMain(Path kobaltJarFile, String[] argv) throws IOException, InterruptedException {
         List<String> args = new ArrayList<>();
         args.add("java");
         args.add("-jar");
@@ -386,8 +389,7 @@ public class Main {
         pb.inheritIO();
         log(2, "Launching " + args);
         Process process = pb.start();
-        process.waitFor();
-
+        return process.waitFor();
     }
 
 }
