@@ -138,14 +138,16 @@ public class Main {
         String zipOutputDir = DISTRIBUTIONS_DIR + "/" + wrapperVersion;
         Path kobaltJarFile = Paths.get(zipOutputDir,
                 getWrapperDir().getPath() + "/" + FILE_NAME + "-" + wrapperVersion + ".jar");
+        boolean downloadedZipFile = false;
         if (! Files.exists(localZipFile) || ! Files.exists(kobaltJarFile)) {
             download(localZipFile.toFile(), wrapperVersion);
+            downloadedZipFile = true;
         }
 
         //
         // Extract all the zip files
         //
-        if (! noOverwrite) {
+        if (! noOverwrite && downloadedZipFile) {
             int retries = 0;
             while (retries < 2) {
                 try {
