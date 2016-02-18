@@ -327,6 +327,8 @@ public class Main {
             } else {
                 error("No file to download. Server replied HTTP code: " + responseCode);
             }
+        } catch(IOException ex) {
+            log(1, "Warning: couldn't download " + fileUrl);
         } finally {
             if (httpConn != null) {
                 httpConn.disconnect();
