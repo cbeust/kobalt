@@ -13,9 +13,9 @@ sealed class IFileSpec {
     abstract fun toFiles(baseDir: String?, filePath: String, excludes: List<Glob> = emptyList<Glob>()): List<File>
 
     class FileSpec(val spec: String) : IFileSpec() {
-        override public fun toFiles(baseDir: String?, filePath: String, excludes: List<Glob>) = listOf(File(spec))
+        override fun toFiles(baseDir: String?, filePath: String, excludes: List<Glob>) = listOf(File(spec))
 
-        override public fun toString() = spec
+        override fun toString() = spec
     }
 
     class GlobSpec(val spec: List<String>) : IFileSpec() {
