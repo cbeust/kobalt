@@ -26,7 +26,8 @@ class ProjectGenerator @Inject constructor(val pluginInfo: PluginInfo){
             if (template != null) {
                 log(2, "Running template $templateName")
                 template.generateTemplate(args, classLoader)
-                log(1, "\n\n" + template.instructions)
+                log(1, "\n\nTemplate \"$templateName\" installed")
+                log(1, template.instructions)
             } else {
                 warn("Couldn't find any template named $templateName")
             }
