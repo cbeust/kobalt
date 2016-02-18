@@ -13,7 +13,7 @@ import java.util.jar.JarInputStream
 
 class VerifyKobaltZipTest : KobaltTest() {
     private fun verifyMainJarFile(ins: InputStream) {
-        assertExistsInJarInputStream(JarInputStream(ins), "com/beust/kobalt/MainKt.class", "templates/plugin.jar")
+        assertExistsInJarInputStream(JarInputStream(ins), "com/beust/kobalt/MainKt.class", "templates/kobaltPlugin.jar")
     }
     @Test
     fun verifySourceJarFile() {

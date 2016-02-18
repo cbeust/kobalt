@@ -14,6 +14,7 @@ import com.beust.kobalt.misc.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+import java.nio.file.Paths
 import java.util.*
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
@@ -51,13 +52,14 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                     val fromPath = includedFile.from
                     if (File(fromPath).exists()) {
                         spec.toFiles(directory, fromPath).forEach { file ->
-                            val fullFile = File(fromPath, file.path)
+                            val fullFile = File(KFiles.joinDir(directory, fromPath, file.path))
                             if (! fullFile.exists()) {
                                 throw AssertionError("File should exist: $fullFile")
                             }
 
                             if (!KFiles.isExcluded(fullFile, excludes)) {
-                                includedSpecs.add(FileSpec(file.path))
+                                val normalized = Paths.get(file.path).normalize().toFile().path
+                                includedSpecs.add(FileSpec(normalized))
                             } else {
                                 log(2, "Not adding ${file.path} to jar file because it's excluded")
                             }

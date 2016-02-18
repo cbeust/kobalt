@@ -42,9 +42,13 @@ sealed class IFileSpec {
             val includes = Glob(*spec.toTypedArray())
 
             if (File(filePath).isDirectory) {
-                Files.walkFileTree(Paths.get(filePath), object : SimpleFileVisitor<Path>() {
-                    override public fun visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult {
-                        val rel = Paths.get(filePath).relativize(path)
+                val rootDir = if (File(filePath).isAbsolute) Paths.get(filePath)
+                    else if (baseDir != null) Paths.get(baseDir, filePath)
+                    else Paths.get(filePath)
+                Files.walkFileTree(rootDir, object : SimpleFileVisitor<Path>() {
+                    override fun visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult {
+                        val rel = if (baseDir != null && !baseDir.isEmpty()) Paths.get(baseDir).relativize(path)
+                            else path
                         if (isIncluded(includes, excludes, path)) {
                             result.add(rel.toFile())
                         }

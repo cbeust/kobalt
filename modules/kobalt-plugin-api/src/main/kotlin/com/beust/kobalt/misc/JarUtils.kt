@@ -4,6 +4,7 @@ import com.beust.kobalt.Glob
 import com.beust.kobalt.IFileSpec
 import com.google.common.io.CharStreams
 import java.io.*
+import java.nio.file.Paths
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarInputStream
@@ -39,7 +40,7 @@ public class JarUtils {
 
                 // Turn the found file into the local physical file that will be put in the jar file
                 val localFile = if (File(foundFile.path).isAbsolute) File(foundFile.path)
-                    else file.from(foundFile.path)
+                    else File(directory, file.from(foundFile.path).path)
 
                 if (!localFile.exists()) {
                     throw AssertionError("File should exist: $localFile")
@@ -174,7 +175,7 @@ class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<I
                 result.add(if (source.isAbsolute) source else File(source.path))
             }
         }
-        return result
+        return result.map { Paths.get(it.path).normalize().toFile()}
     }
 }
 
