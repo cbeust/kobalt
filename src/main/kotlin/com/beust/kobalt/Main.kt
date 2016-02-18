@@ -153,8 +153,10 @@ private class Main @Inject constructor(
             // --init: create a new build project and install the wrapper
             // Make sure the wrapper won't call us back with --noLaunch
             //
-            com.beust.kobalt.wrapper.Main.main(arrayOf("--noLaunch") + argv)
             projectGenerator.run(args, pluginClassLoader)
+            // The wrapper has to call System.exit() in order to set the exit code,
+            // so make sure we call it last (or possibly launch it in a separate JVM).
+            com.beust.kobalt.wrapper.Main.main(arrayOf("--noLaunch") + argv)
         } else if (args.usage) {
             jc.usage()
         } else if (args.serverMode) {
