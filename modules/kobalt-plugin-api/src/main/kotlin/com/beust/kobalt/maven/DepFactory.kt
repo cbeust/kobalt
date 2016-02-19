@@ -7,6 +7,7 @@ import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.DependencyExecutor
 import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.warn
 import com.google.inject.Key
 import java.util.concurrent.ExecutorService
 import javax.inject.Inject
@@ -40,10 +41,14 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
                 if (tentativeVersion != null && ! MavenId.isRangedVersion(tentativeVersion)) tentativeVersion
                 else {
                     var localVersion: String? = tentativeVersion
-                    if (localFirst) localVersion = localRepo.findLocalVersion(mavenId.groupId, mavenId.artifactId, mavenId.packaging)
+                    if (localFirst) localVersion = localRepo.findLocalVersion(mavenId.groupId, mavenId.artifactId,
+                            mavenId.packaging)
                     if (localFirst && localVersion != null) {
                         localVersion
                     } else {
+                        if (! localFirst) {
+                            warn("The id \"$id\" doesn't contain a version, which will cause a network call")
+                        }
                         repoResult = remoteRepo.findCorrectRepo(id)
                         if (!repoResult.found) {
                             throw KobaltException("Couldn't resolve $id")
