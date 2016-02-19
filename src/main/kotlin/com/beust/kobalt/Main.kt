@@ -73,7 +73,8 @@ private class Main @Inject constructor(
         var pluginClassLoader = javaClass.classLoader
         val dependencies = arrayListOf<IClasspathDependency>()
         args.pluginIds?.let {
-            dependencies.addAll(it.split(",").map { depFactory.create(it) })
+            // We want this call to go to the network if no version was specified, so set localFirst to false
+            dependencies.addAll(it.split(",").map { depFactory.create(it, localFirst = false) })
         }
         args.pluginJarFiles?.let {
             dependencies.addAll(it.split(",").map { FileDependency(it) })
