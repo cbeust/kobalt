@@ -42,19 +42,24 @@ sealed class IFileSpec {
             val includes = Glob(*spec.toTypedArray())
 
             if (File(filePath).isDirectory) {
-                val rootDir = if (File(filePath).isAbsolute) Paths.get(filePath)
+                val rootDir = (if (File(filePath).isAbsolute) Paths.get(filePath)
                     else if (baseDir != null) Paths.get(baseDir, filePath)
-                    else Paths.get(filePath)
-                Files.walkFileTree(rootDir, object : SimpleFileVisitor<Path>() {
-                    override fun visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult {
-                        val rel = if (baseDir != null && !baseDir.isEmpty()) Paths.get(baseDir).relativize(path)
-                            else path
-                        if (isIncluded(includes, excludes, path)) {
-                            result.add(rel.toFile())
+                    else Paths.get(filePath)).run { normalize() }
+                if (rootDir.toFile().exists()) {
+                    Files.walkFileTree(rootDir, object : SimpleFileVisitor<Path>() {
+                        override fun visitFile(p: Path, attrs: BasicFileAttributes): FileVisitResult {
+                            val path = p.normalize()
+                            val rel = rootDir.relativize(path)
+                            if (isIncluded(includes, excludes, path)) {
+                                log(2, "  including file " + rel.toFile() + " from rootDir $rootDir")
+                                result.add(rel.toFile())
+                            }
+                            return FileVisitResult.CONTINUE
                         }
-                        return FileVisitResult.CONTINUE
-                    }
-                })
+                    })
+                } else {
+                    throw AssertionError("$rootDir should exist")
+                }
             } else {
                 if (isIncluded(includes, excludes, Paths.get(filePath))) {
                     result.add(File(filePath))

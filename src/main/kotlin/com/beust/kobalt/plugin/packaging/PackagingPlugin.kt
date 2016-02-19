@@ -50,7 +50,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 val includedSpecs = arrayListOf<IFileSpec>()
                 includedFile.specs.forEach { spec ->
                     val fromPath = includedFile.from
-                    if (File(fromPath).exists()) {
+                    if (File(directory, fromPath).exists()) {
                         spec.toFiles(directory, fromPath).forEach { file ->
                             val fullFile = File(KFiles.joinDir(directory, fromPath, file.path))
                             if (! fullFile.exists()) {
@@ -247,12 +247,14 @@ class PackageConfig(val project: Project) : AttributeHolder {
         jar {
             name = "${project.name}-${project.version}-sources.jar"
             project.sourceDirectories.forEach {
-                include(from(project.directory + "/" + it), to(""), glob("**"))
+                if (File(project.directory, it).exists()) {
+                    include(from(it), to(""), glob("**"))
+                }
             }
         }
         jar {
             name = "${project.name}-${project.version}-javadoc.jar"
-            include(from(project.buildDirectory + "/" + JvmCompilerPlugin.DOCS_DIRECTORY), to(""), glob("**"))
+            include(from(JvmCompilerPlugin.DOCS_DIRECTORY), to(""), glob("**"))
         }
 
         mainJarAttributes.forEach {
