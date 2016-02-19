@@ -11,7 +11,7 @@ class KobaltPluginTemplate : ITemplateContributor {
     val pluginTemplate = object: JarTemplate("templates/kobaltPlugin.jar") {
         override val templateDescription = "Generate a sample Kobalt plug-in project"
 
-        override val templateName = "kobalt-plugin"
+        override val templateName = "kobaltPlugin"
 
         override val pluginName = KobaltPlugin.PLUGIN_NAME
     }
