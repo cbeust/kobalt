@@ -60,7 +60,7 @@ sealed class IFileSpec {
                         }
                     })
                 } else {
-                    throw AssertionError("$rootDir should exist")
+                    throw AssertionError("Directory \"$rootDir\" should exist")
                 }
             } else {
                 if (isIncluded(includes, excludes, Paths.get(filePath))) {
