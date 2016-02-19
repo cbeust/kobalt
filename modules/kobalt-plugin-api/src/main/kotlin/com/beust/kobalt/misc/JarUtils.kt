@@ -78,7 +78,7 @@ public class JarUtils {
                             entry = stream.nextEntry
                         }
                     } else {
-                        val entryFileName = file.to(foundFile.path).path
+                        val entryFileName = file.to(foundFile.path).path.replace("\\", "/")
                         val entry = JarEntry(entryFileName)
                         entry.time = foundFile.lastModified()
                         addEntry(FileInputStream(localFile), entry, outputStream, onError)
