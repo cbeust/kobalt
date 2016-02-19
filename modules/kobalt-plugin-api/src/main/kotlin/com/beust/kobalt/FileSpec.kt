@@ -42,14 +42,16 @@ sealed class IFileSpec {
             val includes = Glob(*spec.toTypedArray())
 
             if (File(filePath).isDirectory) {
-                val rootDir = (if (File(filePath).isAbsolute) Paths.get(filePath)
+                val orgRootDir = (if (File(filePath).isAbsolute) Paths.get(filePath)
                     else if (baseDir != null) Paths.get(baseDir, filePath)
                     else Paths.get(filePath)).run { normalize() }
+                // Paths.get(".").normalize() returns an empty string, which is not a valid file :-(
+                val rootDir = if (orgRootDir.toFile().path.isEmpty()) Paths.get("./") else orgRootDir
                 if (rootDir.toFile().exists()) {
                     Files.walkFileTree(rootDir, object : SimpleFileVisitor<Path>() {
                         override fun visitFile(p: Path, attrs: BasicFileAttributes): FileVisitResult {
                             val path = p.normalize()
-                            val rel = rootDir.relativize(path)
+                            val rel = orgRootDir.relativize(path)
                             if (isIncluded(includes, excludes, path)) {
                                 log(2, "  including file " + rel.toFile() + " from rootDir $rootDir")
                                 result.add(rel.toFile())
