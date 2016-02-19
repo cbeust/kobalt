@@ -13,7 +13,6 @@ object Constants {
             "https://repository.jboss.org/nexus/content/repositories/root_repository/",
             "https://jcenter.bintray.com/",
             "http://repository.jetbrains.com/all/",
-            "https://jitpack.io/",
             "https://oss.sonatype.org/content/repositories/snapshots/"
     )
 
