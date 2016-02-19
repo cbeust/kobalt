@@ -1,13 +1,14 @@
 package com.beust.kobalt
 
-import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import org.testng.Assert
 import org.testng.annotations.Test
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileReader
 import java.io.InputStream
+import java.util.*
 import java.util.jar.JarFile
 import java.util.jar.JarInputStream
 
@@ -17,18 +18,26 @@ class VerifyKobaltZipTest : KobaltTest() {
     }
     @Test
     fun verifySourceJarFile() {
-        assertExistsInJar("kobalt-" + Kobalt.version + "-sources.jar", "com/beust/kobalt/Main.kt")
+        assertExistsInJar("kobalt-$KOBALT_VERSION-sources.jar", "com/beust/kobalt/Main.kt")
     }
+
+    // Can't use Kobalt.version since the tests have their own src/test/resources/kobalt.properties
+    val KOBALT_VERSION: String
+        get() {
+            val p = Properties()
+            p.load(FileReader("src/main/resources/kobalt.properties"))
+            val result = p.getProperty("kobalt.version")
+            return result
+        }
 
     @Test
     fun verifyZipFile() {
-        var success = true
         var foundKobaltw = false
         var foundJar = false
         var foundWrapperJar = false
 
-        val mainJarFilePath = "kobalt-" + Kobalt.version + ".jar"
-        val zipFilePath = KFiles.joinDir("kobaltBuild", "libs", "kobalt-" + Kobalt.version + ".zip")
+        val mainJarFilePath = "kobalt-$KOBALT_VERSION.jar"
+        val zipFilePath = KFiles.joinDir("kobaltBuild", "libs", "kobalt-$KOBALT_VERSION.zip")
         val zipFile = JarFile(zipFilePath)
         val stream = JarInputStream(FileInputStream(zipFilePath))
         var entry = stream.nextEntry
@@ -44,13 +53,8 @@ class VerifyKobaltZipTest : KobaltTest() {
                 foundJar = true
             } else if (entry.name.endsWith("kobalt-wrapper.jar")) {
                 foundWrapperJar = true
-            } else {
-                success = false
             }
             entry = stream.nextEntry
-        }
-        if (! success) {
-            throw KobaltException("Found unexpected file in $zipFilePath")
         }
         if (! foundKobaltw) {
             throw KobaltException("Couldn't find kobaltw in $zipFilePath")
