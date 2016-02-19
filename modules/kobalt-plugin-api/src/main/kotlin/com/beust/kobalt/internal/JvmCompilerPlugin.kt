@@ -174,8 +174,14 @@ open class JvmCompilerPlugin @Inject constructor(
         } else {
             compilerContributors.forEach { contributor ->
                 contributor.compilersFor(project, context).forEach { compiler ->
+                    val contributedSourceDirs =
+                        if (isTest) {
+                            context.testSourceDirectories(project)
+                        } else {
+                            context.sourceDirectories(project)
+                        }
                     val sourceFiles = KFiles.findSourceFiles(project.directory,
-                            context.sourceDirectories(project).map { it.path }, compiler.sourceSuffixes)
+                            contributedSourceDirs.map { it.path }, compiler.sourceSuffixes)
                     if (sourceFiles.size > 0) {
                         // TODO: createCompilerActionInfo recalculates the source files, only compute them
                         // once and pass them
@@ -268,15 +274,21 @@ open class JvmCompilerPlugin @Inject constructor(
             })
 
         // Transform them with the interceptors, if any
-        val allSourceDirectories = if (isTest) {
-            initialSourceDirectories
-        } else {
-            context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories.toList(),
-                    { sd, interceptor -> interceptor.intercept(project, context, sd) })
-        }.filter {
-            File(project.directory, it.path).exists()
-        }
+        val allSourceDirectories =
+            if (isTest) {
+                initialSourceDirectories
+            } else {
+                context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories.toList(),
+                        { sd, interceptor -> interceptor.intercept(project, context, sd) })
+            }.filter {
+                File(project.directory, it.path).exists()
+            }.filter {
+                ! KFiles.isResource(it.path)
+            }.distinct()
 
+        if (allSourceDirectories.any { KFiles.isResource(it.path) }) {
+            println("PROBLEM")
+        }
         // Now that we have all the source directories, find all the source files in them
         val sourceFiles = files.findRecursively(projectDirectory, allSourceDirectories,
                 { file -> sourceSuffixes.any { file.endsWith(it) }})

@@ -48,7 +48,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
             }
 
         }
-        return result.toList()
+        return result.filter { ! KFiles.isResource(it.path) }.toList()
     }
 
     /**
@@ -56,7 +56,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
      */
     fun resourceDirectories(project: Project, sourceSet: SourceSet = SourceSet.MAIN)
             = sourceDirectories(project, "resources", variantFirst = false, sourceSet = sourceSet)
-        .filter { it.path.contains("resources") || it.path.contains("res") }
+        .filter { KFiles.isResource(it.path) }
 
     /**
      * suffix is either "java" (to find source files) or "resources" (to find resources).

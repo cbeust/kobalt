@@ -310,6 +310,8 @@ class KFiles {
             }
             return result
         }
+
+        fun isResource(name: String) = name.contains("res") || name.contains("resources")
     }
 
     fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {

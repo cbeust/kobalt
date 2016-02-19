@@ -9,3 +9,10 @@ interface ITestSourceDirectoryContributor {
     fun testSourceDirectoriesFor(project: Project, context: KobaltContext): List<File>
 }
 
+fun KobaltContext.testSourceDirectories(project: Project) : List<File> {
+    val result = pluginInfo.testSourceDirContributors.flatMap {
+        it.testSourceDirectoriesFor(project, this)
+    }
+    return result
+}
+
