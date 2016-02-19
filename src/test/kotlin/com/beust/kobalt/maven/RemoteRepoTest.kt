@@ -36,6 +36,7 @@ class RemoteRepoTest @Inject constructor(val repoFinder: RepoFinder,
         }
     }
 
+    @Test(groups = arrayOf("broken"), enabled = false)
     fun resolveAarWithoutVersion() {
         val repoResult = repoFinder.findCorrectRepo("com.jakewharton.timber:timber:")
         with(repoResult) {
