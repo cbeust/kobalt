@@ -74,7 +74,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
             } else if (sourceSet == SourceSet.TEST){
                 project.sourceDirectoriesTest.map { File(it) }
             } else {
-                throw KobaltException("Unknown source set: $sourceSet))
+                throw KobaltException("Unknown source set: $sourceSet")
             }
         if (isDefault) {
             result.addAll(sourceDirectories)
