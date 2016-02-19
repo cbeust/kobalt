@@ -30,8 +30,13 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder,
         val repoResult = repoFinder.findCorrectRepo(id)
 
         val indent = -1
-        val mavenId = MavenId.create(id)
-        val originalDep = mdFactory.create(mavenId, executors.dependencyExecutor, true, true)
+
+        val originalId = MavenId.create(id)
+        val mavenId = MavenId.create(originalId.groupId, originalId.artifactId, originalId.packaging,
+                originalId.version)
+
+        val originalDep = mdFactory.create(mavenId, executors.dependencyExecutor,
+                downloadSources = true, downloadJavadocs = true)
         val packaging = if (mavenId.packaging != null) "@" + mavenId.packaging else ""
 
         // We want to display the dependencies of the id we found, not the one we queries

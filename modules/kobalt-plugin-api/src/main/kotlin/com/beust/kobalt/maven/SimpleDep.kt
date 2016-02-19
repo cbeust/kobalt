@@ -9,7 +9,13 @@ open class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.groupId
         }
     }
 
-    val version: String get() = mavenId.version!!
+    val version: String get() =
+        if (mavenId.version == null) {
+            ""
+//            throw AssertionError("Version should have been resolved: ${mavenId.toId}")
+        } else {
+            mavenId.version!!
+        }
 
     private fun toFile(version: Version, suffix: String): String {
         val dir = toDirectory(version.version, false, trailingSlash = false)
