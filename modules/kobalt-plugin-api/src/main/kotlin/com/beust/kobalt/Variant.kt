@@ -2,6 +2,7 @@ package com.beust.kobalt
 
 import com.beust.kobalt.api.*
 import com.beust.kobalt.internal.ActorUtils
+import com.beust.kobalt.internal.SourceSet
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import java.io.File
@@ -36,13 +37,14 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
         return result
     }
 
-    fun sourceDirectories(project: Project, context: KobaltContext) : List<File> {
+    fun sourceDirectories(project: Project, context: KobaltContext, sourceSet: SourceSet) : List<File> {
         val result = arrayListOf<File>()
         val compilerContributors = ActorUtils.selectAffinityActors(project, context,
                 context.pluginInfo.compilerContributors)
         compilerContributors.forEach {
             it.compilersFor(project, context).forEach { compiler ->
-                result.addAll(sourceDirectories(project, compiler.sourceDirectory, variantFirst = true))
+                result.addAll(sourceDirectories(project, compiler.sourceDirectory, variantFirst = true,
+                        sourceSet = sourceSet))
             }
 
         }
@@ -52,7 +54,8 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     /**
      * Might be used by plug-ins.
      */
-    fun resourceDirectories(project: Project) = sourceDirectories(project, "resources", variantFirst = false)
+    fun resourceDirectories(project: Project, sourceSet: SourceSet = SourceSet.MAIN)
+            = sourceDirectories(project, "resources", variantFirst = false, sourceSet = sourceSet)
         .filter { it.path.contains("resources") || it.path.contains("res") }
 
     /**
@@ -62,9 +65,17 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
      * files that have already been seen get skipped, which is how compilation and resources
      * receive the correct priority in the final jar.
      */
-    private fun sourceDirectories(project: Project, suffix: String, variantFirst: Boolean) : List<File> {
+    private fun sourceDirectories(project: Project, suffix: String, variantFirst: Boolean, sourceSet: SourceSet)
+            : List<File> {
         val result = arrayListOf<File>()
-        val sourceDirectories = project.sourceDirectories.map { File(it) }
+        val sourceDirectories =
+            if (sourceSet == SourceSet.MAIN) {
+                project.sourceDirectories.map { File(it) }
+            } else if (sourceSet == SourceSet.TEST){
+                project.sourceDirectoriesTest.map { File(it) }
+            } else {
+                throw KobaltException("Unknown source set: $sourceSet))
+            }
         if (isDefault) {
             result.addAll(sourceDirectories)
         } else {

@@ -49,8 +49,6 @@ open class JvmCompilerPlugin @Inject constructor(
         const val TASK_CLEAN = "clean"
         const val TASK_TEST = "test"
 
-        const val SOURCE_SET_MAIN = "main"
-        const val SOURCE_SET_TEST = "test"
         const val DOCS_DIRECTORY = "docs/javadoc"
     }
 
@@ -100,20 +98,20 @@ open class JvmCompilerPlugin @Inject constructor(
     /**
      * Copy the resources from a source directory to the build one
      */
-    protected fun copyResources(project: Project, sourceSet: String) {
+    protected fun copyResources(project: Project, sourceSet: SourceSet) {
         val sourceDirs: ArrayList<String> = arrayListOf()
         var outputDir: String?
-        if (sourceSet == JvmCompilerPlugin.SOURCE_SET_MAIN) {
+        if (sourceSet == SourceSet.MAIN) {
             sourceDirs.addAll(project.sourceDirectories.filter { it.contains("resources") })
             outputDir = KFiles.CLASSES_DIR
-        } else if (sourceSet == JvmCompilerPlugin.SOURCE_SET_TEST) {
+        } else if (sourceSet == SourceSet.TEST) {
             sourceDirs.addAll(project.sourceDirectoriesTest.filter { it.contains("resources") })
             outputDir = KFiles.TEST_CLASSES_DIR
         } else {
-            throw IllegalArgumentException("Custom source sets not supported yet: $sourceSet")
+            throw IllegalArgumentException("Unknown source set: $sourceSet")
         }
 
-        val variantSourceDirs = context.variant.resourceDirectories(project)
+        val variantSourceDirs = context.variant.resourceDirectories(project, sourceSet)
         if (variantSourceDirs.size > 0) {
             lp(project, "Copying $sourceSet resources")
             val absOutputDir = File(KFiles.joinDir(project.directory, project.buildDirectory, outputDir))
@@ -158,7 +156,8 @@ open class JvmCompilerPlugin @Inject constructor(
 
     private fun doTaskCompile(project: Project, isTest: Boolean): TaskResult {
         // Set up the source files now that we have the variant
-        sourceDirectories.addAll(context.variant.sourceDirectories(project, context))
+        sourceDirectories.addAll(context.variant.sourceDirectories(project, context,
+                if (isTest) SourceSet.TEST else SourceSet.MAIN))
 
         val sourceDirectory = context.variant.maybeGenerateBuildConfig(project, context)
         if (sourceDirectory != null) {
@@ -243,7 +242,7 @@ open class JvmCompilerPlugin @Inject constructor(
      */
     protected fun createCompilerActionInfo(project: Project, context: KobaltContext, isTest: Boolean,
             sourceDirectories: List<File>, sourceSuffixes: List<String>): CompilerActionInfo {
-        copyResources(project, JvmCompilerPlugin.SOURCE_SET_MAIN)
+        copyResources(project, if (isTest) SourceSet.TEST else SourceSet.MAIN)
 
         val fullClasspath = if (isTest) dependencyManager.testDependencies(project, context)
             else dependencyManager.dependencies(project, context)

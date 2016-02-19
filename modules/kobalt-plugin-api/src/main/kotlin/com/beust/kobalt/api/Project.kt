@@ -56,7 +56,7 @@ open class Project(
 
     companion object {
         val DEFAULT_SOURCE_DIRECTORIES = setOf("src/main/java", "src/main/kotlin", "src/main/resources")
-        val DEFAULT_SOURCE_DIRECTORIES_TEST = setOf("src/test/java", "src/test/kotlin")
+        val DEFAULT_SOURCE_DIRECTORIES_TEST = setOf("src/test/java", "src/test/kotlin", "src/test/resources")
     }
 
     //
