@@ -161,7 +161,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
     }
 
     test {
-        args("-log", "1", "src/test/resources/testng.xml")
+        args("-log", "2", "src/test/resources/testng.xml")
     }
 }
 
