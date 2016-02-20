@@ -18,6 +18,9 @@ sealed class IFileSpec {
         override fun toString() = spec
     }
 
+    /**
+     * A glob matcher, see http://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher%28java.lang.String%29
+     */
     class GlobSpec(val spec: List<String>) : IFileSpec() {
 
         constructor(spec: String) : this(arrayListOf(spec))
