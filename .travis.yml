@@ -1,6 +1,7 @@
 cache:
     directories:
     - $HOME/.m2
+    - $HOME/.kobalt
 
 language: java
 
@@ -9,4 +10,4 @@ jdk:
 
 install: true
 
-script: ./kobaltw test --log 1
+script: ./kobaltw test --log 2
