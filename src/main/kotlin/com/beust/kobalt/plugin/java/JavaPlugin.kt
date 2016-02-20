@@ -13,9 +13,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler)
-        : BaseJvmPlugin<JavaConfig>(), IDocContributor, ICompilerContributor, ITestSourceDirectoryContributor,
-            IBuildConfigContributor {
+class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override val configActor: ConfigActor<JavaConfig>)
+        : BaseJvmPlugin<JavaConfig>(configActor), IDocContributor, ICompilerContributor,
+            ITestSourceDirectoryContributor, IBuildConfigContributor {
     companion object {
         const val PLUGIN_NAME = "Java"
     }

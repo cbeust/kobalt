@@ -24,8 +24,8 @@ import javax.inject.Singleton
 class PackagingPlugin @Inject constructor(val dependencyManager : DependencyManager,
         val executors: KobaltExecutors, val jarGenerator: JarGenerator, val warGenerator: WarGenerator,
         val zipGenerator: ZipGenerator, val taskContributor: TaskContributor,
-        val pomFactory: PomGenerator.IFactory)
-            : ConfigPlugin<InstallConfig>(), ITaskContributor {
+        val pomFactory: PomGenerator.IFactory, val configActor: ConfigActor<InstallConfig>)
+            : BasePlugin(), IConfigActor<InstallConfig> by configActor, ITaskContributor {
 
     companion object {
         const val PLUGIN_NAME = "Packaging"

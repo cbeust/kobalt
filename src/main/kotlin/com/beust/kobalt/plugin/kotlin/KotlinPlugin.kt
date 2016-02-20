@@ -17,8 +17,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class KotlinPlugin @Inject constructor(val executors: KobaltExecutors)
-    : BaseJvmPlugin<KotlinConfig>(), IDocContributor, IClasspathContributor, ICompilerContributor,
+class KotlinPlugin @Inject constructor(val executors: KobaltExecutors,
+        override val configActor: ConfigActor<KotlinConfig>)
+    : BaseJvmPlugin<KotlinConfig>(configActor), IDocContributor, IClasspathContributor, ICompilerContributor,
         IBuildConfigContributor {
 
     companion object {

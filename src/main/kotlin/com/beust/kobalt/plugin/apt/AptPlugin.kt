@@ -18,8 +18,8 @@ import javax.inject.Singleton
  * (outputDir, etc...).
  */
 @Singleton
-public class AptPlugin @Inject constructor(val depFactory: DepFactory)
-: ConfigPlugin<AptConfig>(), ICompilerFlagContributor, ISourceDirectoryContributor {
+class AptPlugin @Inject constructor(val depFactory: DepFactory, val configActor: ConfigActor<AptConfig>)
+    : BasePlugin(), ICompilerFlagContributor, ISourceDirectoryContributor, IConfigActor<AptConfig> by configActor {
 
     // ISourceDirectoryContributor
 

@@ -34,9 +34,10 @@ fun Project.application(init: ApplicationConfig.() -> Unit) {
 }
 
 @Singleton
-class ApplicationPlugin @Inject constructor(val executors: KobaltExecutors,
+class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<ApplicationConfig>,
+                                            val executors: KobaltExecutors,
         val dependencyManager: DependencyManager, val taskContributor : TaskContributor)
-            : ConfigPlugin<ApplicationConfig>(), IRunnerContributor, ITaskContributor {
+            : BasePlugin(), IRunnerContributor, ITaskContributor, IConfigActor<ApplicationConfig> by configActor {
 
     companion object {
         const val PLUGIN_NAME = "Application"
