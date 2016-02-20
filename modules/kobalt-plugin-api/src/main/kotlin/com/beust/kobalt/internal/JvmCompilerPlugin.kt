@@ -78,11 +78,11 @@ open class JvmCompilerPlugin @Inject constructor(
             project.testConfigs.add(TestConfig(project))
         }
         project.testConfigs.forEach { config ->
-            val taskName = if (config.configName.isEmpty()) "test" else "test" + config.configName
+            val taskName = if (config.name.isEmpty()) "test" else "test" + config.name
 
             taskManager.addTask(this, project, taskName,
                     runAfter = listOf(JvmCompilerPlugin.TASK_COMPILE, JvmCompilerPlugin.TASK_COMPILE_TEST),
-                    task = { taskTest(project, config.configName)} )
+                    task = { taskTest(project, config.name)} )
         }
 
     }

@@ -9,7 +9,7 @@ class TestConfig(val project: Project) {
     val testIncludes = arrayListOf("**/*Test.class")
     val testExcludes = arrayListOf<String>()
 
-    var configName: String = ""
+    var name: String = ""
 
     fun args(vararg arg: String) {
         testArgs.addAll(arg)
@@ -38,11 +38,11 @@ class TestConfig(val project: Project) {
 fun Project.test(init: TestConfig.() -> Unit) = let { project ->
     with(testConfigs) {
         val tf = TestConfig(project).apply { init() }
-        if (! map { it.configName }.contains(tf.configName)) {
+        if (! map { it.name }.contains(tf.name)) {
             add(tf)
         } else {
-            throw KobaltException("Test configuration \"${tf.configName}\" already exists, give it a different "
-                    + "name with test { configName = ... }")
+            throw KobaltException("Test configuration \"${tf.name}\" already exists, give it a different "
+                    + "name with test { name = ... }")
         }
     }
 }

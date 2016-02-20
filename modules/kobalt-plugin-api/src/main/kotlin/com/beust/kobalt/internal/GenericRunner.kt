@@ -51,7 +51,7 @@ abstract class GenericTestRunner : ITestRunnerContributor {
         val java = jvm.javaExecutable
         var result = false
 
-        val testConfig = project.testConfigs.firstOrNull { it.configName == configName }
+        val testConfig = project.testConfigs.firstOrNull { it.name == configName }
 
         if (testConfig != null) {
             val args = args(project, classpath, testConfig)
