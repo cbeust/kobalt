@@ -56,7 +56,7 @@ sealed class IFileSpec {
                             val path = p.normalize()
                             val rel = orgRootDir.relativize(path)
                             if (isIncluded(includes, excludes, path)) {
-                                log(2, "  including file " + rel.toFile() + " from rootDir $rootDir")
+                                log(3, "  including file " + rel.toFile() + " from rootDir $rootDir")
                                 result.add(rel.toFile())
                             }
                             return FileVisitResult.CONTINUE
