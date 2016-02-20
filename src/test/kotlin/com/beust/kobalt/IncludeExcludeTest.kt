@@ -48,15 +48,15 @@ class IncludeExcludeTest : KobaltTest() {
 
     @DataProvider
     fun dp() : Array<Array<out Any?>> = arrayOf(
-            arrayOf(directory, listOf("**A**class", "**B**class"), listOf<String>(), listOf(A1, B1, B2)),
-            arrayOf(directory, listOf("**A**class", "**B**class"), listOf("**B*class"), listOf(A1)),
-            arrayOf(directory, listOf("**class"), listOf("**B*class"), listOf(A1, C1, C2, C3)),
+            arrayOf(directory, listOf("**/A*.class", "**/B*.class"), listOf<String>(), listOf(A1, B1, B2)),
+            arrayOf(directory, listOf("**/A*class", "**/B*class"), listOf("**/B*class"), listOf(A1)),
+            arrayOf(directory, listOf("**/*class"), listOf("**/B*class"), listOf(A1, C1, C2, C3)),
             arrayOf(topDirectory, listOf("**/*class"), listOf<String>(), listOf(A1, B1, B2, C1, C2, C3)),
             arrayOf(topDirectory, listOf("*class"), listOf<String>(), listOf<String>()),
             arrayOf(topDirectory, listOf("**/B*class"), listOf<String>(), listOf(B1, B2)),
-            arrayOf(topDirectory, listOf("**A*class", "**B*class"), listOf("**C*class"),
+            arrayOf(topDirectory, listOf("**/A*class", "**/B*class"), listOf("**/C*class"),
                     listOf(A1, B1, B2)),
-            arrayOf(topDirectory, listOf("**A*class", "**B*class"), listOf("**B*class"),
+            arrayOf(topDirectory, listOf("**/A*class", "**/B*class"), listOf("**/B*class"),
                 listOf(A1))
     )
 
@@ -67,6 +67,7 @@ class IncludeExcludeTest : KobaltTest() {
         val files = g.toFiles(null, root.path, excludedSpec.map { Glob(it) })
 //        if (files.map { it.name } != expectedFiles) {
 //            println("FAILURE")
+//            val files2 = g.toFiles(null, root.path, excludedSpec.map { Glob(it) })
 //        }
         Assert.assertEquals(files.map { it.name }, expectedFiles)
     }
@@ -77,6 +78,5 @@ class IncludeExcludeTest : KobaltTest() {
         val files = spec.toFiles(homeDir("kotlin/kobalt"), "src/main/kotlin")
         val inc = IncludedFile(From("src/main/kotlin"), To(""), listOf(IFileSpec.GlobSpec("**")))
 //        val files = inc.allFromFiles(homeDir("kotlin/kobalt"))
-        println("FILES: " + files)
     }
 }
