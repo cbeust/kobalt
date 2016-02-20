@@ -28,12 +28,12 @@ sealed class IFileSpec {
         private fun isIncluded(includeMatchers: Glob, excludes: List<Glob>, rel: Path) : Boolean {
             excludes.forEach {
                 if (it.matches(rel)) {
-                    log(2, "Excluding ${rel.toFile()}")
+                    log(3, "Excluding ${rel.toFile()}")
                     return false
                 }
             }
             if (includeMatchers.matches(rel)) {
-                log(2, "Including ${rel.toFile().path}")
+                log(3, "Including ${rel.toFile().path}")
                 return true
             }
             log(2, "Excluding ${rel.toFile()} (not matching any include pattern")
