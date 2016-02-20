@@ -115,7 +115,7 @@ open class JvmCompilerPlugin @Inject constructor(
      * Copy the resources from a source directory to the build one
      */
     protected fun copyResources(project: Project, sourceSet: SourceSet) {
-        var outputDir = sourceSet.correctOutputDir(project)
+        var outputDir = sourceSet.outputDir
 
         val variantSourceDirs = context.variant.resourceDirectories(project, sourceSet)
         if (variantSourceDirs.size > 0) {
