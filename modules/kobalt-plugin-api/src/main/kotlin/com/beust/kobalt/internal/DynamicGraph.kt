@@ -2,7 +2,6 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.misc.*
 import com.google.common.collect.HashMultimap
 import java.lang.reflect.InvocationTargetException
@@ -97,6 +96,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
                         "a cycle in the dependencies.\n  Nodes left: " + graph.dump(graph.nodesReady))
             } else {
                 error("Error during the build")
+                lastResult = TaskResult(false)
             }
         }
         return if (lastResult.success) 0 else 1
