@@ -71,12 +71,4 @@ class IncludeExcludeTest : KobaltTest() {
 //        }
         Assert.assertEquals(files.map { it.name }, expectedFiles)
     }
-
-    @Test
-    private fun f() {
-        val spec = IFileSpec.GlobSpec("src/**")
-        val files = spec.toFiles(homeDir("kotlin/kobalt"), "src/main/kotlin")
-        val inc = IncludedFile(From("src/main/kotlin"), To(""), listOf(IFileSpec.GlobSpec("**")))
-//        val files = inc.allFromFiles(homeDir("kotlin/kobalt"))
-    }
 }
