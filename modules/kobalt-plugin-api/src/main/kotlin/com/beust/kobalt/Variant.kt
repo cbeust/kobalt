@@ -68,9 +68,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     private fun sourceDirectories(project: Project, suffix: String, variantFirst: Boolean, sourceSet: SourceSet)
             : List<File> {
         val result = arrayListOf<File>()
-        val sourceDirectories = (if (sourceSet == SourceSet.MAIN) project.sourceDirectories
-            else if (sourceSet == SourceSet.TEST) project.sourceDirectoriesTest
-            else throw KobaltException("Unknown source set: $sourceSet"))
+        val sourceDirectories = sourceSet.correctSourceSet(project)
                 .filter { File(project.directory, it).exists() }
                 .map { File(it) }
 

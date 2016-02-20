@@ -1,10 +1,13 @@
 package com.beust.kobalt.api
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.JvmCompilerPlugin
+import com.beust.kobalt.internal.SourceSet
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.project
 import java.io.File
 import java.util.*
 
