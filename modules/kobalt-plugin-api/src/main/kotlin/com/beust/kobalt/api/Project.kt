@@ -40,7 +40,7 @@ open class Project(
      */
     val projectExtra = ProjectExtra(this)
 
-    val testConfigs = arrayListOf(TestConfig(this))
+    val testConfigs = arrayListOf<TestConfig>()
 
     // If one is specified by default, we only generate a BuildConfig, find a way to fix that
     override var buildConfig : BuildConfig? = null // BuildConfig()

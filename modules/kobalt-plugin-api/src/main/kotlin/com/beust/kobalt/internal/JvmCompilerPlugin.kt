@@ -3,6 +3,7 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.IncrementalTaskInfo
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
+import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.IncrementalTask
@@ -68,17 +69,32 @@ open class JvmCompilerPlugin @Inject constructor(
         project.projectProperties.put(DEPENDENT_PROJECTS, projects())
         taskContributor.addIncrementalVariantTasks(this, project, context, "compile",
                 runTask = { taskCompile(project) })
+
+        //
+        // Add each test config as a test task. If none was specified, create a default one so that
+        // users don't have to specify a test{}
+        //
+        if (project.testConfigs.isEmpty()) {
+            project.testConfigs.add(TestConfig(project))
+        }
+        project.testConfigs.forEach { config ->
+            val taskName = if (config.configName.isEmpty()) "test" else "test" + config.configName
+
+            taskManager.addTask(this, project, taskName,
+                    runAfter = listOf(JvmCompilerPlugin.TASK_COMPILE, JvmCompilerPlugin.TASK_COMPILE_TEST),
+                    task = { taskTest(project, config.configName)} )
+        }
+
     }
 
-    @Task(name = TASK_TEST, description = "Run the tests",
-            runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE, JvmCompilerPlugin.TASK_COMPILE_TEST))
-    fun taskTest(project: Project): TaskResult {
-        lp(project, "Running tests")
+    private fun taskTest(project: Project, configName: String): TaskResult {
+        lp(project, "Running tests: $configName")
 
         val runContributor = ActorUtils.selectAffinityActor(project, context,
                 context.pluginInfo.testRunnerContributors)
         if (runContributor != null && runContributor.affinity(project, context) > 0) {
-            return runContributor.run(project, context, dependencyManager.testDependencies(project, context))
+            return runContributor.run(project, context, configName, dependencyManager.testDependencies(project,
+                    context))
         } else {
             log(1, "Couldn't find a test runner for project ${project.name}, did you specify a dependenciesTest{}?")
             return TaskResult()

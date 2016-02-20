@@ -7,8 +7,9 @@ import com.beust.kobalt.TaskResult
  */
 interface ITestRunnerContributor : IContributor, IProjectAffinity {
     /**
-     * Run the project.
+     * Run the tests. If [[configName]] is not empty, a specific test configuration is requested.
      */
-    fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>) : TaskResult
+    fun run(project: Project, context: KobaltContext, configName: String,
+            classpath: List<IClasspathDependency>) : TaskResult
 }
 

@@ -16,8 +16,9 @@ abstract class GenericTestRunner : ITestRunnerContributor {
     abstract val mainClass: String
     abstract fun args(project: Project, classpath: List<IClasspathDependency>, testConfig: TestConfig) : List<String>
 
-    override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>)
-            = TaskResult(runTests(project, classpath))
+    override fun run(project: Project, context: KobaltContext, configName: String,
+            classpath: List<IClasspathDependency>)
+        = TaskResult(runTests(project, classpath, configName))
 
     override fun affinity(project: Project, context: KobaltContext) =
             if (project.testDependencies.any { it.id.contains(dependencyName)}) IAffinity.DEFAULT_POSITIVE_AFFINITY
@@ -45,12 +46,14 @@ abstract class GenericTestRunner : ITestRunnerContributor {
     /**
      * @return true if all the tests passed
      */
-    fun runTests(project: Project, classpath: List<IClasspathDependency>) : Boolean {
+    fun runTests(project: Project, classpath: List<IClasspathDependency>, configName: String) : Boolean {
         val jvm = JavaInfo.create(File(SystemProperties.javaBase))
         val java = jvm.javaExecutable
         var result = false
 
-        project.testConfigs.forEach { testConfig ->
+        val testConfig = project.testConfigs.firstOrNull { it.configName == configName }
+
+        if (testConfig != null) {
             val args = args(project, classpath, testConfig)
             if (args.size > 0) {
                 val allArgs = arrayListOf<String>().apply {
@@ -79,6 +82,8 @@ abstract class GenericTestRunner : ITestRunnerContributor {
                 log(2, "Couldn't find any test classes")
                 result = true
             }
+        } else {
+            throw KobaltException("Couldn't find a test configuration named \"$configName\"")
         }
         return result
     }
