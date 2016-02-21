@@ -44,7 +44,8 @@ public class UpdateKobalt @Inject constructor(val github: GithubApi, val wrapper
             val distFile = File(KFiles.joinDir(KFiles.distributionsDir, latestVersionString))
             if (latestVersion > current) {
                 if (distFile.exists()) {
-                    log(1, "**** Version $latestVersionString is installed")
+                    log(1, "**** Version $latestVersionString is installed, you can switch to it with " +
+                            "./kobaltw --update")
                 } else {
                     listOf("", "New Kobalt version available: $latestVersionString",
                             "To update, run ./kobaltw --update", "").forEach {
