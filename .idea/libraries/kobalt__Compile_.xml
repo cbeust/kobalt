@@ -1,0 +1,23 @@
+<component name="libraryTable">
+  <library name="kobalt (Compile)">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/codehaus/plexus/plexus-utils/3.0.22/plexus-utils-3.0.22.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/aopalliance/aopalliance/1.0/aopalliance-1.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/google/inject/extensions/guice-assistedinject/4.0/guice-assistedinject-4.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/beust/jcommander/1.48/jcommander-1.48.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/retrofit/retrofit/1.9.0/retrofit-1.9.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/okio/okio/1.6.0/okio-1.6.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/javax/inject/javax.inject/1/javax.inject-1.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/apache/maven/maven-model/3.3.3/maven-model-3.3.3.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/google/code/findbugs/jsr305/3.0.1/jsr305-3.0.1.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/github/spullara/mustache/java/compiler/0.9.1/compiler-0.9.1.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.0.0-rc-1036/kotlin-compiler-embeddable-1.0.0-rc-1036.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/okhttp/okhttp/2.5.0/okhttp-2.5.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/google/code/gson/gson/2.4/gson-2.4.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/google/guava/guava/19.0-rc2/guava-19.0-rc2.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/google/inject/guice/4.0/guice-4.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
