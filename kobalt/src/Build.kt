@@ -65,7 +65,7 @@ val kobaltPluginApi = project {
     }
 
     dependencies {
-        compile("org.jetbrains.kotlinx:kotlinx.dom:0.0.8",
+        compile("org.jetbrains.kotlinx:kotlinx.dom:0.0.9",
 
                 "com.squareup.okhttp:okhttp:2.5.0",
                 "com.squareup.okio:okio:1.6.0",

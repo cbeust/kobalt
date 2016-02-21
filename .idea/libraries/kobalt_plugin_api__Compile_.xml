@@ -3,8 +3,8 @@
     <CLASSES>
       <root url="jar://$USER_HOME$/.kobalt/repository/org/codehaus/plexus/plexus-utils/3.0.22/plexus-utils-3.0.22.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/aopalliance/aopalliance/1.0/aopalliance-1.0.jar!/" />
-      <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlinx/kotlinx.dom/0.0.8/kotlinx.dom-0.0.8.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/com/google/inject/extensions/guice-assistedinject/4.0/guice-assistedinject-4.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlinx/kotlinx.dom/0.0.9/kotlinx.dom-0.0.9.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/com/beust/jcommander/1.48/jcommander-1.48.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/retrofit/retrofit/1.9.0/retrofit-1.9.0.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/okio/okio/1.6.0/okio-1.6.0.jar!/" />

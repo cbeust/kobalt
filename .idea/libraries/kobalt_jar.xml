@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="kobalt.jar">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.kobalt/wrapper/dist/0.625/kobalt/wrapper/kobalt-0.625.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/wrapper/dist/0.633/kobalt/wrapper/kobalt-0.633.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
