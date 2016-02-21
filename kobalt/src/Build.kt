@@ -129,7 +129,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
     }
 
     dependenciesTest {
-        compile("org.testng:testng:6.9.11-SNAPSHOT")
+        compile("org.testng:testng:6.9.10")
     }
 
     assemble {
