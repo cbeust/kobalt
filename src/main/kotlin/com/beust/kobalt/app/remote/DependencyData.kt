@@ -11,7 +11,6 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import java.io.File
 import java.nio.file.Paths
@@ -54,7 +53,6 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
                     compileDependencies, testDependencies,
                     project.sourceDirectories, project.sourceDirectoriesTest))
         }
-        log(1, "Returning BuildScriptInfo")
         return GetDependenciesData(projectDatas)
     }
 
