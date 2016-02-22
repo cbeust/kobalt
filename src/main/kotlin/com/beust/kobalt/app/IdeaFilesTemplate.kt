@@ -24,7 +24,34 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
         val data = dependencyData.dependenciesDataFor(homeDir("kotlin/kobalt/kobalt/src/Build.kt"), args)
         val outputDir = KFiles.makeDir(homeDir("t/idea"))
         generateLibraries(data, outputDir)
+        generateModulesXml(data, outputDir)
         println("Generating ideaFiles")
+    }
+
+    private fun generateModulesXml(data: DependencyData.GetDependenciesData, outputDir: File) {
+        val modulesXmlFile = File(outputDir, "modules.xml")
+        with(arrayListOf<String>()) {
+            add("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+            add("<project version=\"4\">")
+            add("  <component name=\"ProjectModuleManager\">")
+            add("    <modules>")
+
+            fun moduleLine(iml: String)
+                = "      <module fileurl=\"file://\$PROJECT_DIR$/$iml\"" +
+                    " filepath=\"\$PROJECT_DIR$/$iml\" />"
+
+            add(moduleLine("kobalt/Build.kt.iml"))
+            data.projects.forEach {
+                val iml = KFiles.joinDir(it.directory, it.name + ".iml")
+                add(moduleLine(iml))
+            }
+
+            add("    </modules>")
+            add("  </component>")
+            add("</project>")
+            modulesXmlFile.writeText(joinToString("\n"))
+            log(1, "Created $modulesXmlFile")
+        }
     }
 
     private fun generateLibraries(data: DependencyData.GetDependenciesData, outputDir: File) {
@@ -41,7 +68,6 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
     private fun generateLibrary(name: String, compileDependencies: List<DependencyData.DependencyData>,
             suffix: String, outputDir: File) {
         val libraryName = name + suffix
-        log(1, "Generating libraries for $name$suffix")
         val librariesOutputDir = KFiles.makeDir(outputDir.path, "libraries")
         with(arrayListOf<String>()) {
             add("<component name=\"libraryTable\">")
@@ -55,6 +81,7 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
                 .replace(".", "_")
             val file = File(librariesOutputDir, fileName + ".xml")
             file.writeText(joinToString("\n"))
+            log(1, "Created $file")
         }
     }
 
