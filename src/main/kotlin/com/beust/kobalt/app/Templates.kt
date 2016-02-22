@@ -10,9 +10,7 @@ import com.google.common.collect.ArrayListMultimap
 import com.google.inject.Inject
 
 class Templates @Inject constructor() : ITemplateContributor {
-    override val templates = listOf(JavaBuildGenerator(), KotlinBuildGenerator()
-            //, IdeaFilesTemplate()
-            )
+    override val templates = listOf(JavaBuildGenerator(), KotlinBuildGenerator(), IdeaFilesTemplate())
 
     fun list(pluginInfo: PluginInfo) {
         val map = ArrayListMultimap.create<String, ITemplate>()

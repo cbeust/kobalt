@@ -19,21 +19,83 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
     override val templateDescription = "Generate files required by IDEA to build the project"
     override val pluginName = KobaltPlugin.PLUGIN_NAME
 
+    override val instructions = "IDEA files generated"
+
     override fun generateTemplate(args: Args, classLoader: ClassLoader) {
         val dependencyData = Kobalt.INJECTOR.getInstance(DependencyData::class.java)
         val data = dependencyData.dependenciesDataFor(homeDir("kotlin/kobalt/kobalt/src/Build.kt"), args)
         val outputDir = KFiles.makeDir(homeDir("t/idea"))
         generateLibraries(data, outputDir)
         generateModulesXml(data, outputDir)
-        println("Generating ideaFiles")
+        generateImlFiles(data, outputDir)
     }
+
+    private fun generateImlFiles(data: DependencyData.GetDependenciesData, outputDir: File) {
+        data.projects.forEach { project ->
+            val dir = KFiles.makeDir(outputDir.absolutePath, File(imlName(project)).parent)
+            val file = File(KFiles.joinDir(outputDir.path, imlName(project)))
+            with(arrayListOf<String>()) {
+                add("""<?xml version="1.0" encoding="UTF-8"?>""")
+                add("""<module type="JAVA_MODULE" version="4">""")
+                add("""  <component name="NewModuleRootManager" inherit-compiler-output="true">""")
+
+                add("""<exclude-output />""")
+
+                add("  <content url=\"file://\$MODULE_DIR$\">")
+
+                //
+                // Source directories
+                //
+                fun sourceDir(dir: String, isTest: Boolean)
+                    = "    <sourceFolder url=\"file://\$MODULE_DIR$/$dir\" isTestSource=\"$isTest\" />"
+
+                project.sourceDirs.forEach { sourceDir ->
+                    add(sourceDir(sourceDir, false))
+                }
+                project.testDirs.forEach { sourceDir ->
+                    add(sourceDir(sourceDir, true))
+                }
+
+                add("""  </content>""")
+
+                //
+                // Libraries
+                //
+                add("""   <orderEntry type="inheritedJdk" />""")
+
+                (project.name + compileSuffix()).let {
+                    add("  <orderEntry type=\"library\" name=\"$it\" level=\"project\" />")
+                }
+                (project.name + testSuffix()).let {
+                    add("  <orderEntry type=\"library\" scope=\"TEST\" name=\"$it\" level=\"project\" />")
+                }
+
+                //
+                // Dependent projects
+                //
+                project.dependentProjects.forEach { dp ->
+                    add("""  <orderEntry type="module" module-name="$dp" />""")
+                }
+
+                add("  </component>")
+                add("</module>")
+
+                file.writeText(joinToString("\n"))
+                log(2, "Created $file")
+
+            }
+        }
+    }
+
+    private fun imlName(project: DependencyData.ProjectData) =
+            KFiles.joinDir(project.directory, project.name + ".iml")
 
     private fun generateModulesXml(data: DependencyData.GetDependenciesData, outputDir: File) {
         val modulesXmlFile = File(outputDir, "modules.xml")
         with(arrayListOf<String>()) {
-            add("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-            add("<project version=\"4\">")
-            add("  <component name=\"ProjectModuleManager\">")
+            add("""<?xml version="1.0" encoding="UTF-8"?>""")
+            add("""<project version="4">""")
+            add("""  <component name="ProjectModuleManager">""")
             add("    <modules>")
 
             fun moduleLine(iml: String)
@@ -42,22 +104,24 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
 
             add(moduleLine("kobalt/Build.kt.iml"))
             data.projects.forEach {
-                val iml = KFiles.joinDir(it.directory, it.name + ".iml")
-                add(moduleLine(iml))
+                add(moduleLine(imlName(it)))
             }
 
             add("    </modules>")
             add("  </component>")
             add("</project>")
             modulesXmlFile.writeText(joinToString("\n"))
-            log(1, "Created $modulesXmlFile")
+            log(2, "Created $modulesXmlFile")
         }
     }
 
+    private fun compileSuffix() = " (Compile)"
+    private fun testSuffix() = " (Test)"
+
     private fun generateLibraries(data: DependencyData.GetDependenciesData, outputDir: File) {
         data.projects.forEach {
-            generateLibrary(it.name, it.compileDependencies, " (Compile)", outputDir)
-            generateLibrary(it.name, it.testDependencies, " (Test)", outputDir)
+            generateLibrary(it.name, it.compileDependencies, compileSuffix(), outputDir)
+            generateLibrary(it.name, it.testDependencies, testSuffix(), outputDir)
         }
         val kobaltDd = DependencyData.DependencyData("kobalt", "compile",
                 KFiles.joinDir(KFiles.distributionsDir, Kobalt.version, "kobalt", "wrapper",
@@ -70,8 +134,8 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
         val libraryName = name + suffix
         val librariesOutputDir = KFiles.makeDir(outputDir.path, "libraries")
         with(arrayListOf<String>()) {
-            add("<component name=\"libraryTable\">")
-            add("  <library name=\"$libraryName\">")
+            add("""<component name="libraryTable">""")
+            add("""  <library name="$libraryName">""")
             addAll(generateList(compileDependencies, "CLASSES"))
             addAll(generateList(emptyList(), "JAVADOC"))
             addAll(generateList(emptyList(), "SOURCES"))
@@ -81,7 +145,7 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
                 .replace(".", "_")
             val file = File(librariesOutputDir, fileName + ".xml")
             file.writeText(joinToString("\n"))
-            log(1, "Created $file")
+            log(2, "Created $file")
         }
     }
 
