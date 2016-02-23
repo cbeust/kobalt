@@ -7,6 +7,8 @@ import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.maven.Md5
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -258,6 +260,14 @@ class KFiles {
                     // Windows is anal about this
                     log(1, "Couldn't copy $from to $to: ${ex.message}")
                 }
+            }
+        }
+
+        fun copy(from: InputStream, to: OutputStream) {
+            var read = from.read()
+            while (from.available() > 0 && read != -1) {
+                to.write(read)
+                read = from.read()
             }
         }
 

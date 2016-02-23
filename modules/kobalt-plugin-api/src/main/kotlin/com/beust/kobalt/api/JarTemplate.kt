@@ -1,6 +1,7 @@
 package com.beust.kobalt.api
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import java.io.File
 import java.io.FileOutputStream
@@ -23,11 +24,7 @@ abstract class JarTemplate(val jarName: String) : ITemplate {
 
                 log(2, "Extracting: $entry to ${f.absolutePath}")
                 FileOutputStream(f).use { fos ->
-                    var read = ins.read()
-                    while (ins.available() > 0 && read != -1) {
-                        fos.write(read)
-                        read = ins.read()
-                    }
+                    KFiles.copy(ins, fos)
                 }
                 entry = ins.nextEntry
             }
