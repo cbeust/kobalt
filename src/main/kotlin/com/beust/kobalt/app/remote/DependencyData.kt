@@ -45,8 +45,7 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
                     as List<ProjectDescription>)
             val dependentProjects = pd.filter { it.project.name == project.name }.flatMap {
                 it.dependsOn.map {
-                    it
-                            .name
+                    it.name
                 }
             }
             projectDatas.add(ProjectData(project.name, project.directory, dependentProjects,
