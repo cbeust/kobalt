@@ -7,6 +7,10 @@ import com.beust.kobalt.Args
  * a new project).
  */
 interface ITemplateContributor {
+    companion object {
+        val DIRECTORY_NAME = "templates"
+    }
+
     val templates: List<ITemplate>
 }
 

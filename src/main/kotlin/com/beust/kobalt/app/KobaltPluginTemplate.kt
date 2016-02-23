@@ -8,10 +8,14 @@ import com.beust.kobalt.plugin.KobaltPlugin
  * Template that generates a Kobalt plug-in project.
  */
 class KobaltPluginTemplate : ITemplateContributor {
-    val pluginTemplate = object: JarTemplate("templates/kobaltPlugin/kobaltPlugin.jar") {
+    companion object {
+        val NAME = "kobaltPlugin"
+    }
+
+    val pluginTemplate = object: JarTemplate(ITemplateContributor.DIRECTORY_NAME + "/" + NAME) {
         override val templateDescription = "Generate a sample Kobalt plug-in project"
 
-        override val templateName = "kobaltPlugin"
+        override val templateName = NAME
 
         override val pluginName = KobaltPlugin.PLUGIN_NAME
     }
