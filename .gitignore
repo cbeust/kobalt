@@ -2,6 +2,8 @@
 annotations
 .idea/*
 !.idea/modules.xml
+!.idea/libraries
+!.idea/misc.xml
 buildScript
 kobaltBuild
 local.properties
