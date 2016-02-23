@@ -215,7 +215,7 @@ class KFiles {
 
         fun findDotDir(startDir: File) : File {
             var result = startDir
-            while (result != null && ! File(result, KOBALT_DOT_DIR).exists()) {
+            while (result != null && result.parentFile != null && ! File(result, KOBALT_DOT_DIR).exists()) {
                 result = result.parentFile
             }
             if (result == null) {
