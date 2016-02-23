@@ -1,10 +1,10 @@
 package com.beust.kobalt.app
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.Constants
 import com.beust.kobalt.api.ITemplate
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.app.remote.DependencyData
-import com.beust.kobalt.homeDir
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.KobaltPlugin
@@ -21,10 +21,14 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
 
     override val instructions = "IDEA files generated"
 
+    companion object {
+        val IDEA_DIR = ".idea"
+    }
+
     override fun generateTemplate(args: Args, classLoader: ClassLoader) {
         val dependencyData = Kobalt.INJECTOR.getInstance(DependencyData::class.java)
-        val data = dependencyData.dependenciesDataFor(homeDir("kotlin/kobalt/kobalt/src/Build.kt"), args)
-        val outputDir = KFiles.makeDir(homeDir("t/idea"))
+        val data = dependencyData.dependenciesDataFor(Constants.BUILD_FILE_PATH, args)
+        val outputDir = KFiles.makeDir(".")//KFiles.makeDir(homeDir("t/idea"))
         generateLibraries(data, outputDir)
         generateModulesXml(data, outputDir)
         generateImlFiles(data, outputDir)
@@ -32,7 +36,7 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
 
     private fun generateImlFiles(data: DependencyData.GetDependenciesData, outputDir: File) {
         data.projects.forEach { project ->
-            val dir = KFiles.makeDir(outputDir.absolutePath, File(imlName(project)).parent)
+            KFiles.makeDir(outputDir.absolutePath, File(imlName(project)).parent)
             val file = File(KFiles.joinDir(outputDir.path, imlName(project)))
             with(arrayListOf<String>()) {
                 add("""<?xml version="1.0" encoding="UTF-8"?>""")
@@ -80,8 +84,7 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
                 add("  </component>")
                 add("</module>")
 
-                file.writeText(joinToString("\n"))
-                log(2, "Created $file")
+                writeFile(this, file)
 
             }
         }
@@ -91,7 +94,7 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
             KFiles.joinDir(project.directory, project.name + ".iml")
 
     private fun generateModulesXml(data: DependencyData.GetDependenciesData, outputDir: File) {
-        val modulesXmlFile = File(outputDir, "modules.xml")
+        val modulesXmlFile = File(KFiles.joinDir(IDEA_DIR, outputDir.path, "modules.xml"))
         with(arrayListOf<String>()) {
             add("""<?xml version="1.0" encoding="UTF-8"?>""")
             add("""<project version="4">""")
@@ -110,8 +113,7 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
             add("    </modules>")
             add("  </component>")
             add("</project>")
-            modulesXmlFile.writeText(joinToString("\n"))
-            log(2, "Created $modulesXmlFile")
+            writeFile(this, modulesXmlFile)
         }
     }
 
@@ -143,9 +145,7 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
             add("</component>")
             val fileName = libraryName.replace(" ", "_").replace("-", "_").replace("(", "_").replace(")", "_")
                 .replace(".", "_")
-            val file = File(librariesOutputDir, fileName + ".xml")
-            file.writeText(joinToString("\n"))
-            log(2, "Created $file")
+            writeFile(this, File(KFiles.joinDir(IDEA_DIR, librariesOutputDir.path, fileName + ".xml")))
         }
     }
 
@@ -172,4 +172,8 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
         }
     }
 
+    private fun writeFile(lines: List<String>, file: File) {
+        file.writeText(lines.joinToString("\n"))
+        log(2, "Created ${file.absolutePath}")
+    }
 }
