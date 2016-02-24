@@ -26,13 +26,14 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
 
     companion object {
         val IDEA_DIR = File(".idea").apply { mkdirs() }
+        val KOTLIN_JAVA_RUNTIME = "KotlinJavaRuntime"
     }
 
     override fun generateTemplate(args: Args, classLoader: ClassLoader) {
         val dependencyData = Kobalt.INJECTOR.getInstance(DependencyData::class.java)
         val data = dependencyData.dependenciesDataFor(Constants.BUILD_FILE_PATH, args)
         val outputDir = File(".")// KFiles.makeDir(".")//KFiles.makeDir(homeDir("t/idea"))
-        generateLibraries(data, outputDir)
+        generateLibraries(classLoader, data, outputDir)
         generateModulesXml(data, outputDir)
         generateImlFiles(classLoader, data, outputDir)
         generateMiscXml(classLoader, outputDir)
@@ -42,7 +43,6 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
             KFiles.joinDir(ITemplateContributor.DIRECTORY_NAME, templateName, fileName)
 
     private fun writeTemplate(classLoader: ClassLoader, outputDir: File, fileName: String) {
-        log(2, "Opening template " + templatePath(fileName))
         val ins = classLoader.getResource(templatePath(fileName)).openConnection().inputStream
         val outputFile = File(KFiles.joinDir(outputDir.absolutePath, fileName))
         outputFile.parentFile.mkdir()
@@ -82,10 +82,10 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
                 fun sourceDir(dir: String, isTest: Boolean)
                     = "    <sourceFolder url=\"file://\$MODULE_DIR$/$dir\" isTestSource=\"$isTest\" />"
 
-                project.sourceDirs.forEach { sourceDir ->
+                project.sourceDirs.filter { File(it).exists() }.forEach { sourceDir ->
                     add(sourceDir(sourceDir, false))
                 }
-                project.testDirs.forEach { sourceDir ->
+                project.testDirs.filter { File(it).exists() }.forEach { sourceDir ->
                     add(sourceDir(sourceDir, true))
                 }
 
@@ -101,6 +101,13 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
                 }
                 (project.name + TEST_SUFFIX).let {
                     add("  <orderEntry type=\"library\" scope=\"TEST\" name=\"$it\" level=\"project\" />")
+                }
+                val isKotlin = true
+                if (isKotlin) {
+                    add("  <orderEntry type=\"library\" name=\"$KOTLIN_JAVA_RUNTIME\"" +
+                            " level=\"project\" />")
+                    add("  <orderEntry type=\"library\" scope=\"TEST\" name=\"$KOTLIN_JAVA_RUNTIME\"" +
+                            " level=\"project\" />")
                 }
 
                 //
@@ -148,18 +155,19 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
     private val COMPILE_SUFFIX = " (Compile)"
     private val TEST_SUFFIX = " (Test)"
 
-    private fun generateLibraries(data: DependencyData.GetDependenciesData, outputDir: File) {
+    private fun generateLibraries(classLoader: ClassLoader, data: DependencyData.GetDependenciesData, outputDir: File) {
         data.projects.forEach {
-            generateLibrary(it.name, it.compileDependencies, COMPILE_SUFFIX, outputDir)
-            generateLibrary(it.name, it.testDependencies, TEST_SUFFIX, outputDir)
+            generateLibrary(classLoader, it.name, it.compileDependencies, COMPILE_SUFFIX, outputDir)
+            generateLibrary(classLoader, it.name, it.testDependencies, TEST_SUFFIX, outputDir)
         }
         val kobaltDd = DependencyData.DependencyData("kobalt", "compile",
                 KFiles.joinDir(KFiles.distributionsDir, Kobalt.version, "kobalt", "wrapper",
                         "kobalt-${Kobalt.version}.jar"))
-        generateLibrary("kobalt.jar", listOf(kobaltDd), "", outputDir)
+        generateLibrary(classLoader, "kobalt.jar", listOf(kobaltDd), "", outputDir)
     }
 
-    private fun generateLibrary(name: String, compileDependencies: List<DependencyData.DependencyData>,
+    private fun generateLibrary(classLoader: ClassLoader, name: String,
+            compileDependencies: List<DependencyData .DependencyData>,
             suffix: String, outputDir: File) {
         val libraryName = name + suffix
         val librariesOutputDir = KFiles.joinAndMakeDir(IDEA_DIR.path, outputDir.path, "libraries")
@@ -175,6 +183,10 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
                 .replace(".", "_")
             writeFile(this, File(librariesOutputDir, fileName + ".xml"))
         }
+
+        if (compileDependencies.any { it.id.contains("kotlin") }) {
+            generateKotlinJavaRuntime(classLoader, outputDir)
+        }
     }
 
     private fun generateList(libraries: List<DependencyData.DependencyData>, tag: String) : List<String> {
@@ -185,18 +197,29 @@ class IdeaFilesTemplate @Inject constructor() : ITemplate {
             result.add("    <$tag>")
             libraries.forEach {
                 val path =
-                        if (it.path.contains(".kobalt")) {
-                            val ind = it.path.indexOf(".kobalt")
-                            "\$USER_HOME$/" + it.path.substring(ind)
-                        } else {
-                            it.path
-                        }
+                    if (it.path.contains(".kobalt")) {
+                        val ind = it.path.indexOf(".kobalt")
+                        "\$USER_HOME$/" + it.path.substring(ind)
+                    } else {
+                        it.path
+                    }
                 result.add("      <root url=\"jar://$path!/\" />")
             }
 
             result.add("    </$tag>")
 
             return result
+        }
+    }
+
+    private fun generateKotlinJavaRuntime(classLoader: ClassLoader, outputDir: File) {
+        writeTemplate(classLoader,
+                File(KFiles.joinDir(outputDir.path, IDEA_DIR.path, "libraries")), "KotlinJavaRuntime.xml")
+        with(File(outputDir.path, "lib")) {
+            mkdirs()
+            listOf("reflect", "runtime-sources", "runtime").forEach {
+                writeTemplate(classLoader, File(outputDir, path), "kotlin-$it.jar")
+            }
         }
     }
 

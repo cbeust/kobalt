@@ -265,7 +265,7 @@ class KFiles {
 
         fun copy(from: InputStream, to: OutputStream) {
             var read = from.read()
-            while (from.available() > 0 && read != -1) {
+            while (read != -1) {
                 to.write(read)
                 read = from.read()
             }
