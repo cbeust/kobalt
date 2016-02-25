@@ -63,6 +63,9 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
                         line = ins.readLine()
                     }
                 }
+                if (line == null) {
+                    quit = true
+                }
             } catch(ex: SocketException) {
                 log(1, "Client disconnected, resetting")
                 clientSocket = serverSocket.accept()
