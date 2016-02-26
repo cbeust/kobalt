@@ -27,7 +27,7 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
      * Parse the id and return the correct IClasspathDependency
      */
     fun create(id: String, downloadSources: Boolean = false, downloadJavadocs: Boolean = false,
-            localFirst : Boolean = true, executor: ExecutorService = defExecutor)
+            localFirst : Boolean = true, showNetworkWarning: Boolean = true, executor: ExecutorService = defExecutor)
             : IClasspathDependency {
         if (id.startsWith(FileDependency.PREFIX_FILE)) {
             return FileDependency(id.substring(FileDependency.PREFIX_FILE.length))
@@ -46,7 +46,7 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
                     if (localFirst && localVersion != null) {
                         localVersion
                     } else {
-                        if (! localFirst) {
+                        if (! localFirst && showNetworkWarning) {
                             warn("The id \"$id\" doesn't contain a version, which will cause a network call")
                         }
                         repoResult = remoteRepo.findCorrectRepo(id)
