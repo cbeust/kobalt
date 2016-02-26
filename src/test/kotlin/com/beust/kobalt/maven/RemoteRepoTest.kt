@@ -19,7 +19,7 @@ class RemoteRepoTest @Inject constructor(val repoFinder: RepoFinder,
         val dep = MavenDependency.create("org.codehaus.groovy:groovy-all:")
         // Note: this test might fail if a new version of Groovy gets uploaded, need
         // to find a stable (i.e. abandoned) package
-        Assert.assertEquals(dep.id.split(":")[2], "2.4.6")
+        Assert.assertEquals(dep.id.split(":")[2], "2.4.5")
     }
 
     @Test(enabled = false)
