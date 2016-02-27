@@ -60,7 +60,7 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
      */
     private fun loadCorrectRepo(id: String): RepoResult {
         val executor = executors.newExecutor("RepoFinder-$id", Kobalt.repos.size)
-        val cs = ExecutorCompletionService<RepoResult>(executor)
+        val cs = ExecutorCompletionService<List<RepoResult>>(executor)
 
         val results = arrayListOf<RepoResult>()
         try {
@@ -68,12 +68,14 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
             Kobalt.repos.forEach { cs.submit(RepoFinderCallable(id, it)) }
             for (i in 0..Kobalt.repos.size - 1) {
                 try {
-                    val result = cs.take().get(2000, TimeUnit.MILLISECONDS)
-                    if (result.found) {
-                        log(2, "Located $id in ${result.hostConfig.url}")
-                        results.add(result)
-                    } else {
-                        log(3, "  Result for repo #$i: $result")
+                    val repos = cs.take().get(2000, TimeUnit.MILLISECONDS)
+                    repos.forEach { result ->
+                        if (result.found) {
+                            log(2, "Located $id in ${result.hostConfig.url}")
+                            results.add(result)
+                        } else {
+                            log(3, "  Result for repo #$i: $result")
+                        }
                     }
                 } catch(ex: Exception) {
                     warn("Error: $ex")
@@ -93,10 +95,13 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
     }
 
     /**
-     * Execute a single HTTP request to one repo.
+     * Execute a single HTTP request to one repo. This Callable can return more than one RepoResult
+     * if the artifact we're tying to locate is a container pom (in which case, we'll return one
+     * positive RepoResult for each of the artifacts listed in that .pom file). For example:
+     * http://repo1.maven.org/maven2/nl/komponents/kovenant/kovenant/3.0.0/
      */
-    inner class RepoFinderCallable(val id: String, val repo: HostConfig) : Callable<RepoResult> {
-        override fun call(): RepoResult {
+    inner class RepoFinderCallable(val id: String, val repo: HostConfig) : Callable<List<RepoResult>> {
+        override fun call(): List<RepoResult> {
             val repoUrl = repo.url
             log(2, "  Checking $repoUrl for $id")
 
@@ -110,9 +115,9 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                 val path = ud.toMetadataXmlPath(false, isLocal)
                 val foundVersion = findCorrectVersionRelease(path, repoUrl)
                 if (foundVersion != null) {
-                    return RepoResult(repo, Version.of(foundVersion), repoUrl + path)
+                    return listOf(RepoResult(repo, Version.of(foundVersion), repoUrl + path))
                 } else {
-                    return RepoResult(repo)
+                    return listOf(RepoResult(repo))
                 }
             } else {
                 val version = Version.of(mavenId.version)
@@ -127,28 +132,29 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                         val url = repoUrl + dep.toDirectory(fileSystem = false, v = dep.version) +
                             dep.artifactId + "-" + snapshotVersion.noSnapshotVersion +
                                 "-" + snapshotVersion.snapshotTimestamp + ".jar"
-                        return RepoResult(repo, version, url, snapshotVersion)
+                        return listOf(RepoResult(repo, version, url, snapshotVersion))
                     } else {
-                        return RepoResult(repo)
+                        return listOf(RepoResult(repo))
                     }
                 } else if (version.isRangedVersion() ) {
                     val foundVersion = findRangedVersion(SimpleDep(mavenId), repoUrl)
                     if (foundVersion != null) {
-                        return RepoResult(repo, foundVersion)
+                        return listOf(RepoResult(repo, foundVersion))
                     } else {
-                        return RepoResult(repo)
+                        return listOf(RepoResult(repo))
                     }
 
                 } else {
                     val dep = SimpleDep(mavenId)
                     // Try to find the jar file
-                    val attemptPaths = listOf(dep.toJarFile(dep.version), dep.toAarFile(dep.version))
+                    val attemptPaths = listOf(dep.toJarFile(dep.version), dep.toAarFile(dep.version),
+                            dep.toPomFile(dep.version))
                     val attemptUrls = attemptPaths.map { repo.copy(url = repo.url + it )} +
                         attemptPaths.map { repo.copy(url = repo.url + File(it).parentFile.path.replace("\\", "/")) }
 
                     val firstFound = attemptUrls.map { Kurl(it)}.firstOrNull { it.exists }
                     log(3, "Result for $repoUrl for $id: $firstFound")
-                    return RepoResult(repo, Version.of(dep.version), firstFound?.hostInfo?.url)
+                    return listOf(RepoResult(repo, Version.of(dep.version), firstFound?.hostInfo?.url))
                 }
             }
         }
