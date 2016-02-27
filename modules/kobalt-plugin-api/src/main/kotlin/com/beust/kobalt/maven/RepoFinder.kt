@@ -44,8 +44,8 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                 val result = localPath.substring(0, ind) + "SNAPSHOT" +
                     localPath.substring(lastDot)
                 result
-        } else {
-                localPath
+            } else {
+                    localPath
             }
     }
 
