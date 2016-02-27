@@ -25,7 +25,8 @@ import javax.xml.xpath.XPathFactory
  * Find the repo that contains the given dependency among a list of repos. Searches are performed in parallel and
  * cached so we never make a network call for the same dependency more than once.
  */
-class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
+class RepoFinder @Inject constructor(val executors: KobaltExecutors, val localRepo: LocalRepo,
+        val pomFactory: Pom.IFactory) {
     fun findCorrectRepo(id: String) = FOUND_REPOS.get(id)
 
     /**
@@ -147,14 +148,36 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors) {
                 } else {
                     val dep = SimpleDep(mavenId)
                     // Try to find the jar file
-                    val attemptPaths = listOf(dep.toJarFile(dep.version), dep.toAarFile(dep.version),
-                            dep.toPomFile(dep.version))
+                    val depPomFile = dep.toPomFile(dep.version)
+                    val attemptPaths = listOf(dep.toJarFile(dep.version), dep.toAarFile(dep.version), depPomFile)
                     val attemptUrls = attemptPaths.map { repo.copy(url = repo.url + it )} +
                         attemptPaths.map { repo.copy(url = repo.url + File(it).parentFile.path.replace("\\", "/")) }
 
                     val firstFound = attemptUrls.map { Kurl(it)}.firstOrNull { it.exists }
-                    log(3, "Result for $repoUrl for $id: $firstFound")
-                    return listOf(RepoResult(repo, Version.of(dep.version), firstFound?.hostInfo?.url))
+                    if (firstFound != null) {
+                        val url = firstFound.hostInfo.url
+                        if (url.endsWith("ar")) {
+                            log(3, "Result for $repoUrl for $id: $firstFound")
+                            return listOf(RepoResult(repo, Version.of(dep.version), firstFound.hostInfo.url))
+                        } else if (url.endsWith(".pom")) {
+                            log(2, "Found container pom: " + firstFound)
+                            File(localRepo.toFullPath(depPomFile)).let { pomFile ->
+                                pomFile.parentFile.mkdirs()
+                                Kurl(HostConfig(url)).toFile(pomFile)
+                                val dependencies = pomFactory.create(id, pomFile).dependencies
+                                val result = arrayListOf<RepoResult>()
+                                dependencies.map { it.id }.forEach {
+                                    result.addAll(RepoFinderCallable(it, repo).call())
+                                }
+                               return result
+                            }
+                        } else {
+                            return listOf(RepoResult(repo, Version.of(dep.version), firstFound.hostInfo.url))
+                        }
+                    } else {
+                        log(2, "Couldn't find " + dep)
+                        return emptyList()
+                    }
                 }
             }
         }

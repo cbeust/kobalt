@@ -21,6 +21,7 @@ import kotlin.properties.Delegates
 class DownloadTest @Inject constructor(
         val depFactory: DepFactory,
         val localRepo: LocalRepo,
+        val mdFactory: MavenDependency.IFactory,
         val executors: KobaltExecutors) : KobaltTest() {
     private var executor: ExecutorService by Delegates.notNull()
 
@@ -140,5 +141,16 @@ class DownloadTest @Inject constructor(
         val id = "http://jitpack.io/com/github/JakeWharton/RxBinding/rxbinding-kotlin/542cd7e8a4/rxbinding-kotlin-542cd7e8a4.aar"
         Assert.assertTrue(Kurl(HostConfig(id)).exists)
     }
+
+    @Test
+    fun containerPomTest() {
+        File(localRepo.toFullPath("nl/komponents/kovenant")).deleteRecursively()
+        val dep = mdFactory.create(MavenId.create("nl.komponents.kovenant:kovenant:3.0.0"), executor = executor,
+                downloadSources = false, downloadJavadocs = false)
+        dep.directDependencies().forEach {
+            Assert.assertTrue(it.jarFile.get().exists(), "Dependency was not downloaded: $it")
+        }
+    }
+
 }
 
