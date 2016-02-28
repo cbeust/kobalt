@@ -1,8 +1,11 @@
 package com.beust.kobalt.app.java
 
-import com.beust.kobalt.app.BuildGenerator
+import com.beust.kobalt.app.LanguageTemplateGenerator
 
-class JavaBuildGenerator: BuildGenerator() {
+/**
+ * Template for the "java" generator.
+ */
+class JavaTemplateGenerator : LanguageTemplateGenerator() {
     override val defaultSourceDirectories = hashSetOf("src/main/java")
     override val defaultTestDirectories = hashSetOf("src/test/java")
     override val directive = "project"

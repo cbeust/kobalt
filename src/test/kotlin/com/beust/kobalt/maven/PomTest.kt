@@ -3,7 +3,7 @@ package com.beust.kobalt.maven
 import com.beust.kobalt.Args
 import com.beust.kobalt.KobaltTest
 import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.app.BuildGenerator
+import com.beust.kobalt.app.LanguageTemplateGenerator
 import com.beust.kobalt.app.ProjectGenerator
 import com.beust.kobalt.internal.PluginInfo
 import com.google.inject.Inject
@@ -66,7 +66,7 @@ class PomTest @Inject constructor() : KobaltTest() {
             Assert.assertTrue(contents.contains("version = \"${pom.version}\""), "Should find the version defined")
             pom.properties.forEach {
                 Assert.assertTrue(contents.contains(
-                        "val ${BuildGenerator.toIdentifier(it.key)} = \"${it.value}\""), "Should find the " +
+                        "val ${LanguageTemplateGenerator.toIdentifier(it.key)} = \"${it.value}\""), "Should find the " +
                         "property defined")
             }
             pom.repositories.forEach {

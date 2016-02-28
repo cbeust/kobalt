@@ -1,8 +1,8 @@
 package com.beust.kobalt.app.kotlin
 
-import com.beust.kobalt.app.BuildGenerator
+import com.beust.kobalt.app.LanguageTemplateGenerator
 
-class KotlinBuildGenerator : BuildGenerator() {
+class KotlinTemplateGenerator : LanguageTemplateGenerator() {
     override val defaultSourceDirectories = hashSetOf("src/main/kotlin")
     override val defaultTestDirectories = hashSetOf("src/test/kotlin")
     override val directive = "project"

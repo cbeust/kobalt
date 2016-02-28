@@ -13,9 +13,9 @@ import java.io.*
 import java.util.*
 
 /**
- * Abstract base class for the build generators that use build.mustache.
+ * Abstract base class for the "java" and "kotlin" templates.
  */
-abstract class BuildGenerator : ITemplate {
+abstract class LanguageTemplateGenerator : ITemplate {
     override val pluginName = KobaltPlugin.PLUGIN_NAME
 
     abstract val defaultSourceDirectories : HashSet<String>
