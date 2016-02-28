@@ -80,7 +80,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
      * Reorder dependencies so that if an artifact appears several times, only the one with the higest version
      * is included.
      */
-    public fun reorderDependencies(dependencies: Collection<IClasspathDependency>): List<IClasspathDependency> {
+    fun reorderDependencies(dependencies: Collection<IClasspathDependency>): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         val map : ArrayListMultimap<String, IClasspathDependency> = ArrayListMultimap.create()
         // The multilist maps each artifact to a list of all the versions found
