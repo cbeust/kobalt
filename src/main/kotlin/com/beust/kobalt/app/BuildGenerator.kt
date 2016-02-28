@@ -2,6 +2,7 @@ package com.beust.kobalt.app
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.ITemplate
+import com.beust.kobalt.api.ITemplateContributor
 import com.beust.kobalt.maven.Pom
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.KobaltPlugin
@@ -10,7 +11,7 @@ import java.io.*
 import java.util.*
 
 /**
- * Abstract base class for the build generators that use build-template.mustache.
+ * Abstract base class for the build generators that use build.mustache.
  */
 abstract class BuildGenerator : ITemplate {
     override val pluginName = KobaltPlugin.PLUGIN_NAME
@@ -104,7 +105,8 @@ abstract class BuildGenerator : ITemplate {
                 }
             }
 
-            val fileInputStream = javaClass.classLoader.getResource("build-template.mustache").openStream()
+            val fileInputStream = javaClass.classLoader
+                    .getResource(ITemplateContributor.DIRECTORY_NAME + "/build.mustache").openStream()
             val sw = StringWriter()
             val pw = PrintWriter(sw)
             var mf = DefaultMustacheFactory();
