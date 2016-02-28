@@ -122,8 +122,6 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
             : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         val projects = listOf(ProjectDescription(project, project.projectExtra.dependsOn))
-        result.add(FileDependency(KFiles.makeOutputDir(project).absolutePath))
-        result.add(FileDependency(KFiles.makeOutputTestDir(project).absolutePath))
         with(project) {
             val deps = arrayListOf(compileDependencies, compileProvidedDependencies)
             if (isTest) {
@@ -134,7 +132,12 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
                 result.addAll(calculateDependencies(project, context, projects, it))
             }
         }
-        val result2 = reorderDependencies(result)
+
+        // Make sure that classes/ and test-classes/ are always at the top of this classpath,
+        // so that older versions of that project on the classpath don't shadow them
+        val result2 = arrayListOf(FileDependency(KFiles.makeOutputDir(project).absolutePath),
+            FileDependency(KFiles.makeOutputTestDir(project).absolutePath)) +
+            reorderDependencies(result)
         return result2
     }
 
