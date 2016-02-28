@@ -1,4 +1,4 @@
-package com.beust.kobalt.internal
+package com.beust.kobalt.app
 
 import com.github.mustachejava.DefaultMustacheFactory
 import java.io.*

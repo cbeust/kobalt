@@ -3,7 +3,7 @@ package com.beust.kobalt.app
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.ITemplate
 import com.beust.kobalt.api.ITemplateContributor
-import com.beust.kobalt.internal.Mustache
+import com.beust.kobalt.app.Mustache
 import com.beust.kobalt.maven.Pom
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
