@@ -4,6 +4,7 @@ import com.beust.kobalt.Args
 import com.beust.kobalt.api.ITemplate
 import com.beust.kobalt.api.ITemplateContributor
 import com.beust.kobalt.maven.Pom
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.KobaltPlugin
 import com.github.mustachejava.DefaultMustacheFactory
@@ -20,8 +21,18 @@ abstract class BuildGenerator : ITemplate {
     abstract val defaultTestDirectories : HashSet<String>
     abstract val directive : String
     abstract val fileMatch : (String) -> Boolean
+    open fun generateAdditionalFiles(args: Args, classLoader: ClassLoader) {}
+
+    private fun maybeGenerateAdditionalFiles(args: Args, classLoader: ClassLoader) {
+        val existingFiles = KFiles.findRecursively(File("."), fileMatch)
+        if (existingFiles.isEmpty()) {
+            generateAdditionalFiles(args, classLoader)
+        }
+    }
 
     companion object {
+        val PACKAGE_NAME = "com.example"
+
         /**
          * Turns a dot property into a proper Kotlin identifier, e.g. common.version -> commonVersion
          */
@@ -34,6 +45,11 @@ abstract class BuildGenerator : ITemplate {
     }
 
     override fun generateTemplate(args: Args, classLoader: ClassLoader) {
+        generateBuildFile(args, classLoader)
+        maybeGenerateAdditionalFiles(args, classLoader)
+    }
+
+    private fun generateBuildFile(args: Args, classLoader: ClassLoader) {
         val file = File(args.buildFile)
         if (! file.exists()) {
             PrintWriter(FileOutputStream(file)).use {
@@ -48,8 +64,8 @@ abstract class BuildGenerator : ITemplate {
             map: HashMap<String, Any?>) {
         var pom = Pom("imported", pomFile.absoluteFile)
         with(map) {
-            put("group", pom.groupId ?: "com.example")
-            put("artifactId", pom.artifactId ?: "com.example")
+            put("group", pom.groupId ?: PACKAGE_NAME)
+            put("artifactId", pom.artifactId ?: PACKAGE_NAME)
             put("version", pom.version ?: "0.1")
             put("name", pom.name ?: pom.artifactId)
             put("repositories", pom.repositories.map({ "\"$it\"" }).joinToString(","))
@@ -86,7 +102,7 @@ abstract class BuildGenerator : ITemplate {
             val currentDir = File(".").absoluteFile.parentFile
             with(map) {
                 put("name", currentDir.name)
-                put("group", "com.example")
+                put("group", PACKAGE_NAME)
                 put("version", "0.1")
                 put("directory", currentDir.absolutePath)
                 put("sourceDirectories", defaultSourceDirectories)
@@ -109,9 +125,9 @@ abstract class BuildGenerator : ITemplate {
                     .getResource(ITemplateContributor.DIRECTORY_NAME + "/build.mustache").openStream()
             val sw = StringWriter()
             val pw = PrintWriter(sw)
-            var mf = DefaultMustacheFactory();
-            var mustache = mf.compile(InputStreamReader(fileInputStream), "kobalt");
-            mustache.execute(pw, map).flush();
+            var mf = DefaultMustacheFactory()
+            var mustache = mf.compile(InputStreamReader(fileInputStream), "kobalt")
+            mustache.execute(pw, map).flush()
             return sw.toString()
         }
 }

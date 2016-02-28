@@ -1,5 +1,6 @@
 import com.beust.kobalt.*
-import com.beust.kobalt.plugin.packaging.assemble
+import com.beust.kobalt.plugin.packaging.*
+import com.beust.kobalt.plugin.application.*
 {{imports}}
 
 val repos = repos({{{repositories}}})
@@ -35,7 +36,7 @@ val p = {{directive}} {
     }
 
     dependenciesTest {
-//        compile("org.testng:testng:6.9.5")
+        compile("org.testng:testng:6.9.9")
         {{#testDependencies}}
         compile("{{groupId}}:{{artifactId}}:{{version}}")
         {{/testDependencies}}
@@ -46,4 +47,10 @@ val p = {{directive}} {
         jar {
         }
     }
+
+    application {
+        mainClass = "com.example.Example"
+    }
+
+
 }
