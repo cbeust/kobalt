@@ -91,7 +91,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
         for (k in map.keySet()) {
             val l = map.get(k)
             Collections.sort(l, Collections.reverseOrder())
-            result.add(l.get(0))
+            result.add(l[0])
         }
         return result
     }
