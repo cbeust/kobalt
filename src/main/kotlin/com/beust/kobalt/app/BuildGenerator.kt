@@ -3,6 +3,7 @@ package com.beust.kobalt.app
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.ITemplate
 import com.beust.kobalt.api.ITemplateContributor
+import com.beust.kobalt.internal.Mustache
 import com.beust.kobalt.maven.Pom
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
@@ -21,11 +22,33 @@ abstract class BuildGenerator : ITemplate {
     abstract val defaultTestDirectories : HashSet<String>
     abstract val directive : String
     abstract val fileMatch : (String) -> Boolean
-    open fun generateAdditionalFiles(args: Args, classLoader: ClassLoader) {}
+    abstract val fileMap: List<FileInfo>
+    abstract val mainClass : String
+
+    class FileInfo(val dir: String, val fileName: String, val mustacheFileName: String)
+
+    private fun generateAdditionalFiles(args: Args, classLoader: ClassLoader) {
+        val map = mapOf("packageName" to PACKAGE_NAME)
+
+        fileMap.forEach {
+            val mustache = it.mustacheFileName
+            val fileInputStream = javaClass.classLoader
+                    .getResource(ITemplateContributor.DIRECTORY_NAME + "/$templateName/$mustache").openStream()
+            val createdFile = File(KFiles.joinDir(it.dir, it.fileName))
+            Mustache.generateFile(fileInputStream, File(KFiles.joinDir(it.dir, it.fileName)), map)
+            log(2, "Created $createdFile")
+        }
+    }
 
     private fun maybeGenerateAdditionalFiles(args: Args, classLoader: ClassLoader) {
-        val existingFiles = KFiles.findRecursively(File("."), fileMatch)
-        if (existingFiles.isEmpty()) {
+        val existingFiles =
+            if (File("src").exists()) {
+                KFiles.findRecursively(File("src"), fileMatch).size > 0
+            } else {
+                false
+            }
+
+        if (! existingFiles) {
             generateAdditionalFiles(args, classLoader)
         }
     }
@@ -97,10 +120,11 @@ abstract class BuildGenerator : ITemplate {
 
     private val buildFileContent: String
         get() {
-            val map = hashMapOf<String, Any?>()
-            map.put("directive", directive)
             val currentDir = File(".").absoluteFile.parentFile
+            val map = hashMapOf<String, Any?>()
             with(map) {
+                put("mainClass", mainClass)
+                put("directive", directive)
                 put("name", currentDir.name)
                 put("group", PACKAGE_NAME)
                 put("version", "0.1")

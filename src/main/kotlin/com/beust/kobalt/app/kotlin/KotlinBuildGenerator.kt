@@ -9,5 +9,10 @@ class KotlinBuildGenerator : BuildGenerator() {
     override val templateName = "kotlin"
     override val templateDescription = "Generate a simple Kotlin project"
     override val fileMatch = { f: String -> f.endsWith(".kt") }
+    override val mainClass = "MainKt"
+    override val fileMap = listOf(
+            FileInfo("src/main/kotlin/" + PACKAGE_NAME.replace(".", "/"), "Main.kt", "kotlin.mustache"),
+            FileInfo("src/test/kotlin/" + PACKAGE_NAME.replace(".", "/"), "MainTest.kt", "kotlin-test.mustache")
+    )
 }
 
