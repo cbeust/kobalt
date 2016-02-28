@@ -291,9 +291,6 @@ open class JvmCompilerPlugin @Inject constructor(
                 ! KFiles.isResource(it.path)
             }.distinct()
 
-        if (allSourceDirectories.any { KFiles.isResource(it.path) }) {
-            println("PROBLEM")
-        }
         // Now that we have all the source directories, find all the source files in them
         val sourceFiles = files.findRecursively(projectDirectory, allSourceDirectories,
                 { file -> sourceSuffixes.any { file.endsWith(it) }})
