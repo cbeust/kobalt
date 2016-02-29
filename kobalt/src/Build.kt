@@ -46,7 +46,6 @@ val wrapper = project {
     }
 }
 
-
 val kobaltPluginApi = project {
     name = "kobalt-plugin-api"
     group = "com.beust"
@@ -59,10 +58,6 @@ val kobaltPluginApi = project {
     scm = Scm(url = "http://github.com/cbeust/kobalt",
             connection = "https://github.com/cbeust/kobalt.git",
             developerConnection = "git@github.com:cbeust/kobalt.git")
-
-    dependenciesTest {
-        compile("org.testng:testng:6.9.9")
-    }
 
     dependencies {
         compile("org.jetbrains.kotlinx:kotlinx.dom:0.0.9",
@@ -129,7 +124,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
     }
 
     dependenciesTest {
-        compile("org.testng:testng:6.9.9")
+        compile("org.testng:testng:6.9.10")
     }
 
     assemble {

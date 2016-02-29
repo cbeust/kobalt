@@ -4,7 +4,7 @@
 
   <test name="Main">
       <packages>
-          <package name="com.beust.*"/>
+          <package name="com.beust.kobalt.*"/>
       </packages>
   </test>
 
