@@ -161,13 +161,16 @@ open class JvmCompilerPlugin @Inject constructor(
     private fun doTaskCompileTest(project: Project) = doTaskCompile(project, isTest = true)
 
     private fun doTaskCompile(project: Project, isTest: Boolean): TaskResult {
-        // Set up the source files now that we have the variant
-        sourceDirectories.addAll(context.variant.sourceDirectories(project, context, SourceSet.of(isTest)))
-
+        // Generate the BuildConfig before invoking sourceDirectories() since that call
+        // might add the buildConfig source directori
         val sourceDirectory = context.variant.maybeGenerateBuildConfig(project, context)
         if (sourceDirectory != null) {
             sourceDirectories.add(sourceDirectory)
         }
+
+        // Set up the source files now that we have the variant
+        sourceDirectories.addAll(context.variant.sourceDirectories(project, context, SourceSet.of(isTest)))
+
         val results = arrayListOf<TaskResult>()
 
         val compilerContributors = ActorUtils.selectAffinityActors(project, context,
