@@ -1,13 +1,10 @@
 package com.beust.kobalt.api
 
-import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.JvmCompilerPlugin
-import com.beust.kobalt.internal.SourceSet
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.project
 import java.io.File
 import java.util.*
 
@@ -118,6 +115,8 @@ open class Project(
         productFlavors.put(name, pf)
     }
 
+    var defaultConfig : BuildConfig? = null
+
     val buildTypes = hashMapOf<String, BuildTypeConfig>()
 
     fun addBuildType(name: String, bt: BuildTypeConfig) {
@@ -182,7 +181,10 @@ class License(val name: String, val url: String) {
 }
 
 class BuildConfig {
-    class Field(val name: String, val type: String, val value: Any)
+    class Field(val name: String, val type: String, val value: Any) {
+        override fun hashCode() = name.hashCode()
+        override fun equals(other: Any?) = (other as Field).name == name
+    }
 
     val fields = arrayListOf<Field>()
 
@@ -230,3 +232,10 @@ fun Project.buildType(name: String, init: BuildTypeConfig.() -> Unit) = BuildTyp
         init()
         addBuildType(name, this)
     }
+
+fun Project.defaultConfig(init: BuildConfig.() -> Unit) = let { project ->
+    BuildConfig().apply {
+        init()
+        project.defaultConfig = this
+    }
+}
