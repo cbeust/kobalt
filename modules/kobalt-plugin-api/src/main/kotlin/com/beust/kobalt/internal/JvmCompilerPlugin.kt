@@ -266,7 +266,6 @@ open class JvmCompilerPlugin @Inject constructor(
             ! isDependencyExcluded(it, project.excludedDependencies)
         }
 
-        val projectDirectory = File(project.directory)
         val buildDirectory = if (isTest) File(project.buildDirectory, KFiles.TEST_CLASSES_DIR)
             else File(project.classesDir(context))
         buildDirectory.mkdirs()
@@ -295,6 +294,7 @@ open class JvmCompilerPlugin @Inject constructor(
             }.distinct()
 
         // Now that we have all the source directories, find all the source files in them
+        val projectDirectory = File(project.directory)
         val sourceFiles = files.findRecursively(projectDirectory, allSourceDirectories,
                 { file -> sourceSuffixes.any { file.endsWith(it) }})
                 .map { File(projectDirectory, it).path }
