@@ -22,6 +22,34 @@ interface IBuildConfig {
 abstract class BaseBuildConfig : IBuildConfig {
     abstract fun generate(field: BuildConfigField) : String
 
+    /**
+     * Add all the fields found in 1) the field contributors 2) the build configs and 3) the default config
+     */
+    fun generateCommonPart(project: Project, context: KobaltContext, buildConfigs: List<BuildConfig>) : List<String> {
+        val result = arrayListOf<String>()
+
+        // Fields from the field contributors
+        result.addAll(generateFieldsFromContributors(project, context))
+
+        val seen = hashSetOf<BuildConfig.Field>()
+
+        // Fields from the build config
+        buildConfigs.forEach {
+            it.fields.forEach { field ->
+                result.add(generate(field.type, field.name, field.value))
+                seen.add(field)
+            }
+        }
+
+        // Add all the fields in the default config that haven't been added yet
+        project.defaultConfig?.let {
+            it.fields.filter { ! seen.contains(it) }.forEach {
+                result.add(generate(it.type, it.name, it.value))
+            }
+        }
+        return result
+    }
+
     fun generate(type: String, name: String, value: Any) = generate(BuildConfigField(type, name, value))
 
     fun generateFieldsFromContributors(project: Project, context: KobaltContext)

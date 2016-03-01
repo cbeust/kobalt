@@ -30,13 +30,8 @@ class JavaBuildConfig : BaseBuildConfig() {
                         "false"
                     }))
 
-            addAll(generateFieldsFromContributors(project, context))
+            addAll(generateCommonPart(project, context, buildConfigs))
 
-            buildConfigs.forEach {
-                it.fields.forEach { field ->
-                    add(generate(field.type, field.name, field.value))
-                }
-            }
             add("}")
             add("")
         }
