@@ -20,8 +20,12 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
             size == 3 || size == 4
         }
 
-        private fun isVersion(s: String): Boolean {
-           return s[0] == 'v' || Character.isDigit(s[0]) || isRangedVersion(s)
+        private fun isVersion(s: String, id: String): Boolean {
+            try {
+                return s[0] == 'v' || Character.isDigit(s[0]) || isRangedVersion(s)
+            } catch(ex: Exception) {
+                error("Illegal version found in id \"$id\"")
+            }
         }
 
         fun isRangedVersion(s: String): Boolean {
@@ -45,7 +49,7 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
             artifactId = c[1]
             if (!c[2].isEmpty()) {
                 val split = c[2].split('@')
-                if (isVersion(split[0])) {
+                if (isVersion(split[0], id)) {
                     version = split[0]
                 }
                 packaging = if (split.size == 2) split[1] else null
