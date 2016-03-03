@@ -3,7 +3,6 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.log
 import java.io.ByteArrayInputStream
-import java.io.File
 import java.io.InputStream
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlElement
@@ -74,6 +73,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val testSourceDirContributors = arrayListOf<ITestSourceDirectoryContributor>()
     val buildConfigFieldContributors = arrayListOf<IBuildConfigFieldContributor>()
     val taskContributors = arrayListOf<ITaskContributor>()
+    val assemblyContributors = arrayListOf<IAssemblyContributor>()
 
     // Not documented yet
     val buildConfigContributors = arrayListOf<IBuildConfigContributor>()
@@ -161,6 +161,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
                 if (this is IMavenIdInterceptor) mavenIdInterceptors.add(this)
                 if (this is ITestSourceDirectoryContributor) testSourceDirContributors.add(this)
                 if (this is IBuildConfigContributor) buildConfigContributors.add(this)
+                if (this is IAssemblyContributor) assemblyContributors.add(this)
             }
         }
     }
@@ -191,6 +192,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         testSourceDirContributors.addAll(pluginInfo.testSourceDirContributors)
         mavenIdInterceptors.addAll(pluginInfo.mavenIdInterceptors)
         buildConfigContributors.addAll(pluginInfo.buildConfigContributors)
+        assemblyContributors.addAll(pluginInfo.assemblyContributors)
     }
 }
 

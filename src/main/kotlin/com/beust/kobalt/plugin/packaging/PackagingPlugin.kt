@@ -25,7 +25,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val executors: KobaltExecutors, val jarGenerator: JarGenerator, val warGenerator: WarGenerator,
         val zipGenerator: ZipGenerator, val taskContributor: TaskContributor,
         val pomFactory: PomGenerator.IFactory, val configActor: ConfigActor<InstallConfig>)
-            : BasePlugin(), IConfigActor<InstallConfig> by configActor, ITaskContributor {
+            : BasePlugin(), IConfigActor<InstallConfig> by configActor, ITaskContributor, IAssemblyContributor {
 
     companion object {
         const val PLUGIN_NAME = "Packaging"
@@ -140,9 +140,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 runTask = { doTaskAssemble(project) })
     }
 
-    @Task(name = TASK_ASSEMBLE, description = "Package the artifacts",
-            runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
-    fun doTaskAssemble(project: Project) : TaskResult {
+    // IAssemblyContributor
+    override fun assemble(project: Project, context: KobaltContext) : TaskResult {
         try {
             project.projectProperties.put(PACKAGES, packages)
             packages.filter { it.project.name == project.name }.forEach { pkg ->
@@ -157,6 +156,19 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         } catch(ex: Exception) {
             throw KobaltException(ex)
         }
+    }
+
+    @Task(name = TASK_ASSEMBLE, description = "Package the artifacts",
+            runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
+    fun doTaskAssemble(project: Project) : TaskResult {
+        context.pluginInfo.assemblyContributors.forEach {
+            val thisResult = it.assemble(project, context)
+            if (! thisResult.success) {
+                // Abort at the first failure
+                return thisResult
+            }
+        }
+        return TaskResult()
     }
 
     fun addPackage(p: PackageConfig) {
