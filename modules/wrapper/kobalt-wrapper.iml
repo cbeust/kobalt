@@ -9,5 +9,14 @@
     <orderEntry type="library" name="kobalt-wrapper (Compile)" level="project" />
     <orderEntry type="library" scope="TEST" name="kobalt-wrapper (Test)" level="project" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../kobalt-android/kobaltBuild/libs/kobalt-android-0.43.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
