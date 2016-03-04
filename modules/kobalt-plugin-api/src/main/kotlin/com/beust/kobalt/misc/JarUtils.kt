@@ -39,8 +39,9 @@ public class JarUtils {
             foundFiles.forEach { foundFile ->
 
                 // Turn the found file into the local physical file that will be put in the jar file
-                val localFile = if (File(foundFile.path).isAbsolute) File(foundFile.path)
-                    else File(directory, file.from(foundFile.path).path)
+                val fromFile = file.from(foundFile.path)
+                val localFile = if (fromFile.isAbsolute) fromFile
+                    else File(directory, fromFile.path)
 
                 if (!localFile.exists()) {
                     throw AssertionError("File should exist: $localFile")
