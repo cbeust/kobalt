@@ -83,6 +83,11 @@ class KFiles {
         fun joinDir(vararg ts: String): String = ts.toMutableList().joinToString(File.separator)
 
         /**
+         * Where assemblies get generated ("kobaltBuild/libs")
+         */
+        fun libsDir(project: Project) = KFiles.makeDir(KFiles.buildDir(project).path, "libs").path
+
+        /**
          * The paths elements are expected to be a directory. Make that directory and join the
          * elements with the file separator.
          */
