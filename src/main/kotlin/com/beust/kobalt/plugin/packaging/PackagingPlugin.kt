@@ -1,18 +1,21 @@
 package com.beust.kobalt.plugin.packaging
 
-import com.beust.kobalt.*
-import com.beust.kobalt.IFileSpec.FileSpec
-import com.beust.kobalt.IFileSpec.GlobSpec
+import com.beust.kobalt.JarGenerator
+import com.beust.kobalt.KobaltException
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.archive.*
+import com.beust.kobalt.glob
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.PomGenerator
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.log
 import java.io.File
-import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,40 +38,6 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
         const val TASK_ASSEMBLE: String = "assemble"
         const val TASK_INSTALL: String = "install"
-
-        fun findIncludedFiles(directory: String, files: List<IncludedFile>, excludes: List<Glob>)
-                : List<IncludedFile> {
-            val result = arrayListOf<IncludedFile>()
-            files.forEach { includedFile ->
-                val includedSpecs = arrayListOf<IFileSpec>()
-                includedFile.specs.forEach { spec ->
-                    val fromPath = includedFile.from
-                    if (File(directory, fromPath).exists()) {
-                        spec.toFiles(directory, fromPath).forEach { file ->
-                            val fullFile = File(KFiles.joinDir(directory, fromPath, file.path))
-                            if (! fullFile.exists()) {
-                                throw AssertionError("File should exist: $fullFile")
-                            }
-
-                            if (!KFiles.isExcluded(fullFile, excludes)) {
-                                val normalized = Paths.get(file.path).normalize().toFile().path
-                                includedSpecs.add(FileSpec(normalized))
-                            } else {
-                                log(2, "Not adding ${file.path} to jar file because it's excluded")
-                            }
-
-                        }
-                    } else {
-                        log(2, "Directory $fromPath doesn't exist, not including it in the jar")
-                    }
-                }
-                if (includedSpecs.size > 0) {
-                    log(3, "Including specs $includedSpecs")
-                    result.add(IncludedFile(From(includedFile.from), To(includedFile.to), includedSpecs))
-                }
-            }
-            return result
-        }
     }
 
     override val name = PLUGIN_NAME
@@ -222,7 +191,7 @@ class PackageConfig(val project: Project) : AttributeHolder {
 
     class MavenJars(val ah: AttributeHolder, var fatJar: Boolean = false, var manifest: Manifest? = null) :
             AttributeHolder by ah {
-        public fun manifest(init: Manifest.(p: Manifest) -> Unit) : Manifest {
+        fun manifest(init: Manifest.(p: Manifest) -> Unit) : Manifest {
             val m = Manifest(this)
             m.init(m)
             return m
@@ -230,87 +199,7 @@ class PackageConfig(val project: Project) : AttributeHolder {
     }
 }
 
-open class Zip(open var name: String? = null) {
-//    internal val includes = arrayListOf<IFileSpec>()
-    internal val excludes = arrayListOf<Glob>()
-
-    @Directive
-    public fun from(s: String) = From(s)
-
-    @Directive
-    public fun to(s: String) = To(s)
-
-    @Directive
-    public fun exclude(vararg files: String) {
-        files.forEach { excludes.add(Glob(it)) }
-    }
-
-    @Directive
-    public fun exclude(vararg specs: Glob) {
-        specs.forEach { excludes.add(it) }
-    }
-
-    @Directive
-    public fun include(vararg files: String) {
-        includedFiles.add(IncludedFile(files.map { FileSpec(it) }))
-    }
-
-    @Directive
-    public fun include(from: From, to: To, vararg specs: String) {
-        includedFiles.add(IncludedFile(from, to, specs.map { FileSpec(it) }))
-    }
-
-    @Directive
-    public fun include(from: From, to: To, vararg specs: GlobSpec) {
-        includedFiles.add(IncludedFile(from, to, listOf(*specs)))
-    }
-
-    /**
-     * Prefix path to be removed from the zip file. For example, if you add "build/lib/a.jar" to the zip
-     * file and the excludePrefix is "build/lib", then "a.jar" will be added at the root of the zip file.
-     */
-    val includedFiles = arrayListOf<IncludedFile>()
-
-}
-
-interface AttributeHolder {
-    fun addAttribute(k: String, v: String)
-}
-
-/**
- * A jar is exactly like a zip with the addition of a manifest and an optional fatJar boolean.
- */
-open class Jar(override var name: String? = null, var fatJar: Boolean = false) : Zip(name), AttributeHolder {
-    @Directive
-    public fun manifest(init: Manifest.(p: Manifest) -> Unit) : Manifest {
-        val m = Manifest(this)
-        m.init(m)
-        return m
-    }
-
-    // Need to specify the version or attributes will just be dropped
-    @Directive
-    val attributes = arrayListOf(Pair("Manifest-Version", "1.0"))
-
-    override fun addAttribute(k: String, v: String) {
-        attributes.add(Pair(k, v))
-    }
-}
-
-class War(override var name: String? = null) : Jar(name), AttributeHolder {
-    init {
-        include(from("src/main/webapp"),to(""), glob("**"))
-        include(from("kobaltBuild/classes"), to("WEB-INF/classes"), glob("**"))
-    }
-}
-
 class Pom {
 
 }
 
-class Manifest(val jar: AttributeHolder) {
-    @Directive
-    public fun attributes(k: String, v: String) {
-        jar.addAttribute(k, v)
-    }
-}

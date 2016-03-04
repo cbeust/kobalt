@@ -93,14 +93,14 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
                         if (outputChecksum == taskOutputChecksum) {
                             upToDate = true
                         } else {
-                            logIncremental(2, "Incremental task $taskName output is out of date, running it")
+                            logIncremental(3, "Incremental task $taskName output is out of date, running it")
                         }
                     }
                 } else {
                     if (dependsOnDirtyProjects) {
-                        logIncremental(2, "Project ${project.name} depends on dirty project, running $taskName")
+                        logIncremental(3, "Project ${project.name} depends on dirty project, running $taskName")
                     } else {
-                        logIncremental(2, "Incremental task $taskName input is out of date, running it"
+                        logIncremental(3, "Incremental task $taskName input is out of date, running it"
                                 + " old: $inputChecksum new: ${iit.inputChecksum}")
                     }
                     project.projectExtra.isDirty = true
@@ -109,20 +109,20 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
             if (! upToDate) {
                 val result = iit.task(project)
                 if (result.success) {
-                    logIncremental(2, "Incremental task $taskName done running, saving checksums")
+                    logIncremental(3, "Incremental task $taskName done running, saving checksums")
                     iit.inputChecksum?.let {
                         saveInputChecksum(taskName, it)
-                        logIncremental(2, "          input checksum \"$it\" saved")
+                        logIncremental(3, "          input checksum \"$it\" saved")
                     }
                     // Important to rerun the checksum here since the output of the task might have changed it
                     iit.outputChecksum()?.let {
                         saveOutputChecksum(taskName, it)
-                        logIncremental(2, "          output checksum \"$it\" saved")
+                        logIncremental(3, "          output checksum \"$it\" saved")
                     }
                 }
                 result
             } else {
-                logIncremental(2, "Incremental task \"$taskName\" is up to date, not running it")
+                logIncremental(3, "Incremental task \"$taskName\" is up to date, not running it")
                 TaskResult()
             }
         }

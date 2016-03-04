@@ -1,7 +1,9 @@
 package com.beust.kobalt.plugin.packaging
 
-import com.beust.kobalt.Archives
+import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.IFileSpec
+import com.beust.kobalt.JarGenerator
+import com.beust.kobalt.archive.War
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
@@ -73,7 +75,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         //
         // Finally, all the included/excluded files specified in the war{} directive
         //
-        result.addAll(PackagingPlugin.findIncludedFiles(project.directory, war.includedFiles, war.excludes))
+        result.addAll(JarGenerator.findIncludedFiles(project.directory, war.includedFiles, war.excludes))
 
         return result
     }

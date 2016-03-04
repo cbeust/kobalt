@@ -1,5 +1,6 @@
-package com.beust.kobalt
+package com.beust.kobalt.archive
 
+import com.beust.kobalt.Features
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
@@ -30,7 +31,7 @@ class Archives {
             val fullArchiveName = context.variant.archiveName(project, archiveName, suffix)
             val archiveDir = File(KFiles.libsDir(project))
             val result = File(archiveDir.path, fullArchiveName)
-            log(2, "Creating $result")
+            log(3, "Creating $result")
             if (! Features.USE_TIMESTAMPS || isOutdated(project.directory, includedFiles, result)) {
                 val outStream = outputStreamFactory(FileOutputStream(result))
                 JarUtils.addFiles(project.directory, includedFiles, outStream, expandJarFiles)
@@ -39,7 +40,7 @@ class Archives {
                 outStream.close()
                 log(1, "  Created $result")
             } else {
-                log(2, "  $result is up to date")
+                log(3, "  $result is up to date")
             }
 
             project.projectProperties.put(JAR_NAME, result.absolutePath)
@@ -57,7 +58,7 @@ class Archives {
                     val file = File(KFiles.joinDir(directory, root.from, relFile.path))
                     if (file.isFile) {
                         if (file.lastModified() > lastModified) {
-                            log(2, "    TS - Outdated $file and $output "
+                            log(3, "    TS - Outdated $file and $output "
                                     + Date(file.lastModified()) + " " + Date(output.lastModified()))
                             return true
                         }

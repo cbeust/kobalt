@@ -1,10 +1,10 @@
-package com.beust.kobalt.plugin.packaging
+package com.beust.kobalt
 
-import com.beust.kobalt.Archives
-import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.ProjectDescription
+import com.beust.kobalt.archive.Archives
+import com.beust.kobalt.archive.Jar
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.*
@@ -14,7 +14,43 @@ import java.io.OutputStream
 import java.nio.file.Paths
 import java.util.jar.JarOutputStream
 
-class JarGenerator @Inject constructor(val dependencyManager: DependencyManager){
+class JarGenerator @Inject constructor(val dependencyManager: DependencyManager) {
+    companion object {
+        fun findIncludedFiles(directory: String, files: List<IncludedFile>, excludes: List<Glob>)
+                : List<IncludedFile> {
+            val result = arrayListOf<IncludedFile>()
+            files.forEach { includedFile ->
+                val includedSpecs = arrayListOf<IFileSpec>()
+                includedFile.specs.forEach { spec ->
+                    val fromPath = includedFile.from
+                    if (File(directory, fromPath).exists()) {
+                        spec.toFiles(directory, fromPath).forEach { file ->
+                            val fullFile = File(KFiles.joinDir(directory, fromPath, file.path))
+                            if (! fullFile.exists()) {
+                                throw AssertionError("File should exist: $fullFile")
+                            }
+
+                            if (!KFiles.isExcluded(fullFile, excludes)) {
+                                val normalized = Paths.get(file.path).normalize().toFile().path
+                                includedSpecs.add(IFileSpec.FileSpec(normalized))
+                            } else {
+                                log(2, "Not adding ${file.path} to jar file because it's excluded")
+                            }
+
+                        }
+                    } else {
+                        log(2, "Directory $fromPath doesn't exist, not including it in the jar")
+                    }
+                }
+                if (includedSpecs.size > 0) {
+                    log(3, "Including specs $includedSpecs")
+                    result.add(IncludedFile(From(includedFile.from), To(includedFile.to), includedSpecs))
+                }
+            }
+            return result
+        }
+    }
+
     fun findIncludedFiles(project: Project, context: KobaltContext, jar: Jar) : List<IncludedFile> {
         //
         // Add all the applicable files for the current project
@@ -33,7 +69,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
             // Class files
             val files = KFiles.findRecursively(classesDir).map { File(relClassesDir.toFile(), it) }
             val filesNotExcluded : List<File> = files.filter {
-                ! KFiles.isExcluded(KFiles.joinDir(project.directory, it.path), jar.excludes)
+                ! KFiles.Companion.isExcluded(KFiles.joinDir(project.directory, it.path), jar.excludes)
             }
             val fileSpecs = arrayListOf<IFileSpec>()
             filesNotExcluded.forEach {
@@ -49,7 +85,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
             //
             // The user specified an include, just use it verbatim
             //
-            val includedFiles = PackagingPlugin.findIncludedFiles(project.directory, jar.includedFiles, jar.excludes)
+            val includedFiles = findIncludedFiles(project.directory, jar.includedFiles, jar.excludes)
             result.addAll(includedFiles)
         }
 
@@ -71,7 +107,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
             }.forEach { file : File ->
                 if (! seen.contains(file.path)) {
                     seen.add(file.path)
-                    if (! KFiles.isExcluded(file, jar.excludes)) {
+                    if (! KFiles.Companion.isExcluded(file, jar.excludes)) {
                         result.add(IncludedFile(specs = arrayListOf(IFileSpec.FileSpec(file.path)),
                                 expandJarFiles = true))
                     }
