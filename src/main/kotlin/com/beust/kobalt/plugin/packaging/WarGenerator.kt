@@ -1,5 +1,6 @@
 package com.beust.kobalt.plugin.packaging
 
+import com.beust.kobalt.Archives
 import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.KobaltContext
@@ -86,7 +87,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
 
         val allFiles = findIncludedFiles(project, context, war)
         val jarFactory = { os: OutputStream -> JarOutputStream(os, manifest) }
-        return PackagingPlugin.generateArchive(project, context, war.name, ".war", allFiles,
+        return Archives.generateArchive(project, context, war.name, ".war", allFiles,
                 false /* don't expand jar files */, jarFactory)
     }
 

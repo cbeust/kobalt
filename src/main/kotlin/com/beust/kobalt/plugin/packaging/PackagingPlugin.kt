@@ -12,11 +12,7 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.misc.*
 import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
 import java.nio.file.Paths
-import java.util.*
-import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,9 +28,6 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
         @ExportedProjectProperty(doc = "Where the libraries are saved", type = "String")
         const val LIBS_DIR = "libsDir"
-
-        @ExportedProjectProperty(doc = "The name of the jar file", type = "String")
-        const val JAR_NAME = "jarName"
 
         @ExportedProjectProperty(doc = "The list of packages produced for this project",
                 type = "List<PackageConfig>")
@@ -76,57 +69,6 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             }
             return result
         }
-
-        fun generateArchive(project: Project,
-                context: KobaltContext,
-                archiveName: String?,
-                suffix: String,
-                includedFiles: List<IncludedFile>,
-                expandJarFiles : Boolean = false,
-                outputStreamFactory: (OutputStream) -> ZipOutputStream = DEFAULT_STREAM_FACTORY) : File {
-            val fullArchiveName = context.variant.archiveName(project, archiveName, suffix)
-            val archiveDir = File(libsDir(project))
-            val result = File(archiveDir.path, fullArchiveName)
-            log(2, "Creating $result")
-            if (! Features.USE_TIMESTAMPS || isOutdated(project.directory, includedFiles, result)) {
-                val outStream = outputStreamFactory(FileOutputStream(result))
-                JarUtils.addFiles(project.directory, includedFiles, outStream, expandJarFiles)
-                log(2, text = "Added ${includedFiles.size} files to $result")
-                outStream.flush()
-                outStream.close()
-                log(1, "  Created $result")
-            } else {
-                log(2, "  $result is up to date")
-            }
-
-            project.projectProperties.put(JAR_NAME, result.absolutePath)
-
-            return result
-        }
-
-        private val DEFAULT_STREAM_FACTORY = { os : OutputStream -> ZipOutputStream(os) }
-
-        private fun isOutdated(directory: String, includedFiles: List<IncludedFile>, output: File): Boolean {
-            if (! output.exists()) return true
-
-            val lastModified = output.lastModified()
-            includedFiles.forEach { root ->
-                val allFiles = root.allFromFiles(directory)
-                allFiles.forEach { relFile ->
-                    val file = File(KFiles.joinDir(directory, root.from, relFile.path))
-                    if (file.isFile) {
-                        if (file.lastModified() > lastModified) {
-                            log(2, "    TS - Outdated $file and $output "
-                                    + Date(file.lastModified()) + " " + Date(output.lastModified()))
-                            return true
-                        }
-                    }
-                }
-            }
-            return false
-        }
-
-        private fun libsDir(project: Project) = KFiles.makeDir(KFiles.buildDir(project).path, "libs").path
     }
 
     override val name = PLUGIN_NAME
@@ -135,7 +77,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        project.projectProperties.put(LIBS_DIR, libsDir(project))
+        project.projectProperties.put(LIBS_DIR, KFiles.libsDir(project))
         taskContributor.addVariantTasks(this, project, context, "assemble", runAfter = listOf("compile"),
                 runTask = { doTaskAssemble(project) })
     }

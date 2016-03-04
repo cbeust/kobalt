@@ -94,7 +94,7 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
     }
 
     private fun runJarFile(project: Project, config: ApplicationConfig) : TaskResult {
-        val jarName = project.projectProperties.get(PackagingPlugin.JAR_NAME) as String
+        val jarName = project.projectProperties.get(Archives.JAR_NAME) as String
         @Suppress("UNCHECKED_CAST")
         val packages = project.projectProperties.get(PackagingPlugin.PACKAGES) as List<PackageConfig>
         val allDeps = arrayListOf(jarName)

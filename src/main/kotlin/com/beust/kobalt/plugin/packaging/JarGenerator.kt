@@ -1,5 +1,6 @@
 package com.beust.kobalt.plugin.packaging
 
+import com.beust.kobalt.Archives
 import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
@@ -93,7 +94,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         }
         val jarFactory = { os: OutputStream -> JarOutputStream(os, manifest) }
 
-        return PackagingPlugin.generateArchive(project, context, jar.name, ".jar", allFiles,
+        return Archives.generateArchive(project, context, jar.name, ".jar", allFiles,
                 true /* expandJarFiles */, jarFactory)
     }
 
