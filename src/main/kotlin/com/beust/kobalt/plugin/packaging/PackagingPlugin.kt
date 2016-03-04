@@ -222,27 +222,21 @@ class PackageConfig(val project: Project) : AttributeHolder {
     }
 
     @Directive
-    fun jar(init: Jar.(p: Jar) -> Unit) : Jar {
-        val jar = Jar()
-        jar.init(jar)
-        jars.add(jar)
-        return jar
+    fun jar(init: Jar.(p: Jar) -> Unit) = Jar().apply {
+        init(this)
+        jars.add(this)
     }
 
     @Directive
-    fun zip(init: Zip.(p: Zip) -> Unit) : Zip {
-        val zip = Zip()
-        zip.init(zip)
-        zips.add(zip)
-        return zip
+    fun zip(init: Zip.(p: Zip) -> Unit) = Zip().apply {
+        init(this)
+        zips.add(this)
     }
 
     @Directive
-    fun war(init: War.(p: War) -> Unit) : War {
-        val war = War()
-        war.init(war)
-        wars.add(war)
-        return war
+    fun war(init: War.(p: War) -> Unit) = War().apply {
+        init(this)
+        wars.add(this)
     }
 
     /**
