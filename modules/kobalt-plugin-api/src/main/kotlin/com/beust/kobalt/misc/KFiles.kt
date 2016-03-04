@@ -320,7 +320,7 @@ class KFiles {
                         false
                     })
                 } else {
-                    log(2, "Skipping nonexistent directory $sourceDir")
+                    log(3, "Skipping nonexistent source directory $sourceDir")
                 }
             }
             return result
