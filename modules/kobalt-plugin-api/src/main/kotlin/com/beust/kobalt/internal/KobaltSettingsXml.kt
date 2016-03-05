@@ -18,6 +18,14 @@ import javax.xml.bind.annotation.XmlRootElement
 class KobaltSettingsXml {
     @XmlElement @JvmField
     var localRepo: String = homeDir(KFiles.KOBALT_DOT_DIR, "repository")
+
+    @XmlElement(name = "default-repos") @JvmField
+    var defaultRepos: DefaultReposXml? = null
+}
+
+class DefaultReposXml {
+    @XmlElement @JvmField
+    var repo: List<String> = arrayListOf()
 }
 
 /**
@@ -28,7 +36,9 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
     /**
      * Location of the local repo.
      */
-    var localRepo = xmlFile.localRepo
+    var localRepo = xmlFile.localRepo // var for testing
+
+    val defaultRepos = xmlFile.defaultRepos?.repo
 
     companion object {
         val SETTINGS_FILE_PATH = homeDir(KFiles.KOBALT_DIR, "settings.xml")
@@ -40,7 +50,8 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
                     val jaxbContext = JAXBContext.newInstance(KobaltSettingsXml::class.java)
                     val xmlFile: KobaltSettingsXml = jaxbContext.createUnmarshaller().unmarshal(it)
                             as KobaltSettingsXml
-                    return KobaltSettings(xmlFile)
+                    val result = KobaltSettings(xmlFile)
+                    return result
                 }
             } else {
                 log(2, "Couldn't find ${KobaltSettings.SETTINGS_FILE_PATH}, using default settings")

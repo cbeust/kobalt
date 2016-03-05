@@ -18,15 +18,22 @@ public class Kobalt {
         var context: KobaltContext? = null
 
         /**
-         * @return the repos from the build files and from the contributors.
+         * @return the repos calculated from the following places:
+         * - Either repos specified in settings.xml or from Constants.DEFAULT_REPOS
+         * - Repos from the build file
          */
         val repos : Set<HostConfig>
             get() {
-                val result = HashSet(reposFromBuildFiles)
+                val settingsRepos = Kobalt.context?.settings?.defaultRepos ?: emptyList()
+                val result = ArrayList(
+                        (if (settingsRepos.isEmpty()) Constants.DEFAULT_REPOS
+                        else settingsRepos)
+                    .map { HostConfig(it) })
+
                 Kobalt.context?.pluginInfo?.repoContributors?.forEach {
                     result.addAll(it.reposFor(null))
                 }
-                return result
+                return result.toHashSet()
             }
 
         val reposFromBuildFiles = HashSet<HostConfig>(Constants.DEFAULT_REPOS.map { HostConfig(it) })
