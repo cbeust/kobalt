@@ -1,4 +1,0 @@
-apply plugin: 'java'
-apply plugin: 'application'
-
-mainClassName = 'com.beust.kobalt.wrapper.Main'
