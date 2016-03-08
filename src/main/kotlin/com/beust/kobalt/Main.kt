@@ -195,9 +195,14 @@ private class Main @Inject constructor(
 
                     log(2, "Final list of repos:\n  " + Kobalt.repos.joinToString("\n  "))
 
-                    if (args.dependency != null) {
+                    if (args.projectInfo) {
+                        // --projectInfo
+                        allProjects.forEach {
+                            resolveDependency.run(it.compileDependencies.map {it.id})
+                        }
+                    } else if (args.dependencies != null) {
                         // --resolve
-                        resolveDependency.run(args.dependency as String)
+                        resolveDependency.run(args.dependencies!!.split(",").toList())
                     } else if (args.tasks) {
                         // --tasks
                         displayTasks()

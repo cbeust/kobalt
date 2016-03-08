@@ -26,7 +26,9 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder,
 
     class Dep(val dep: IClasspathDependency, val level: Int)
 
-    fun run(id: String) {
+    fun run(ids: List<String>) = ids.forEach { displayDependenciesFor(it) }
+
+    private fun displayDependenciesFor(id: String) {
         val repoResult = repoFinder.findCorrectRepo(id)
 
         val indent = -1
