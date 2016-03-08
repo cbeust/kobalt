@@ -2,7 +2,6 @@ To do:
 
 Android:
 
-- [ ] Dex dependencies into kobaltBuild/intermediates/pre-dexed and preserve those across builds
 
 General
 
@@ -27,6 +26,7 @@ General
 
 Done:
 
+- [x] Dex dependencies into kobaltBuild/intermediates/pre-dexed and preserve those across builds
 - [x] Compile with javax.tool
 - [x] Android: multiple -source/-target flags
 - [x] Dokka: allow multiple format outputs e.g `outputFormat("html", "javadoc")`
