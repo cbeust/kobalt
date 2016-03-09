@@ -41,7 +41,7 @@ class UpdateKobalt @Inject constructor(val github: GithubApi, val wrapperPropert
             val latestVersionString = latestVersionFuture.get()
             val latestVersion = Versions.toLongVersion(latestVersionString)
             val current = Versions.toLongVersion(Kobalt.version)
-            val distFile = File(KFiles.joinDir(KFiles.distributionsDir, latestVersionString))
+            val distFile = File(KFiles.distributionsDir)
             if (latestVersion > current) {
                 if (distFile.exists()) {
                     log(1, "**** Version $latestVersionString is installed, you can switch to it with " +

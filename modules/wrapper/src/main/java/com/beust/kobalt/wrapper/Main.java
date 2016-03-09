@@ -17,7 +17,7 @@ public class Main {
     }
 
     private static final boolean DEV = false;
-    private static final int DEV_VERSION_INT = 650;
+    private static final int DEV_VERSION_INT = 660;
     private static final String DEV_VERSION = "0." + DEV_VERSION_INT;
     private static final String DEV_ZIP = "/Users/beust/kotlin/kobalt/kobaltBuild/libs/kobalt-" + DEV_VERSION + ".zip";
 
@@ -150,12 +150,12 @@ public class Main {
 
         log(2, "Wrapper version: " + wrapperVersion);
 
-        String zipOutputDir = DISTRIBUTIONS_DIR + "/" + wrapperVersion;
         boolean isNew = Float.parseFloat(version) * 1000 >= 650;
-        if (isNew) {
-            zipOutputDir += File.separator + "kobalt-" + version;
-        }
-        Path kobaltJarFile = Paths.get(zipOutputDir,
+
+        String fromZipOutputDir = DISTRIBUTIONS_DIR + File.separator + "kobalt-" + version;
+        String toZipOutputDir = DISTRIBUTIONS_DIR;
+        Path kobaltJarFile = Paths.get(toZipOutputDir,
+                isNew ? "kobalt-" + version : "",
                 getWrapperDir().getPath() + "/" + FILE_NAME + "-" + wrapperVersion + ".jar");
         boolean downloadedZipFile = false;
         if (! Files.exists(localZipFile) || ! Files.exists(kobaltJarFile)) {
@@ -170,7 +170,7 @@ public class Main {
             int retries = 0;
             while (retries < 2) {
                 try {
-                    extractZipFile(localZipFile, zipOutputDir);
+                    extractZipFile(localZipFile, toZipOutputDir);
                     break;
                 } catch (ZipException e) {
                     retries++;
@@ -192,13 +192,10 @@ public class Main {
                 Path to = Paths.get(file);
                 to.toFile().getAbsoluteFile().getParentFile().mkdirs();
 
-                if (Files.exists(to)) {
-                    log(2, to + " already exists, not overwriting it");
-                    continue;
-                } else if (file.endsWith(KOBALTW)) {
+                if (file.endsWith(KOBALTW)) {
                     generateKobaltW(Paths.get(KOBALTW));
                } else {
-                    Path from = Paths.get(zipOutputDir, file);
+                    Path from = Paths.get(fromZipOutputDir, file);
                     try {
                         if (isWindows() && to.toFile().exists()) {
                             log(2, "  Windows detected, not overwriting " + to);
@@ -232,7 +229,7 @@ public class Main {
         }
         log(2, "Generating " + KOBALTW + (envFile.exists() ? " with shebang" : "") + ".");
 
-        content += "java -jar $(dirname $0)/../kobalt/wrapper/kobalt-wrapper.jar $*\n";
+        content += "java -jar $(dirname $0)/kobalt/wrapper/kobalt-wrapper.jar $*\n";
 
         Files.write(filePath, content.getBytes());
 

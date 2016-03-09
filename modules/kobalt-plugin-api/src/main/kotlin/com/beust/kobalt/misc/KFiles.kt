@@ -26,7 +26,8 @@ class KFiles {
                 debug("Using kobalt jar $envJar")
                 return listOf(File(envJar).absolutePath)
             } else {
-                val jar = joinDir(distributionsDir, Kobalt.version, "kobalt/wrapper/kobalt-" + Kobalt.version + ".jar")
+                val jar = joinDir(distributionsDir, "kobalt-" + Kobalt.version,
+                        "kobalt/wrapper/kobalt-" + Kobalt.version + ".jar")
                 val jarFile = File(jar)
                 if (jarFile.exists()) {
                     return listOf(jarFile.absolutePath)
