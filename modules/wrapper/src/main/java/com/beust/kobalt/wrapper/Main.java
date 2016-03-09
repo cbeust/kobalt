@@ -16,6 +16,11 @@ public class Main {
         System.exit(exitCode);
     }
 
+    private static final boolean DEV = false;
+    private static final int DEV_VERSION_INT = 650;
+    private static final String DEV_VERSION = "0." + DEV_VERSION_INT;
+    private static final String DEV_ZIP = "/Users/beust/kotlin/kobalt/kobaltBuild/libs/kobalt-" + DEV_VERSION + ".zip";
+
     private static final String KOBALT_PROPERTIES = "kobalt.properties";
     private static final String KOBALTW = "kobaltw";
     private static final String KOBALT_WRAPPER_PROPERTIES = "kobalt-wrapper.properties";
@@ -123,19 +128,33 @@ public class Main {
         return System.getProperty("os.name").contains("Windows");
     }
 
-    private Path installDistribution() throws IOException {
-        Properties properties = maybeCreateProperties();
+    private static final String[] FILES = new String[] { KOBALTW, "kobalt/wrapper/" + FILE_NAME + "-wrapper.jar" };
 
-        String version = properties.getProperty(PROPERTY_VERSION);
-        initWrapperFile(version);
-        String wrapperVersion = getWrapperVersion();
+    private Path installDistribution() throws IOException {
+        String wrapperVersion;
+        String version;
+        Path localZipFile;
+        if (DEV) {
+            version = DEV_VERSION;
+            wrapperVersion = DEV_VERSION;
+            localZipFile = Paths.get(DEV_ZIP);
+        } else {
+            Properties properties = maybeCreateProperties();
+            version = properties.getProperty(PROPERTY_VERSION);
+            initWrapperFile(version);
+            wrapperVersion = getWrapperVersion();
+            String fileName = FILE_NAME + "-" + wrapperVersion + ".zip";
+            Files.createDirectories(Paths.get(DISTRIBUTIONS_DIR));
+            localZipFile = Paths.get(DISTRIBUTIONS_DIR, fileName);
+        }
 
         log(2, "Wrapper version: " + wrapperVersion);
 
-        String fileName = FILE_NAME + "-" + wrapperVersion + ".zip";
-        Files.createDirectories(Paths.get(DISTRIBUTIONS_DIR));
-        Path localZipFile = Paths.get(DISTRIBUTIONS_DIR, fileName);
         String zipOutputDir = DISTRIBUTIONS_DIR + "/" + wrapperVersion;
+        boolean isNew = Float.parseFloat(version) * 1000 >= 650;
+        if (isNew) {
+            zipOutputDir += File.separator + "kobalt-" + version;
+        }
         Path kobaltJarFile = Paths.get(zipOutputDir,
                 getWrapperDir().getPath() + "/" + FILE_NAME + "-" + wrapperVersion + ".jar");
         boolean downloadedZipFile = false;
@@ -166,16 +185,18 @@ public class Main {
         //
         // Copy the wrapper files in the current kobalt/wrapper directory
         //
+
         if (! noOverwrite) {
             log(2, "Copying the wrapper files");
             for (String file : FILES) {
-                Path to = Paths.get(new File(".").getAbsolutePath(), file);
+                Path to = Paths.get(file);
+                to.toFile().getAbsoluteFile().getParentFile().mkdirs();
 
                 if (Files.exists(to)) {
                     log(2, to + " already exists, not overwriting it");
                     continue;
-                } else if (file.equals(KOBALTW)) {
-                    generateKobaltW(to);
+                } else if (file.endsWith(KOBALTW)) {
+                    generateKobaltW(Paths.get(KOBALTW));
                } else {
                     Path from = Paths.get(zipOutputDir, file);
                     try {
@@ -211,7 +232,7 @@ public class Main {
         }
         log(2, "Generating " + KOBALTW + (envFile.exists() ? " with shebang" : "") + ".");
 
-        content += "java -jar $(dirname $0)/kobalt/wrapper/kobalt-wrapper.jar $*\n";
+        content += "java -jar $(dirname $0)/../kobalt/wrapper/kobalt-wrapper.jar $*\n";
 
         Files.write(filePath, content.getBytes());
 
@@ -247,8 +268,6 @@ public class Main {
             }
         }
     }
-
-    private static final String[] FILES = new String[] { KOBALTW, "kobalt/wrapper/" + FILE_NAME + "-wrapper.jar" };
 
     private void download(File file, String version) throws IOException {
         for (int attempt = 0; attempt < 3; ++attempt) {
