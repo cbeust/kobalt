@@ -82,6 +82,7 @@ public class Kobalt {
         }
 
         val version = kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION)
+        // Note: Duration is Java 8 only, might need an alternative if we want to support Java < 8
         val versionCheckTimeout = Duration.parse(
                 kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION_CHECK_TIMEOUT) ?: "P1D")
 
