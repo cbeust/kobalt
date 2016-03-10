@@ -17,7 +17,7 @@ public class Main {
     }
 
     private static final boolean DEV = false;
-    private static final int DEV_VERSION_INT = 660;
+    private static final int DEV_VERSION_INT = 662;
     private static final String DEV_VERSION = "0." + DEV_VERSION_INT;
     private static final String DEV_ZIP = "/Users/beust/kotlin/kobalt/kobaltBuild/libs/kobalt-" + DEV_VERSION + ".zip";
 
@@ -35,12 +35,25 @@ public class Main {
     private static int logLevel = 1;
     private boolean noOverwrite = false;
 
+    private String getVersion() throws IOException {
+        Properties properties = maybeCreateProperties();
+        return properties.getProperty(PROPERTY_VERSION);
+    }
+
     private int installAndLaunchMain(String[] argv) throws IOException, InterruptedException {
+        String version = getVersion();
+        initWrapperFile(version);
+
         List<String> kobaltArgv = new ArrayList<>();
         boolean noLaunch = false;
+        boolean exit = false;
         for (int i = 0; i < argv.length; i++) {
             boolean passToKobalt = true;
             switch(argv[i]) {
+                case "--version":
+                    System.out.println("Kobalt " + version + ", Wrapper " + getWrapperVersion());
+                    exit = true;
+                    break;
                 case "--noOverwrite":
                     noOverwrite = true;
                     passToKobalt = false;
@@ -58,10 +71,12 @@ public class Main {
                 kobaltArgv.add(argv[i]);
             }
         }
-        Path kobaltJarFile = installDistribution();
         int result = 0;
-        if (! noLaunch) {
-            result = launchMain(kobaltJarFile, kobaltArgv.toArray(new String[kobaltArgv.size()]));
+        if (! exit) {
+            Path kobaltJarFile = installDistribution();
+            if (!noLaunch) {
+                result = launchMain(kobaltJarFile, kobaltArgv.toArray(new String[kobaltArgv.size()]));
+            }
         }
         return result;
     }
@@ -139,9 +154,7 @@ public class Main {
             wrapperVersion = DEV_VERSION;
             localZipFile = Paths.get(DEV_ZIP);
         } else {
-            Properties properties = maybeCreateProperties();
-            version = properties.getProperty(PROPERTY_VERSION);
-            initWrapperFile(version);
+            version = getVersion();
             wrapperVersion = getWrapperVersion();
             String fileName = FILE_NAME + "-" + wrapperVersion + ".zip";
             Files.createDirectories(Paths.get(DISTRIBUTIONS_DIR));
@@ -155,7 +168,7 @@ public class Main {
         String fromZipOutputDir = DISTRIBUTIONS_DIR + File.separator + "kobalt-" + version;
         String toZipOutputDir = DISTRIBUTIONS_DIR;
         Path kobaltJarFile = Paths.get(toZipOutputDir,
-                isNew ? "kobalt-" + version : "",
+                isNew ? "kobalt-" + wrapperVersion : "",
                 getWrapperDir().getPath() + "/" + FILE_NAME + "-" + wrapperVersion + ".jar");
         boolean downloadedZipFile = false;
         if (! Files.exists(localZipFile) || ! Files.exists(kobaltJarFile)) {
