@@ -43,7 +43,7 @@ class VerifyKobaltZipTest : KobaltTest() {
         val stream = JarInputStream(FileInputStream(zipFilePath))
         var entry = stream.nextEntry
         while (entry != null) {
-            if (entry.name == "kobaltw") {
+            if (entry.name.endsWith("kobaltw")) {
                 foundKobaltw = true
             } else if (entry.name.endsWith(mainJarFilePath)) {
                 val ins = zipFile.getInputStream(entry)
