@@ -21,6 +21,12 @@ val r = repos("http://dl.bintray.com/kotlin/kotlinx.dom")
 
 //val pl = plugins("com.beust:kobalt-android:0.20")
 
+object Versions {
+    val okhttp = "3.2.0"
+    val okio = "1.6.0"
+    val retrofit = "2.0.0-beta4"
+}
+
 val wrapper = project {
     name = "kobalt-wrapper"
     group = "com.beust"
@@ -69,10 +75,9 @@ val kobaltPluginApi = project {
                 "org.apache.maven:maven-model:3.3.3",
                 "io.reactivex:rxjava:1.0.16",
                 "com.google.code.gson:gson:2.4",
-                "com.squareup.okio:okio:1.6.0",
-                "com.squareup.okhttp3:okhttp:3.2.0",
-                "com.squareup.retrofit2:retrofit:2.0.0-beta4",
-                "com.squareup.retrofit2:converter-gson:2.0.0-beta4",
+                "com.squareup.okio:okio:${Versions.okio}",
+                "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
+                "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "com.beust:jcommander:1.48"
                 )
     }
@@ -116,9 +121,10 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "com.google.inject:guice:4.0",
                 "com.google.inject.extensions:guice-assistedinject:4.0",
                 "com.beust:jcommander:1.48",
-                "com.squareup.retrofit:retrofit:1.9.0",
                 "org.apache.maven:maven-model:3.3.3",
                 "com.google.code.findbugs:jsr305:3.0.1",
+                "com.google.code.gson:gson:2.4",
+                "com.squareup.okhttp3:okhttp:${Versions.okhttp}",
                 "org.codehaus.plexus:plexus-utils:3.0.22")
 
     }

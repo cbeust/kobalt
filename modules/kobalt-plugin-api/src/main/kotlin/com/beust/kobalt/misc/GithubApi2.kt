@@ -5,6 +5,7 @@ import com.beust.kobalt.internal.DocUrl
 import com.beust.kobalt.maven.Http
 import com.google.gson.annotations.SerializedName
 import com.google.inject.Inject
+import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -56,6 +57,7 @@ class GithubApi2 @Inject constructor(
     // Read only Api
     //
     private val service = Retrofit.Builder()
+            .client(OkHttpClient())
             .baseUrl("https://api.github.com")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
