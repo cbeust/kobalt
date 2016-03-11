@@ -19,15 +19,17 @@ class CountingFileRequestBody(val file: File, val contentType: String,
     override fun contentType() = MediaType.parse(contentType)
 
     override fun writeTo(sink: BufferedSink) {
-        Okio.source(file).use { source ->
-            var total = 0L
-            var read: Long = source.read(sink.buffer(), SEGMENT_SIZE)
+        file.inputStream().use { fis ->
+            Okio.source(fis).use { source ->
+                var total = 0L
+                var read: Long = source.read(sink.buffer(), SEGMENT_SIZE)
 
-            while (read != -1L) {
-                total += read
-                sink.flush();
-                listenerCallback(total)
-                read = source.read(sink.buffer(), SEGMENT_SIZE)
+                while (read != -1L) {
+                    total += read
+                    sink.flush();
+                    listenerCallback(total)
+                    read = source.read(sink.buffer(), SEGMENT_SIZE)
+                }
             }
         }
     }
