@@ -14,7 +14,7 @@ import com.google.common.net.MediaType
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.inject.assistedinject.Assisted
-import com.squareup.okhttp.Response
+import okhttp3.Response
 import retrofit.mime.TypedFile
 import java.io.File
 import javax.annotation.Nullable

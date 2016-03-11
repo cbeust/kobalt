@@ -3,7 +3,7 @@ package com.beust.kobalt.maven
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.misc.CountingFileRequestBody
 import com.beust.kobalt.misc.log
-import com.squareup.okhttp.*
+import okhttp3.*
 import retrofit.mime.TypedFile
 import java.io.IOException
 import javax.inject.Singleton
@@ -11,7 +11,7 @@ import javax.inject.Singleton
 @Singleton
 class Http {
     fun get(user: String?, password: String?, url: String) : Response {
-        val client = OkHttpClient();
+        val client = OkHttpClient()
         val request = Request.Builder().url(url)
         if (user != null) {
             request.header("Authorization", Credentials.basic(user, password))

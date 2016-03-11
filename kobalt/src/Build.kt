@@ -62,7 +62,6 @@ val kobaltPluginApi = project {
     dependencies {
         compile("org.jetbrains.kotlinx:kotlinx.dom:0.0.9",
 
-                "com.squareup.okhttp:okhttp:2.5.0",
                 "com.squareup.okio:okio:1.6.0",
                 "com.google.inject:guice:4.0",
                 "com.google.inject.extensions:guice-assistedinject:4.0",
@@ -114,7 +113,6 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
         // Used by the main app
         compile("com.github.spullara.mustache.java:compiler:0.9.1",
-                "com.squareup.okhttp:okhttp:2.5.0",
                 "javax.inject:javax.inject:1",
                 "com.google.inject:guice:4.0",
                 "com.google.inject.extensions:guice-assistedinject:4.0",

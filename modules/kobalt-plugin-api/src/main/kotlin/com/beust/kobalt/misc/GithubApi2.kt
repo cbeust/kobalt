@@ -5,7 +5,6 @@ import com.beust.kobalt.internal.DocUrl
 import com.beust.kobalt.maven.Http
 import com.google.gson.annotations.SerializedName
 import com.google.inject.Inject
-import com.squareup.okhttp.Headers
 import retrofit.RetrofitError
 import retrofit.mime.TypedFile
 import retrofit2.Call
@@ -93,7 +92,7 @@ class GithubApi2 @Inject constructor(
         val strippedUrl = uploadUrl.substring(0, uploadUrl.indexOf("{"))
         val fileName = typedFile.file().name
         val url = "$strippedUrl?name=$fileName&label=$fileName"
-        val headers = Headers.of("Authorization", "token $token")
+        val headers = okhttp3.Headers.of("Authorization", "token $token")
         val totalSize = typedFile.file().length()
         http.uploadFile(url = url, file = typedFile, headers = headers, post = true, // Github requires POST
                 progressCallback = http.percentProgressCallback(totalSize))
@@ -106,8 +105,8 @@ class GithubApi2 @Inject constructor(
             val callable = Callable<String> {
                 var result = "0"
 
-                val username = localProperties.getNoThrows(GithubApiOld.PROPERTY_USERNAME, DOC_URL)
-                val accessToken = localProperties.getNoThrows(GithubApiOld.PROPERTY_ACCESS_TOKEN, DOC_URL)
+                val username = localProperties.getNoThrows(PROPERTY_USERNAME, DOC_URL)
+                val accessToken = localProperties.getNoThrows(PROPERTY_ACCESS_TOKEN, DOC_URL)
                 try {
                     val req =
                             if (username != null && accessToken != null) {
