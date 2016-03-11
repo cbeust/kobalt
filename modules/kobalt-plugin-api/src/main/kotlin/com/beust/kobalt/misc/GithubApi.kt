@@ -23,7 +23,7 @@ import javax.inject.Inject
 /**
  * Retrieve Kobalt's latest release version from github.
  */
-public class GithubApi @Inject constructor(val executors: KobaltExecutors,
+class GithubApiOld @Inject constructor(val executors: KobaltExecutors,
         val localProperties: LocalProperties, val http: Http) {
     companion object {
         const val PROPERTY_ACCESS_TOKEN = "github.accessToken"

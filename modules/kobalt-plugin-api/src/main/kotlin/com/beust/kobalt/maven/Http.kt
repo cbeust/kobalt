@@ -9,8 +9,8 @@ import java.io.IOException
 import javax.inject.Singleton
 
 @Singleton
-public class Http {
-    public fun get(user: String?, password: String?, url: String) : Response {
+class Http {
+    fun get(user: String?, password: String?, url: String) : Response {
         val client = OkHttpClient();
         val request = Request.Builder().url(url)
         if (user != null) {
@@ -24,7 +24,7 @@ public class Http {
         }
     }
 
-    public fun get(url: String) : Response {
+    fun get(url: String) : Response {
         return get(null, null, url)
     }
 
@@ -39,7 +39,7 @@ public class Http {
         error("Couldn't upload file: " + r.message())
     }
 
-    public fun uploadFile(user: String? = null, password: String? = null, url: String, file: TypedFile,
+    fun uploadFile(user: String? = null, password: String? = null, url: String, file: TypedFile,
             post: Boolean,
             progressCallback: (Long) -> Unit = {},
             headers: Headers = Headers.of(),
