@@ -5,8 +5,6 @@ import com.beust.kobalt.internal.DocUrl
 import com.beust.kobalt.maven.Http
 import com.google.gson.annotations.SerializedName
 import com.google.inject.Inject
-import retrofit.RetrofitError
-import retrofit.mime.TypedFile
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -73,13 +71,13 @@ class GithubApi2 @Inject constructor(
                     .execute()
                     .body()
 
-            uploadAsset(accessToken, response.uploadUrl!!, TypedFile("application/zip", zipFile),
+            uploadAsset(accessToken, response.uploadUrl!!, Http.TypedFile("application/zip", zipFile),
                     tagName)
                 .toBlocking()
                 .forEach { action ->
                     log(1, "\n${zipFile.name} successfully uploaded")
                 }
-        } catch(e: RetrofitError) {
+        } catch(e: Exception) {
             throw KobaltException("Couldn't upload release: " + e.message, e)
 //            val error = parseRetrofitError(e)
 //            throw KobaltException("Couldn't upload release, ${error.message}: "
@@ -87,13 +85,13 @@ class GithubApi2 @Inject constructor(
         }
     }
 
-    private fun uploadAsset(token: String, uploadUrl: String, typedFile: TypedFile, tagName: String)
+    private fun uploadAsset(token: String, uploadUrl: String, typedFile: Http.TypedFile, tagName: String)
             : Observable<UploadAssetResponse> {
         val strippedUrl = uploadUrl.substring(0, uploadUrl.indexOf("{"))
-        val fileName = typedFile.file().name
+        val fileName = typedFile.file.name
         val url = "$strippedUrl?name=$fileName&label=$fileName"
         val headers = okhttp3.Headers.of("Authorization", "token $token")
-        val totalSize = typedFile.file().length()
+        val totalSize = typedFile.file.length()
         http.uploadFile(url = url, file = typedFile, headers = headers, post = true, // Github requires POST
                 progressCallback = http.percentProgressCallback(totalSize))
 
@@ -123,7 +121,7 @@ class GithubApi2 @Inject constructor(
                             throw KobaltException("Couldn't find the latest release")
                         }
                     }
-                } catch(e: RetrofitError) {
+                } catch(e: Exception) {
                     log(1, "Couldn't retrieve releases from github: " + e.message)
                     e.printStackTrace()
 //                    val error = parseRetrofitError(e)

@@ -4,12 +4,14 @@ import com.beust.kobalt.KobaltException
 import com.beust.kobalt.misc.CountingFileRequestBody
 import com.beust.kobalt.misc.log
 import okhttp3.*
-import retrofit.mime.TypedFile
+import java.io.File
 import java.io.IOException
 import javax.inject.Singleton
 
 @Singleton
 class Http {
+    class TypedFile(val mimeType: String, val file: File)
+
     fun get(user: String?, password: String?, url: String) : Response {
         val client = OkHttpClient()
         val request = Request.Builder().url(url)
@@ -47,7 +49,7 @@ class Http {
             error: (Response) -> Unit = DEFAULT_ERROR_RESPONSE) {
 
         val fullHeaders = Headers.Builder()
-        fullHeaders.set("Content-Type", file.mimeType())
+        fullHeaders.set("Content-Type", file.mimeType)
         headers.names().forEach { fullHeaders.set(it, headers.get(it)) }
 
         user?.let {
@@ -59,9 +61,9 @@ class Http {
                 .url(url)
         val request =
             (if (post)
-                requestBuilder.post(CountingFileRequestBody(file.file(), file.mimeType(), progressCallback))
+                requestBuilder.post(CountingFileRequestBody(file.file, file.mimeType, progressCallback))
             else
-                requestBuilder.put(CountingFileRequestBody(file.file(), file.mimeType(), progressCallback)))
+                requestBuilder.put(CountingFileRequestBody(file.file, file.mimeType, progressCallback)))
             .build()
 
         log(2, "Uploading $file to $url")

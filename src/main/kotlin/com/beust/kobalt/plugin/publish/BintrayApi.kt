@@ -15,7 +15,6 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.inject.assistedinject.Assisted
 import okhttp3.Response
-import retrofit.mime.TypedFile
 import java.io.File
 import javax.annotation.Nullable
 import javax.inject.Inject
@@ -153,7 +152,7 @@ class BintrayApi @Inject constructor (
             val results = arrayListOf<Boolean>()
             filesToUpload.forEach { file ->
                 http.uploadFile(username, password, fileToPath(file) + optionPath,
-                        TypedFile(MediaType.ANY_APPLICATION_TYPE.toString(), file),
+                        Http.TypedFile(MediaType.ANY_APPLICATION_TYPE.toString(), file),
                         post = false, // Bintray requires PUT
                         success = { r: Response -> results.add(true) },
                         error = { r: Response ->
