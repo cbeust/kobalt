@@ -14,7 +14,7 @@ import javax.inject.Inject
 /**
  * Update Kobalt to the latest version.
  */
-class UpdateKobalt @Inject constructor(val github: GithubApi, val wrapperProperties: KobaltWrapperProperties) {
+class UpdateKobalt @Inject constructor(val github: GithubApi2, val wrapperProperties: KobaltWrapperProperties) {
     fun updateKobalt() {
         val newVersion = github.latestKobaltVersion
         wrapperProperties.create(newVersion.get())

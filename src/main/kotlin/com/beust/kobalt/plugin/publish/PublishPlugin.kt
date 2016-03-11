@@ -16,7 +16,7 @@ import javax.inject.Singleton
 @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
 @Singleton
 public class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGenerator.IFactory,
-            val bintrayFactory: BintrayApi.IFactory, val github: GithubApi, val localProperties: LocalProperties)
+            val bintrayFactory: BintrayApi.IFactory, val github: GithubApi2, val localProperties: LocalProperties)
         : BasePlugin() {
 
     override val name = PLUGIN_NAME

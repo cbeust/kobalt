@@ -71,7 +71,10 @@ val kobaltPluginApi = project {
                 "org.apache.maven:maven-model:3.3.3",
                 "io.reactivex:rxjava:1.0.16",
                 "com.google.code.gson:gson:2.4",
+                "com.squareup.okhttp3:okhttp:3.2.0",
                 "com.squareup.retrofit:retrofit:1.9.0",
+                "com.squareup.retrofit2:retrofit:2.0.0-beta4",
+                "com.squareup.retrofit2:converter-gson:2.0.0-beta4",
                 "com.beust:jcommander:1.48"
                 )
     }

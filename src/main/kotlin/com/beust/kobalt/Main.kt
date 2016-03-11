@@ -58,7 +58,7 @@ private class Main @Inject constructor(
         val files: KFiles,
         val executors: KobaltExecutors,
         val checkVersions: CheckVersions,
-        val github: GithubApi,
+        val github: GithubApi2,
         val updateKobalt: UpdateKobalt,
         val client: KobaltClient,
         val server: KobaltServer,
