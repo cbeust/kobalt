@@ -10,7 +10,9 @@ import javax.inject.Singleton
 
 @Singleton
 class Http {
-    class TypedFile(val mimeType: String, val file: File)
+    class TypedFile(val mimeType: String, val file: File) {
+        override fun toString() = file.name
+    }
 
     fun get(user: String?, password: String?, url: String) : Response {
         val client = OkHttpClient()
