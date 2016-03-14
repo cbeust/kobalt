@@ -33,10 +33,12 @@ public class Kobalt {
                 Kobalt.context?.pluginInfo?.repoContributors?.forEach {
                     result.addAll(it.reposFor(null))
                 }
+
+                result.addAll(reposFromBuildFiles)
                 return result.toHashSet()
             }
 
-        val reposFromBuildFiles = HashSet<HostConfig>(Constants.DEFAULT_REPOS.map { HostConfig(it) })
+        val reposFromBuildFiles = hashSetOf<HostConfig>()
 
         fun addRepo(repo: HostConfig) = reposFromBuildFiles.add(
                 if (repo.url.endsWith("/")) repo
