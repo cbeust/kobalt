@@ -3,6 +3,7 @@ package com.beust.kobalt.misc
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.internal.DocUrl
 import com.beust.kobalt.maven.Http
+import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.google.inject.Inject
 import okhttp3.OkHttpClient
@@ -63,27 +64,29 @@ class GithubApi2 @Inject constructor(
             .build()
             .create(Api::class.java)
 
+    // JSON Retrofit error
+    class Error(val code: String)
+    class RetrofitError(var message: String = "", var errors : List<Error> = arrayListOf())
+
     fun uploadRelease(packageName: String, tagName: String, zipFile: File) {
         log(1, "Uploading release ${zipFile.name}")
 
         val username = localProperties.get(PROPERTY_USERNAME, DOC_URL)
         val accessToken = localProperties.get(PROPERTY_ACCESS_TOKEN, DOC_URL)
-        try {
-            val response = service.createRelease(username, packageName, accessToken, CreateRelease(tagName))
-                    .execute()
-                    .body()
+        val response = service.createRelease(username, packageName, accessToken, CreateRelease(tagName))
+                .execute()
+        val code = response.code()
+        if (code != Http.CREATED) {
+            val error = Gson().fromJson(response.errorBody().string(), RetrofitError::class.java)
+            throw KobaltException("Couldn't upload release, ${error.message}: " + error.errors[0].code)
+        } else {
+            val body = response.body()
 
-            uploadAsset(accessToken, response.uploadUrl!!, Http.TypedFile("application/zip", zipFile),
-                    tagName)
-                .toBlocking()
+            uploadAsset(accessToken, body.uploadUrl!!, Http.TypedFile("application/zip", zipFile), tagName)
+                    .toBlocking()
                 .forEach { action ->
                     log(1, "\n${zipFile.name} successfully uploaded")
                 }
-        } catch(e: Exception) {
-            throw KobaltException("Couldn't upload release: " + e.message, e)
-//            val error = parseRetrofitError(e)
-//            throw KobaltException("Couldn't upload release, ${error.message}: "
-//                    + error.errors[0].code + " field: " + error.errors[0].field)
         }
     }
 

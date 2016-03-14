@@ -10,6 +10,10 @@ import javax.inject.Singleton
 
 @Singleton
 class Http {
+    companion object {
+        // HTTP statuses
+        val CREATED = 201
+    }
     class TypedFile(val mimeType: String, val file: File) {
         override fun toString() = file.name
     }
