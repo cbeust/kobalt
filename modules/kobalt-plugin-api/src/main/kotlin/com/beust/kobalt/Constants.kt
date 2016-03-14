@@ -10,10 +10,12 @@ object Constants {
     internal val DEFAULT_REPOS = listOf(
             "http://repo1.maven.org/maven2/",
             "https://maven-central.storage.googleapis.com/",
-            "https://repository.jboss.org/nexus/content/repositories/root_repository/",
-            "https://jcenter.bintray.com/",
-            "http://repository.jetbrains.com/all/",
-            "https://oss.sonatype.org/content/repositories/snapshots/"
+            "https://jcenter.bintray.com/"
+
+            // The following two repos contain snapshots, never include them or default
+//            "https://repository.jboss.org/nexus/content/repositories/root_repository/",
+//            "http://repository.jetbrains.com/all/"
+//            "https://oss.sonatype.org/content/repositories/snapshots/"
     )
 
 }
