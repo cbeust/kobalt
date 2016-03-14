@@ -44,6 +44,8 @@ class Kurl(val hostInfo: HostConfig) {
         }
     }
 
+    override fun toString() = hostInfo.toString()
+
     val connection : URLConnection
         get() {
             val result = URL(hostInfo.url).openConnection()

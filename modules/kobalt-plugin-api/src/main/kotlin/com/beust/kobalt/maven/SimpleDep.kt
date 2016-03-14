@@ -9,6 +9,8 @@ open class SimpleDep(open val mavenId: MavenId) : UnversionedDep(mavenId.groupId
         }
     }
 
+    override fun toString() = mavenId.toId
+
     val version: String get() =
         if (mavenId.version == null) {
             ""
