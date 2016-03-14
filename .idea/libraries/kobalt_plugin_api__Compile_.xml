@@ -3,19 +3,19 @@
     <CLASSES>
       <root url="jar://$USER_HOME$/.kobalt/repository/org/codehaus/plexus/plexus-utils/3.0.22/plexus-utils-3.0.22.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/aopalliance/aopalliance/1.0/aopalliance-1.0.jar!/" />
-      <root url="jar://$USER_HOME$/.kobalt/repository/com/google/inject/extensions/guice-assistedinject/4.0/guice-assistedinject-4.0.jar!/" />
-      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/retrofit2/retrofit/2.0.0-beta4/retrofit-2.0.0-beta4.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlinx/kotlinx.dom/0.0.9/kotlinx.dom-0.0.9.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/google/inject/extensions/guice-assistedinject/4.0/guice-assistedinject-4.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/retrofit2/retrofit/2.0.0/retrofit-2.0.0.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/com/beust/jcommander/1.48/jcommander-1.48.jar!/" />
-      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/okhttp3/okhttp/3.3.0-SNAPSHOT/okhttp-3.3.0-SNAPSHOT.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/okio/okio/1.6.0/okio-1.6.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/okhttp3/okhttp/3.2.0/okhttp-3.2.0.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/javax/inject/javax.inject/1/javax.inject-1.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/org/apache/maven/maven-model/3.3.3/maven-model-3.3.3.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/io/reactivex/rxjava/1.0.16/rxjava-1.0.16.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/com/google/code/gson/gson/2.6.2/gson-2.6.2.jar!/" />
-      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/retrofit2/converter-gson/2.0.0-beta4/converter-gson-2.0.0-beta4.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/retrofit2/converter-gson/2.0.0/converter-gson-2.0.0.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/com/google/guava/guava/20.0-SNAPSHOT/guava-20.0-SNAPSHOT.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/com/google/inject/guice/4.0/guice-4.0.jar!/" />
-      <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/okio/okio/1.6.0/okio-1.6.0.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

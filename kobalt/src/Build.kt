@@ -24,7 +24,8 @@ val r = repos("http://dl.bintray.com/kotlin/kotlinx.dom")
 object Versions {
     val okhttp = "3.2.0"
     val okio = "1.6.0"
-    val retrofit = "2.0.0-beta4"
+    val retrofit = "2.0.0"
+    val gson = "2.6.2"
 }
 
 val wrapper = project {
@@ -74,7 +75,7 @@ val kobaltPluginApi = project {
                 "com.google.guava:guava:19.0-rc2",
                 "org.apache.maven:maven-model:3.3.3",
                 "io.reactivex:rxjava:1.0.16",
-                "com.google.code.gson:gson:2.4",
+                "com.google.code.gson:gson:${Versions.gson}",
                 "com.squareup.okio:okio:${Versions.okio}",
                 "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
@@ -123,7 +124,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "com.beust:jcommander:1.48",
                 "org.apache.maven:maven-model:3.3.3",
                 "com.google.code.findbugs:jsr305:3.0.1",
-                "com.google.code.gson:gson:2.4",
+                "com.google.code.gson:gson:${Versions.gson}",
                 "com.squareup.okhttp3:okhttp:${Versions.okhttp}",
                 "org.codehaus.plexus:plexus-utils:3.0.22")
 
