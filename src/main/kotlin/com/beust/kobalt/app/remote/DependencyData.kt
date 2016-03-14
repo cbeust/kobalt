@@ -10,6 +10,7 @@ import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.maven.dependency.MavenDependency
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.google.inject.Inject
 import java.io.File
@@ -48,9 +49,13 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
                     it.name
                 }
             }
+
+            // Separate resource from source directories
+            val sources = project.sourceDirectories.partition { KFiles.isResource(it) }
+            val tests = project.sourceDirectoriesTest.partition { KFiles.isResource(it) }
             projectDatas.add(ProjectData(project.name, project.directory, dependentProjects,
                     compileDependencies, testDependencies,
-                    project.sourceDirectories, project.sourceDirectoriesTest))
+                    sources.second.toSet(), tests.second.toSet(), sources.first.toSet(), tests.first.toSet()))
         }
         return GetDependenciesData(projectDatas)
     }
@@ -64,7 +69,8 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
     class ProjectData(val name: String, val directory: String,
             val dependentProjects: List<String>,
             val compileDependencies: List<DependencyData>,
-            val testDependencies: List<DependencyData>, val sourceDirs: Set<String>, val testDirs: Set<String>)
+            val testDependencies: List<DependencyData>, val sourceDirs: Set<String>, val testDirs: Set<String>,
+            val sourceResourceDirs: Set<String>, val testResourceDirs: Set<String>)
 
     class GetDependenciesData(val projects: List<ProjectData>)
 }
