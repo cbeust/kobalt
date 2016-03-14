@@ -175,7 +175,7 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors, val localRe
                             return listOf(RepoResult(repo, Version.of(dep.version), firstFound.hostInfo.url))
                         }
                     } else {
-                        log(2, "Couldn't find " + dep)
+                        log(3, "Couldn't find $dep on $repoUrl")
                         return emptyList()
                     }
                 }
