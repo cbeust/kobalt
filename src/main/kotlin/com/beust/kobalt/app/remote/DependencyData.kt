@@ -31,11 +31,11 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
 
         val buildFile = BuildFile(Paths.get(buildFilePath), "GetDependenciesCommand")
         val buildFileCompiler = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
-        val projects = buildFileCompiler.compileBuildFiles(args)
+        val projectResult = buildFileCompiler.compileBuildFiles(args)
         val pluginUrls = buildFileCompiler.parsedBuildFiles.flatMap { it.pluginUrls }
 
         val pluginDependencies = pluginUrls.map { File(it.toURI()) }.map { FileDependency(it.absolutePath) }
-        projects.forEach { project ->
+        projectResult.projects.forEach { project ->
             val compileDependencies = pluginDependencies.map { toDependencyData(it, "compile") } +
                     allDeps(project.compileDependencies).map { toDependencyData(it, "compile") } +
                     allDeps(project.compileProvidedDependencies).map { toDependencyData(it, "compile") }
@@ -57,7 +57,7 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
                     compileDependencies, testDependencies,
                     sources.second.toSet(), tests.second.toSet(), sources.first.toSet(), tests.first.toSet()))
         }
-        return GetDependenciesData(projectDatas)
+        return GetDependenciesData(projectDatas, projectResult.taskResult.errorMessage)
     }
 
     /////
@@ -72,5 +72,5 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
             val testDependencies: List<DependencyData>, val sourceDirs: Set<String>, val testDirs: Set<String>,
             val sourceResourceDirs: Set<String>, val testResourceDirs: Set<String>)
 
-    class GetDependenciesData(val projects: List<ProjectData>)
+    class GetDependenciesData(val projects: List<ProjectData>, val errorMessage: String?)
 }

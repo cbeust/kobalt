@@ -14,7 +14,10 @@ import com.beust.kobalt.misc.log
 import org.jetbrains.kotlin.cli.common.CLICompiler
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.PrintStream
+import java.nio.charset.Charset
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -64,8 +67,7 @@ class KotlinCompiler @Inject constructor(
                 allArgs.add("-no-stdlib")
             }
 
-            val success = invokeCompiler(projectName ?: "kobalt-" + Random().nextInt(), cp, allArgs)
-            return TaskResult(success)
+            return invokeCompiler(projectName ?: "kobalt-" + Random().nextInt(), cp, allArgs)
         }
 
         /**
@@ -78,10 +80,10 @@ class KotlinCompiler @Inject constructor(
          * There are plenty of ways in which this method can break but this will be immediately
          * apparent if it happens.
          */
-        private fun invokeCompiler(projectName: String, cp: List<File>, args: List<String>): Boolean {
+        private fun invokeCompiler(projectName: String, cp: List<File>, args: List<String>): TaskResult {
             val allArgs = listOf("-module-name", "project-" + projectName) + args
             log(2, "Calling kotlinc " + allArgs.joinToString(" "))
-            val result : Boolean =
+            val result : TaskResult =
                     if (true) {
                         val classLoader = ParentLastClassLoader(cp.map { it.toURI().toURL() })
                         val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
@@ -89,13 +91,26 @@ class KotlinCompiler @Inject constructor(
                             it.name == "doMainNoExit" && it.parameterTypes.size == 2
                         }[0]
                         val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
-                        val compilerInstance = kCompiler.newInstance()
-                        val exitCode = compilerMain.invoke(null, compilerInstance, allArgs.toTypedArray())
+
+                        //
+                        // In order to capture the error stream, I need to invoke CLICompiler.exec(), which
+                        // is the first method that accepts a PrintStream for the errors in parameter
+                        //
+                        val baos = ByteArrayOutputStream()
+                        val ps = PrintStream(baos)
+                        val execMethod = compiler.declaredMethods.filter {
+                            it.name == "exec" && it.parameterTypes.size == 2
+                        }[0]
+                        val exitCode = execMethod.invoke(kCompiler.newInstance(), ps, allArgs.toTypedArray())
+                        val errorString = baos.toString(Charset.defaultCharset().toString())
+
+                        // The return value is an enum
                         val nameMethod = exitCode.javaClass.getMethod("name")
-                        "OK" == nameMethod.invoke(exitCode).toString()
+                        val success = "OK" == nameMethod.invoke(exitCode).toString()
+                        TaskResult(success, errorString)
                     } else {
                         val exitCode = CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs.toTypedArray())
-                        exitCode == ExitCode.OK
+                        TaskResult(exitCode == ExitCode.OK)
                     }
             return result
         }

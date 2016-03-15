@@ -2,8 +2,8 @@ package com.beust.kobalt.app
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.Constants
-import com.beust.kobalt.KobaltException
 import com.beust.kobalt.Plugins
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.PluginProperties
@@ -39,7 +39,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
 
     private val SCRIPT_JAR = "buildScript.jar"
 
-    fun compileBuildFiles(args: Args): List<Project> {
+    fun compileBuildFiles(args: Args): FindProjectResult {
         //
         // Create the KobaltContext
         //
@@ -54,16 +54,21 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         //
         // Find all the projects in the build file, possibly compiling them
         //
-        val allProjects = findProjects(context)
-        plugins.applyPlugins(context, allProjects)
+        val projectResult = findProjects(context)
+        if (projectResult.taskResult.success) {
+            plugins.applyPlugins(context, projectResult.projects)
+        }
 
-        return allProjects
+        return projectResult
     }
 
     val parsedBuildFiles = arrayListOf<ParsedBuildFile>()
 
-    private fun findProjects(context: KobaltContext): List<Project> {
-        val result = arrayListOf<Project>()
+    class FindProjectResult(val projects: List<Project>, val taskResult: TaskResult)
+
+    private fun findProjects(context: KobaltContext): FindProjectResult {
+        var errorTaskResult: TaskResult? = null
+        val projects = arrayListOf<Project>()
         buildFiles.forEach { buildFile ->
             val parsedBuildFile = parseBuildFile(context, buildFile)
             parsedBuildFiles.add(parsedBuildFile)
@@ -83,35 +88,39 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
             // compile it, jar it in buildScript.jar and run it
             val modifiedBuildFile = KFiles.createTempFile(".kt")
             KFiles.saveFile(modifiedBuildFile, parsedBuildFile.buildScriptCode)
-            maybeCompileBuildFile(context, BuildFile(Paths.get(modifiedBuildFile.path),
+            val taskResult = maybeCompileBuildFile(context, BuildFile(Paths.get(modifiedBuildFile.path),
                     "Modified ${Constants.BUILD_FILE_NAME}", buildFile.realPath),
                     buildScriptJarFile, pluginUrls)
-            val projects = buildScriptUtil.runBuildScriptJarFile(buildScriptJarFile, pluginUrls, context)
-            result.addAll(projects)
+            if (taskResult.success) {
+                projects.addAll(buildScriptUtil.runBuildScriptJarFile(buildScriptJarFile, pluginUrls, context))
+            } else {
+                if (errorTaskResult == null) {
+                    errorTaskResult = taskResult
+                }
+            }
         }
-        return result
+        return FindProjectResult(projects, if (errorTaskResult != null) errorTaskResult!! else TaskResult())
     }
 
     private fun maybeCompileBuildFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File,
-            pluginUrls: List<URL>) {
+            pluginUrls: List<URL>) : TaskResult {
         log(2, "Running build file ${buildFile.name} jar: $buildScriptJarFile")
 
         if (buildScriptUtil.isUpToDate(buildFile, buildScriptJarFile)) {
             log(2, "Build file is up to date")
+            return TaskResult()
         } else {
             log(2, "Need to recompile ${buildFile.name}")
 
             buildScriptJarFile.delete()
-            kotlinCompilePrivate {
+            val result = kotlinCompilePrivate {
                 classpath(files.kobaltJar)
                 classpath(pluginUrls.map { it.file })
                 sourceFiles(listOf(buildFile.path.toFile().absolutePath))
                 output = buildScriptJarFile
             }.compile(context = context)
 
-            if (! buildScriptJarFile.exists()) {
-                throw KobaltException("Could not compile ${buildFile.name}")
-            }
+            return result
         }
     }
 

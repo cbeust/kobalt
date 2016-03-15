@@ -19,7 +19,8 @@ class GetDependenciesCommand @Inject constructor(val args: Args, val dependencyD
 
     override fun run(sender: ICommandSender, received: JsonObject) {
         val buildFile = received.get("buildFile").asString
-        val data = toCommandData(Gson().toJson(dependencyData.dependenciesDataFor(buildFile, args)))
+        val dd = dependencyData.dependenciesDataFor(buildFile, args)
+        val data = toCommandData(Gson().toJson(dd), dd.errorMessage)
         sender.sendData(data)
     }
 }

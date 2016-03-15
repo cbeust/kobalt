@@ -17,7 +17,7 @@ interface ICommand {
      */
     fun run(sender: ICommandSender, received: JsonObject)
 
-    fun toCommandData(data: String) = CommandData(name, data)
+    fun toCommandData(data: String, error: String? = null) = CommandData(name, data, error)
 }
 
 /**

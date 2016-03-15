@@ -6,6 +6,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.*
+import com.beust.kobalt.app.remote.DependencyData
 import com.beust.kobalt.app.remote.KobaltClient
 import com.beust.kobalt.app.remote.KobaltServer
 import com.beust.kobalt.internal.KobaltSettings
@@ -65,6 +66,7 @@ private class Main @Inject constructor(
         val pluginInfo: PluginInfo,
         val projectGenerator: ProjectGenerator,
         val depFactory: DepFactory,
+        val dependencyData: DependencyData,
         val resolveDependency: ResolveDependency) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
@@ -88,7 +90,7 @@ private class Main @Inject constructor(
         return pluginClassLoader
     }
 
-    public fun run(jc: JCommander, args: Args, argv: Array<String>): Int {
+    fun run(jc: JCommander, args: Args, argv: Array<String>): Int {
         //
         // Install plug-ins requested from the command line
         //
@@ -100,6 +102,9 @@ private class Main @Inject constructor(
         // build file do not have access to the KobaltContext).
         //
         pluginInfo.plugins.forEach { Plugins.addPluginInstance(it) }
+
+//        val data = dependencyData.dependenciesDataFor(homeDir("kotlin/klaxon/kobalt/src/Build.kt"), Args())
+//        println("Data: $data")
 
         // --listTemplates
         if (args.listTemplates) {
@@ -174,8 +179,14 @@ private class Main @Inject constructor(
                 if (!buildFile.exists()) {
                     error(buildFile.path.toFile().path + " does not exist")
                 } else {
-                    val allProjects = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
+                    val findProjectResult = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
                             .compileBuildFiles(args)
+                    if (! findProjectResult.taskResult.success) {
+                        throw KobaltException("Couldn't compile build file: "
+                                + findProjectResult.taskResult.errorMessage)
+                    }
+
+                    val allProjects = findProjectResult.projects
 
                     //
                     // Now that we have projects, add all the repos from repo contributors that need a Project
