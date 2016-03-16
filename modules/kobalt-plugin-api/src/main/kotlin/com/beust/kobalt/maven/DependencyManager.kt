@@ -2,6 +2,7 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.api.*
 import com.beust.kobalt.maven.dependency.FileDependency
+import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.google.common.collect.ArrayListMultimap
@@ -10,15 +11,36 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-public class DependencyManager @Inject constructor(val executors: KobaltExecutors,
-        val depFactory: DepFactory){
+class DependencyManager @Inject constructor(val executors: KobaltExecutors,
+        val depFactory: DepFactory, val mdFactory: MavenDependency.IFactory){
+
+    /**
+     * Create an IClasspathDependency from a Maven id.
+     */
+    fun createMaven(id: String) : IClasspathDependency =
+            mdFactory.create(MavenId.create(id), executors.miscExecutor, false, false)
+
+    /**
+     * Create an IClasspathDependency from a path.
+     */
+    fun createFile(path: String) : IClasspathDependency = FileDependency(path)
+
+    /**
+     * @return the source dependencies for this project, including the contributors.
+     */
+    fun dependencies(project: Project, context: KobaltContext) = dependencies(project, context, false)
+
+    /**
+     * @return the test dependencies for this project, including the contributors.
+     */
+    fun testDependencies(project: Project, context: KobaltContext) = dependencies(project, context, true)
 
     /**
      * Transitive dependencies for the compilation of this project.
      */
-    fun calculateTransitiveDependencies(project: Project, context: KobaltContext)
-        = calculateDependencies(project, context, project.dependentProjects,
-            project.compileDependencies + project.compileRuntimeDependencies)
+//    fun calculateTransitiveDependencies(project: Project, context: KobaltContext)
+//        = calculateDependencies(project, context, project.dependentProjects,
+//            project.compileDependencies + project.compileRuntimeDependencies)
 
     /**
      * @return the classpath for this project, including the IClasspathContributors.
@@ -80,7 +102,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
      * Reorder dependencies so that if an artifact appears several times, only the one with the higest version
      * is included.
      */
-    fun reorderDependencies(dependencies: Collection<IClasspathDependency>): List<IClasspathDependency> {
+    private fun reorderDependencies(dependencies: Collection<IClasspathDependency>): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         val map : ArrayListMultimap<String, IClasspathDependency> = ArrayListMultimap.create()
         // The multilist maps each artifact to a list of all the versions found
@@ -101,8 +123,7 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
      * their own dependencies
      */
     private fun dependentProjectDependencies(projectDescriptions: List<ProjectDescription>,
-            project: Project?, context: KobaltContext) :
-    List<IClasspathDependency> {
+            project: Project?, context: KobaltContext) : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         projectDescriptions.filter {
             it.project.name == project?.name
@@ -141,10 +162,4 @@ public class DependencyManager @Inject constructor(val executors: KobaltExecutor
         return result2
     }
 
-    fun dependencies(project: Project, context: KobaltContext) = dependencies(project, context, false)
-
-    /**
-     * @return the test dependencies for this project, including the contributors.
-     */
-    fun testDependencies(project: Project, context: KobaltContext) = dependencies(project, context, true)
 }
