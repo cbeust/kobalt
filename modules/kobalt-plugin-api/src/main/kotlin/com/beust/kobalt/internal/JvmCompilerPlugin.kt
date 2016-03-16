@@ -144,8 +144,8 @@ open class JvmCompilerPlugin @Inject constructor(
 
     @IncrementalTask(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project): IncrementalTaskInfo {
-        val inputChecksum = Md5.toMd5Directories(project.sourceDirectories.map {
-            File(project.directory, it)
+        val inputChecksum = Md5.toMd5Directories(context.sourceDirectories(project).map {
+            File(project.directory, it.path)
         })
         return IncrementalTaskInfo(
                 inputChecksum = inputChecksum,

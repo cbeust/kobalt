@@ -9,9 +9,12 @@ interface ISourceDirectoryContributor {
     fun sourceDirectoriesFor(project: Project, context: KobaltContext): List<File>
 }
 
-fun KobaltContext.sourceDirectories(project: Project) : List<File> {
+/**
+ * @return the source directories for this project including source contributors.
+ */
+fun KobaltContext.sourceDirectories(project: Project) : Set<File> {
     val result = pluginInfo.sourceDirContributors.flatMap {
         it.sourceDirectoriesFor(project, this)
     }
-    return result
+    return result.toSet()
 }
