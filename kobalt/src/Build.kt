@@ -169,13 +169,13 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 }
 
 fun readVersion() : String {
-    val p = java.util.Properties()
-    var localFile = java.io.File("src/main/resources/kobalt.properties")
-    if (! localFile.exists()) {
-        localFile = File(homeDir("kotlin", "kobalt", "src/main/resources/kobalt.properties"))
+    val localFile =
+            listOf("src/main/resources/kobalt.properties",
+                homeDir("kotlin", "kobalt", "src/main/resources/kobalt.properties")).first { File(it).exists() }
+    with(java.util.Properties()) {
+        load(java.io.FileReader(localFile))
+        return getProperty("kobalt.version")
     }
-    p.load(java.io.FileReader(localFile))
-    return p.getProperty("kobalt.version")
 }
 
 @Task(name = "copyVersionForWrapper", runBefore = arrayOf("assemble"), runAfter = arrayOf("compile"), description = "")
