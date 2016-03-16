@@ -8,6 +8,9 @@ import java.util.concurrent.Future
  * Encapsulate a dependency that can be put on the classpath. This interface
  * has two subclasses: FileDependency, a physical file, and MavenDependency,
  * which represents a dependency living in a Maven repo.
+ *
+ * You can instantiate either of these concrete classes with DependencyManager#createMaven
+ * and DependencyManager#createFile.
  */
 interface IClasspathDependency {
     /** Identifier for this dependency */
