@@ -3,7 +3,8 @@ package com.beust.kobalt.api
 import java.util.*
 
 /**
- * Actors that have one config object per project can use this helper class.
+ * Actors that have one config object per project can implement `IConfigActor` by delegating to
+ * `ConfigActor`. Then they can easily add and look up configurations per project.
  */
 interface IConfigActor<T> {
     val configurations : HashMap<String, T>
