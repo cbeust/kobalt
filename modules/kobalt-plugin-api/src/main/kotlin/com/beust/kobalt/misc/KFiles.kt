@@ -244,7 +244,7 @@ class KFiles {
         fun saveFile(file: File, text: String) {
             file.absoluteFile.parentFile.mkdirs()
             file.writeText(text)
-            log(2, "Wrote $file")
+            log(2, "Created $file")
         }
 
         private fun isWindows() = System.getProperty("os.name").contains("Windows");
