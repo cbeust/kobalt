@@ -370,15 +370,21 @@ public class Main {
         int bytesRead;
         long bytesSoFar = 0;
         byte[] buffer = new byte[100_000];
+        boolean hasTerminal = System.console() != null;
+        if (! hasTerminal) {
+            log2(1, "\rDownloading " + url);
+        }
         while ((bytesRead = inputStream.read(buffer)) != -1) {
             outputStream.write(buffer, 0, bytesRead);
             bytesSoFar += bytesRead;
-            if (bytesRead > 0) {
-                if (contentLength > 0) {
-                    float percent = bytesSoFar * 100 / contentLength;
-                    log2(1, "\rDownloading " + url + " " + percent + "%");
-                } else {
-                    log2(1, ".");
+            if (hasTerminal) {
+                if (bytesRead > 0) {
+                    if (contentLength > 0) {
+                        float percent = bytesSoFar * 100 / contentLength;
+                        log2(1, "\rDownloading " + url + " " + percent + "%");
+                    } else {
+                        log2(1, ".");
+                    }
                 }
             }
         }
