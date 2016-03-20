@@ -128,6 +128,9 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors,
                     }
 
             lp(project, "Compilation " + if (result.success) "succeeded" else "failed")
+            if (! result.success && result.errorMessage != null) {
+                lp(project, result.errorMessage!!)
+            }
             return result
         }
     }
