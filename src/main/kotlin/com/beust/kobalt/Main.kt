@@ -9,6 +9,7 @@ import com.beust.kobalt.app.*
 import com.beust.kobalt.app.remote.DependencyData
 import com.beust.kobalt.app.remote.KobaltClient
 import com.beust.kobalt.app.remote.KobaltServer
+import com.beust.kobalt.internal.Gc
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
@@ -169,7 +170,9 @@ private class Main @Inject constructor(
             server.run()
         } else {
             // Options that don't need Build.kt to be parsed first
-            if (args.update) {
+            if (args.gc) {
+                Gc().run()
+            } else if (args.update) {
                 // --update
                 updateKobalt.updateKobalt()
             } else {

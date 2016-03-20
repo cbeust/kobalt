@@ -26,6 +26,9 @@ class Args {
             "actually running them")
     var dryRun: Boolean = false
 
+    @Parameter(names = arrayOf("--gc"), description = "Delete old files")
+    var gc: Boolean = false
+
     @Parameter(names = arrayOf("--help", "--usage"), description = "Display the help")
     var usage: Boolean = false
 
