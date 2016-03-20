@@ -156,12 +156,12 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
                 if (this is ISourceDirectoryIncerceptor) sourceDirectoriesInterceptors.add(this)
                 if (this is ITaskContributor) taskContributors.add(this)
                 if (this is ITestRunnerContributor) testRunnerContributors.add(this)
-
-                // Not documented yet
                 if (this is IMavenIdInterceptor) mavenIdInterceptors.add(this)
                 if (this is ITestSourceDirectoryContributor) testSourceDirContributors.add(this)
                 if (this is IBuildConfigContributor) buildConfigContributors.add(this)
                 if (this is IAssemblyContributor) assemblyContributors.add(this)
+
+                // Not documented yet
             }
         }
     }
