@@ -22,6 +22,7 @@ class DownloadTest @Inject constructor(
         val depFactory: DepFactory,
         val localRepo: LocalRepo,
         val mdFactory: MavenDependency.IFactory,
+        val finderFactory: RepoFinderCallable.IFactory,
         val executors: KobaltExecutors) : KobaltTest() {
     private var executor: ExecutorService by Delegates.notNull()
 
@@ -152,5 +153,17 @@ class DownloadTest @Inject constructor(
         }
     }
 
+    @Test(enabled = false, description = "Not implemented yet")
+    fun parentPomTest() {
+        // Resolve com.squareup.retrofit2:converter-moshi:2.0.0
+        // This id has a parent pom which defines moshi version to be 1.1.0. Make sure that this
+        // version is being fetched instead of moshi:1.2.0-SNAPSHOT (which gets discarded anyway
+        // since snapshots are not allowed to be returned when looking up a versionless id)
+//        val host = HostConfig("http://repository.jetbrains.com/all/")
+//        val id = "com.squareup.moshi:moshi:"
+//        val results = finderFactory.create(id, host).call()
+//        Assert.assertEquals(results.size, 1)
+//        Assert.assertEquals(results[0].version, "1.1.0")
+    }
 }
 
