@@ -115,7 +115,8 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors, val localRe
                 val isLocal = repoUrl.startsWith(FileDependency.PREFIX_FILE)
                 val path = ud.toMetadataXmlPath(false, isLocal)
                 val foundVersion = findCorrectVersionRelease(path, repoUrl)
-                if (foundVersion != null) {
+                // When looking up a versionless id, never return a SNAPSHOT
+                if (foundVersion != null && ! foundVersion.contains("SNAPSHOT")) {
                     return listOf(RepoResult(repo, Version.of(foundVersion), repoUrl + path))
                 } else {
                     return listOf(RepoResult(repo))
