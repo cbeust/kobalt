@@ -45,12 +45,22 @@ class Io(val dryRun: Boolean = false) {
         }
     }
 
-    fun rmDir(dir: File) {
+    fun rmDir(dir: File, keep: (File) -> Boolean = { t -> false }) = rmDir(dir, keep, "  ")
+
+    private fun rmDir(dir: File, keep: (File) -> Boolean, indent : String) {
         log("rm -rf $dir")
 
-        if (! dryRun) {
-            require(dir.isDirectory,  { -> println("$dir should be a directory")})
-            dir.deleteRecursively()
+        require(dir.isDirectory,  { -> println("$dir should be a directory")})
+
+        dir.listFiles({ p0 -> ! keep(p0!!) }).forEach {
+            if (it.isDirectory) {
+                rmDir(it, keep, indent + "  ")
+                it.deleteRecursively()
+            }
+            else {
+                log(indent + "rm $it")
+                if (! dryRun) it.delete()
+            }
         }
     }
 
