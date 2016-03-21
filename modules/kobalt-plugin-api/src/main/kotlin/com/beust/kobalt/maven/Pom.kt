@@ -10,7 +10,7 @@ import org.xml.sax.InputSource
 import java.io.FileReader
 import javax.xml.xpath.XPathConstants
 
-public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
+class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         @Assisted documentFile: java.io.File) {
     val XPATH_FACTORY = javax.xml.xpath.XPathFactory.newInstance()
     val XPATH = XPATH_FACTORY.newXPath()
@@ -22,11 +22,11 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
     var properties = sortedMapOf<String, String>()
     var repositories = listOf<String>()
 
-    public interface IFactory {
+    interface IFactory {
         fun create(@Assisted id: String, @Assisted documentFile: java.io.File): Pom
     }
 
-    data public class Dependency(val groupId: String, val artifactId: String, val packaging: String?,
+    data class Dependency(val groupId: String, val artifactId: String, val packaging: String?,
         val version: String, val optional: Boolean = false, val scope: String? = null) {
 
         /** When a variable is used in a maven file, e.g. ${version} */
@@ -102,5 +102,5 @@ public class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         }
     }
 
-    override public fun toString() = toString("Pom", id, "id")
+    override fun toString() = toString("Pom", id, "id")
 }
