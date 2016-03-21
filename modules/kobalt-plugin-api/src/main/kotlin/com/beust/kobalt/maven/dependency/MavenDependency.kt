@@ -120,8 +120,9 @@ class MavenDependency @Inject constructor(
     override fun directDependencies() : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         try {
-            pomFactory.create(id, pomFile.get()).dependencies.filter {
-                it.mustDownload && it.isValid
+            val pom = pomFactory.create(id, pomFile.get())
+            pom.dependencies.filter {
+                it.mustDownload
             }.forEach {
                 result.add(create(MavenId.toId(it.groupId, it.artifactId, it.packaging, it.version)))
             }

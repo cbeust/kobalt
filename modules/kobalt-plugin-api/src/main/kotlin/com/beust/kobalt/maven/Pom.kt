@@ -1,7 +1,7 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.toString
+import com.beust.kobalt.misc.warn
 import com.google.inject.assistedinject.Assisted
 import kotlinx.dom.childElements
 import org.w3c.dom.Element
@@ -18,6 +18,33 @@ class Pom @javax.inject.Inject constructor(@Assisted val id: String,
     var artifactId: String? = null
     var packaging: String? = null
     var version: String? = null
+
+    /**
+     * If the version is a string, extract it, look it up and evaluate it if we find it. Otherwise, error.
+     */
+    private fun calculateVersion(s: String) : String {
+        val v = extractVar(s)
+        if (v != null) {
+            val value = properties[v]
+            if (value != null) {
+                return value
+            } else {
+                warn("Unknown variable for version: " + s)
+                return ""
+            }
+        } else {
+            return s
+        }
+    }
+
+    private fun extractVar(s: String) : String? {
+        if (s.startsWith("\${") && s.endsWith("}")) {
+            return s.substring(2, s.length - 1)
+        } else {
+            return null
+        }
+    }
+
     var name: String? = null
     var properties = sortedMapOf<String, String>()
     var repositories = listOf<String>()
@@ -29,27 +56,8 @@ class Pom @javax.inject.Inject constructor(@Assisted val id: String,
     data class Dependency(val groupId: String, val artifactId: String, val packaging: String?,
         val version: String, val optional: Boolean = false, val scope: String? = null) {
 
-        /** When a variable is used in a maven file, e.g. ${version} */
-        private val VAR = "$" + "{"
-
         val mustDownload: Boolean
             get() = !optional && "provided" != scope && "test" != scope
-
-        val isValid: Boolean
-            get() {
-                var result = false
-                if (version.contains(VAR)) {
-                    log(3, "Skipping variable version ${this}")
-                } else if (groupId.contains(VAR)) {
-                    log(3, "Skipping variable groupId ${this}")
-                } else if (artifactId.contains(VAR)) {
-                    log(3, "Skipping variable artifactId ${this}")
-                } else {
-                    result = true
-                }
-                return result
-            }
-
 
         val id: String = "$groupId:$artifactId:$version"
     }
@@ -81,7 +89,7 @@ class Pom @javax.inject.Inject constructor(@Assisted val id: String,
             var groupId: String? = null
             var artifactId: String? = null
             var packaging: String? = null
-            var version: String = ""
+            var readVersion: String = ""
             var optional: Boolean? = false
             var scope: String? = null
             for (j in 0..d.length - 1) {
@@ -91,16 +99,17 @@ class Pom @javax.inject.Inject constructor(@Assisted val id: String,
                         "groupId" -> groupId = e.textContent
                         "artifactId" -> artifactId = e.textContent
                         "type" -> packaging = e.textContent
-                        "version" -> version = e.textContent
+                        "version" -> readVersion = e.textContent
                         "optional" -> optional = "true".equals(e.textContent, true)
                         "scope" -> scope = e.textContent
                     }
                 }
             }
+            val version = calculateVersion(readVersion)
             val tmpDependency = Dependency(groupId!!, artifactId!!, packaging, version, optional!!, scope)
             dependencies.add(tmpDependency)
         }
     }
 
-    override fun toString() = toString("Pom", id, "id")
+    override fun toString() = toString("Pom", "id", id)
 }

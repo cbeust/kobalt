@@ -22,7 +22,7 @@ class DownloadTest @Inject constructor(
         val depFactory: DepFactory,
         val localRepo: LocalRepo,
         val mdFactory: MavenDependency.IFactory,
-        val finderFactory: RepoFinderCallable.IFactory,
+        val dependencyManager: DependencyManager,
         val executors: KobaltExecutors) : KobaltTest() {
     private var executor: ExecutorService by Delegates.notNull()
 
@@ -164,6 +164,14 @@ class DownloadTest @Inject constructor(
 //        val results = finderFactory.create(id, host).call()
 //        Assert.assertEquals(results.size, 1)
 //        Assert.assertEquals(results[0].version, "1.1.0")
+    }
+
+    @Test
+    fun variablesShouldBeExpanded() {
+        val dep = dependencyManager.createMaven("org.mapdb:mapdb:3.0.0-M3")
+        val closure = dependencyManager.transitiveClosure(listOf(dep))
+        val d = closure.filter { it.id.contains("eclipse-collections-api")}
+        Assert.assertEquals(d.size, 1)
     }
 }
 
