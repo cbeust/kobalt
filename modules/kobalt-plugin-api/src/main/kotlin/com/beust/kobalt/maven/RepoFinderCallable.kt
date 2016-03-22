@@ -91,7 +91,7 @@ class RepoFinderCallable @Inject constructor(@Assisted val id: String,
                         File(localRepo.toFullPath(depPomFile)).let { pomFile ->
                             pomFile.parentFile.mkdirs()
                             Kurl(HostConfig(url)).toFile(pomFile)
-                            val dependencies = pomFactory.create(id, pomFile).dependencies
+                            val dependencies = Pom2(pomFile).pom.dependencies
                             val result = arrayListOf<RepoFinder.RepoResult>()
                             dependencies.map { it.id }.forEach {
                                 result.addAll(RepoFinderCallable(it, repo, localRepo, pomFactory).call())

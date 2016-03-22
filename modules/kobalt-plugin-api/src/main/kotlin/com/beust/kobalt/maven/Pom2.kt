@@ -1,18 +1,34 @@
 package com.beust.kobalt.maven
 
 import org.w3c.dom.Element
+import org.xml.sax.InputSource
 import java.io.File
+import java.io.FileReader
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlAnyElement
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
+import javax.xml.parsers.SAXParserFactory
+import javax.xml.transform.sax.SAXSource
 
 @XmlRootElement(name = "project")
 class PomProject {
     var modelVersion: String? = null
     var groupId: String? = null
+        get() {
+            if (field != null && field!!.contains("\${")) {
+                println("VARIABLE GROUP")
+            }
+            return field
+        }
     var artifactId: String? = null
     var version: String? = null
+        get() {
+            if (field != null && field!!.contains("\${")) {
+                println("VARIABLE VERSION")
+            }
+            return field
+        }
     var name: String? = null
     var description: String? = null
     var url: String? = null
@@ -22,7 +38,13 @@ class PomProject {
     var scm: Scm? = null
     var properties: Properties? = null
     var parent: Parent? = null
-    var dependencies: Dependencies? = null
+    @XmlElement(name = "dependencies") @JvmField
+    var pomDependencies: Dependencies? = null
+    val dependencies: List<Dependency>
+        get() =
+            if (pomDependencies != null) pomDependencies!!.dependencies
+            else emptyList<Dependency>()
+
     var pluginRepositories: PluginRepositories? = null
 
     val propertyMap = hashMapOf<String, String>()
@@ -37,19 +59,23 @@ class PomProject {
 }
 
 fun main(argv: Array<String>) {
-    Pom2().read("/Users/beust/t/pom.xml")
+    val p = Pom2(File("/Users/beust/t/pom.xml"))
+    val pom = p.pom
+    println("Dependencies: " + pom.dependencies[0])
 }
 
-class Pom2 {
-    fun read(s: String) {
-        val ins = File(s).inputStream()
+class Pom2(val documentFile: File) {
+    val pom: PomProject by lazy {
+        val ins = documentFile.inputStream()
         val jaxbContext = JAXBContext.newInstance(PomProject::class.java)
-        val pom = jaxbContext.createUnmarshaller().unmarshal(ins) as PomProject
-        println("License: " + pom.licenses?.licenses!![0].name)
-        println("Developer: " + pom.developers?.developers!![0].name)
-        println("Scm: " + pom.scm?.connection)
-        println("Properties: " + pom.propertyValue("kotlin.version"))
-        println("Plugin repositories: " + pom.pluginRepositories?.pluginRepository!![0])
+        val unmarshaller = jaxbContext.createUnmarshaller()
+
+        val sax = SAXParserFactory.newInstance()
+        sax.isNamespaceAware = false
+        val reader = sax.newSAXParser().xmlReader
+        val er = SAXSource(reader, InputSource(FileReader(documentFile)))
+
+        unmarshaller.unmarshal(er) as PomProject
     }
 }
 
@@ -96,11 +122,36 @@ class Dependencies {
 }
 
 class Dependency {
-    var groupId: String? = null
-    var artifactId: String? = null
-    var version: String? = null
-    var scope: String? = null
-    var packaging: String? = null
+    var groupId: String = ""
+    fun groupId(pom: Pom2) : String = expandVariable(groupId, pom)
+
+    var artifactId: String = ""
+    fun artifactId(pom: Pom2) : String = expandVariable(artifactId, pom)
+
+    var version: String = ""
+    fun version(pom: Pom2) : String = expandVariable(version, pom)
+
+    var optional: String = "false"
+    var scope: String = ""
+    var packaging: String = ""
+
+    val id: String = "$groupId:$artifactId:$version"
+
+    val mustDownload: Boolean
+        get() = ! optional.toBoolean() && "provided" != scope && "test" != scope
+
+    val isValid : Boolean get() = ! isVariable(groupId) && ! isVariable(artifactId) && ! isVariable(version)
+
+    private fun isVariable(s: String) = s.startsWith("\${") && s.endsWith("}")
+
+    private fun expandVariable(s: String, pom: Pom2) : String {
+        if (isVariable(s)) {
+            println("Expanding variable $s")
+            return s
+        } else {
+            return s
+        }
+    }
 }
 
 class Scm {

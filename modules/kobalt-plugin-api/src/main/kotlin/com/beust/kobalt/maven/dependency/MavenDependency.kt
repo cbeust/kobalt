@@ -7,6 +7,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.maven.*
 import com.beust.kobalt.misc.DependencyExecutor
 import com.beust.kobalt.misc.Versions
+import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
 import com.google.inject.Key
 import com.google.inject.assistedinject.Assisted
@@ -120,11 +121,15 @@ class MavenDependency @Inject constructor(
     override fun directDependencies() : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         try {
-            val pom = pomFactory.create(id, pomFile.get())
-            pom.dependencies.filter {
+            val pom = Pom2(pomFile.get())
+            pom.pom.dependencies.filter {
                 it.mustDownload
             }.forEach {
-                result.add(create(MavenId.toId(it.groupId, it.artifactId, it.packaging, it.version)))
+                if (it.isValid) {
+                    result.add(create(MavenId.toId(it.groupId(pom), it.artifactId(pom), it.packaging, it.version(pom))))
+                } else {
+                    log(2, "Skipping invalid id: ${it.id}")
+                }
             }
         } catch(ex: Exception) {
             warn("Exception when trying to resolve dependencies for $id: " + ex.message)
