@@ -2,7 +2,6 @@ package com.beust.kobalt.maven
 
 import org.w3c.dom.Element
 import java.io.File
-import java.util.*
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlAnyElement
 import javax.xml.bind.annotation.XmlElement
@@ -23,8 +22,8 @@ class PomProject {
     var scm: Scm? = null
     var properties: Properties? = null
     var parent: Parent? = null
-    val dependencies = arrayListOf<Dependency>()
-    val pluginRepositories = arrayListOf<PluginRepository>()
+    var dependencies: Dependencies? = null
+    var pluginRepositories: PluginRepositories? = null
 
     val propertyMap = hashMapOf<String, String>()
     fun propertyValue(s: String) : String? {
@@ -50,17 +49,18 @@ class Pom2 {
         println("Developer: " + pom.developers?.developers!![0].name)
         println("Scm: " + pom.scm?.connection)
         println("Properties: " + pom.propertyValue("kotlin.version"))
+        println("Plugin repositories: " + pom.pluginRepositories?.pluginRepository!![0])
     }
 }
 
 class Properties {
     @XmlAnyElement @JvmField
-    var properties: ArrayList<Element>? = null
+    val properties = arrayListOf<Element>()
 }
 
 class Developers {
     @XmlElement(name = "developer") @JvmField
-    var developers: ArrayList<Developer>? = null
+    val developers = arrayListOf<Developer>()
 }
 
 class Developer {
@@ -70,7 +70,7 @@ class Developer {
 
 class Licenses {
     @XmlElement(name = "license") @JvmField
-    var licenses : ArrayList<License>? = null
+    val licenses = arrayListOf<License>()
 }
 
 class License {
@@ -79,10 +79,20 @@ class License {
     var distribution: String? = null
 }
 
+class PluginRepositories {
+    @XmlElement(name = "pluginRepository") @JvmField
+    val pluginRepository = arrayListOf<PluginRepository>()
+}
+
 class PluginRepository {
     var id: String? = null
     var name: String? = null
     var url: String? = null
+}
+
+class Dependencies {
+    @XmlElement(name = "dependency") @JvmField
+    val dependencies = arrayListOf<Dependency>()
 }
 
 class Dependency {
