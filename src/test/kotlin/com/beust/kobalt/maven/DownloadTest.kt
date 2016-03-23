@@ -23,6 +23,7 @@ class DownloadTest @Inject constructor(
         val depFactory: DepFactory,
         val localRepo: LocalRepo,
         val mdFactory: MavenDependency.IFactory,
+        val pomFactory: Pom.IFactory,
         val dependencyManager: DependencyManager,
         val settings: KobaltSettings,
         val executors: KobaltExecutors) : KobaltTest() {
@@ -180,7 +181,7 @@ class DownloadTest @Inject constructor(
     fun containerPom() {
         val repoResult = RepoFinderCallable("org.jetbrains.kotlin:kotlin-project:1.0.0",
                 HostConfig("http://repo1.maven.org/maven2/"),
-                localRepo, dependencyManager, settings).call()
+                localRepo, pomFactory, dependencyManager).call()
         val rr = repoResult[0]
         Assert.assertTrue(rr.found)
         Assert.assertTrue(rr.localPath != null && rr.localPath!!.startsWith("junit/junit"))
