@@ -4,6 +4,7 @@ import com.beust.kobalt.HostConfig
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.Version
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.warn
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import kotlinx.dom.asElementList
@@ -21,7 +22,8 @@ import javax.xml.xpath.XPathFactory
  * http://repo1.maven.org/maven2/nl/komponents/kovenant/kovenant/3.0.0/
  */
 class RepoFinderCallable @Inject constructor(@Assisted val id: String,
-        @Assisted val repo: HostConfig, val localRepo: LocalRepo, val pomFactory: Pom.IFactory)
+        @Assisted val repo: HostConfig, val localRepo: LocalRepo, val pomFactory: Pom.IFactory,
+        val dependencyManager: DependencyManager)
             : Callable<List<RepoFinder .RepoResult>> {
 
     interface IFactory {
@@ -91,10 +93,16 @@ class RepoFinderCallable @Inject constructor(@Assisted val id: String,
                         File(localRepo.toFullPath(depPomFile)).let { pomFile ->
                             pomFile.parentFile.mkdirs()
                             Kurl(HostConfig(url)).toFile(pomFile)
-                            val dependencies = Pom2(pomFile).pom.dependencies
+                            val pom2 = Pom2.parse(pomFile, dependencyManager).value
                             val result = arrayListOf<RepoFinder.RepoResult>()
-                            dependencies.map { it.id }.forEach {
-                                result.addAll(RepoFinderCallable(it, repo, localRepo, pomFactory).call())
+                            if (pom2 != null) {
+                                val dependencies = pom2.pomProject.dependencies
+                                dependencies.map { it.id(pom2) }.forEach {
+                                    result.addAll(RepoFinderCallable(it, repo, localRepo, pomFactory,
+                                            dependencyManager).call())
+                                }
+                            } else {
+                                warn("Couldn't parse $pomFile")
                             }
                             return result
                         }
