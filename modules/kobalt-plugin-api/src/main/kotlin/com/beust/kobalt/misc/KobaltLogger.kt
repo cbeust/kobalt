@@ -26,8 +26,8 @@ fun Any.debug(text: String) {
     KobaltLogger.logger.debug(javaClass.simpleName, text)
 }
 
-fun Any.warn(text: String) {
-    KobaltLogger.logger.warn(javaClass.simpleName, text)
+fun Any.warn(text: String, exception: Exception? = null) {
+    KobaltLogger.logger.warn(javaClass.simpleName, text, exception)
 }
 
 fun Any.kobaltError(text: String, e: Throwable? = null) = error(text, e)
@@ -78,6 +78,9 @@ class Logger(val dev: Boolean) {
     final fun warn(tag: String, message: String, e: Throwable? = null) {
         val fullMessage = "***** WARNING " + (e?.message ?: message)
         println(AsciiArt.Companion.warnColor(getPattern("W", fullMessage, fullMessage, tag)))
+        if (KobaltLogger.LOG_LEVEL > 1) {
+            e?.printStackTrace()
+        }
     }
 
     final fun log(tag: String, message: String, newLine: Boolean) =
