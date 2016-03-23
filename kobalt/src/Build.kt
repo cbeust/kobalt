@@ -26,6 +26,9 @@ object Versions {
     val okio = "1.6.0"
     val retrofit = "2.0.0"
     val gson = "2.6.2"
+    val aether = "1.1.0"
+    val sonatypeAether = "1.13.1"
+    val maven = "3.3.9"
 }
 
 val wrapper = project {
@@ -73,14 +76,24 @@ val kobaltPluginApi = project {
                 "com.google.inject.extensions:guice-assistedinject:4.0",
                 "javax.inject:javax.inject:1",
                 "com.google.guava:guava:19.0-rc2",
-                "org.apache.maven:maven-model:3.3.3",
+                "org.apache.maven:maven-model:${Versions.maven}",
                 "io.reactivex:rxjava:1.0.16",
                 "com.google.code.gson:gson:${Versions.gson}",
                 "com.squareup.okio:okio:${Versions.okio}",
                 "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
-                "com.beust:jcommander:1.48"
-                )
+                "com.beust:jcommander:1.48",
+
+                "org.eclipse.aether:aether-spi:${Versions.aether}",
+                "org.eclipse.aether:aether-util:${Versions.aether}",
+                "org.eclipse.aether:aether-impl:${Versions.aether}",
+                "org.eclipse.aether:aether-connector-basic:${Versions.aether}",
+                "org.eclipse.aether:aether-transport-file:${Versions.aether}",
+                "org.eclipse.aether:aether-transport-http:${Versions.aether}",
+                "org.sonatype.aether:aether-api:${Versions.sonatypeAether}",
+                "org.sonatype.aether:aether-connector-wagon:1.13.1",
+                "org.apache.maven:maven-aether-provider:${Versions.maven}"
+        )
     }
 
 
@@ -122,7 +135,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "com.google.inject:guice:4.0",
                 "com.google.inject.extensions:guice-assistedinject:4.0",
                 "com.beust:jcommander:1.48",
-                "org.apache.maven:maven-model:3.3.3",
+                "org.apache.maven:maven-model:${Versions.maven}",
                 "com.google.code.findbugs:jsr305:3.0.1",
                 "com.google.code.gson:gson:${Versions.gson}",
                 "com.squareup.okhttp3:okhttp:${Versions.okhttp}",

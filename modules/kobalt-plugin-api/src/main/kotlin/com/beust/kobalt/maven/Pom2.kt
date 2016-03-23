@@ -15,20 +15,8 @@ import javax.xml.transform.sax.SAXSource
 class PomProject {
     var modelVersion: String? = null
     var groupId: String? = null
-        get() {
-            if (field != null && field!!.contains("\${")) {
-                println("VARIABLE GROUP")
-            }
-            return field
-        }
     var artifactId: String? = null
     var version: String? = null
-        get() {
-            if (field != null && field!!.contains("\${")) {
-                println("VARIABLE VERSION")
-            }
-            return field
-        }
     var name: String? = null
     var description: String? = null
     var url: String? = null
@@ -58,24 +46,39 @@ class PomProject {
     }
 }
 
-fun main(argv: Array<String>) {
-    val p = Pom2(File("/Users/beust/t/pom.xml"))
-    val pom = p.pom
-    println("Dependencies: " + pom.dependencies[0])
-}
+//fun main(argv: Array<String>) {
+//    val p = Pom2(File("/Users/beust/t/pom.xml"))
+//    val pom = p.pom
+//    println("Dependencies: " + pom.dependencies[0])
+//}
 
-class Pom2(val documentFile: File) {
-    val pom: PomProject by lazy {
-        val ins = documentFile.inputStream()
-        val jaxbContext = JAXBContext.newInstance(PomProject::class.java)
-        val unmarshaller = jaxbContext.createUnmarshaller()
+class Either<E, V>(val exception: E?, val value: V?)
 
-        val sax = SAXParserFactory.newInstance()
-        sax.isNamespaceAware = false
-        val reader = sax.newSAXParser().xmlReader
-        val er = SAXSource(reader, InputSource(FileReader(documentFile)))
+class Pom2(val pomProject: PomProject) {
+    companion object {
+        fun parse(documentFile: File, dependencyManager: DependencyManager): Either<Exception, Pom2> {
+            val jaxbContext = JAXBContext.newInstance(PomProject::class.java)
+            val unmarshaller = jaxbContext.createUnmarshaller()
 
-        unmarshaller.unmarshal(er) as PomProject
+            val sax = SAXParserFactory.newInstance()
+            sax.isNamespaceAware = false
+            val reader = sax.newSAXParser().xmlReader
+            val er = SAXSource(reader, InputSource(FileReader(documentFile)))
+
+            try {
+                val result = unmarshaller.unmarshal(er) as PomProject
+                result.parent?.let {
+                    val id = with(it) {
+                        groupId + ":" + artifactId + ":" + version
+                    }
+                    val dep = dependencyManager.createMaven(id)
+                    println("DEP: " + dep)
+                }
+                return Either(null, Pom2(result))
+            } catch(ex: Exception) {
+                return Either(ex, null)
+            }
+        }
     }
 }
 
@@ -122,31 +125,40 @@ class Dependencies {
 }
 
 class Dependency {
+    @JvmField
     var groupId: String = ""
     fun groupId(pom: Pom2) : String = expandVariable(groupId, pom)
 
+    @JvmField
     var artifactId: String = ""
     fun artifactId(pom: Pom2) : String = expandVariable(artifactId, pom)
 
+    @JvmField
     var version: String = ""
     fun version(pom: Pom2) : String = expandVariable(version, pom)
 
+    @JvmField
     var optional: String = "false"
+    @JvmField
     var scope: String = ""
+    @JvmField
     var packaging: String = ""
 
-    val id: String = "$groupId:$artifactId:$version"
+    fun id(pom: Pom2) = groupId(pom) + ":" + artifactId(pom) + ":" + version(pom)
 
     val mustDownload: Boolean
         get() = ! optional.toBoolean() && "provided" != scope && "test" != scope
 
-    val isValid : Boolean get() = ! isVariable(groupId) && ! isVariable(artifactId) && ! isVariable(version)
+    val isValid : Boolean get() = true //! isVariable(groupId) && ! isVariable(artifactId) && ! isVariable(version)
 
-    private fun isVariable(s: String) = s.startsWith("\${") && s.endsWith("}")
+    private fun extractVariable(s: String) = if (s.startsWith("\${") && s.endsWith("}")) s.substring(2, s.length - 1)
+        else null
 
     private fun expandVariable(s: String, pom: Pom2) : String {
-        if (isVariable(s)) {
-            println("Expanding variable $s")
+        val variable = extractVariable(s)
+        if (variable != null) {
+            println("Expanding variable $variable")
+            val value = pom.pomProject.propertyValue(variable)
             return s
         } else {
             return s

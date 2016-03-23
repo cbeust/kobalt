@@ -37,7 +37,7 @@ class RepoFinder @Inject constructor(val executors: KobaltExecutors, val finderF
                     localPath.substring(lastDot)
                 result
             } else {
-                    localPath
+                localPath
             }
     }
 

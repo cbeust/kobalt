@@ -25,7 +25,7 @@ class MavenDependency @Inject constructor(
         @Assisted("downloadJavadocs") val downloadJavadocs: Boolean,
         override val localRepo: LocalRepo,
         val repoFinder: RepoFinder,
-        val pomFactory: Pom.IFactory,
+        val dependencyManager: DependencyManager,
         val downloadManager: DownloadManager)
             : LocalDep(mavenId, localRepo), IClasspathDependency, Comparable<MavenDependency> {
     override var jarFile: Future<File> by Delegates.notNull()
@@ -120,19 +120,21 @@ class MavenDependency @Inject constructor(
 
     override fun directDependencies() : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
-        try {
-            val pom = Pom2(pomFile.get())
-            pom.pom.dependencies.filter {
+        val maybePom = Pom2.parse(pomFile.get(), dependencyManager)
+        if (maybePom.value != null) {
+            val pom = maybePom.value
+            pom.pomProject.dependencies.filter {
                 it.mustDownload
             }.forEach {
                 if (it.isValid) {
                     result.add(create(MavenId.toId(it.groupId(pom), it.artifactId(pom), it.packaging, it.version(pom))))
                 } else {
-                    log(2, "Skipping invalid id: ${it.id}")
+                    log(2, "Skipping invalid id: ${it.id(pom)}")
                 }
             }
-        } catch(ex: Exception) {
-            warn("Exception when trying to resolve dependencies for $id: " + ex.message)
+        } else {
+            warn("Couldn't parse POM file ${pomFile.get()}: " + maybePom.exception?.message, maybePom.exception!!)
+
         }
         return result
     }

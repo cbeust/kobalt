@@ -2,6 +2,7 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.HostConfig
 import com.beust.kobalt.KobaltTest
+import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.Version
@@ -23,6 +24,7 @@ class DownloadTest @Inject constructor(
         val localRepo: LocalRepo,
         val mdFactory: MavenDependency.IFactory,
         val dependencyManager: DependencyManager,
+        val settings: KobaltSettings,
         val executors: KobaltExecutors) : KobaltTest() {
     private var executor: ExecutorService by Delegates.notNull()
 
@@ -172,6 +174,25 @@ class DownloadTest @Inject constructor(
         val closure = dependencyManager.transitiveClosure(listOf(dep))
         val d = closure.filter { it.id.contains("eclipse-collections-api")}
         Assert.assertEquals(d.size, 1)
+    }
+
+    @Test
+    fun containerPom() {
+        val repoResult = RepoFinderCallable("org.jetbrains.kotlin:kotlin-project:1.0.0",
+                HostConfig("http://repo1.maven.org/maven2/"),
+                localRepo, dependencyManager, settings).call()
+        val rr = repoResult[0]
+        Assert.assertTrue(rr.found)
+        Assert.assertTrue(rr.localPath != null && rr.localPath!!.startsWith("junit/junit"))
+        Assert.assertEquals(rr.version.toString(), "4.12")
+    }
+
+    @Test
+    fun containerPom3() {
+        val pom = Pom2.parse(
+                File("/Users/beust/kotlin/kobalt/src/test/resources/guice-parent-4.0.pom"), dependencyManager)
+        println("POM: ${pom.value?.pomProject}")
+        println("")
     }
 }
 
