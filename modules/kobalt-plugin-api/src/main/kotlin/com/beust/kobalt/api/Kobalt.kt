@@ -8,7 +8,7 @@ import java.io.InputStream
 import java.time.Duration
 import java.util.*
 
-public class Kobalt {
+class Kobalt {
     companion object {
         // This injector will eventually be replaced with a different injector initialized with the
         // correct arguments (or with a TestModule) but it's necessary to give it a default value
@@ -83,10 +83,12 @@ public class Kobalt {
             properties.forEach { es -> System.setProperty(es.key.toString(), es.value.toString()) }
         }
 
-        val version = kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION)
+        val version: String
+            get() = kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION)
+
         // Note: Duration is Java 8 only, might need an alternative if we want to support Java < 8
-        val versionCheckTimeout = Duration.parse(
-                kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION_CHECK_TIMEOUT) ?: "P1D")
+        val versionCheckTimeout: Duration
+            get() = Duration.parse( kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION_CHECK_TIMEOUT) ?: "P1D")
 
         fun findPlugin(name: String) = Plugins.findPlugin(name)
     }
