@@ -1,102 +1,158 @@
 package com.beust.kobalt.maven.aether
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.maven.CompletedFuture
-import com.beust.kobalt.misc.KobaltLogger
+import com.beust.kobalt.misc.Versions
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.warn
 import org.eclipse.aether.artifact.Artifact
 import org.eclipse.aether.artifact.DefaultArtifact
 import org.eclipse.aether.collection.CollectRequest
 import org.eclipse.aether.collection.CollectResult
 import org.eclipse.aether.graph.Dependency
+import org.eclipse.aether.graph.DependencyFilter
 import org.eclipse.aether.graph.DependencyNode
 import org.eclipse.aether.resolution.ArtifactResult
 import org.eclipse.aether.resolution.DependencyRequest
+import org.eclipse.aether.resolution.DependencyResolutionException
 import org.eclipse.aether.util.artifact.JavaScopes
+import org.eclipse.aether.util.filter.AndDependencyFilter
 import org.eclipse.aether.util.filter.DependencyFilterUtils
 import java.io.File
 import java.util.concurrent.Future
 
-class Aether(val localRepo: File = File(homeDir(".kobalt/repository"))) {
-    fun transitiveDependencies(id: String): List<ArtifactResult>? {
-        println("------------------------------------------------------------")
+val TEST_DIR = ".aether/repository"
 
-        val system = Booter.newRepositorySystem()
+class KobaltAether(val localRepo: File = File(homeDir(TEST_DIR))) {
+    fun create(id: String): IClasspathDependency {
+        val aether = Aether(localRepo)
+        val cr = aether.transitiveDependencies(DefaultArtifact(id))
+        return if (cr != null) AetherDependency(cr.root.artifact)
+            else throw KobaltException("Couldn't resolve $id")
+    }
+}
 
-        val session = Booter.newRepositorySystemSession(system, localRepo)
-
-        val artifact = DefaultArtifact(id)
-
-        val classpathFlter = DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE)
-
-        val collectRequest = CollectRequest()
-        collectRequest.root = Dependency(artifact, JavaScopes.COMPILE)
-        collectRequest.repositories = Booter.newRepositories(Kobalt.repos.map { it.url })
-
-        val dependencyRequest = DependencyRequest(collectRequest, classpathFlter)
-
-        val result = system.resolveDependencies(session, dependencyRequest).artifactResults
-
-        if (KobaltLogger.LOG_LEVEL > 1) {
-            for (artifactResult in result) {
-                log(2, artifactResult.artifact.toString() + " resolved to " + artifactResult.artifact.file)
-            }
-        }
-
+class ExcludeOptionalDependencyFilter: DependencyFilter {
+    override fun accept(node: DependencyNode?, p1: MutableList<DependencyNode>?): Boolean {
+//        val result = node != null && ! node.dependency.isOptional
+        val accept1 = node == null || node.artifact.artifactId != "srczip"
+        val accept2 = node != null && ! node.dependency.isOptional
+        val result = accept1 && accept2
         return result
     }
+}
 
-    fun directDependencies(id: String): CollectResult? {
-        println("------------------------------------------------------------")
+class Aether(val localRepo: File = File(homeDir(TEST_DIR))) {
+    private val system = Booter.newRepositorySystem()
+    private val session = Booter.newRepositorySystemSession(system, localRepo)
+    private val classpathFilter = AndDependencyFilter(
+            ExcludeOptionalDependencyFilter(),
+            DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE))
 
-        val system = Booter.newRepositorySystem()
+    private fun collectRequest(artifact: Artifact) : CollectRequest {
+        with(CollectRequest()) {
+            root = Dependency(artifact, JavaScopes.COMPILE)
+            repositories = Booter.newRepositories(Kobalt.repos.map { it.url })
 
-        val session = Booter.newRepositorySystemSession(system, localRepo)
+            return this
+        }
+    }
 
-        val artifact = DefaultArtifact(id)
+    fun resolve(artifact: Artifact): List<ArtifactResult>? {
+        try {
+            val dependencyRequest = DependencyRequest(collectRequest(artifact), classpathFilter)
 
-        val classpathFilter = DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE)
+            val result = system.resolveDependencies(session, dependencyRequest).artifactResults
+            return result
+        } catch(ex: DependencyResolutionException) {
+            warn("Couldn't resolve $artifact")
+            return emptyList()
+        }
+    }
 
-        val collectRequest = CollectRequest()
-        collectRequest.root = Dependency(artifact, JavaScopes.COMPILE)
-        collectRequest.repositories = Booter.newRepositories(Kobalt.repos.map { it.url })
+    fun transitiveDependencies(artifact: Artifact) = directDependencies(artifact)
 
-        val result = system.collectDependencies(session, collectRequest)
+    fun directDependencies(artifact: Artifact): CollectResult? {
+        val result = system.collectDependencies(session, collectRequest(artifact))
         val root = result.root
-        val icp = AetherDependency(root)
-        println("Dep: " + root)
         return result
     }
+}
 
-    class AetherDependency(val root: DependencyNode): IClasspathDependency {
-        override val id: String = toId(root.artifact)
+class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable<AetherDependency> {
+    constructor(node: DependencyNode) : this(node.artifact) {}
 
-        private fun toId(a: Artifact) = with(a) {
-            groupId + ":" + artifactId + ":" + version
-        }
+    override val id: String = toId(artifact)
 
-        override val jarFile: Future<File>
-            get() = CompletedFuture(root.artifact.file)
+    private fun toId(a: Artifact) = with(a) {
+        groupId + ":" + artifactId + ":" + version
+    }
 
-        override fun toMavenDependencies() = let { md ->
-            org.apache.maven.model.Dependency().apply {
-                root.artifact.let { md ->
-                    groupId = md.groupId
-                    artifactId = md.artifactId
-                    version = md.version
+    override val jarFile: Future<File>
+        get() = if (artifact.file != null) {
+            CompletedFuture(artifact.file)
+        } else {
+            val td = Aether().transitiveDependencies(artifact)
+            if (td?.root?.artifact?.file != null) {
+                CompletedFuture(td!!.root.artifact.file)
+            } else {
+                val resolved = Aether().resolve(artifact)
+                if (resolved != null && resolved.size > 0) {
+                    CompletedFuture(resolved[0].artifact.file)
+                } else {
+                    CompletedFuture(File("DONOTEXIST")) // will be filtered out
                 }
             }
         }
 
-        override fun directDependencies() = root.children.map { AetherDependency(it) }
-
-        override val shortId = root.artifact.groupId + ":" + root.artifact.artifactId
+    override fun toMavenDependencies() = let { md ->
+        org.apache.maven.model.Dependency().apply {
+            artifact.let { md ->
+                groupId = md.groupId
+                artifactId = md.artifactId
+                version = md.version
+            }
+        }
     }
+
+    override fun directDependencies() : List<IClasspathDependency> {
+        val result = arrayListOf<IClasspathDependency>()
+        val deps = Aether().directDependencies(artifact)
+        val td = Aether().transitiveDependencies(artifact)
+        if (deps != null) {
+            if (! deps.root.dependency.optional) {
+                deps.root.children.forEach {
+                    if (! it.dependency.isOptional) {
+                        result.add(AetherDependency(it.artifact))
+                    } else {
+                        log(2, "Skipping optional dependency " + deps.root.artifact)
+                    }
+                }
+            } else {
+                log(2, "Skipping optional dependency " + deps.root.artifact)
+            }
+        } else {
+            warn("Couldn't resolve $artifact")
+        }
+        return result
+    }
+
+    override val shortId = artifact.groupId + ":" + artifact.artifactId
+
+    override fun compareTo(other: AetherDependency): Int {
+        return Versions.toLongVersion(artifact.version).compareTo(Versions.toLongVersion(
+                other.artifact.version))
+    }
+
+    override fun toString() = id
 }
 
 fun main(argv: Array<String>) {
-    val dd = Aether().directDependencies("org.testng:testng:6.9.9")
-    println("DD: " + dd)
+    val d2 = Aether().transitiveDependencies(DefaultArtifact("com.google.inject:guice-parent:4.0"))
+//    val dd = Aether().directDependencies("org.testng:testng:6.9.9")
+    val artifact = d2?.root?.artifact
+    println("DD: " + d2)
 }

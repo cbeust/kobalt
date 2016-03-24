@@ -70,7 +70,7 @@ val kobaltPluginApi = project {
             developerConnection = "git@github.com:cbeust/kobalt.git")
 
     dependencies {
-        compile("org.jetbrains.kotlinx:kotlinx.dom:0.0.9",
+        compile("org.jetbrains.kotlinx:kotlinx.dom:0.0.10",
 
                 "com.google.inject:guice:4.0",
                 "com.google.inject.extensions:guice-assistedinject:4.0",
@@ -85,7 +85,6 @@ val kobaltPluginApi = project {
                 "com.beust:jcommander:1.48",
 
                 "org.eclipse.aether:aether-spi:${Versions.aether}",
-                "org.eclipse.aether:aether-util:${Versions.aether}",
                 "org.eclipse.aether:aether-impl:${Versions.aether}",
                 "org.eclipse.aether:aether-connector-basic:${Versions.aether}",
                 "org.eclipse.aether:aether-transport-file:${Versions.aether}",
@@ -144,7 +143,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
     }
 
     dependenciesTest {
-        compile("org.testng:testng:6.9.11-SNAPSHOT")
+        compile("org.testng:testng:6.9.10")
     }
 
     assemble {
