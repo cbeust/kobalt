@@ -4,7 +4,6 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.maven.dependency.FileDependency
-import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.DependencyExecutor
 import com.beust.kobalt.misc.KobaltExecutors
 import com.google.inject.Key
@@ -12,10 +11,8 @@ import java.util.concurrent.ExecutorService
 import javax.inject.Inject
 
 public class DepFactory @Inject constructor(val localRepo: LocalRepo,
-        val remoteRepo: RepoFinder,
         val executors: KobaltExecutors,
-        val aether: KobaltAether,
-        val mavenDependencyFactory: MavenDependency.IFactory) {
+        val aether: KobaltAether) {
 
     companion object {
         val defExecutor : ExecutorService by lazy {

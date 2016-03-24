@@ -5,6 +5,7 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.maven.CompletedFuture
+import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.Versions
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
@@ -15,9 +16,11 @@ import org.eclipse.aether.collection.CollectResult
 import org.eclipse.aether.graph.Dependency
 import org.eclipse.aether.graph.DependencyFilter
 import org.eclipse.aether.graph.DependencyNode
+import org.eclipse.aether.repository.RemoteRepository
 import org.eclipse.aether.resolution.ArtifactResult
 import org.eclipse.aether.resolution.DependencyRequest
 import org.eclipse.aether.resolution.DependencyResolutionException
+import org.eclipse.aether.resolution.VersionRequest
 import org.eclipse.aether.util.artifact.JavaScopes
 import org.eclipse.aether.util.filter.AndDependencyFilter
 import org.eclipse.aether.util.filter.DependencyFilterUtils
@@ -51,15 +54,20 @@ class Aether(val localRepo: File = File(homeDir(TEST_DIR))) {
     private val classpathFilter = AndDependencyFilter(
             ExcludeOptionalDependencyFilter(),
             DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE))
+    private val kobaltRepositories : List<RemoteRepository>
+            get() = Kobalt.repos.map { RemoteRepository.Builder("maven", "default", it.url).build() }
 
     private fun collectRequest(artifact: Artifact) : CollectRequest {
         with(CollectRequest()) {
             root = Dependency(artifact, JavaScopes.COMPILE)
-            repositories = Booter.newRepositories(Kobalt.repos.map { it.url })
+            repositories = kobaltRepositories
 
             return this
         }
     }
+
+    fun resolveVersion(artifact: Artifact)
+        = system.resolveVersion(session, VersionRequest(artifact, kobaltRepositories, null))
 
     fun resolve(artifact: Artifact): List<ArtifactResult>? {
         try {
@@ -151,8 +159,20 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
 }
 
 fun main(argv: Array<String>) {
-    val d2 = Aether().transitiveDependencies(DefaultArtifact("com.google.inject:guice-parent:4.0"))
-//    val dd = Aether().directDependencies("org.testng:testng:6.9.9")
-    val artifact = d2?.root?.artifact
-    println("DD: " + d2)
+    KobaltLogger.LOG_LEVEL = 2
+    val aether = Aether()
+    val artifact = DefaultArtifact("org.testng:testng:RELEASE")
+    aether.resolveVersion(artifact)?.let { versionResult ->
+        println("Latest version: " + versionResult.version + " repo: " + versionResult.repository)
+        val newArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.extension,
+                versionResult.version)
+        val artifactResult = aether.resolve(newArtifact)
+        println("  File: " + artifactResult)
+    }
+    val d2 = Aether().resolve(artifact)
+//    val dd = Aether().resolve("org.testng:testng:6.9.9")
+//    val artifact = d2?.root?.artifact
+    if (d2 != null && d2.size > 0) {
+        println("DD: " + d2)
+    }
 }

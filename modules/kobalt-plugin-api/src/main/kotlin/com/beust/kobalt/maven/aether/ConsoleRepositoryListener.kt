@@ -46,7 +46,7 @@ class ConsoleRepositoryListener @JvmOverloads constructor(out: PrintStream? = nu
     }
 
     override fun artifactDownloading(event: RepositoryEvent?) {
-        log(2, "Downloading artifact " + event!!.artifact + " from " + event.repository)
+        log(1, "Downloading artifact " + event!!.artifact + " from " + event.repository)
     }
 
     override fun artifactDownloaded(event: RepositoryEvent?) {

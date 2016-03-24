@@ -3,7 +3,6 @@ package com.beust.kobalt.maven.aether
 import org.eclipse.aether.DefaultRepositorySystemSession
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.repository.LocalRepository
-import org.eclipse.aether.repository.RemoteRepository
 import java.io.File
 
 object Booter {
@@ -30,7 +29,7 @@ object Booter {
         return session
     }
 
-    fun newRepositories(repositories: Collection<String>)
-            = repositories.map { RemoteRepository.Builder("maven", "default", it).build() }
+//    fun newRepositories(repositories: Collection<String>)
+//            = repositories.map { RemoteRepository.Builder("maven", "default", it).build() }
 }
 
