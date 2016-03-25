@@ -27,12 +27,28 @@ import java.util.concurrent.Future
 
 val TEST_DIR = ".aether/repository"
 
+class DependencyResult(val dependency: IClasspathDependency, val repoUrl: String)
+
 class KobaltAether(val localRepo: File = File(homeDir(TEST_DIR))) {
     fun create(id: String): IClasspathDependency {
         val aether = Aether(localRepo)
         val cr = aether.transitiveDependencies(DefaultArtifact(id))
         return if (cr != null) AetherDependency(cr.root.artifact)
             else throw KobaltException("Couldn't resolve $id")
+    }
+
+    fun latestArtifact(group: String, artifactId: String, extension: String = "jar") : DependencyResult
+        = Aether(localRepo).latestArtifact(group, artifactId, extension).let {
+            DependencyResult(AetherDependency(it.artifact), it.repository.toString())
+        }
+
+    fun resolve(id: String): DependencyResult {
+        val results = Aether(localRepo).resolve(DefaultArtifact(id))
+        if (results != null && results.size > 0) {
+            return DependencyResult(AetherDependency(results[0].artifact), results[0].repository.toString())
+        } else {
+            throw KobaltException("Couldn't resolve $id")
+        }
     }
 }
 
@@ -65,6 +81,23 @@ class Aether(val localRepo: File = File(homeDir(TEST_DIR))) {
             repositories = kobaltRepositories
 
             return this
+        }
+    }
+
+    fun latestArtifact(group: String, artifactId: String, extension: String = "jar") : ArtifactResult {
+        val artifact = DefaultArtifact(group, artifactId, extension, "(0,]")
+        val resolved = resolveVersion(artifact)
+        if (resolved != null) {
+            val newArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.extension,
+                    resolved.highestVersion.toString())
+            val artifactResult = resolve(newArtifact)
+            if (artifactResult != null) {
+                    return artifactResult[0]
+            } else {
+                throw KobaltException("Couldn't find latest artifact for $group:$artifactId")
+            }
+        } else {
+            throw KobaltException("Couldn't find latest artifact for $group:$artifactId")
         }
     }
 
@@ -105,11 +138,8 @@ class Aether(val localRepo: File = File(homeDir(TEST_DIR))) {
 
     fun transitiveDependencies(artifact: Artifact) = directDependencies(artifact)
 
-    fun directDependencies(artifact: Artifact): CollectResult? {
-        val result = system.collectDependencies(session, collectRequest(artifact))
-        val root = result.root
-        return result
-    }
+    fun directDependencies(artifact: Artifact): CollectResult?
+            = system.collectDependencies(session, collectRequest(artifact))
 }
 
 class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable<AetherDependency> {
@@ -183,19 +213,7 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
 fun main(argv: Array<String>) {
     KobaltLogger.LOG_LEVEL = 2
     val aether = Aether()
-    val artifact = DefaultArtifact("org.testng:testng:(0,]")
-    aether.resolveVersion(artifact)?.let { versionResult ->
-        println("Latest version: " + versionResult + " " + versionResult.highestVersion)
-        println("")
-//        val newArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.extension,
-//                versionResult.highestVersion)
-//        val artifactResult = aether.resolve(newArtifact)
-//        println("  File: " + artifactResult)
-    }
-    val d2 = Aether().resolve(artifact)
-//    val dd = Aether().resolve("org.testng:testng:6.9.9")
-//    val artifact = d2?.root?.artifact
-    if (d2 != null && d2.size > 0) {
-        println("DD: " + d2)
-    }
+    val latestResult = aether.latestArtifact("org.testng", "testng")
+    val latest = latestResult.artifact
+    println("Latest: " + latest.version + " " + latest.file)
 }

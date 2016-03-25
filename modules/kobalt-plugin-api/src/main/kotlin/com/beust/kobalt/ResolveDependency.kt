@@ -4,7 +4,7 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.RepoFinder
-import com.beust.kobalt.maven.dependency.MavenDependency
+import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.Node
 import com.beust.kobalt.misc.log
@@ -16,8 +16,8 @@ import java.util.*
  */
 class ResolveDependency @Inject constructor(val repoFinder: RepoFinder,
         val localRepo: LocalRepo,
-        val executors: KobaltExecutors,
-        val mdFactory: MavenDependency.IFactory) {
+        val aether: KobaltAether,
+        val executors: KobaltExecutors) {
     val increment = 8
     val leftFirst = "\u2558"
     val leftMiddle = "\u255f"
@@ -29,28 +29,21 @@ class ResolveDependency @Inject constructor(val repoFinder: RepoFinder,
     fun run(ids: List<String>) = ids.forEach { displayDependenciesFor(it) }
 
     private fun displayDependenciesFor(id: String) {
-        val repoResult = repoFinder.findCorrectRepo(id)
+        val mavenId = MavenId.create(id)
+        val resolved =
+            if (mavenId.hasVersion) aether.resolve(id)
+            else aether.latestArtifact(mavenId.groupId, mavenId.artifactId)
 
+        displayDependencies(resolved.dependency, resolved.repoUrl)
+    }
+
+    private fun displayDependencies(dep: IClasspathDependency, url: String) {
         val indent = -1
-
-        val originalId = MavenId.create(id)
-        val mavenId = MavenId.create(originalId.groupId, originalId.artifactId, originalId.packaging,
-                originalId.version)
-
-        val originalDep = mdFactory.create(mavenId, executors.dependencyExecutor,
-                downloadSources = true, downloadJavadocs = true)
-        val packaging = if (mavenId.packaging != null) "@" + mavenId.packaging else ""
-
-        // We want to display the dependencies of the id we found, not the one we queries
-        val dep = mdFactory.create(MavenId.create(originalDep.shortId + repoResult.version + packaging),
-                executors.dependencyExecutor, true, true)
         val root = Node(Dep(dep, indent))
-        val seen = hashSetOf(id)
+        val seen = hashSetOf(dep.id)
         root.addChildren(findChildren(root, seen))
 
-        val url = repoResult.hostConfig.url + repoResult.path
-        val localFile = localRepo.toFullPath(repoResult.path!!)
-        AsciiArt.logBox(listOf(id, url, localFile).map { "          $it" }, {s -> println(s) })
+        AsciiArt.logBox(listOf(dep.id, url, dep.jarFile.get()).map { "          $it" }, {s -> println(s) })
 
         display(root.children)
         println("")
