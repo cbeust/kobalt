@@ -3,7 +3,7 @@
     <CLASSES>
       <root url="jar://$USER_HOME$/.kobalt/repository/com/beust/jcommander/1.48/jcommander-1.48.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/org/beanshell/bsh/2.0b4/bsh-2.0b4.jar!/" />
-      <root url="jar://$USER_HOME$/.kobalt/repository/org/testng/testng/6.9.11-SNAPSHOT/testng-6.9.11-SNAPSHOT.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/testng/testng/6.9.10/testng-6.9.10.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
