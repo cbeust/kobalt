@@ -8,7 +8,7 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.maven.DepFactory
+import com.beust.kobalt.maven.DependencyFactory
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.Md5
@@ -29,7 +29,7 @@ import javax.inject.Singleton
 open class JvmCompilerPlugin @Inject constructor(
         open val localRepo: LocalRepo,
         open val files: KFiles,
-        open val depFactory: DepFactory,
+        open val depFactory: DependencyFactory,
         open val dependencyManager: DependencyManager,
         open val executors: KobaltExecutors,
         open val jvmCompiler: JvmCompiler,

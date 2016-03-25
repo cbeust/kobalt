@@ -6,7 +6,7 @@ import org.testng.Assert
 import org.testng.annotations.Test
 
 @Test
-class PomGenerationTest @Inject constructor(val depFactory: DepFactory): KobaltTest() {
+class PomGenerationTest @Inject constructor(val depFactory: DependencyFactory): KobaltTest() {
     fun shouldGenerateDependencies() {
         val md = depFactory.create("org.testng:testng:6.9.9").toMavenDependencies()
         Assert.assertEquals(md.groupId, "org.testng")

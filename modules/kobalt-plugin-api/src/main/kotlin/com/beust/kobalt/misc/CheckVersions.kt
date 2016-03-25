@@ -2,7 +2,7 @@ package com.beust.kobalt.misc
 
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.maven.DepFactory
+import com.beust.kobalt.maven.DependencyFactory
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.aether.AetherDependency
 import javax.inject.Inject
@@ -10,7 +10,7 @@ import javax.inject.Inject
 /**
  * Find out if any newer versions of the dependencies are available.
  */
-public class CheckVersions @Inject constructor(val depFactory : DepFactory,
+public class CheckVersions @Inject constructor(val depFactory : DependencyFactory,
         val executors : KobaltExecutors) {
 
     fun run(projects: List<Project>) {
@@ -22,8 +22,7 @@ public class CheckVersions @Inject constructor(val depFactory : DepFactory,
                 cds.forEach { compileDependency ->
                     if (MavenId.isMavenId(compileDependency.id)) {
                         try {
-                            val dep = depFactory.create(compileDependency.shortId, localFirst = false,
-                                    showNetworkWarning = false, executor = executor)
+                            val dep = depFactory.create(compileDependency.shortId)
                             val other = compileDependency as AetherDependency
                             if (dep.id != compileDependency.id
                                    && Versions.toLongVersion(dep.version) > Versions.toLongVersion(other.version)) {

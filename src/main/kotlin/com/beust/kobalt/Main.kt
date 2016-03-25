@@ -14,7 +14,7 @@ import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
-import com.beust.kobalt.maven.DepFactory
+import com.beust.kobalt.maven.DependencyFactory
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.*
@@ -66,7 +66,7 @@ private class Main @Inject constructor(
         val server: KobaltServer,
         val pluginInfo: PluginInfo,
         val projectGenerator: ProjectGenerator,
-        val depFactory: DepFactory,
+        val depFactory: DependencyFactory,
         val dependencyData: DependencyData,
         val resolveDependency: ResolveDependency) {
 
@@ -77,7 +77,7 @@ private class Main @Inject constructor(
         val dependencies = arrayListOf<IClasspathDependency>()
         args.pluginIds?.let {
             // We want this call to go to the network if no version was specified, so set localFirst to false
-            dependencies.addAll(it.split(",").map { depFactory.create(it, localFirst = false) })
+            dependencies.addAll(it.split(",").map { depFactory.create(it) })
         }
         args.pluginJarFiles?.let {
             dependencies.addAll(it.split(",").map { FileDependency(it) })

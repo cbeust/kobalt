@@ -5,7 +5,7 @@ import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
-import com.beust.kobalt.maven.DepFactory
+import com.beust.kobalt.maven.DependencyFactory
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.misc.JarUtils
 import com.beust.kobalt.misc.KFiles
@@ -22,7 +22,7 @@ import javax.inject.Singleton
 @Singleton
 public class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManager>,
         val files: KFiles,
-        val depFactory: DepFactory,
+        val depFactory: DependencyFactory,
         val localRepo: LocalRepo,
         val executors: KobaltExecutors,
         val pluginInfo: PluginInfo,
@@ -152,7 +152,7 @@ public class Plugins @Inject constructor (val taskManagerProvider : Provider<Tas
             //
             // Load all the jar files synchronously (can't compile the build script until
             // they are installed locally).
-            depFactory.create(it.id, executor = executor)
+            depFactory.create(it.id)
 
             //
             // Open the jar, parse its kobalt-plugin.xml and add the resulting PluginInfo to pluginInfo

@@ -10,7 +10,7 @@ import javax.inject.Inject
 
 @Test
 @org.testng.annotations.Guice(modules = arrayOf(TestModule::class))
-class RemoteRepoTest @Inject constructor(val repoFinder: RepoFinder, val depFactory: DepFactory,
+class RemoteRepoTest @Inject constructor(val repoFinder: RepoFinder, val depFactory: DependencyFactory,
         @DependencyExecutor val executor: ExecutorService, val args: Args){
 
     @Test

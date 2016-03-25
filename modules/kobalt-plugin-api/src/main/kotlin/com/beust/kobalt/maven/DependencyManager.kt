@@ -10,7 +10,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DependencyManager @Inject constructor(val executors: KobaltExecutors, val depFactory: DepFactory) {
+class DependencyManager @Inject constructor(val executors: KobaltExecutors, val depFactory: DependencyFactory) {
 
     /**
      * Create an IClasspathDependency from a Maven id.
@@ -77,7 +77,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
         dependencies.forEach { projectDependency ->
             result.add(projectDependency)
             projectDependency.id.let {
-                result.add(depFactory.create(it, executor = executor))
+                result.add(depFactory.create(it))
                 val downloaded = transitiveClosure(projectDependency.directDependencies())
 
                 result.addAll(downloaded)

@@ -6,7 +6,7 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.BaseJvmPlugin
 import com.beust.kobalt.internal.JvmCompilerPlugin
-import com.beust.kobalt.maven.DepFactory
+import com.beust.kobalt.maven.DependencyFactory
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -17,7 +17,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depFactory: DepFactory,
+class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depFactory: DependencyFactory,
         override val configActor: ConfigActor<KotlinConfig>)
     : BaseJvmPlugin<KotlinConfig>(configActor), IDocContributor, IClasspathContributor, ICompilerContributor,
         IBuildConfigContributor {

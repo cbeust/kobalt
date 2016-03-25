@@ -18,7 +18,7 @@ class DownloadTest @Inject constructor(
         val localRepo: LocalRepo,
         val pomFactory: Pom.IFactory,
         val dependencyManager: DependencyManager,
-        val depFactory: DepFactory,
+        val depFactory: DependencyFactory,
         val aether: KobaltAether,
         val executors: KobaltExecutors) : KobaltTest() {
     private var executor: ExecutorService by Delegates.notNull()
@@ -40,7 +40,7 @@ class DownloadTest @Inject constructor(
 
         if (success) {
             arrayListOf("$groupId:$artifactId:$version", "$groupId:$artifactId:$previousVersion").forEach {
-                val dep = depFactory.create(it, executor = executor)
+                val dep = depFactory.create(it)
                 val future = dep.jarFile
                 val file = future.get()
                 Assert.assertTrue(file.exists(), "Couldn't find ${file.absolutePath}")
@@ -60,7 +60,7 @@ class DownloadTest @Inject constructor(
     fun shouldDownloadNoVersion() {
         val success = deleteDir()
         if (success) {
-            val dep = depFactory.create(idNoVersion, executor = executor)
+            val dep = depFactory.create(idNoVersion)
 
             val future = dep.jarFile
             val file = future.get()
@@ -77,7 +77,7 @@ class DownloadTest @Inject constructor(
         val range = "[2.5,)"
         val expected = "3.0-alpha-1"
 
-        val dep = depFactory.create("javax.servlet:servlet-api:$range", executor = executor)
+        val dep = depFactory.create("javax.servlet:servlet-api:$range")
         val future = dep.jarFile
         val file = future.get()
         Assert.assertEquals(file.name, "servlet-api-$expected.jar")
@@ -87,7 +87,7 @@ class DownloadTest @Inject constructor(
     @Test
     fun shouldFindLocalJar() {
         depFactory.create("$idNoVersion$version")
-        val dep = depFactory.create("$idNoVersion$version", executor = executor)
+        val dep = depFactory.create("$idNoVersion$version")
         val future = dep.jarFile
         //        Assert.assertTrue(future is CompletedFuture)
         val file = future.get()

@@ -2,7 +2,7 @@ package com.beust.kobalt.plugin.apt
 
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.maven.DepFactory
+import com.beust.kobalt.maven.DependencyFactory
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
@@ -18,7 +18,7 @@ import javax.inject.Singleton
  * (outputDir, etc...).
  */
 @Singleton
-class AptPlugin @Inject constructor(val depFactory: DepFactory, val configActor: ConfigActor<AptConfig>)
+class AptPlugin @Inject constructor(val depFactory: DependencyFactory, val configActor: ConfigActor<AptConfig>)
     : BasePlugin(), ICompilerFlagContributor, ISourceDirectoryContributor, IConfigActor<AptConfig> by configActor {
 
     // ISourceDirectoryContributor

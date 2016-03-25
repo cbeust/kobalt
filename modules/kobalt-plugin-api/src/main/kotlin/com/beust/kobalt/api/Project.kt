@@ -3,7 +3,7 @@ package com.beust.kobalt.api
 import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.JvmCompilerPlugin
-import com.beust.kobalt.maven.aether.KobaltAether
+import com.beust.kobalt.maven.DependencyFactory
 import com.beust.kobalt.misc.KFiles
 import java.io.File
 import java.util.*
@@ -151,7 +151,7 @@ class Dependencies(val project: Project,
      */
     private fun addToDependencies(dependencies: ArrayList<IClasspathDependency>, dep: Array<out String>)
             : List<File>
-        = with(dep.map { KobaltAether.create(it)}) {
+        = with(dep.map { DependencyFactory.create(it)}) {
             dependencies.addAll(this)
             this.map { it.jarFile.get() }
     }

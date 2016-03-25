@@ -1,20 +1,15 @@
 package com.beust.kobalt.api
 
-import com.beust.kobalt.maven.DepFactory
-import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.maven.DependencyFactory
 import java.io.File
 import java.util.concurrent.Future
 
-public class JarFinder {
+class JarFinder {
     companion object {
         /**
          * @return a Future for the jar file corresponding to this id.
          */
-        fun byIdFuture(id: String) : Future<File> {
-            val executor = Kobalt.INJECTOR.getInstance(KobaltExecutors::class.java).miscExecutor
-            val depFactory = Kobalt.INJECTOR.getInstance(DepFactory::class.java)
-            return depFactory.create(id, executor = executor).jarFile
-        }
+        fun byIdFuture(id: String) : Future<File> = DependencyFactory.create(id).jarFile
 
         /**
          * @return the jar file corresponding to this id. This might cause a network call.

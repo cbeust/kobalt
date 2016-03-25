@@ -30,12 +30,6 @@ class DependencyResult(val dependency: IClasspathDependency, val repoUrl: String
 class KobaltAether @Inject constructor (val settings: KobaltSettings) {
     val localRepo: File get() = File(settings.localRepo)
 
-    companion object {
-        val aether : KobaltAether get() = Kobalt.INJECTOR.getInstance(KobaltAether::class.java)
-
-        fun create(id: String) = aether.create(id)
-    }
-
     /**
      * Don't call this method directly, use `DepFactory` instead.
      */
