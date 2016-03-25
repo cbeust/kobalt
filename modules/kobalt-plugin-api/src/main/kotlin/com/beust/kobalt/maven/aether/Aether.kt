@@ -3,12 +3,12 @@ package com.beust.kobalt.maven.aether
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.homeDir
+import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.maven.CompletedFuture
-import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.Versions
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
+import com.google.inject.Inject
 import org.eclipse.aether.artifact.Artifact
 import org.eclipse.aether.artifact.DefaultArtifact
 import org.eclipse.aether.collection.CollectRequest
@@ -25,11 +25,11 @@ import org.eclipse.aether.util.filter.DependencyFilterUtils
 import java.io.File
 import java.util.concurrent.Future
 
-val TEST_DIR = ".aether/repository"
-
 class DependencyResult(val dependency: IClasspathDependency, val repoUrl: String)
 
-class KobaltAether(val localRepo: File = File(homeDir(TEST_DIR))) {
+class KobaltAether @Inject constructor (val settings: KobaltSettings) {
+    val localRepo: File get() = File(settings.localRepo)
+
     companion object {
         val aether : KobaltAether get() = Kobalt.INJECTOR.getInstance(KobaltAether::class.java)
 
@@ -71,7 +71,7 @@ class ExcludeOptionalDependencyFilter: DependencyFilter {
     }
 }
 
-class Aether(val localRepo: File = File(homeDir(TEST_DIR))) {
+class Aether(val localRepo: File) {
     private val system = Booter.newRepositorySystem()
     private val session = Booter.newRepositorySystemSession(system, localRepo)
     private val classpathFilter = AndDependencyFilter(
@@ -152,6 +152,10 @@ class Aether(val localRepo: File = File(homeDir(TEST_DIR))) {
 }
 
 class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable<AetherDependency> {
+    val settings : KobaltSettings get() = Kobalt.INJECTOR.getInstance(KobaltSettings::class.java)
+    val localRepo : File get() = File(settings.localRepo)
+    val aether: Aether get() = Aether(localRepo)
+
     constructor(node: DependencyNode) : this(node.artifact) {}
 
     override val id: String = toId(artifact)
@@ -166,11 +170,11 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
         get() = if (artifact.file != null) {
             CompletedFuture(artifact.file)
         } else {
-            val td = Aether().transitiveDependencies(artifact)
+            val td = aether.transitiveDependencies(artifact)
             if (td?.root?.artifact?.file != null) {
                 CompletedFuture(td!!.root.artifact.file)
             } else {
-                val resolved = Aether().resolve(artifact)
+                val resolved = Aether(localRepo).resolve(artifact)
                 if (resolved != null && resolved.size > 0) {
                     CompletedFuture(resolved[0].artifact.file)
                 } else {
@@ -191,8 +195,8 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
 
     override fun directDependencies() : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
-        val deps = Aether().directDependencies(artifact)
-        val td = Aether().transitiveDependencies(artifact)
+        val deps = aether.directDependencies(artifact)
+        val td = aether.transitiveDependencies(artifact)
         if (deps != null) {
             if (! deps.root.dependency.optional) {
                 deps.root.children.forEach {
@@ -221,10 +225,10 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
     override fun toString() = id
 }
 
-fun main(argv: Array<String>) {
-    KobaltLogger.LOG_LEVEL = 2
-    val aether = Aether()
-    val latestResult = aether.latestArtifact("org.testng", "testng")
-    val latest = latestResult.artifact
-    println("Latest: " + latest.version + " " + latest.file)
-}
+//fun main(argv: Array<String>) {
+//    KobaltLogger.LOG_LEVEL = 2
+//    val aether = Aether()
+//    val latestResult = aether.latestArtifact("org.testng", "testng")
+//    val latest = latestResult.artifact
+//    println("Latest: " + latest.version + " " + latest.file)
+//}
