@@ -2,10 +2,8 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.HostConfig
 import com.beust.kobalt.KobaltTest
-import com.beust.kobalt.internal.KobaltSettings
-import com.beust.kobalt.maven.dependency.MavenDependency
+import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.Version
 import com.beust.kobalt.misc.warn
 import org.testng.Assert
 import org.testng.annotations.BeforeClass
@@ -15,17 +13,13 @@ import java.util.concurrent.ExecutorService
 import javax.inject.Inject
 import kotlin.properties.Delegates
 
-/**
- * TODO: test snapshots  https://repository.jboss.org/nexus/content/repositories/root_repository//commons-lang/commons-lang/2.7-SNAPSHOT/commons-lang-2.7-SNAPSHOT.jar
- */
 @Test
 class DownloadTest @Inject constructor(
-        val depFactory: DepFactory,
         val localRepo: LocalRepo,
-        val mdFactory: MavenDependency.IFactory,
         val pomFactory: Pom.IFactory,
         val dependencyManager: DependencyManager,
-        val settings: KobaltSettings,
+        val depFactory: DepFactory,
+        val aether: KobaltAether,
         val executors: KobaltExecutors) : KobaltTest() {
     private var executor: ExecutorService by Delegates.notNull()
 
@@ -48,7 +42,6 @@ class DownloadTest @Inject constructor(
             arrayListOf("$groupId:$artifactId:$version", "$groupId:$artifactId:$previousVersion").forEach {
                 val dep = depFactory.create(it, executor = executor)
                 val future = dep.jarFile
-                Assert.assertFalse(future is CompletedFuture)
                 val file = future.get()
                 Assert.assertTrue(file.exists(), "Couldn't find ${file.absolutePath}")
             }
@@ -71,7 +64,6 @@ class DownloadTest @Inject constructor(
 
             val future = dep.jarFile
             val file = future.get()
-            Assert.assertFalse(future is CompletedFuture)
             Assert.assertNotNull(file)
             Assert.assertTrue(file.exists(), "Couldn't find ${file.absolutePath}")
         } else {
@@ -88,14 +80,13 @@ class DownloadTest @Inject constructor(
         val dep = depFactory.create("javax.servlet:servlet-api:$range", executor = executor)
         val future = dep.jarFile
         val file = future.get()
-        Assert.assertFalse(future is CompletedFuture)
         Assert.assertEquals(file.name, "servlet-api-$expected.jar")
         Assert.assertTrue(file.exists())
     }
 
     @Test
     fun shouldFindLocalJar() {
-        MavenDependency.create("$idNoVersion$version")
+        depFactory.create("$idNoVersion$version")
         val dep = depFactory.create("$idNoVersion$version", executor = executor)
         val future = dep.jarFile
         //        Assert.assertTrue(future is CompletedFuture)
@@ -105,40 +96,40 @@ class DownloadTest @Inject constructor(
 
     @Test
     fun shouldFindLocalJarNoVersion() {
-        val dep = MavenDependency.create("$idNoVersion$version")
+        val dep = depFactory.create("$idNoVersion$version")
         val future = dep.jarFile
         future.get().delete()
 
-        val dep2 = MavenDependency.create("$idNoVersion$version")
+        val dep2 = depFactory.create("$idNoVersion$version")
         val file = dep2.jarFile.get()
         Assert.assertNotNull(file)
         Assert.assertTrue(file.exists(), "Couldn't find ${file.absolutePath}")
     }
 
-    @Test(groups = arrayOf("broken"), enabled = false)
-    fun snapshotTest() {
-        val id = "org.jetbrains.spek:spek:0.1-SNAPSHOT"
-        val mavenId = MavenId.create(id)
-        val dep = SimpleDep(mavenId)
-
-        // TODO: allow tests to add their own repo. The following call requires
-        // "http://repository.jetbrains.com/all" to work
-        // For now, just hardcoding the result we should have received
-//        val repoResult = repoFinder.findCorrectRepo(id)
-
-        val hc = HostConfig("http://repository.jetbrains.com/all/")
-        val repoResult = RepoFinder.RepoResult(hc,
-                Version.of("0.1-SNAPSHOT"), hc.url, Version("0.1-SNAPSHOT", "20151011.112011-29"))
-
-        val jarFile = dep.toJarFile(repoResult)
-        val url = repoResult.hostConfig.url + jarFile
-
-        val metadataXmlPath = dep.toMetadataXmlPath(false, false, "0.1-SNAPSHOT")
-            .replace("\\", "/")
-
-        Assert.assertEquals(metadataXmlPath, "org/jetbrains/spek/spek/0.1-SNAPSHOT/maven-metadata.xml")
-        Assert.assertTrue(Kurl(HostConfig(url)).exists, "Should exist: $url")
-    }
+//    @Test(groups = arrayOf("broken"), enabled = false)
+//    fun snapshotTest() {
+//        val id = "org.jetbrains.spek:spek:0.1-SNAPSHOT"
+//        val mavenId = MavenId.create(id)
+//        val dep = SimpleDep(mavenId)
+//
+//        // TODO: allow tests to add their own repo. The following call requires
+//        // "http://repository.jetbrains.com/all" to work
+//        // For now, just hardcoding the result we should have received
+////        val repoResult = repoFinder.findCorrectRepo(id)
+//
+//        val hc = HostConfig("http://repository.jetbrains.com/all/")
+//        val repoResult = RepoFinder.RepoResult(hc,
+//                Version.of("0.1-SNAPSHOT"), hc.url, Version("0.1-SNAPSHOT", "20151011.112011-29"))
+//
+//        val jarFile = dep.toJarFile(repoResult)
+//        val url = repoResult.hostConfig.url + jarFile
+//
+//        val metadataXmlPath = dep.toMetadataXmlPath(false, false, "0.1-SNAPSHOT")
+//            .replace("\\", "/")
+//
+//        Assert.assertEquals(metadataXmlPath, "org/jetbrains/spek/spek/0.1-SNAPSHOT/maven-metadata.xml")
+//        Assert.assertTrue(Kurl(HostConfig(url)).exists, "Should exist: $url")
+//    }
 
     @Test
     fun jitpackTest() {
@@ -149,8 +140,7 @@ class DownloadTest @Inject constructor(
     @Test
     fun containerPomTest() {
         File(localRepo.toFullPath("nl/komponents/kovenant")).deleteRecursively()
-        val dep = mdFactory.create(MavenId.create("nl.komponents.kovenant:kovenant:3.0.0"), executor = executor,
-                downloadSources = false, downloadJavadocs = false)
+        val dep = depFactory.create("nl.komponents.kovenant:kovenant:3.0.0")
         dep.directDependencies().forEach {
             Assert.assertTrue(it.jarFile.get().exists(), "Dependency was not downloaded: $it")
         }
@@ -162,11 +152,10 @@ class DownloadTest @Inject constructor(
         // This id has a parent pom which defines moshi version to be 1.1.0. Make sure that this
         // version is being fetched instead of moshi:1.2.0-SNAPSHOT (which gets discarded anyway
         // since snapshots are not allowed to be returned when looking up a versionless id)
-//        val host = HostConfig("http://repository.jetbrains.com/all/")
-//        val id = "com.squareup.moshi:moshi:"
-//        val results = finderFactory.create(id, host).call()
-//        Assert.assertEquals(results.size, 1)
-//        Assert.assertEquals(results[0].version, "1.1.0")
+        val host = HostConfig("http://repository.jetbrains.com/all/")
+        val id = "com.squareup.moshi:moshi:"
+        val dr = aether.resolve(id)
+        println("DEP: " + dr)
     }
 
     @Test

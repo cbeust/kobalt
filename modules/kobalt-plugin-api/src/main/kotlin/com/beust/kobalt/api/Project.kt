@@ -3,7 +3,7 @@ package com.beust.kobalt.api
 import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.JvmCompilerPlugin
-import com.beust.kobalt.maven.dependency.MavenDependency
+import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.misc.KFiles
 import java.io.File
 import java.util.*
@@ -83,8 +83,8 @@ open class Project(
 
     @Directive
     fun dependencies(init: Dependencies.() -> Unit) : Dependencies {
-        dependencies = Dependencies(this, compileDependencies, compileProvidedDependencies, compileRuntimeDependencies,
-                excludedDependencies)
+        dependencies = Dependencies(this, compileDependencies, compileProvidedDependencies,
+                compileRuntimeDependencies, excludedDependencies)
         dependencies!!.init()
         return dependencies!!
     }
@@ -139,7 +139,8 @@ class Sources(val project: Project, val sources: HashSet<String>) {
     }
 }
 
-class Dependencies(val project: Project, val dependencies: ArrayList<IClasspathDependency>,
+class Dependencies(val project: Project,
+        val dependencies: ArrayList<IClasspathDependency>,
         val providedDependencies: ArrayList<IClasspathDependency>,
         val runtimeDependencies: ArrayList<IClasspathDependency>,
         val excludedDependencies: ArrayList<IClasspathDependency>) {
@@ -150,7 +151,7 @@ class Dependencies(val project: Project, val dependencies: ArrayList<IClasspathD
      */
     private fun addToDependencies(dependencies: ArrayList<IClasspathDependency>, dep: Array<out String>)
             : List<File>
-        = with(dep.map { MavenDependency.create(it)}) {
+        = with(dep.map { KobaltAether.create(it)}) {
             dependencies.addAll(this)
             this.map { it.jarFile.get() }
     }

@@ -6,8 +6,8 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.BaseJvmPlugin
 import com.beust.kobalt.internal.JvmCompilerPlugin
+import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.dependency.FileDependency
-import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
@@ -17,7 +17,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class KotlinPlugin @Inject constructor(val executors: KobaltExecutors,
+class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depFactory: DepFactory,
         override val configActor: ConfigActor<KotlinConfig>)
     : BaseJvmPlugin<KotlinConfig>(configActor), IDocContributor, IClasspathContributor, ICompilerContributor,
         IBuildConfigContributor {
@@ -95,7 +95,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors,
 
     private fun getKotlinCompilerJar(name: String): String {
         val id = "org.jetbrains.kotlin:$name:${KotlinCompiler.KOTLIN_VERSION}"
-        val dep = MavenDependency.create(id, executor = executors.miscExecutor)
+        val dep = depFactory.create(id)
         val result = dep.jarFile.get().absolutePath
         return result
     }

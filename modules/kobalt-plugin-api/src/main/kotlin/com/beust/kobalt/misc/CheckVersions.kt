@@ -4,7 +4,7 @@ import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.DepFactory
 import com.beust.kobalt.maven.MavenId
-import com.beust.kobalt.maven.dependency.MavenDependency
+import com.beust.kobalt.maven.aether.AetherDependency
 import javax.inject.Inject
 
 /**
@@ -24,12 +24,10 @@ public class CheckVersions @Inject constructor(val depFactory : DepFactory,
                         try {
                             val dep = depFactory.create(compileDependency.shortId, localFirst = false,
                                     showNetworkWarning = false, executor = executor)
-                            if (dep is MavenDependency) {
-                                val other = compileDependency as MavenDependency
-                                if (dep.id != compileDependency.id
-                                       && Versions.toLongVersion(dep.version) > Versions.toLongVersion(other.version)) {
-                                    newVersions.add(dep.id)
-                                }
+                            val other = compileDependency as AetherDependency
+                            if (dep.id != compileDependency.id
+                                   && Versions.toLongVersion(dep.version) > Versions.toLongVersion(other.version)) {
+                                newVersions.add(dep.id)
                             }
                         } catch(e: KobaltException) {
                             log(1, "  Cannot resolve ${compileDependency.shortId}. ignoring")

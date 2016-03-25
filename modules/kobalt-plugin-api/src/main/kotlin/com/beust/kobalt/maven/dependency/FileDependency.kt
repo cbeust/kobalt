@@ -12,6 +12,8 @@ open public class FileDependency(open val fileName: String) : IClasspathDependen
 
     override val id = PREFIX_FILE + fileName
 
+    override val version = "0.0"
+
     override val jarFile = CompletedFuture(File(fileName))
 
     override fun toMavenDependencies(): Dependency {

@@ -10,7 +10,10 @@ import com.google.inject.Key
 import java.util.concurrent.ExecutorService
 import javax.inject.Inject
 
-public class DepFactory @Inject constructor(val localRepo: LocalRepo,
+/**
+ * Use this class to create instances of `IClasspathDependency` from an id.
+ */
+class DepFactory @Inject constructor(val localRepo: LocalRepo,
         val executors: KobaltExecutors,
         val aether: KobaltAether) {
 
@@ -29,38 +32,10 @@ public class DepFactory @Inject constructor(val localRepo: LocalRepo,
         if (id.startsWith(FileDependency.PREFIX_FILE)) {
             return FileDependency(id.substring(FileDependency.PREFIX_FILE.length))
         } else {
-            val result = aether.create(id)
+            val mavenId = MavenId.create(id)
+            val result = if (mavenId.hasVersion) aether.create(id)
+                else aether.create(id + "(0,]")
             return result
-//            return deps.root
-//            val mavenId = MavenId.create(id)
-//            var tentativeVersion = mavenId.version
-//            var packaging = mavenId.packaging
-//            var repoResult: RepoFinder.RepoResult?
-//
-//            val version =
-//                if (tentativeVersion != null && ! MavenId.isRangedVersion(tentativeVersion)) tentativeVersion
-//                else {
-//                    var localVersion: String? = tentativeVersion
-//                    if (localFirst) localVersion = localRepo.findLocalVersion(mavenId.groupId, mavenId.artifactId,
-//                            mavenId.packaging)
-//                    if (localFirst && localVersion != null) {
-//                        localVersion
-//                    } else {
-//                        if (! localFirst && showNetworkWarning) {
-//                            warn("The id \"$id\" doesn't contain a version, which will cause a network call")
-//                        }
-//                        repoResult = remoteRepo.findCorrectRepo(id)
-//                        if (!repoResult.found) {
-//                            throw KobaltException("Couldn't resolve $id")
-//                        } else {
-//                            repoResult.version?.version
-//                        }
-//                    }
-//                }
-//
-//
-//            val resultMavenId = MavenId.create(mavenId.groupId, mavenId.artifactId, packaging, version)
-//            return mavenDependencyFactory.create(resultMavenId, executor, downloadSources, downloadJavadocs)
         }
     }
 }

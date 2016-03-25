@@ -2,7 +2,6 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.api.*
 import com.beust.kobalt.maven.dependency.FileDependency
-import com.beust.kobalt.maven.dependency.MavenDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.google.common.collect.ArrayListMultimap
@@ -11,14 +10,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DependencyManager @Inject constructor(val executors: KobaltExecutors,
-        val depFactory: DepFactory, val mdFactory: MavenDependency.IFactory){
+class DependencyManager @Inject constructor(val executors: KobaltExecutors, val depFactory: DepFactory) {
 
     /**
      * Create an IClasspathDependency from a Maven id.
      */
-    fun createMaven(id: String) : IClasspathDependency =
-            mdFactory.create(MavenId.create(id), executors.miscExecutor, false, false)
+    fun createMaven(id: String) : IClasspathDependency = depFactory.create(id)
 
     /**
      * Create an IClasspathDependency from a path.

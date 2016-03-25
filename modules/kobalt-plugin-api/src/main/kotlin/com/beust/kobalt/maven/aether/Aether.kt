@@ -30,6 +30,15 @@ val TEST_DIR = ".aether/repository"
 class DependencyResult(val dependency: IClasspathDependency, val repoUrl: String)
 
 class KobaltAether(val localRepo: File = File(homeDir(TEST_DIR))) {
+    companion object {
+        val aether : KobaltAether get() = Kobalt.INJECTOR.getInstance(KobaltAether::class.java)
+
+        fun create(id: String) = aether.create(id)
+    }
+
+    /**
+     * Don't call this method directly, use `DepFactory` instead.
+     */
     fun create(id: String): IClasspathDependency {
         val aether = Aether(localRepo)
         val cr = aether.transitiveDependencies(DefaultArtifact(id))
@@ -146,6 +155,8 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
     constructor(node: DependencyNode) : this(node.artifact) {}
 
     override val id: String = toId(artifact)
+
+    override val version: String = artifact.version
 
     private fun toId(a: Artifact) = with(a) {
         groupId + ":" + artifactId + ":" + version

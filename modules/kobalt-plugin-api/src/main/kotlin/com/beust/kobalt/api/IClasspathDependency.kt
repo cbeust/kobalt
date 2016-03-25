@@ -16,6 +16,9 @@ interface IClasspathDependency {
     /** Identifier for this dependency */
     val id: String
 
+    /** Version for this identifier */
+    val version: String
+
     /** Absolute path to the jar file on the local file system */
     val jarFile: Future<File>
 
