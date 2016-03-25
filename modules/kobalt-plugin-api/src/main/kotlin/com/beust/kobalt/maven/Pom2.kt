@@ -72,7 +72,6 @@ class Pom2(val pomProject: PomProject) {
                         groupId + ":" + artifactId + ":" + version
                     }
                     val dep = dependencyManager.createMaven(id)
-                    println("DEP: " + dep)
                 }
                 return Either(null, Pom2(result))
             } catch(ex: Exception) {

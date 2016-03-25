@@ -176,13 +176,5 @@ class DownloadTest @Inject constructor(
         Assert.assertTrue(rr.localPath != null && rr.localPath!!.startsWith("junit/junit"))
         Assert.assertEquals(rr.version.toString(), "4.12")
     }
-
-    @Test
-    fun containerPom3() {
-        val pom = Pom2.parse(
-                File("/Users/beust/kotlin/kobalt/src/test/resources/guice-parent-4.0.pom"), dependencyManager)
-        println("POM: ${pom.value?.pomProject}")
-        println("")
-    }
 }
 
