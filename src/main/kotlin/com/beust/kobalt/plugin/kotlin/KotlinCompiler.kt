@@ -5,7 +5,6 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.kotlin.ParentLastClassLoader
-import com.beust.kobalt.maven.DependencyFactory
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
@@ -31,7 +30,6 @@ import kotlin.properties.Delegates
 class KotlinCompiler @Inject constructor(
         val files: KFiles,
         val dependencyManager: DependencyManager,
-        val depFactory: DependencyFactory,
         val executors: KobaltExecutors,
         val jvmCompiler: JvmCompiler) {
     companion object {
@@ -137,7 +135,7 @@ class KotlinCompiler @Inject constructor(
             otherClasspath: List<String>, sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult {
 
         val executor = executors.newExecutor("KotlinCompiler", 10)
-        val compilerDep = depFactory.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION")
+        val compilerDep = dependencyManager.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION")
         val deps = dependencyManager.transitiveClosure(listOf(compilerDep))
 
         // Force a download of the compiler dependencies

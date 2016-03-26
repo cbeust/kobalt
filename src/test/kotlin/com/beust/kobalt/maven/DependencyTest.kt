@@ -10,8 +10,7 @@ import javax.inject.Inject
 import kotlin.properties.Delegates
 
 @Guice(modules = arrayOf(TestModule::class))
-public class DependencyTest @Inject constructor(val depFactory: DependencyFactory,
-        val executors: KobaltExecutors) {
+public class DependencyTest @Inject constructor(val executors: KobaltExecutors) {
 
     @DataProvider
     fun dpVersions(): Array<Array<out Any>> {

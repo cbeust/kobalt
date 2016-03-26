@@ -1,21 +1,17 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.Args
 import com.beust.kobalt.TestModule
-import com.beust.kobalt.misc.DependencyExecutor
 import org.testng.Assert
 import org.testng.annotations.Test
-import java.util.concurrent.ExecutorService
 import javax.inject.Inject
 
 @Test
 @org.testng.annotations.Guice(modules = arrayOf(TestModule::class))
-class RemoteRepoTest @Inject constructor(val repoFinder: RepoFinder, val depFactory: DependencyFactory,
-        @DependencyExecutor val executor: ExecutorService, val args: Args){
+class RemoteRepoTest @Inject constructor(val repoFinder: RepoFinder, val dependencyManager: DependencyManager){
 
     @Test
     fun mavenMetadata() {
-        val dep = depFactory.create("org.codehaus.groovy:groovy-all:")
+        val dep = dependencyManager.create("org.codehaus.groovy:groovy-all:")
         // Note: this test might fail if a new version of Groovy gets uploaded, need
         // to find a stable (i.e. abandoned) package
         with(dep.id.split(":")[2]) {
@@ -25,7 +21,7 @@ class RemoteRepoTest @Inject constructor(val repoFinder: RepoFinder, val depFact
 
     @Test(enabled = false)
     fun metadataForSnapshots() {
-        val jar = depFactory.create("org.apache.maven.wagon:wagon-provider-test:2.10-SNAPSHOT")
+        val jar = dependencyManager.create("org.apache.maven.wagon:wagon-provider-test:2.10-SNAPSHOT")
         Assert.assertTrue(jar.jarFile.get().exists())
     }
 

@@ -18,7 +18,6 @@ class DownloadTest @Inject constructor(
         val localRepo: LocalRepo,
         val pomFactory: Pom.IFactory,
         val dependencyManager: DependencyManager,
-        val depFactory: DependencyFactory,
         val aether: KobaltAether,
         val executors: KobaltExecutors) : KobaltTest() {
     private var executor: ExecutorService by Delegates.notNull()
@@ -40,7 +39,7 @@ class DownloadTest @Inject constructor(
 
         if (success) {
             arrayListOf("$groupId:$artifactId:$version", "$groupId:$artifactId:$previousVersion").forEach {
-                val dep = depFactory.create(it)
+                val dep = dependencyManager.create(it)
                 val future = dep.jarFile
                 val file = future.get()
                 Assert.assertTrue(file.exists(), "Couldn't find ${file.absolutePath}")
@@ -60,7 +59,7 @@ class DownloadTest @Inject constructor(
     fun shouldDownloadNoVersion() {
         val success = deleteDir()
         if (success) {
-            val dep = depFactory.create(idNoVersion)
+            val dep = dependencyManager.create(idNoVersion)
 
             val future = dep.jarFile
             val file = future.get()
@@ -77,7 +76,7 @@ class DownloadTest @Inject constructor(
         val range = "[2.5,)"
         val expected = "3.0-alpha-1"
 
-        val dep = depFactory.create("javax.servlet:servlet-api:$range")
+        val dep = dependencyManager.create("javax.servlet:servlet-api:$range")
         val future = dep.jarFile
         val file = future.get()
         Assert.assertEquals(file.name, "servlet-api-$expected.jar")
@@ -86,8 +85,8 @@ class DownloadTest @Inject constructor(
 
     @Test
     fun shouldFindLocalJar() {
-        depFactory.create("$idNoVersion$version")
-        val dep = depFactory.create("$idNoVersion$version")
+        dependencyManager.create("$idNoVersion$version")
+        val dep = dependencyManager.create("$idNoVersion$version")
         val future = dep.jarFile
         //        Assert.assertTrue(future is CompletedFuture)
         val file = future.get()
@@ -96,11 +95,11 @@ class DownloadTest @Inject constructor(
 
     @Test
     fun shouldFindLocalJarNoVersion() {
-        val dep = depFactory.create("$idNoVersion$version")
+        val dep = dependencyManager.create("$idNoVersion$version")
         val future = dep.jarFile
         future.get().delete()
 
-        val dep2 = depFactory.create("$idNoVersion$version")
+        val dep2 = dependencyManager.create("$idNoVersion$version")
         val file = dep2.jarFile.get()
         Assert.assertNotNull(file)
         Assert.assertTrue(file.exists(), "Couldn't find ${file.absolutePath}")
@@ -140,7 +139,7 @@ class DownloadTest @Inject constructor(
     @Test
     fun containerPomTest() {
         File(localRepo.toFullPath("nl/komponents/kovenant")).deleteRecursively()
-        val dep = depFactory.create("nl.komponents.kovenant:kovenant:3.0.0")
+        val dep = dependencyManager.create("nl.komponents.kovenant:kovenant:3.0.0")
         dep.directDependencies().forEach {
             Assert.assertTrue(it.jarFile.get().exists(), "Dependency was not downloaded: $it")
         }

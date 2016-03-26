@@ -7,7 +7,6 @@ import com.beust.kobalt.app.BuildFileCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
-import com.beust.kobalt.maven.DependencyFactory
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
@@ -17,13 +16,12 @@ import java.io.File
 import java.nio.file.Paths
 
 class DependencyData @Inject constructor(val executors: KobaltExecutors, val dependencyManager: DependencyManager,
-        val buildFileCompilerFactory: BuildFileCompiler.IFactory, val pluginInfo: PluginInfo,
-        val depFactory: DependencyFactory) {
+        val buildFileCompilerFactory: BuildFileCompiler.IFactory, val pluginInfo: PluginInfo) {
     fun dependenciesDataFor(buildFilePath: String, args: Args) : GetDependenciesData {
         val projectDatas = arrayListOf<ProjectData>()
 
         fun toDependencyData(d: IClasspathDependency, scope: String): DependencyData {
-            val dep = depFactory.create(d.id)
+            val dep = dependencyManager.create(d.id)
             return DependencyData(d.id, scope, dep.jarFile.get().absolutePath)
         }
 

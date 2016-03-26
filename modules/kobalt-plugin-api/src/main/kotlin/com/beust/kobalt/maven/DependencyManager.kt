@@ -1,6 +1,7 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.api.*
+import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -10,27 +11,47 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DependencyManager @Inject constructor(val executors: KobaltExecutors, val depFactory: DependencyFactory) {
+class DependencyManager @Inject constructor(val executors: KobaltExecutors, val aether: KobaltAether)
+        : IDependencyManager {
+
+    companion object {
+        fun create(id: String) =
+                Kobalt.INJECTOR.getInstance(DependencyManager::class.java).create(id)
+    }
+
+    /**
+     * Parse the id and return the correct IClasspathDependency
+     */
+    override fun create(id: String) : IClasspathDependency {
+        if (id.startsWith(FileDependency.PREFIX_FILE)) {
+            return FileDependency(id.substring(FileDependency.PREFIX_FILE.length))
+        } else {
+            val mavenId = MavenId.create(id)
+            val result = if (mavenId.hasVersion) aether.create(id)
+                else aether.create(id + "(0,]")
+            return result
+        }
+    }
 
     /**
      * Create an IClasspathDependency from a Maven id.
      */
-    fun createMaven(id: String) : IClasspathDependency = depFactory.create(id)
+    override fun createMaven(id: String) : IClasspathDependency = create(id)
 
     /**
      * Create an IClasspathDependency from a path.
      */
-    fun createFile(path: String) : IClasspathDependency = FileDependency(path)
+    override fun createFile(path: String) : IClasspathDependency = FileDependency(path)
 
     /**
      * @return the source dependencies for this project, including the contributors.
      */
-    fun dependencies(project: Project, context: KobaltContext) = dependencies(project, context, false)
+    override fun dependencies(project: Project, context: KobaltContext) = dependencies(project, context, false)
 
     /**
      * @return the test dependencies for this project, including the contributors.
      */
-    fun testDependencies(project: Project, context: KobaltContext) = dependencies(project, context, true)
+    override fun testDependencies(project: Project, context: KobaltContext) = dependencies(project, context, true)
 
     /**
      * Transitive dependencies for the compilation of this project.
@@ -43,8 +64,8 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      * @return the classpath for this project, including the IClasspathContributors.
      * allDependencies is typically either compileDependencies or testDependencies
      */
-    fun calculateDependencies(project: Project?, context: KobaltContext,
-            dependentProjects: List<ProjectDescription> = emptyList(),
+    override fun calculateDependencies(project: Project?, context: KobaltContext,
+            dependentProjects: List<ProjectDescription>,
             vararg allDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
         var result = arrayListOf<IClasspathDependency>()
         allDependencies.forEach { dependencies ->
@@ -77,7 +98,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
         dependencies.forEach { projectDependency ->
             result.add(projectDependency)
             projectDependency.id.let {
-                result.add(depFactory.create(it))
+                result.add(create(it))
                 val downloaded = transitiveClosure(projectDependency.directDependencies())
 
                 result.addAll(downloaded)

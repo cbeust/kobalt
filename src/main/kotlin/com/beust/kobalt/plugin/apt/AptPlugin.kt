@@ -2,7 +2,7 @@ package com.beust.kobalt.plugin.apt
 
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.maven.DependencyFactory
+import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
@@ -18,7 +18,7 @@ import javax.inject.Singleton
  * (outputDir, etc...).
  */
 @Singleton
-class AptPlugin @Inject constructor(val depFactory: DependencyFactory, val configActor: ConfigActor<AptConfig>)
+class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, val configActor: ConfigActor<AptConfig>)
     : BasePlugin(), ICompilerFlagContributor, ISourceDirectoryContributor, IConfigActor<AptConfig> by configActor {
 
     // ISourceDirectoryContributor
@@ -54,7 +54,7 @@ class AptPlugin @Inject constructor(val depFactory: DependencyFactory, val confi
         val result = arrayListOf<String>()
         configurationFor(project)?.let { config ->
             aptDependencies[project.name]?.let { aptDependencies ->
-                val deps = aptDependencies.map { depFactory.create(it) }
+                val deps = aptDependencies.map { dependencyManager.create(it) }
 
                 val dependencies = context.dependencyManager.calculateDependencies(null, context, emptyList(), deps)
                         .map { it.jarFile.get().path }

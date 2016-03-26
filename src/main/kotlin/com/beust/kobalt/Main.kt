@@ -6,7 +6,6 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.*
-import com.beust.kobalt.app.remote.DependencyData
 import com.beust.kobalt.app.remote.KobaltClient
 import com.beust.kobalt.app.remote.KobaltServer
 import com.beust.kobalt.internal.Gc
@@ -14,7 +13,7 @@ import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
-import com.beust.kobalt.maven.DependencyFactory
+import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.*
@@ -59,6 +58,7 @@ private class Main @Inject constructor(
         val http: Http,
         val files: KFiles,
         val executors: KobaltExecutors,
+        val dependencyManager: DependencyManager,
         val checkVersions: CheckVersions,
         val github: GithubApi2,
         val updateKobalt: UpdateKobalt,
@@ -66,8 +66,6 @@ private class Main @Inject constructor(
         val server: KobaltServer,
         val pluginInfo: PluginInfo,
         val projectGenerator: ProjectGenerator,
-        val depFactory: DependencyFactory,
-        val dependencyData: DependencyData,
         val resolveDependency: ResolveDependency) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
@@ -77,7 +75,7 @@ private class Main @Inject constructor(
         val dependencies = arrayListOf<IClasspathDependency>()
         args.pluginIds?.let {
             // We want this call to go to the network if no version was specified, so set localFirst to false
-            dependencies.addAll(it.split(",").map { depFactory.create(it) })
+            dependencies.addAll(it.split(",").map { dependencyManager.create(it) })
         }
         args.pluginJarFiles?.let {
             dependencies.addAll(it.split(",").map { FileDependency(it) })

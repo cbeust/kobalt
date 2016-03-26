@@ -3,7 +3,7 @@ package com.beust.kobalt
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.maven.DependencyFactory
+import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
 import java.io.File
 
@@ -24,7 +24,7 @@ fun plugins(vararg dependency : IClasspathDependency) {
 
 @Directive
 fun plugins(vararg dependencies : String) {
-    val factory = Kobalt.INJECTOR.getInstance(DependencyFactory::class.java)
+    val factory = Kobalt.INJECTOR.getInstance(DependencyManager::class.java)
     dependencies.forEach {
         Plugins.addDynamicPlugin(factory.create(it))
     }
