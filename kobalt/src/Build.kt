@@ -84,6 +84,7 @@ val kobaltPluginApi = project {
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "com.beust:jcommander:1.48",
 
+                "org.slf4j:slf4j-nop:1.6.0",
                 "org.eclipse.aether:aether-spi:${Versions.aether}",
                 "org.eclipse.aether:aether-impl:${Versions.aether}",
                 "org.eclipse.aether:aether-connector-basic:${Versions.aether}",
