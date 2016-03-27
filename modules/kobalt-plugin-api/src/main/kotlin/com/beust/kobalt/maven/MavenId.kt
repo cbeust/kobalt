@@ -1,6 +1,7 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.api.Kobalt
+import org.eclipse.aether.artifact.DefaultArtifact
 
 /**
  * Encapsulate a Maven id captured in one string, as used by Gradle or Ivy, e.g. "org.testng:testng:6.9.9".
@@ -35,28 +36,9 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
         /**
          * Similar to create(MavenId) but don't run IMavenIdInterceptors.
          */
-        fun createNoInterceptors(id: String) : MavenId {
-            var groupId: String? = null
-            var artifactId: String? = null
-            var version: String? = null
-            var packaging: String? = null
-            if (!isMavenId(id)) {
-                throw IllegalArgumentException("Illegal id: $id")
+        fun createNoInterceptors(id: String) : MavenId = DefaultArtifact(id).run {
+                MavenId(groupId, artifactId, extension, version)
             }
-
-            val c = id.split(":")
-            groupId = c[0]
-            artifactId = c[1]
-            if (!c[2].isEmpty()) {
-                val split = c[2].split('@')
-                if (isVersion(split[0], id)) {
-                    version = split[0]
-                }
-                packaging = if (split.size == 2) split[1] else null
-            }
-
-            return MavenId(groupId, artifactId, packaging, version)
-        }
 
         /**
          * The main entry point to create Maven Id's. Id's created by this function
