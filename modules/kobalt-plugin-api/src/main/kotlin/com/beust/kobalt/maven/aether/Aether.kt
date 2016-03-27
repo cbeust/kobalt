@@ -94,7 +94,7 @@ class Aether(val localRepo: File) {
             val newArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.extension,
                     resolved.highestVersion.toString())
             val artifactResult = resolve(newArtifact)
-            if (artifactResult != null) {
+            if (artifactResult != null && artifactResult.size > 0) {
                     return artifactResult[0]
             } else {
                 throw KobaltException("Couldn't find latest artifact for $group:$artifactId")
