@@ -209,7 +209,7 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
         return result
     }
 
-    override val shortId = artifact.groupId + ":" + artifact.artifactId
+    override val shortId = artifact.groupId + ":" + artifact.artifactId + ":" + artifact.classifier
 
     override fun compareTo(other: AetherDependency): Int {
         return Versions.toLongVersion(artifact.version).compareTo(Versions.toLongVersion(
