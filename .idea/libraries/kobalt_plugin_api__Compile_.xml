@@ -51,6 +51,8 @@
       <root url="jar://$USER_HOME$/.kobalt/repository/org/apache/maven/maven-artifact/3.3.9/maven-artifact-3.3.9.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.ideaLibSources/aether-api-1.1.0-sources.jar!/" />
+    </SOURCES>
   </library>
 </component>
