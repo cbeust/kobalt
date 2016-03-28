@@ -3,7 +3,6 @@ package com.beust.kobalt
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.MavenId
-import com.beust.kobalt.maven.RepoFinder
 import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.Node
@@ -14,7 +13,7 @@ import java.util.*
 /**
  * Display information about a Maven id.
  */
-class ResolveDependency @Inject constructor(val repoFinder: RepoFinder,
+class ResolveDependency @Inject constructor(
         val localRepo: LocalRepo,
         val aether: KobaltAether,
         val executors: KobaltExecutors) {

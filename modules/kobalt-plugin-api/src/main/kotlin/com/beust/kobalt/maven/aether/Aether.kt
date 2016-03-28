@@ -5,6 +5,8 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.maven.CompletedFuture
+import com.beust.kobalt.maven.MavenId
+import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.Versions
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
@@ -35,7 +37,7 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings) {
      */
     fun create(id: String): IClasspathDependency {
         val aether = Aether(localRepo)
-        val cr = aether.transitiveDependencies(DefaultArtifact(id))
+        val cr = aether.transitiveDependencies(DefaultArtifact(MavenId.toKobaltId(id)))
         return if (cr != null) AetherDependency(cr.root.artifact)
             else throw KobaltException("Couldn't resolve $id")
     }
@@ -46,7 +48,7 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings) {
         }
 
     fun resolve(id: String): DependencyResult {
-        val results = Aether(localRepo).resolve(DefaultArtifact(id))
+        val results = Aether(localRepo).resolve(DefaultArtifact(MavenId.toKobaltId(id)))
         if (results != null && results.size > 0) {
             return DependencyResult(AetherDependency(results[0].artifact), results[0].repository.toString())
         } else {
@@ -219,10 +221,9 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
     override fun toString() = id
 }
 
-//fun main(argv: Array<String>) {
-//    KobaltLogger.LOG_LEVEL = 2
-//    val aether = Aether()
-//    val latestResult = aether.latestArtifact("org.testng", "testng")
-//    val latest = latestResult.artifact
-//    println("Latest: " + latest.version + " " + latest.file)
-//}
+fun main(argv: Array<String>) {
+    KobaltLogger.LOG_LEVEL = 2
+    val d = org.eclipse.aether.artifact.DefaultArtifact("org.testng:testng:6.9")
+
+    println("Artifact: " + d)
+}
