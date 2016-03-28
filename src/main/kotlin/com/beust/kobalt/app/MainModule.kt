@@ -3,7 +3,6 @@ package com.beust.kobalt.app
 import com.beust.kobalt.Args
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
-import com.beust.kobalt.maven.ArtifactFetcher
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.Pom
 import com.beust.kobalt.maven.PomGenerator
@@ -32,8 +31,7 @@ public open class MainModule(val args: Args, val settings: KobaltSettings) : Abs
                 PomGenerator.IFactory::class.java,
                 BintrayApi.IFactory::class.java,
                 Pom.IFactory::class.java,
-                BuildFileCompiler.IFactory::class.java,
-                ArtifactFetcher.IFactory::class.java)
+                BuildFileCompiler.IFactory::class.java)
             .forEach {
                 install(builder.build(it))
             }
