@@ -46,7 +46,7 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings) {
             })
 
     /**
-     * Don't call this method directly, use `DepFactory` instead.
+     * Create an IClasspathDependency from a Kobalt id.
      */
     fun create(id: String): IClasspathDependency {
         val aether = Aether(localRepo)
@@ -55,6 +55,9 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings) {
             else throw KobaltException("Couldn't resolve $id")
     }
 
+    /**
+     * @return the latest artifact for the given group and artifactId.
+     */
     fun latestArtifact(group: String, artifactId: String, extension: String = "jar") : DependencyResult
         = Aether(localRepo).latestArtifact(group, artifactId, extension).let {
             DependencyResult(AetherDependency(it.artifact), it.repository.toString())
@@ -66,6 +69,9 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings) {
             else throw KobaltException("Couldn't resolve $id")
     }
 
+    /**
+     * Resolve the given Kobalt id.
+     */
     private fun doResolve(id: String): MaybeArtifact {
         log(1, "Resolving $id")
         val results = Aether(localRepo).resolve(DefaultArtifact(MavenId.toKobaltId(id)))
