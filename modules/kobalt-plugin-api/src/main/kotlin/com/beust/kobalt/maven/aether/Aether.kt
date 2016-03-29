@@ -4,10 +4,16 @@ import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.internal.KobaltSettings
+import com.beust.kobalt.internal.KobaltSettingsXml
 import com.beust.kobalt.maven.CompletedFuture
+import com.beust.kobalt.maven.MavenId
+import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.Versions
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
+import com.google.common.cache.CacheBuilder
+import com.google.common.cache.CacheLoader
+import com.google.common.cache.LoadingCache
 import com.google.inject.Inject
 import org.eclipse.aether.artifact.Artifact
 import org.eclipse.aether.artifact.DefaultArtifact
@@ -30,27 +36,51 @@ class DependencyResult(val dependency: IClasspathDependency, val repoUrl: String
 class KobaltAether @Inject constructor (val settings: KobaltSettings) {
     val localRepo: File get() = File(settings.localRepo)
 
+    class MaybeArtifact(val result: DependencyResult?, val error: String?)
+
+    private val CACHE : LoadingCache<String, MaybeArtifact> = CacheBuilder.newBuilder()
+            .build(object : CacheLoader<String, MaybeArtifact>() {
+                override fun load(id: String): MaybeArtifact {
+                    return doResolve(id)
+                }
+            })
+
     /**
-     * Don't call this method directly, use `DepFactory` instead.
+     * Create an IClasspathDependency from a Kobalt id.
      */
     fun create(id: String): IClasspathDependency {
         val aether = Aether(localRepo)
-        val cr = aether.transitiveDependencies(DefaultArtifact(id))
+        val cr = aether.transitiveDependencies(DefaultArtifact(MavenId.toKobaltId(id)))
         return if (cr != null) AetherDependency(cr.root.artifact)
             else throw KobaltException("Couldn't resolve $id")
     }
 
+    /**
+     * @return the latest artifact for the given group and artifactId.
+     */
     fun latestArtifact(group: String, artifactId: String, extension: String = "jar") : DependencyResult
         = Aether(localRepo).latestArtifact(group, artifactId, extension).let {
             DependencyResult(AetherDependency(it.artifact), it.repository.toString())
         }
 
     fun resolve(id: String): DependencyResult {
-        val results = Aether(localRepo).resolve(DefaultArtifact(id))
+        val result = CACHE.get(id)
+        if (result.result != null) return result.result
+            else throw KobaltException("Couldn't resolve $id")
+    }
+
+    /**
+     * Resolve the given Kobalt id.
+     */
+    private fun doResolve(id: String): MaybeArtifact {
+        log(1, "Resolving $id")
+        val results = Aether(localRepo).resolve(DefaultArtifact(MavenId.toKobaltId(id)))
         if (results != null && results.size > 0) {
-            return DependencyResult(AetherDependency(results[0].artifact), results[0].repository.toString())
+            return MaybeArtifact(
+                    DependencyResult(AetherDependency(results[0].artifact), results[0].repository.toString()),
+                    null)
         } else {
-            throw KobaltException("Couldn't resolve $id")
+            return MaybeArtifact(null, "Couldn't locate $id")
         }
     }
 }
@@ -219,10 +249,13 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
     override fun toString() = id
 }
 
-//fun main(argv: Array<String>) {
-//    KobaltLogger.LOG_LEVEL = 2
-//    val aether = Aether()
-//    val latestResult = aether.latestArtifact("org.testng", "testng")
-//    val latest = latestResult.artifact
-//    println("Latest: " + latest.version + " " + latest.file)
-//}
+fun main(argv: Array<String>) {
+    KobaltLogger.LOG_LEVEL = 1
+    val id = "org.testng:testng:6.9.11"
+    val aether = KobaltAether(KobaltSettings(KobaltSettingsXml()))
+    val r = aether.resolve(id)
+    val r2 = aether.resolve(id)
+    val d = org.eclipse.aether.artifact.DefaultArtifact("org.testng:testng:6.9")
+
+    println("Artifact: " + d)
+}

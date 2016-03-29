@@ -9,13 +9,13 @@ class MavenIdTest {
     @DataProvider
     fun dp() : Array<Array<out Any?>> {
         return arrayOf(
-            arrayOf("javax.inject:javax.inject:", "javax.inject", "javax.inject", null, null, null),
+            arrayOf("javax.inject:javax.inject:", "javax.inject", "javax.inject", "(0,]", "jar", null),
             arrayOf("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.0-beta-1038",
                     "org.jetbrains.kotlin", "kotlin-compiler-embeddable", "1.0.0-beta-1038",
-                    null, null),
-            arrayOf("com.google.inject:guice:4.0:no_aop",
-                    "com.google.inject", "guice", "4.0", null, "no_aop"),
-            arrayOf("com.android.support:appcompat-v7:22.2.1@aar",
+                    "jar", null),
+            arrayOf("com.google.inject:guice::no_aop:4.0",
+                    "com.google.inject", "guice", "4.0", "jar", "no_aop"),
+            arrayOf("com.android.support:appcompat-v7:aar:22.2.1",
                     "com.android.support", "appcompat-v7", "22.2.1", "aar", null)
         )
     }

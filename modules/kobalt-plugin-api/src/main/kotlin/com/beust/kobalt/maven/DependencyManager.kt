@@ -24,19 +24,16 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      */
     override fun create(id: String) : IClasspathDependency {
         if (id.startsWith(FileDependency.PREFIX_FILE)) {
-            return FileDependency(id.substring(FileDependency.PREFIX_FILE.length))
+            return createFile(id.substring(FileDependency.PREFIX_FILE.length))
         } else {
-            val mavenId = MavenId.create(id)
-            val result = if (mavenId.hasVersion) aether.create(id)
-                else aether.create(id + "(0,]")
-            return result
+            return createMaven(id)
         }
     }
 
     /**
      * Create an IClasspathDependency from a Maven id.
      */
-    override fun createMaven(id: String) : IClasspathDependency = create(id)
+    override fun createMaven(id: String) : IClasspathDependency = aether.create(id)
 
     /**
      * Create an IClasspathDependency from a path.

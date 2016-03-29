@@ -164,16 +164,5 @@ class DownloadTest @Inject constructor(
         val d = closure.filter { it.id.contains("eclipse-collections-api")}
         Assert.assertEquals(d.size, 1)
     }
-
-    @Test
-    fun containerPom() {
-        val repoResult = RepoFinderCallable("org.jetbrains.kotlin:kotlin-project:1.0.0",
-                HostConfig("http://repo1.maven.org/maven2/"),
-                localRepo, pomFactory, dependencyManager).call()
-        val rr = repoResult[0]
-        Assert.assertTrue(rr.found)
-        Assert.assertTrue(rr.localPath != null && rr.localPath!!.startsWith("junit/junit"))
-        Assert.assertEquals(rr.version.toString(), "4.12")
-    }
 }
 
