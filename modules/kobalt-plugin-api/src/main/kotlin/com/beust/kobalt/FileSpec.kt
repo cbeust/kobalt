@@ -44,7 +44,7 @@ sealed class IFileSpec {
             val result = arrayListOf<File>()
             val includes = Glob(*spec.toTypedArray())
 
-            if (File(filePath).isDirectory) {
+            if (File(baseDir, filePath).isDirectory) {
                 val orgRootDir = (if (File(filePath).isAbsolute) Paths.get(filePath)
                     else if (baseDir != null) Paths.get(baseDir, filePath)
                     else Paths.get(filePath)).run { normalize() }
