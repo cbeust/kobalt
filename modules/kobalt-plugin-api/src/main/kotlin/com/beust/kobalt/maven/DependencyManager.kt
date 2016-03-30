@@ -5,6 +5,7 @@ import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
 import java.util.*
 import javax.inject.Inject
@@ -87,16 +88,18 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      * Return the transitive closure of the dependencies *without* running the classpath contributors.
      * TODO: This should be private, everyone should be calling calculateDependencies().
      */
-    fun transitiveClosure(dependencies : List<IClasspathDependency>): List<IClasspathDependency> {
+    fun transitiveClosure(dependencies : List<IClasspathDependency>, indent : String = "  "):
+            List<IClasspathDependency> {
         var executor = executors.newExecutor("JvmCompiler}", 10)
 
         var result = hashSetOf<IClasspathDependency>()
 
         dependencies.forEach { projectDependency ->
+            log(2, "$indent Resolving $projectDependency")
             result.add(projectDependency)
             projectDependency.id.let {
                 result.add(create(it))
-                val downloaded = transitiveClosure(projectDependency.directDependencies())
+                val downloaded = transitiveClosure(projectDependency.directDependencies(), indent + "  ")
 
                 result.addAll(downloaded)
             }
