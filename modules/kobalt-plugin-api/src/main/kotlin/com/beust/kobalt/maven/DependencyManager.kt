@@ -101,7 +101,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
         var result = hashSetOf<IClasspathDependency>()
 
         dependencies.forEach { projectDependency ->
-            log(2, "$indent Resolving $projectDependency")
+            log(3, "$indent Resolving $projectDependency")
             result.add(projectDependency)
             projectDependency.id.let {
                 result.add(create(it))
