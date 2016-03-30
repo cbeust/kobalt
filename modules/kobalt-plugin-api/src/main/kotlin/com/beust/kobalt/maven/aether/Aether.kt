@@ -73,7 +73,7 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings) {
      * Resolve the given Kobalt id.
      */
     private fun doResolve(id: String): MaybeArtifact {
-        log(2, "Resolving $id")
+        log(3, "Resolving $id")
         val results = Aether(localRepo).resolve(DefaultArtifact(MavenId.toKobaltId(id)))
         if (results != null && results.size > 0) {
             return MaybeArtifact(
