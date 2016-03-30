@@ -188,9 +188,7 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
 
     override val isMaven = true
 
-    private fun toId(a: Artifact) = with(a) {
-        groupId + ":" + artifactId + ":" + version
-    }
+    private fun toId(a: Artifact) = a.toString()
 
     override val jarFile: Future<File>
         get() = if (artifact.file != null) {
