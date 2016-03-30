@@ -9,6 +9,7 @@ import java.io.PrintStream
  * A simplistic repository listener that logs events to the console.
  */
 class ConsoleRepositoryListener @JvmOverloads constructor(out: PrintStream? = null) : AbstractRepositoryListener() {
+    val LOG_LEVEL = 3
 
     private val out: PrintStream
 
@@ -17,32 +18,32 @@ class ConsoleRepositoryListener @JvmOverloads constructor(out: PrintStream? = nu
     }
 
     override fun artifactDeployed(event: RepositoryEvent?) {
-        log(2, "Deployed " + event!!.artifact + " to " + event.repository)
+        log(LOG_LEVEL, "Deployed " + event!!.artifact + " to " + event.repository)
     }
 
     override fun artifactDeploying(event: RepositoryEvent?) {
-        log(2, "Deploying " + event!!.artifact + " to " + event.repository)
+        log(LOG_LEVEL, "Deploying " + event!!.artifact + " to " + event.repository)
     }
 
     override fun artifactDescriptorInvalid(event: RepositoryEvent?) {
-        log(2, "Invalid artifact descriptor for " + event!!.artifact + ": "
+        log(LOG_LEVEL, "Invalid artifact descriptor for " + event!!.artifact + ": "
                 + event.exception.message)
     }
 
     override fun artifactDescriptorMissing(event: RepositoryEvent?) {
-        log(2, "Missing artifact descriptor for " + event!!.artifact)
+        log(LOG_LEVEL, "Missing artifact descriptor for " + event!!.artifact)
     }
 
     override fun artifactInstalled(event: RepositoryEvent?) {
-        log(2, "Installed " + event!!.artifact + " to " + event.file)
+        log(LOG_LEVEL, "Installed " + event!!.artifact + " to " + event.file)
     }
 
     override fun artifactInstalling(event: RepositoryEvent?) {
-        log(2, "Installing " + event!!.artifact + " to " + event.file)
+        log(LOG_LEVEL, "Installing " + event!!.artifact + " to " + event.file)
     }
 
     override fun artifactResolved(event: RepositoryEvent?) {
-        log(2, "Resolved artifact " + event!!.artifact + " from " + event.repository)
+        log(LOG_LEVEL, "Resolved artifact " + event!!.artifact + " from " + event.repository)
     }
 
     override fun artifactDownloading(event: RepositoryEvent?) {
@@ -50,39 +51,39 @@ class ConsoleRepositoryListener @JvmOverloads constructor(out: PrintStream? = nu
     }
 
     override fun artifactDownloaded(event: RepositoryEvent?) {
-        log(2, "Downloaded artifact " + event!!.artifact + " from " + event.repository)
+        log(LOG_LEVEL, "Downloaded artifact " + event!!.artifact + " from " + event.repository)
     }
 
     override fun artifactResolving(event: RepositoryEvent?) {
-        log(2, "Resolving artifact " + event!!.artifact)
+        log(LOG_LEVEL, "Resolving artifact " + event!!.artifact)
     }
 
     override fun metadataDeployed(event: RepositoryEvent?) {
-        log(2, "Deployed " + event!!.metadata + " to " + event.repository)
+        log(LOG_LEVEL, "Deployed " + event!!.metadata + " to " + event.repository)
     }
 
     override fun metadataDeploying(event: RepositoryEvent?) {
-        log(2, "Deploying " + event!!.metadata + " to " + event.repository)
+        log(LOG_LEVEL, "Deploying " + event!!.metadata + " to " + event.repository)
     }
 
     override fun metadataInstalled(event: RepositoryEvent?) {
-        log(2, "Installed " + event!!.metadata + " to " + event.file)
+        log(LOG_LEVEL, "Installed " + event!!.metadata + " to " + event.file)
     }
 
     override fun metadataInstalling(event: RepositoryEvent?) {
-        log(2, "Installing " + event!!.metadata + " to " + event.file)
+        log(LOG_LEVEL, "Installing " + event!!.metadata + " to " + event.file)
     }
 
     override fun metadataInvalid(event: RepositoryEvent?) {
-        log(2, "Invalid metadata " + event!!.metadata)
+        log(LOG_LEVEL, "Invalid metadata " + event!!.metadata)
     }
 
     override fun metadataResolved(event: RepositoryEvent?) {
-        log(2, "Resolved metadata " + event!!.metadata + " from " + event.repository)
+        log(LOG_LEVEL, "Resolved metadata " + event!!.metadata + " from " + event.repository)
     }
 
     override fun metadataResolving(event: RepositoryEvent?) {
-        log(2, "Resolving metadata " + event!!.metadata + " from " + event.repository)
+        log(LOG_LEVEL, "Resolving metadata " + event!!.metadata + " from " + event.repository)
     }
 
 }
