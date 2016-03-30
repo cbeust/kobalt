@@ -98,7 +98,7 @@ open class JvmCompilerPlugin @Inject constructor(
         }
     }
 
-    @Task(name = TASK_CLEAN, description = "Clean the project", runBefore = arrayOf(TASK_COMPILE))
+    @Task(name = TASK_CLEAN, description = "Clean the project")
     fun taskClean(project: Project): TaskResult {
         java.io.File(project.directory, project.buildDirectory).let { dir ->
             if (!dir.deleteRecursively()) {
