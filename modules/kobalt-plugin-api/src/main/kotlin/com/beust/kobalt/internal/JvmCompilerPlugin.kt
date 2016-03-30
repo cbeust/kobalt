@@ -349,7 +349,7 @@ open class JvmCompilerPlugin @Inject constructor(
     // ISourceDirectoryContributor
     override fun sourceDirectoriesFor(project: Project, context: KobaltContext)
         = if (accept(project)) {
-                sourceTestDirectories.toList()
+                sourceDirectories.toList()
             } else {
                 arrayListOf()
             }
