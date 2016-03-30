@@ -21,14 +21,6 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
             size == 3 || size == 4
         }
 
-        private fun isVersion(s: String, id: String): Boolean {
-            try {
-                return s[0] == 'v' || Character.isDigit(s[0]) || isRangedVersion(s)
-            } catch(ex: Exception) {
-                error("Illegal version found in id \"$id\"")
-            }
-        }
-
         fun isRangedVersion(s: String): Boolean {
             return s.first() in listOf('[', '(') && s.last() in listOf(']', ')')
         }
@@ -41,6 +33,7 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
             }
 
         fun toKobaltId(id: String) = if (id.endsWith(":")) id + "(0,]" else id
+
         /**
          * The main entry point to create Maven Id's. Id's created by this function
          * will run through IMavenIdInterceptors.
@@ -62,8 +55,9 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
                create(toId(groupId, artifactId, packaging, version))
 
         fun toId(groupId: String, artifactId: String, packaging: String? = null, version: String?) =
-                "$groupId:$artifactId:$version" +
-                    (if (packaging != null && packaging != "") "@$packaging" else "")
+                "$groupId:$artifactId" +
+                    (if (packaging != null && packaging != "") ":$packaging" else "") +
+                    ":$version"
     }
 
 

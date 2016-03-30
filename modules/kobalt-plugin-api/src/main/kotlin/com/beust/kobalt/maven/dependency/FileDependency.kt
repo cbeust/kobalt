@@ -14,6 +14,8 @@ open public class FileDependency(open val fileName: String) : IClasspathDependen
 
     override val version = "0.0"
 
+    override val isMaven = false
+
     override val jarFile = CompletedFuture(File(fileName))
 
     override fun toMavenDependencies(): Dependency {

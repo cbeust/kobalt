@@ -19,6 +19,9 @@ interface IClasspathDependency {
     /** Version for this identifier */
     val version: String
 
+    /** @return true if this dependency represents a Maven coordinate */
+    val isMaven: Boolean
+
     /** Absolute path to the jar file on the local file system */
     val jarFile: Future<File>
 
