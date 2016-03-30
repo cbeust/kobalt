@@ -139,8 +139,34 @@ open class JvmCompilerPlugin @Inject constructor(
         }
     }
 
+    @IncrementalTask(name = TASK_COMPILE_TEST, description = "Compile the tests",
+            runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
+    fun taskCompileTest(project: Project): IncrementalTaskInfo {
+        sourceTestDirectories.addAll(context.variant.sourceDirectories(project, context, SourceSet.of(isTest = true)))
+        val inputChecksum = Md5.toMd5Directories(context.testSourceDirectories(project).map {
+            File(project.directory, it.path)
+        })
+        return IncrementalTaskInfo(
+                inputChecksum = inputChecksum,
+                outputChecksum = {
+                    Md5.toMd5Directories(listOf(KFiles.makeOutputTestDir(project)))
+                },
+                task = { project -> doTaskCompileTest(project) }
+        )
+    }
+
     @IncrementalTask(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project): IncrementalTaskInfo {
+        // Generate the BuildConfig before invoking sourceDirectories() since that call
+        // might add the buildConfig source directori
+        val sourceDirectory = context.variant.maybeGenerateBuildConfig(project, context)
+        if (sourceDirectory != null) {
+            sourceDirectories.add(sourceDirectory)
+        }
+
+        // Set up the source files now that we have the variant
+        sourceDirectories.addAll(context.variant.sourceDirectories(project, context, SourceSet.of(isTest = false)))
+
         val inputChecksum = Md5.toMd5Directories(context.sourceDirectories(project).map {
             File(project.directory, it.path)
         })
@@ -158,16 +184,6 @@ open class JvmCompilerPlugin @Inject constructor(
     private fun doTaskCompileTest(project: Project) = doTaskCompile(project, isTest = true)
 
     private fun doTaskCompile(project: Project, isTest: Boolean): TaskResult {
-        // Generate the BuildConfig before invoking sourceDirectories() since that call
-        // might add the buildConfig source directori
-        val sourceDirectory = context.variant.maybeGenerateBuildConfig(project, context)
-        if (sourceDirectory != null) {
-            sourceDirectories.add(sourceDirectory)
-        }
-
-        // Set up the source files now that we have the variant
-        sourceDirectories.addAll(context.variant.sourceDirectories(project, context, SourceSet.of(isTest)))
-
         val results = arrayListOf<TaskResult>()
 
         val compilerContributors = context.pluginInfo.compilerContributors
@@ -328,25 +344,15 @@ open class JvmCompilerPlugin @Inject constructor(
     }
 
     val sourceDirectories = arrayListOf<File>()
+    val sourceTestDirectories = arrayListOf<File>()
 
     // ISourceDirectoryContributor
     override fun sourceDirectoriesFor(project: Project, context: KobaltContext)
-            = if (accept(project)) sourceDirectories.toList() else arrayListOf()
-
-    @IncrementalTask(name = TASK_COMPILE_TEST, description = "Compile the tests",
-            runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
-    fun taskCompileTest(project: Project): IncrementalTaskInfo {
-        val inputChecksum = Md5.toMd5Directories(project.sourceDirectoriesTest.map {
-            File(project.directory, it)
-        })
-        return IncrementalTaskInfo(
-                inputChecksum = inputChecksum,
-                outputChecksum = {
-                    Md5.toMd5Directories(listOf(KFiles.makeOutputTestDir(project)))
-                },
-                task = { project -> doTaskCompileTest(project) }
-        )
-    }
+        = if (accept(project)) {
+                sourceTestDirectories.toList()
+            } else {
+                arrayListOf()
+            }
 
     open val compiler: ICompilerContributor? = null
 }
