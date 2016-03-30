@@ -17,10 +17,6 @@ import java.nio.file.StandardCopyOption
 
 val r = repos("http://dl.bintray.com/kotlin/kotlinx.dom")
 
-//val pl = plugins(file(homeDir("kotlin/kobalt-android/kobaltBuild/libs/kobalt-android-0.22.jar")))
-
-//val pl = plugins("com.beust:kobalt-android:0.20")
-
 object Versions {
     val okhttp = "3.2.0"
     val okio = "1.6.0"
