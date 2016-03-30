@@ -149,24 +149,24 @@ class Dependencies(val project: Project,
      * Add the dependencies to the given ArrayList and return a list of jar files corresponding to
      * these dependencies.
      */
-    private fun addToDependencies(dependencies: ArrayList<IClasspathDependency>, dep: Array<out String>)
-            : List<File>
-        = with(dep.map { DependencyManager.create(it)}) {
+    private fun addToDependencies(project: Project, dependencies: ArrayList<IClasspathDependency>,
+            dep: Array<out String>): List<File>
+        = with(dep.map { DependencyManager.create(it, project)}) {
             dependencies.addAll(this)
             this.map { it.jarFile.get() }
     }
 
     @Directive
-    fun compile(vararg dep: String) = addToDependencies(dependencies, dep)
+    fun compile(vararg dep: String) = addToDependencies(project, dependencies, dep)
 
     @Directive
-    fun provided(vararg dep: String) = addToDependencies(providedDependencies, dep)
+    fun provided(vararg dep: String) = addToDependencies(project, providedDependencies, dep)
 
     @Directive
-    fun runtime(vararg dep: String) = addToDependencies(runtimeDependencies, dep)
+    fun runtime(vararg dep: String) = addToDependencies(project, runtimeDependencies, dep)
 
     @Directive
-    fun exclude(vararg dep: String) = addToDependencies(excludedDependencies, dep)
+    fun exclude(vararg dep: String) = addToDependencies(project, excludedDependencies, dep)
 }
 
 class Scm(val connection: String, val developerConnection: String, val url: String)

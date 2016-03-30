@@ -7,6 +7,7 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
+import java.io.File
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,16 +17,21 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
         : IDependencyManager {
 
     companion object {
-        fun create(id: String) =
-                Kobalt.INJECTOR.getInstance(DependencyManager::class.java).create(id)
+        fun create(id: String, project: Project? = null) =
+                Kobalt.INJECTOR.getInstance(DependencyManager::class.java).create(id, project)
     }
 
     /**
      * Parse the id and return the correct IClasspathDependency
      */
-    override fun create(id: String) : IClasspathDependency {
+    override fun create(id: String, project: Project?) : IClasspathDependency {
         if (id.startsWith(FileDependency.PREFIX_FILE)) {
-            return createFile(id.substring(FileDependency.PREFIX_FILE.length))
+            val path = if (project?.directory != null) {
+                File(project!!.directory, id.substring(FileDependency.PREFIX_FILE.length))
+            } else {
+                File(id.substring(FileDependency.PREFIX_FILE.length))
+            }
+            return createFile(path.path)
         } else {
             return createMaven(id)
         }
