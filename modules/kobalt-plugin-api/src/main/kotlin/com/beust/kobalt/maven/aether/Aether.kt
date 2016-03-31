@@ -12,9 +12,6 @@ import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.Versions
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import org.eclipse.aether.artifact.Artifact
@@ -40,13 +37,6 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
 
     class MaybeArtifact(val result: DependencyResult?, val error: String?)
 
-    private val CACHE : LoadingCache<String, MaybeArtifact> = CacheBuilder.newBuilder()
-            .build(object : CacheLoader<String, MaybeArtifact>() {
-                override fun load(id: String): MaybeArtifact {
-                    return doResolve(id)
-                }
-            })
-
     /**
      * Create an IClasspathDependency from a Kobalt id.
      */
@@ -65,25 +55,15 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
         }
 
     fun resolve(id: String): DependencyResult {
-        val result = CACHE.get(id)
-        if (result.result != null) return result.result
-            else throw KobaltException("Couldn't resolve $id")
-    }
-
-    /**
-     * Resolve the given Kobalt id.
-     */
-    private fun doResolve(id: String): MaybeArtifact {
         log(3, "Resolving $id")
         val results = aether.resolve(DefaultArtifact(MavenId.toKobaltId(id)))
         if (results != null && results.size > 0) {
-            return MaybeArtifact(
-                    DependencyResult(AetherDependency(results[0].artifact), results[0].repository.toString()),
-                    null)
+            return DependencyResult(AetherDependency(results[0].artifact), results[0].repository.toString())
         } else {
-            return MaybeArtifact(null, "Couldn't locate $id")
+            throw KobaltException("Couldn't resolve $id")
         }
     }
+
 }
 
 class ExcludeOptionalDependencyFilter: DependencyFilter {
