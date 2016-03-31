@@ -74,6 +74,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     val buildConfigFieldContributors = arrayListOf<IBuildConfigFieldContributor>()
     val taskContributors = arrayListOf<ITaskContributor>()
     val assemblyContributors = arrayListOf<IAssemblyContributor>()
+    val incrementalAssemblyContributors = arrayListOf<IIncrementalAssemblyContributor>()
 
     // Not documented yet
     val buildConfigContributors = arrayListOf<IBuildConfigContributor>()
@@ -160,6 +161,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
                 if (this is ITestSourceDirectoryContributor) testSourceDirContributors.add(this)
                 if (this is IBuildConfigContributor) buildConfigContributors.add(this)
                 if (this is IAssemblyContributor) assemblyContributors.add(this)
+                if (this is IIncrementalAssemblyContributor) incrementalAssemblyContributors.add(this)
 
                 // Not documented yet
             }
@@ -193,6 +195,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         mavenIdInterceptors.addAll(pluginInfo.mavenIdInterceptors)
         buildConfigContributors.addAll(pluginInfo.buildConfigContributors)
         assemblyContributors.addAll(pluginInfo.assemblyContributors)
+        incrementalAssemblyContributors.addAll(pluginInfo.incrementalAssemblyContributors)
     }
 }
 

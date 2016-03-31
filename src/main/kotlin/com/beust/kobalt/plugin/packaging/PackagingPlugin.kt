@@ -9,6 +9,7 @@ import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.archive.*
 import com.beust.kobalt.glob
+import com.beust.kobalt.internal.IncrementalManager
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.PomGenerator
@@ -21,10 +22,11 @@ import javax.inject.Singleton
 
 @Singleton
 class PackagingPlugin @Inject constructor(val dependencyManager : DependencyManager,
+        val incrementalManager: IncrementalManager,
         val executors: KobaltExecutors, val jarGenerator: JarGenerator, val warGenerator: WarGenerator,
         val zipGenerator: ZipGenerator, val taskContributor: TaskContributor,
         val pomFactory: PomGenerator.IFactory, val configActor: ConfigActor<InstallConfig>)
-            : BasePlugin(), IConfigActor<InstallConfig> by configActor, ITaskContributor, IAssemblyContributor {
+            : BasePlugin(), ITaskContributor, IAssemblyContributor, IConfigActor<InstallConfig> by configActor {
 
     companion object {
         const val PLUGIN_NAME = "Packaging"
@@ -69,9 +71,39 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         }
     }
 
+    private fun doAssemble(project: Project, context: KobaltContext) : TaskResult {
+        try {
+            project.projectProperties.put(PACKAGES, packages)
+            packages.filter { it.project.name == project.name }.forEach { pkg ->
+                pkg.jars.forEach { jarGenerator.generateJar(pkg.project, context, it) }
+                pkg.wars.forEach { warGenerator.generateWar(pkg.project, context, it) }
+                pkg.zips.forEach { zipGenerator.generateZip(pkg.project, context, it) }
+                if (pkg.generatePom) {
+                    pomFactory.create(project).generate()
+                }
+            }
+            return TaskResult()
+        } catch(ex: Exception) {
+            throw KobaltException(ex)
+        }
+    }
+
     @Task(name = TASK_ASSEMBLE, description = "Package the artifacts",
             runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
     fun doTaskAssemble(project: Project) : TaskResult {
+        // Incremental assembly contributors
+        context.pluginInfo.incrementalAssemblyContributors.forEach {
+            val taskInfo = it.assemble(project, context)
+            val closure = incrementalManager.toIncrementalTaskClosure(TASK_ASSEMBLE, { p: Project -> taskInfo },
+                    context.variant)
+            val thisResult = closure.invoke(project)
+            if (! thisResult.success) {
+                // Abort at the first failure
+                return thisResult
+            }
+        }
+
+        // Regular assembly contributors
         context.pluginInfo.assemblyContributors.forEach {
             val thisResult = it.assemble(project, context)
             if (! thisResult.success) {
