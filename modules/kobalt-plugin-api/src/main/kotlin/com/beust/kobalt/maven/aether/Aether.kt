@@ -227,11 +227,11 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
                     if (! it.dependency.isOptional) {
                         result.add(AetherDependency(it.artifact))
                     } else {
-                        log(2, "Skipping optional dependency " + deps.root.artifact)
+                        log(3, "Skipping optional dependency " + deps.root.artifact)
                     }
                 }
             } else {
-                log(2, "Skipping optional dependency " + deps.root.artifact)
+                log(3, "Skipping optional dependency " + deps.root.artifact)
             }
         } else {
             warn("Couldn't resolve $artifact")
