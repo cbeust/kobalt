@@ -3,6 +3,7 @@ package com.beust.kobalt.maven.aether
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.KobaltSettingsXml
 import com.beust.kobalt.maven.CompletedFuture
@@ -15,6 +16,7 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.inject.Inject
+import com.google.inject.Singleton
 import org.eclipse.aether.artifact.Artifact
 import org.eclipse.aether.artifact.DefaultArtifact
 import org.eclipse.aether.collection.CollectRequest
@@ -33,7 +35,7 @@ import java.util.concurrent.Future
 
 class DependencyResult(val dependency: IClasspathDependency, val repoUrl: String)
 
-class KobaltAether @Inject constructor (val settings: KobaltSettings) {
+class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether: Aether) {
     val localRepo: File get() = File(settings.localRepo)
 
     class MaybeArtifact(val result: DependencyResult?, val error: String?)
@@ -49,7 +51,6 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings) {
      * Create an IClasspathDependency from a Kobalt id.
      */
     fun create(id: String): IClasspathDependency {
-        val aether = Aether(localRepo)
         val cr = aether.transitiveDependencies(DefaultArtifact(MavenId.toKobaltId(id)))
         return if (cr != null) AetherDependency(cr.root.artifact)
             else throw KobaltException("Couldn't resolve $id")
@@ -59,7 +60,7 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings) {
      * @return the latest artifact for the given group and artifactId.
      */
     fun latestArtifact(group: String, artifactId: String, extension: String = "jar") : DependencyResult
-        = Aether(localRepo).latestArtifact(group, artifactId, extension).let {
+        = aether.latestArtifact(group, artifactId, extension).let {
             DependencyResult(AetherDependency(it.artifact), it.repository.toString())
         }
 
@@ -74,7 +75,7 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings) {
      */
     private fun doResolve(id: String): MaybeArtifact {
         log(3, "Resolving $id")
-        val results = Aether(localRepo).resolve(DefaultArtifact(MavenId.toKobaltId(id)))
+        val results = aether.resolve(DefaultArtifact(MavenId.toKobaltId(id)))
         if (results != null && results.size > 0) {
             return MaybeArtifact(
                     DependencyResult(AetherDependency(results[0].artifact), results[0].repository.toString()),
@@ -95,6 +96,7 @@ class ExcludeOptionalDependencyFilter: DependencyFilter {
     }
 }
 
+@Singleton
 class Aether(val localRepo: File) {
     private val system = Booter.newRepositorySystem()
     private val session = Booter.newRepositorySystemSession(system, localRepo)
@@ -176,9 +178,7 @@ class Aether(val localRepo: File) {
 }
 
 class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable<AetherDependency> {
-    val settings : KobaltSettings get() = Kobalt.INJECTOR.getInstance(KobaltSettings::class.java)
-    val localRepo : File get() = File(settings.localRepo)
-    val aether: Aether get() = Aether(localRepo)
+    val aether: Aether get() = Kobalt.INJECTOR.getInstance(Aether::class.java)
 
     constructor(node: DependencyNode) : this(node.artifact) {}
 
@@ -198,7 +198,7 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
             if (td?.root?.artifact?.file != null) {
                 CompletedFuture(td!!.root.artifact.file)
             } else {
-                val resolved = Aether(localRepo).resolve(artifact)
+                val resolved = aether.resolve(artifact)
                 if (resolved != null && resolved.size > 0) {
                     CompletedFuture(resolved[0].artifact.file)
                 } else {
@@ -220,7 +220,6 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
     override fun directDependencies() : List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         val deps = aether.directDependencies(artifact)
-        val td = aether.transitiveDependencies(artifact)
         if (deps != null) {
             if (! deps.root.dependency.optional) {
                 deps.root.children.forEach {
@@ -252,7 +251,7 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
 fun main(argv: Array<String>) {
     KobaltLogger.LOG_LEVEL = 1
     val id = "org.testng:testng:6.9.11"
-    val aether = KobaltAether(KobaltSettings(KobaltSettingsXml()))
+    val aether = KobaltAether(KobaltSettings(KobaltSettingsXml()), Aether(File(homeDir(".aether"))))
     val r = aether.resolve(id)
     val r2 = aether.resolve(id)
     val d = org.eclipse.aether.artifact.DefaultArtifact("org.testng:testng:6.9")

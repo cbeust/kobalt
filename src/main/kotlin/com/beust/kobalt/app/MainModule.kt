@@ -6,6 +6,7 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.Pom
 import com.beust.kobalt.maven.PomGenerator
+import com.beust.kobalt.maven.aether.Aether
 import com.beust.kobalt.misc.DependencyExecutor
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.plugin.publish.BintrayApi
@@ -14,6 +15,7 @@ import com.google.inject.Provider
 import com.google.inject.Singleton
 import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
+import java.io.File
 import java.util.concurrent.ExecutorService
 
 public open class MainModule(val args: Args, val settings: KobaltSettings) : AbstractModule() {
@@ -50,6 +52,7 @@ public open class MainModule(val args: Args, val settings: KobaltSettings) : Abs
         bind(KobaltSettings::class.java).toProvider(Provider<KobaltSettings> {
             settings
         }).`in`(Singleton::class.java)
+        bind(Aether::class.java).toInstance(Aether(File(settings.localRepo)))
 
 //        bindListener(Matchers.any(), object: TypeListener {
 //            override fun <I> hear(typeLiteral: TypeLiteral<I>?, typeEncounter: TypeEncounter<I>?) {
