@@ -12,6 +12,8 @@ abstract class BasePlugin : IPlugin {
         this.context = context
     }
 
+    override fun shutdown() {}
+
     override lateinit var taskManager: TaskManager
     lateinit var plugins: Plugins
 }

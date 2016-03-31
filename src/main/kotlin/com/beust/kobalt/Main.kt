@@ -233,6 +233,9 @@ private class Main @Inject constructor(
                             result = runTargetResult.exitCode
                         }
 
+                        // Shutdown all plug-ins
+                        plugins.shutdownPlugins()
+
                         log(3, "Timings:\n  " + runTargetResult.messages.joinToString("\n  "))
                     }
                 }

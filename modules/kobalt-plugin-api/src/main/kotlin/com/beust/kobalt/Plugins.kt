@@ -47,6 +47,8 @@ class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManage
         fun findPlugin(name: String) : IPlugin? = pluginMap[name]
     }
 
+    fun shutdownPlugins() = plugins.forEach { it.shutdown() }
+
     fun applyPlugins(context: KobaltContext, projects: List<Project>) {
         plugins.forEach { plugin ->
             addPluginInstance(plugin)
