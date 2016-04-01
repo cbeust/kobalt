@@ -77,19 +77,24 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
      * on the content of that IncrementalTaskInfo
      */
     fun toIncrementalTaskClosure(shortTaskName: String, method: (Project) -> IncrementalTaskInfo,
-            variant: Variant = Variant())
-            : (Project) -> TaskResult {
+            variant: Variant = Variant()): (Project) -> TaskResult {
         return { project: Project ->
             Kobalt.context?.variant = variant
-            val iit = method(project)
+            val iti = method(project)
             val taskName = project.name + ":" + shortTaskName
             var upToDate = false
             var taskOutputChecksum : String? = null
+            //
+            // First, compare the input checksums
+            //
             inputChecksumFor(taskName)?.let { inputChecksum ->
                 val dependsOnDirtyProjects = project.projectExtra.dependsOnDirtyProjects(project)
-                if (inputChecksum == iit.inputChecksum && ! dependsOnDirtyProjects) {
+                if (inputChecksum == iti.inputChecksum && ! dependsOnDirtyProjects) {
+                    //
+                    // Input checksums are equal, compare the output checksums
+                    //
                     outputChecksumFor(taskName)?.let { outputChecksum ->
-                        taskOutputChecksum = iit.outputChecksum()
+                        taskOutputChecksum = iti.outputChecksum()
                         if (outputChecksum == taskOutputChecksum) {
                             upToDate = true
                         } else {
@@ -101,28 +106,34 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
                         logIncremental(LEVEL, "Project ${project.name} depends on dirty project, running $taskName")
                     } else {
                         logIncremental(LEVEL, "Incremental task $taskName input is out of date, running it"
-                                + " old: $inputChecksum new: ${iit.inputChecksum}")
+                                + " old: $inputChecksum new: ${iti.inputChecksum}")
                     }
                     project.projectExtra.isDirty = true
                 }
             }
+
             if (! upToDate) {
-                val result = iit.task(project)
+                //
+                // The task is out of date, invoke the task on the IncrementalTaskInfo object
+                //
+                val result = iti.task(project)
                 if (result.success) {
                     logIncremental(LEVEL, "Incremental task $taskName done running, saving checksums")
-                    iit.inputChecksum?.let {
+                    iti.inputChecksum?.let {
                         saveInputChecksum(taskName, it)
                         logIncremental(LEVEL, "          input checksum \"$it\" saved")
                     }
                     // Important to rerun the checksum here since the output of the task might have changed it
-                    val os = iit.outputChecksum()
-                    iit.outputChecksum()?.let {
+                    iti.outputChecksum()?.let {
                         saveOutputChecksum(taskName, it)
                         logIncremental(LEVEL, "          output checksum \"$it\" saved")
                     }
                 }
                 result
             } else {
+                //
+                // Identical input and output checksums, don't run the task
+                //
                 logIncremental(LEVEL, "Incremental task \"$taskName\" is up to date, not running it")
                 TaskResult()
             }
