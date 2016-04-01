@@ -13,8 +13,20 @@ import com.beust.kobalt.misc.warn
 import com.google.common.net.MediaType
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.google.gson.annotations.SerializedName
 import com.google.inject.assistedinject.Assisted
+import okhttp3.Credentials
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
 import okhttp3.Response
+import retrofit2.Call
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.PATCH
+import retrofit2.http.POST
+import retrofit2.http.Path
 import java.io.File
 import javax.annotation.Nullable
 import javax.inject.Inject
@@ -60,21 +72,81 @@ class BintrayApi @Inject constructor (
                    @Nullable @Assisted("org") org: String?) : BintrayApi
     }
 
-    fun packageExists(packageName: String) : Boolean {
+    class ReleaseResponse(var id: String? = null, @SerializedName("upload_url") var uploadUrl: String?)
+
+    interface Api {
+        @GET("/packages/{owner}/maven/{package}")
+        fun getPackage(@Path("owner") owner: String,
+                       @Path("package") name: String): Call<BintrayResponse>
+
+        @POST("/packages/{owner}/maven/{package}")
+        fun createPackage(@Path("owner") owner: String,
+                          @Path("package") name: String,
+                          @Body content: String): Call<BintrayResponse>
+
+/*
+        @GET("/repos/{owner}/{repo}/releases")
+        fun getReleases(@Path("owner") owner: String,
+                @Path("repo") repo: String,
+                @Query("access_token") accessToken: String): Call<List<ReleasesResponse>>
+
+        @GET("/repos/{owner}/{repo}/releases")
+        fun getReleasesNoAuth(@Path("owner") owner: String,
+                @Path("repo") repo: String): Call<List<ReleasesResponse>>
+*/
+    }
+
+    private val service: Api
+
+    init {
+        val builder = OkHttpClient.Builder()
+        builder.interceptors().add(Interceptor { chain ->
+            var original = chain.request();
+
+            var requestBuilder = original.newBuilder()
+                    .header("Authorization", Credentials.basic(username, password))
+                    .header("Accept", "application/json")
+                    .method(original.method(), original.body());
+
+            chain.proceed(requestBuilder.build());
+        })
+        val okHttpClient = builder.build()
+
+        service = Retrofit.Builder()
+                .client(okHttpClient)
+                .baseUrl(UnauthenticatedBintrayApi.BINTRAY_URL_API)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+                .create(Api::class.java)
+    }
+
+    fun packageExists(project: Project) : Boolean {
         val url = arrayListOf(UnauthenticatedBintrayApi.BINTRAY_URL_API, "packages", org ?: username!!,
-                "maven", packageName)
+                "maven", project.name)
             .joinToString("/")
         val jcResponse = parseResponse(http.get(username, password, url))
+        val execute = service.getPackage(org ?: username!!, project.name).execute()
 
-        if (jcResponse.errorMessage != null) {
-            throw KobaltException("Error from Bintray: ${jcResponse.errorMessage}")
+        if (execute.errorBody()?.string()?.contains("was not found") ?: false) {
+            warn("Package does not exist on bintray.  Creating now.")
+            val content = mapOf(
+                    "desc" to project.description,
+                    "vcs_url" to (project.scm?.url ?: ""),
+                    "licences" to """[ "Apache-2.0" ]""",
+                    "website_url" to (project.url ?: "")
+            ).toString()
+            val result = service.createPackage(org ?: username!!, project.name, content).execute()
+            if (result.errorBody() != null) {
+                error(" Errors while creating package:\n" + result.errorBody().string())
+                return false
+            }
         }
 
-        return jcResponse.jo!!.get("name").asString == packageName
+        return jcResponse.jo!!.get("name").asString == project.name
     }
 
     fun uploadMaven(project: Project, files: List<File>, config: BintrayConfig?) : TaskResult {
-        if (! packageExists(project.name)) {
+        if (! packageExists(project)) {
             throw KobaltException("Couldn't find a package called ${project.name} on bintray, please create one first" +
                     " as explained at https://bintray.com/docs/usermanual/uploads/uploads_creatinganewpackage.html")
         }
