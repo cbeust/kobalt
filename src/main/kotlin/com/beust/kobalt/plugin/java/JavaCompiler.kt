@@ -9,6 +9,7 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.Strings
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
 import com.google.inject.Inject
@@ -52,7 +53,7 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
                     command = "javac " + allArgs.joinToString(" ") + " " + info.sourceFiles.joinToString(" ")
                     log(2, "Launching\n$command")
 
-                    log(1, "  Java compiling ${info.sourceFiles.size} files")
+                    log(1, "  Java compiling " + Strings.pluralizeAll("file", info.sourceFiles.size))
                     val result = task.call()
                     errorMessage = dc.diagnostics.joinToString("\n")
                     result
@@ -72,7 +73,7 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
                     val pb = ProcessBuilder(allArgs)
                     pb.inheritIO()
                     val line = allArgs.joinToString(" ")
-                    log(1, "  Java compiling ${info.sourceFiles.size} files")
+                    log(1, "  Java compiling " + Strings.pluralizeAll("file", info.sourceFiles.size))
                     log(2, "  Java compiling $line")
 
                     command = allArgs.joinToString(" ") + " " + info.sourceFiles.joinToString(" ")

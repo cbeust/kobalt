@@ -9,6 +9,7 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.Strings
 import com.beust.kobalt.misc.log
 import org.jetbrains.kotlin.cli.common.CLICompiler
 import org.jetbrains.kotlin.cli.common.ExitCode
@@ -38,9 +39,7 @@ class KotlinCompiler @Inject constructor(
 
     val compilerAction = object: ICompilerAction {
         override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
-            if (info.sourceFiles.size > 1) {
-                log(1, "  Kotlin compiling ${info.sourceFiles.size} files")
-            }
+            log(1, "  Kotlin compiling " + Strings.pluralizeAll("file", info.sourceFiles.size))
             val cp = compilerFirst(info.dependencies.map {it.jarFile.get()})
             val infoDir = info.directory
             val outputDir = if (infoDir != null) {
