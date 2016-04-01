@@ -8,7 +8,7 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KobaltExecutors
 
-public class KobaltContext(val args: Args) {
+class KobaltContext(val args: Args) {
     var variant: Variant = Variant()
     val profiles = arrayListOf<String>()
 
@@ -19,6 +19,14 @@ public class KobaltContext(val args: Args) {
     }
 
     fun findPlugin(name: String) = Plugins.findPlugin(name)
+
+    /**
+     * When an incremental task decides it's up to date, it sets this boolean to true so that subsequent
+     * tasks in that project can be skipped as well. This is an internal field that should only be set by Kobalt.
+     */
+    private val incrementalSuccesses = hashSetOf<String>()
+    fun previousTaskWasIncrementalSuccess(projectName: String) = incrementalSuccesses.contains(projectName) ?: false
+    fun setIncrementalSuccess(projectName: String) = incrementalSuccesses.add(projectName)
 
     //
     // Injected

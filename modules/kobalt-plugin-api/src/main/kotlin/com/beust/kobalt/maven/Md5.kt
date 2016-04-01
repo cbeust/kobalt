@@ -30,7 +30,7 @@ public class Md5 {
                             fileCount++
                         } else {
                             val files = KFiles.findRecursively(file) // , { f -> f.endsWith("java")})
-                            log(2, "  Calculating checksum of ${files.size} files in $file")
+                            log(2, "      Calculating checksum of ${files.size} files in $file")
                             files.map {
                                 File(file, it)
                             }.filter {

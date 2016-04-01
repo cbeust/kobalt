@@ -1,14 +1,11 @@
 package com.beust.kobalt.plugin.packaging
 
-import com.beust.kobalt.JarGenerator
-import com.beust.kobalt.KobaltException
-import com.beust.kobalt.TaskResult
+import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.archive.*
-import com.beust.kobalt.glob
 import com.beust.kobalt.internal.IncrementalManager
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
@@ -26,7 +23,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val executors: KobaltExecutors, val jarGenerator: JarGenerator, val warGenerator: WarGenerator,
         val zipGenerator: ZipGenerator, val taskContributor: TaskContributor,
         val pomFactory: PomGenerator.IFactory, val configActor: ConfigActor<InstallConfig>)
-            : BasePlugin(), ITaskContributor, IAssemblyContributor, IConfigActor<InstallConfig> by configActor {
+            : BasePlugin(), ITaskContributor, IIncrementalAssemblyContributor,
+        IConfigActor<InstallConfig> by configActor {
 
     companion object {
         const val PLUGIN_NAME = "Packaging"
@@ -53,39 +51,30 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 runTask = { doTaskAssemble(project) })
     }
 
-    // IAssemblyContributor
-    override fun assemble(project: Project, context: KobaltContext) : TaskResult {
-        try {
-            project.projectProperties.put(PACKAGES, packages)
-            packages.filter { it.project.name == project.name }.forEach { pkg ->
-                pkg.jars.forEach { jarGenerator.generateJar(pkg.project, context, it) }
-                pkg.wars.forEach { warGenerator.generateWar(pkg.project, context, it) }
-                pkg.zips.forEach { zipGenerator.generateZip(pkg.project, context, it) }
-                if (pkg.generatePom) {
-                    pomFactory.create(project).generate()
+    /**
+     * "assemble" is an incremental task but with a twist. Because it can be costly to determine if any
+     * of the class files generated in the previous phase is new or not, we just don't do that and always
+     * return "null" for both input and output checksums, which would cause that task to always be rerun.
+     * However, we are depending on Kobalt's cascading incremental management to skip up whenever appropriate:
+     * whenever a previous incremental task was a success, all following incremental tasks are automatically
+     * skipped.
+     */
+    override fun assemble(project: Project, context: KobaltContext) : IncrementalTaskInfo {
+        return IncrementalTaskInfo({ null }, { null }, { project ->
+            try {
+                project.projectProperties.put(PACKAGES, packages)
+                packages.filter { it.project.name == project.name }.forEach { pkg ->
+                    pkg.jars.forEach { jarGenerator.generateJar(pkg.project, context, it) }
+                    pkg.wars.forEach { warGenerator.generateWar(pkg.project, context, it) }
+                    pkg.zips.forEach { zipGenerator.generateZip(pkg.project, context, it) }
+                    if (pkg.generatePom) {
+                        pomFactory.create(project).generate()
+                    }
                 }
-            }
-            return TaskResult()
-        } catch(ex: Exception) {
-            throw KobaltException(ex)
-        }
-    }
-
-    private fun doAssemble(project: Project, context: KobaltContext) : TaskResult {
-        try {
-            project.projectProperties.put(PACKAGES, packages)
-            packages.filter { it.project.name == project.name }.forEach { pkg ->
-                pkg.jars.forEach { jarGenerator.generateJar(pkg.project, context, it) }
-                pkg.wars.forEach { warGenerator.generateWar(pkg.project, context, it) }
-                pkg.zips.forEach { zipGenerator.generateZip(pkg.project, context, it) }
-                if (pkg.generatePom) {
-                    pomFactory.create(project).generate()
-                }
-            }
-            return TaskResult()
-        } catch(ex: Exception) {
-            throw KobaltException(ex)
-        }
+                TaskResult()
+            } catch(ex: Exception) {
+                throw KobaltException(ex)
+            }}, context)
     }
 
     @Task(name = TASK_ASSEMBLE, description = "Package the artifacts",

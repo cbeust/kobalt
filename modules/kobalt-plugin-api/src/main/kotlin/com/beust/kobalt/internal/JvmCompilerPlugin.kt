@@ -143,22 +143,22 @@ open class JvmCompilerPlugin @Inject constructor(
             runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
     fun taskCompileTest(project: Project): IncrementalTaskInfo {
         sourceTestDirectories.addAll(context.variant.sourceDirectories(project, context, SourceSet.of(isTest = true)))
-        val inputChecksum = Md5.toMd5Directories(context.testSourceDirectories(project).map {
-            File(project.directory, it.path)
-        })
         return IncrementalTaskInfo(
-                inputChecksum = inputChecksum,
-                outputChecksum = {
-                    Md5.toMd5Directories(listOf(KFiles.makeOutputTestDir(project)))
-                },
-                task = { project -> doTaskCompileTest(project) }
+            inputChecksum = {
+                Md5.toMd5Directories(context.testSourceDirectories(project).map { File(project.directory, it.path)})
+            },
+            outputChecksum = {
+                Md5.toMd5Directories(listOf(KFiles.makeOutputTestDir(project)))
+            },
+            task = { project -> doTaskCompileTest(project)},
+            context = context
         )
     }
 
     @IncrementalTask(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project")
     fun taskCompile(project: Project): IncrementalTaskInfo {
         // Generate the BuildConfig before invoking sourceDirectories() since that call
-        // might add the buildConfig source directori
+        // might add the buildConfig source directories
         val sourceDirectory = context.variant.maybeGenerateBuildConfig(project, context)
         if (sourceDirectory != null) {
             sourceDirectories.add(sourceDirectory)
@@ -167,15 +167,15 @@ open class JvmCompilerPlugin @Inject constructor(
         // Set up the source files now that we have the variant
         sourceDirectories.addAll(context.variant.sourceDirectories(project, context, SourceSet.of(isTest = false)))
 
-        val inputChecksum = Md5.toMd5Directories(context.sourceDirectories(project).map {
-            File(project.directory, it.path)
-        })
         return IncrementalTaskInfo(
-                inputChecksum = inputChecksum,
+                inputChecksum = {
+                    Md5.toMd5Directories(context.sourceDirectories(project).map { File(project.directory, it.path) })
+                },
                 outputChecksum = {
                     Md5.toMd5Directories(listOf(File(project.directory, project.classesDir(context))))
                 },
-                task = { project -> doTaskCompile(project) }
+                task = { project -> doTaskCompile(project) },
+                context = context
         )
     }
 

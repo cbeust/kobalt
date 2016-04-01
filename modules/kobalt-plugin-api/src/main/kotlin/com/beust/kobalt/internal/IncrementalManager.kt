@@ -84,62 +84,72 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
             val taskName = project.name + ":" + shortTaskName
             var upToDate = false
             var taskOutputChecksum : String? = null
-            //
-            // First, compare the input checksums
-            //
-            inputChecksumFor(taskName)?.let { inputChecksum ->
-                val dependsOnDirtyProjects = project.projectExtra.dependsOnDirtyProjects(project)
-                if (inputChecksum == iti.inputChecksum && ! dependsOnDirtyProjects) {
-                    //
-                    // Input checksums are equal, compare the output checksums
-                    //
-                    outputChecksumFor(taskName)?.let { outputChecksum ->
-                        taskOutputChecksum = iti.outputChecksum()
-                        if (outputChecksum == taskOutputChecksum) {
-                            upToDate = true
-                        } else {
-                            logIncremental(LEVEL, "Incremental task $taskName output is out of date, running it")
-                        }
-                    }
-                } else {
-                    if (dependsOnDirtyProjects) {
-                        logIncremental(LEVEL, "Project ${project.name} depends on dirty project, running $taskName")
-                    } else {
-                        logIncremental(LEVEL, "Incremental task $taskName input is out of date, running it"
-                                + " old: $inputChecksum new: ${iti.inputChecksum}")
-                    }
-                    project.projectExtra.isDirty = true
-                }
-            }
 
-            if (! upToDate) {
+            if (iti.context.previousTaskWasIncrementalSuccess(project.name)) {
                 //
-                // The task is out of date, invoke the task on the IncrementalTaskInfo object
+                // If the previous task was an incremental success, no need to run
                 //
-                val result = iti.task(project)
-                if (result.success) {
-                    logIncremental(LEVEL, "Incremental task $taskName done running, saving checksums")
-                    iti.inputChecksum?.let {
-                        saveInputChecksum(taskName, it)
-                        logIncremental(LEVEL, "          input checksum \"$it\" saved")
-                    }
-                    // Important to rerun the checksum here since the output of the task might have changed it
-                    iti.outputChecksum()?.let {
-                        saveOutputChecksum(taskName, it)
-                        logIncremental(LEVEL, "          output checksum \"$it\" saved")
-                    }
-                }
-                result
+                logIncremental(LEVEL, "Previous incremental task was a success, not running $shortTaskName")
+                TaskResult()
             } else {
                 //
-                // Identical input and output checksums, don't run the task
+                // First, compare the input checksums
                 //
-                logIncremental(LEVEL, "Incremental task \"$taskName\" is up to date, not running it")
-                TaskResult()
+                inputChecksumFor(taskName)?.let { inputChecksum ->
+                    val dependsOnDirtyProjects = project.projectExtra.dependsOnDirtyProjects(project)
+                    if (inputChecksum == iti.inputChecksum() && !dependsOnDirtyProjects) {
+                        //
+                        // Input checksums are equal, compare the output checksums
+                        //
+                        outputChecksumFor(taskName)?.let { outputChecksum ->
+                            taskOutputChecksum = iti.outputChecksum()
+                            if (outputChecksum == taskOutputChecksum) {
+                                upToDate = true
+                            } else {
+                                logIncremental(LEVEL, "Incremental task $taskName output is out of date, running it")
+                            }
+                        }
+                    } else {
+                        if (dependsOnDirtyProjects) {
+                            logIncremental(LEVEL, "Project ${project.name} depends on dirty project, running $taskName")
+                        } else {
+                            logIncremental(LEVEL, "Incremental task $taskName input is out of date, running it"
+                                    + " old: $inputChecksum new: ${iti.inputChecksum()}")
+                        }
+                        project.projectExtra.isDirty = true
+                    }
+                }
+
+                if (!upToDate) {
+                    //
+                    // The task is out of date, invoke the task on the IncrementalTaskInfo object
+                    //
+                    val result = iti.task(project)
+                    if (result.success) {
+                        logIncremental(LEVEL, "Incremental task $taskName done running, saving checksums")
+                        iti.inputChecksum()?.let {
+                            saveInputChecksum(taskName, it)
+                            logIncremental(LEVEL, "          input checksum \"$it\" saved")
+                        }
+                        // Important to rerun the checksum here since the output of the task might have changed it
+                        iti.outputChecksum()?.let {
+                            saveOutputChecksum(taskName, it)
+                            logIncremental(LEVEL, "          output checksum \"$it\" saved")
+                        }
+                    }
+                    result
+                } else {
+                    //
+                    // Identical input and output checksums, don't run the task
+                    //
+                    logIncremental(LEVEL, "Incremental task \"$taskName\" is up to date, not running it")
+                    iti.context.setIncrementalSuccess(project.name)
+                    TaskResult()
+                }
             }
         }
     }
 
-    val LEVEL = 3
+    val LEVEL = 2
     private fun logIncremental(level: Int, s: String) = log(level, "    INC - $s")
 }
