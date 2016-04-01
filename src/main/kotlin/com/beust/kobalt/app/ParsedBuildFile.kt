@@ -1,5 +1,6 @@
 package com.beust.kobalt.app
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
@@ -108,7 +109,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         if (! buildScriptUtil.isUpToDate(buildFile, File(buildScriptJar))) {
             buildScriptJarFile.parentFile.mkdirs()
             generateJarFile(context, BuildFile(Paths.get(pluginSourceFile.path), "Plugins",
-                    Paths.get(buildScriptJar)), buildScriptJarFile)
+                    Paths.get(buildScriptJar)), buildScriptJarFile, buildFile)
             VersionFile.generateVersionFile(buildScriptJarFile.parentFile)
         }
 
@@ -125,15 +126,20 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         }
     }
 
-    private fun generateJarFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File) {
+    private fun generateJarFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File,
+            originalFile: BuildFile) {
         val kotlintDeps = dependencyManager.calculateDependencies(null, context)
         val deps: List<String> = kotlintDeps.map { it.jarFile.get().absolutePath }
-        kotlinCompilePrivate {
+        val result = kotlinCompilePrivate {
             classpath(files.kobaltJar)
             classpath(deps)
             sourceFiles(buildFile.path.toFile().absolutePath)
             output = File(buildScriptJarFile.absolutePath)
         }.compile(context = context)
+        if (! result.success) {
+            throw KobaltException("Couldn't compile ${originalFile.realPath}:\n"
+                    + result.errorMessage)
+        }
     }
 }
 
