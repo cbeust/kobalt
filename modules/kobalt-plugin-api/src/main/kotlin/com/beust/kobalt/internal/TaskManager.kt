@@ -130,7 +130,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                                                 graph.addEdge(pluginTask, to)
                                             }
                                         } else {
-                                            log(1, "Couldn't find node $it: not applicable to project ${project.name}")
+                                            log(2, "Couldn't find node $it: not applicable to project ${project.name}")
                                         }
                                     }
                                 }
