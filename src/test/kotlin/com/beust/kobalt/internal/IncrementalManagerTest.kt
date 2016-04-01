@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.Args
 import org.testng.Assert
 import org.testng.annotations.Test
 import java.io.File
@@ -12,7 +13,7 @@ class IncrementalManagerTest {
     fun shouldSave() {
         val file = File.createTempFile("kobalt-", "")
         println("File: $file")
-        val im = IncrementalManager(file.absolutePath)
+        val im = IncrementalManager(Args())//, file.absolutePath)
         val v = im.inputChecksumFor(TASK)
         Assert.assertNull(v)
         im.saveInputChecksum(TASK, "44")

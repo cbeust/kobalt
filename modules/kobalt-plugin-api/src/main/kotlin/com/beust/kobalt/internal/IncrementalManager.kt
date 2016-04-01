@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.Args
 import com.beust.kobalt.IncrementalTaskInfo
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.Variant
@@ -9,6 +10,8 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.inject.Inject
+import com.google.inject.Singleton
 import java.io.File
 import java.io.FileReader
 import java.nio.charset.Charset
@@ -21,10 +24,13 @@ data class TaskInfo(val taskName: String, var inputChecksum: String? = null, var
 class BuildInfo(var tasks: List<TaskInfo>)
 
 /**
- * Manage the file .kobalt/build-info.kt, which keeps track of input and output checksums to manage
+ * Manage the file .kobalt/buildInfo.json, which keeps track of input and output checksums to manage
  * incremental builds.
  */
-class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FILE) {
+@Singleton
+class IncrementalManager @Inject constructor(val args: Args) {
+    val fileName = IncrementalManager.BUILD_INFO_FILE
+
     companion object {
         val BUILD_INFO_FILE = KFiles.joinDir(KFiles.KOBALT_DOT_DIR, "buildInfo.json")
     }
@@ -85,12 +91,18 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
             var upToDate = false
             var taskOutputChecksum : String? = null
 
-            if (iti.context.previousTaskWasIncrementalSuccess(project.name)) {
+            if (args.noIncremental) {
                 //
-                // If the previous task was an incremental success, no need to run
+                // If the user turned off incremental builds, always run this task
+                //
+                logIncremental(LEVEL, "Incremental builds are turned off, running $taskName")
+                upToDate = false
+            } else if (iti.context.previousTaskWasIncrementalSuccess(project.name)) {
+                //
+                // If the previous task was an incremental success, no need to run this task
                 //
                 logIncremental(LEVEL, "Previous incremental task was a success, not running $shortTaskName")
-                TaskResult()
+                upToDate = true
             } else {
                 //
                 // First, compare the input checksums
@@ -119,33 +131,33 @@ class IncrementalManager(val fileName: String = IncrementalManager.BUILD_INFO_FI
                         project.projectExtra.isDirty = true
                     }
                 }
+            }
 
-                if (!upToDate) {
-                    //
-                    // The task is out of date, invoke the task on the IncrementalTaskInfo object
-                    //
-                    val result = iti.task(project)
-                    if (result.success) {
-                        logIncremental(LEVEL, "Incremental task $taskName done running, saving checksums")
-                        iti.inputChecksum()?.let {
-                            saveInputChecksum(taskName, it)
-                            logIncremental(LEVEL, "          input checksum \"$it\" saved")
-                        }
-                        // Important to rerun the checksum here since the output of the task might have changed it
-                        iti.outputChecksum()?.let {
-                            saveOutputChecksum(taskName, it)
-                            logIncremental(LEVEL, "          output checksum \"$it\" saved")
-                        }
+            if (!upToDate) {
+                //
+                // The task is out of date, invoke the task on the IncrementalTaskInfo object
+                //
+                val result = iti.task(project)
+                if (result.success) {
+                    logIncremental(LEVEL, "Incremental task $taskName done running, saving checksums")
+                    iti.inputChecksum()?.let {
+                        saveInputChecksum(taskName, it)
+                        logIncremental(LEVEL, "          input checksum \"$it\" saved")
                     }
-                    result
-                } else {
-                    //
-                    // Identical input and output checksums, don't run the task
-                    //
-                    logIncremental(LEVEL, "Incremental task \"$taskName\" is up to date, not running it")
-                    iti.context.setIncrementalSuccess(project.name)
-                    TaskResult()
+                    // Important to rerun the checksum here since the output of the task might have changed it
+                    iti.outputChecksum()?.let {
+                        saveOutputChecksum(taskName, it)
+                        logIncremental(LEVEL, "          output checksum \"$it\" saved")
+                    }
                 }
+                result
+            } else {
+                //
+                // Identical input and output checksums, don't run the task
+                //
+                logIncremental(LEVEL, "Incremental task \"$taskName\" is up to date, not running it")
+                iti.context.setIncrementalSuccess(project.name)
+                TaskResult()
             }
         }
     }

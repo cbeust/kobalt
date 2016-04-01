@@ -41,6 +41,9 @@ class Args {
     @Parameter(names = arrayOf("--log"), description = "Define the log level (1-3)")
     var log: Int = 1
 
+    @Parameter(names = arrayOf("--noIncremental"), description = "Turn off incremental builds")
+    var noIncremental: Boolean = false
+
     companion object {
         const val DEFAULT_SERVER_PORT = 1234
     }
