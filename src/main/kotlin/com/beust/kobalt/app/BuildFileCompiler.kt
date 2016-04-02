@@ -107,10 +107,10 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         log(2, "Running build file ${buildFile.name} jar: $buildScriptJarFile")
 
         if (buildScriptUtil.isUpToDate(buildFile, buildScriptJarFile)) {
-            log(2, "Build file is up to date")
+            log(2, "  Build file is up to date")
             return TaskResult()
         } else {
-            log(2, "Need to recompile ${buildFile.name}")
+            log(2, "  Need to recompile ${buildFile.name}")
 
             buildScriptJarFile.delete()
             val result = kotlinCompilePrivate {
