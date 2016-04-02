@@ -9,15 +9,8 @@ import java.util.*
 import javax.inject.Singleton
 
 @Singleton
-open public class LocalRepo @Inject constructor(val kobaltSettings: KobaltSettings) {
-    init {
-        val l = File(localRepo)
-        if (! l.exists()) {
-            l.mkdirs()
-        }
-    }
-
-    val localRepo: String
+open class LocalRepo @Inject constructor(val kobaltSettings: KobaltSettings) {
+    val localRepo: File
         get() = kobaltSettings.localRepo
 
     fun existsPom(d: LocalDep, v: String) : Boolean {
@@ -55,9 +48,7 @@ open public class LocalRepo @Inject constructor(val kobaltSettings: KobaltSettin
         return null
     }
 
-    fun toFullPath(path: String) : String {
-        return localRepo + File.separatorChar + path
-    }
+    fun toFullPath(path: String) = File(localRepo, path).absolutePath
 }
 
 

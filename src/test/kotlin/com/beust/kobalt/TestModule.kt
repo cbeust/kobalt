@@ -8,13 +8,12 @@ import com.google.inject.Scopes
 import java.io.File
 
 val TEST_KOBALT_SETTINGS = KobaltSettings(KobaltSettingsXml()).apply {
-    localRepo = SystemProperties.homeDir + File.separatorChar + "" +
-            ".kobalt-test"
+    localRepo = File(SystemProperties.homeDir + File.separatorChar + ".kobalt-test")
 }
 
 class TestLocalRepo: LocalRepo(TEST_KOBALT_SETTINGS)
 
-public class TestModule : MainModule(Args(), TEST_KOBALT_SETTINGS) {
+class TestModule : MainModule(Args(), TEST_KOBALT_SETTINGS) {
     override fun configureTest() {
         bind(LocalRepo::class.java).to(TestLocalRepo::class.java).`in`(Scopes.SINGLETON)
     }

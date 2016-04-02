@@ -15,7 +15,6 @@ import com.google.inject.Provider
 import com.google.inject.Singleton
 import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
-import java.io.File
 import java.util.concurrent.ExecutorService
 
 public open class MainModule(val args: Args, val settings: KobaltSettings) : AbstractModule() {
@@ -52,7 +51,7 @@ public open class MainModule(val args: Args, val settings: KobaltSettings) : Abs
         bind(KobaltSettings::class.java).toProvider(Provider<KobaltSettings> {
             settings
         }).`in`(Singleton::class.java)
-        bind(Aether::class.java).toInstance(Aether(File(settings.localRepo)))
+        bind(Aether::class.java).toInstance(Aether(settings.localRepo))
 
 //        bindListener(Matchers.any(), object: TypeListener {
 //            override fun <I> hear(typeLiteral: TypeLiteral<I>?, typeEncounter: TypeEncounter<I>?) {

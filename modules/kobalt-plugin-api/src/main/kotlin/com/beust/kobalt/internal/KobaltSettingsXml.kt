@@ -36,12 +36,12 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
     /**
      * Location of the local repo.
      */
-    var localRepo = xmlFile.localRepo // var for testing
+    var localRepo = KFiles.makeDir(xmlFile.localRepo) // var for testing
 
     val defaultRepos = xmlFile.defaultRepos?.repo
 
     companion object {
-        val SETTINGS_FILE_PATH = homeDir(KFiles.HOME_KOBALT_DIR.absolutePath, "settings.xml")
+        val SETTINGS_FILE_PATH = KFiles.joinDir(KFiles.HOME_KOBALT_DIR.absolutePath, "settings.xml")
 
         fun readSettingsXml() : KobaltSettings {
             val file = File(KobaltSettings.SETTINGS_FILE_PATH)
