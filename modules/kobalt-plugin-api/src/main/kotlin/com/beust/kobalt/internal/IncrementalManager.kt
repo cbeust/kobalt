@@ -97,12 +97,16 @@ class IncrementalManager @Inject constructor(val args: Args) {
                 //
                 logIncremental(LEVEL, "Incremental builds are turned off, running $taskName")
                 upToDate = false
-            } else if (iti.context.previousTaskWasIncrementalSuccess(project.name)) {
-                //
-                // If the previous task was an incremental success, no need to run this task
-                //
-                logIncremental(LEVEL, "Previous incremental task was a success, not running $shortTaskName")
-                upToDate = true
+//            } else if (iti.context.internalContext.previousTaskWasIncrementalSuccess(project.name)) {
+//                //
+//                // If the previous task was an incremental success, no need to run this task.
+                  //
+                  // Disabled for now since this can only work if exactly the previous task was
+                  // an incremental success. If it was a regular task, then this boolean should be
+                  // set back to false, which is currently not done.
+//                //
+//                logIncremental(LEVEL, "Previous incremental task was a success, not running $shortTaskName")
+//                upToDate = true
             } else {
                 //
                 // First, compare the input checksums
@@ -156,7 +160,7 @@ class IncrementalManager @Inject constructor(val args: Args) {
                 // Identical input and output checksums, don't run the task
                 //
                 logIncremental(LEVEL, "Incremental task \"$taskName\" is up to date, not running it")
-                iti.context.setIncrementalSuccess(project.name)
+                iti.context.internalContext.setIncrementalSuccess(project.name)
                 TaskResult()
             }
         }

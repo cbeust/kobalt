@@ -20,13 +20,8 @@ class KobaltContext(val args: Args) {
 
     fun findPlugin(name: String) = Plugins.findPlugin(name)
 
-    /**
-     * When an incremental task decides it's up to date, it sets this boolean to true so that subsequent
-     * tasks in that project can be skipped as well. This is an internal field that should only be set by Kobalt.
-     */
-    private val incrementalSuccesses = hashSetOf<String>()
-    fun previousTaskWasIncrementalSuccess(projectName: String) = incrementalSuccesses.contains(projectName) ?: false
-    fun setIncrementalSuccess(projectName: String) = incrementalSuccesses.add(projectName)
+    /** For internal use only */
+    val internalContext = InternalContext()
 
     //
     // Injected
@@ -38,3 +33,12 @@ class KobaltContext(val args: Args) {
     lateinit var settings: KobaltSettings
 }
 
+class InternalContext {
+    /**
+     * When an incremental task decides it's up to date, it sets this boolean to true so that subsequent
+     * tasks in that project can be skipped as well. This is an internal field that should only be set by Kobalt.
+     */
+    private val incrementalSuccesses = hashSetOf<String>()
+    fun previousTaskWasIncrementalSuccess(projectName: String) = incrementalSuccesses.contains(projectName) ?: false
+    fun setIncrementalSuccess(projectName: String) = incrementalSuccesses.add(projectName)
+}
