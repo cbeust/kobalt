@@ -112,7 +112,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
             generateJarFile(context, BuildFile(Paths.get(pluginSourceFile.path), "Plugins",
                     Paths.get(buildScriptJar)), buildScriptJarFile, buildFile)
             VersionFile.generateVersionFile(buildScriptJarFile.parentFile)
-            Kobalt.context.internalContext.buildFileOutOfDate = true
+            Kobalt.context!!.internalContext.buildFileOutOfDate = true
         }
 
         //
