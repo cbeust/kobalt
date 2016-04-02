@@ -91,9 +91,9 @@ class IncrementalManager @Inject constructor(val args: Args) {
             var upToDate = false
             var taskOutputChecksum : String? = null
 
-            if (args.noIncremental) {
+            if (args.noIncremental || (Kobalt.context?.internalContext?.buildFileOutOfDate as Boolean)) {
                 //
-                // If the user turned off incremental builds, always run this task
+                // If the user turned off incremental builds or if the build file was modified, always run this task
                 //
                 logIncremental(LEVEL, "Incremental builds are turned off, running $taskName")
                 upToDate = false

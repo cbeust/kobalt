@@ -2,6 +2,7 @@ package com.beust.kobalt.app
 
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.Plugins
+import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.build.BuildFile
@@ -111,6 +112,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
             generateJarFile(context, BuildFile(Paths.get(pluginSourceFile.path), "Plugins",
                     Paths.get(buildScriptJar)), buildScriptJarFile, buildFile)
             VersionFile.generateVersionFile(buildScriptJarFile.parentFile)
+            Kobalt.context.internalContext.buildFileOutOfDate = true
         }
 
         //

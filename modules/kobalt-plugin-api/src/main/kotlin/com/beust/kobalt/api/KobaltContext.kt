@@ -41,4 +41,10 @@ class InternalContext {
     private val incrementalSuccesses = hashSetOf<String>()
     fun previousTaskWasIncrementalSuccess(projectName: String) = incrementalSuccesses.contains(projectName) ?: false
     fun setIncrementalSuccess(projectName: String) = incrementalSuccesses.add(projectName)
+
+    /**
+     * Keep track of whether the build file was modified. If this boolean is true, incremental compilation
+     * will be disabled.
+     */
+    var buildFileOutOfDate: Boolean = false
 }
