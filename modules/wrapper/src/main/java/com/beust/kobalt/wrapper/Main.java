@@ -29,6 +29,7 @@ public class Main {
     private static final String FILE_NAME = "kobalt";
     private static final String DISTRIBUTIONS_DIR =
             System.getProperty("user.home") + "/.kobalt/wrapper/dist";
+    private static final File VERSION_TXT = new File(".kobalt", "wrapperVersion.txt");
 
     private final Properties wrapperProperties = new Properties();
 
@@ -143,9 +144,7 @@ public class Main {
         return System.getProperty("os.name").contains("Windows");
     }
 
-    private static final String OUT_DIR = "kobalt/wrapper/";
-    private static final String[] FILES = new String[] { KOBALTW, OUT_DIR + FILE_NAME + "-wrapper.jar" };
-    private static final String VERSION_TXT = "wrapper-version.txt";
+    private static final String[] FILES = new String[] { KOBALTW, "kobalt/wrapper/" + FILE_NAME + "-wrapper.jar" };
 
     private Path installDistribution() throws IOException {
         String wrapperVersion;
@@ -201,19 +200,20 @@ public class Main {
         // If the user didn't specify --noOverwrite, compare the installed wrapper to the one
         // we're trying to install and if they are the same, no need to overwrite
         if (! noOverwrite) {
-            try (FileReader fw = new FileReader(new File(OUT_DIR, VERSION_TXT))) {
-                try (BufferedReader bw = new BufferedReader(fw)) {
-                    String installedVersion = bw.readLine();
-                    if (! wrapperVersion.equals(installedVersion)) {
-                        log(2, "  Trying to install a different version " + wrapperVersion + " != " + installedVersion
-                                + ", overwriting the installed wrapper");
-                    } else {
-                        log(2, "  Trying to install the same version " + wrapperVersion + " == " + installedVersion
-                                + ", not overwriting the installed wrapper");
+            if (VERSION_TXT.exists()) {
+                try (FileReader fw = new FileReader(VERSION_TXT)) {
+                    try (BufferedReader bw = new BufferedReader(fw)) {
+                        String installedVersion = bw.readLine();
+                        if (!wrapperVersion.equals(installedVersion)) {
+                            log(2, "  Trying to install a different version " + wrapperVersion + " != " + installedVersion
+                                    + ", overwriting the installed wrapper");
+                        } else {
+                            log(2, "  Trying to install the same version " + wrapperVersion + " == " + installedVersion
+                                    + ", not overwriting the installed wrapper");
+                        }
                     }
                 }
             }
-
         }
 
         //
@@ -244,8 +244,8 @@ public class Main {
             //
             // Save wrapper-version.txt
             //
-            log(2, "  Writing version.txt");
-            try (FileWriter fw = new FileWriter(new File(OUT_DIR, VERSION_TXT))) {
+            log(2, "  Writing " + VERSION_TXT);
+            try (FileWriter fw = new FileWriter(VERSION_TXT)) {
                 try (BufferedWriter bw = new BufferedWriter(fw)) {
                     bw.write(wrapperVersion);
                 }
