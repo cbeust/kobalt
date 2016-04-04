@@ -1,5 +1,6 @@
 package com.beust.kobalt.plugin.packaging
 
+import aQute.bnd.osgi.Analyzer
 import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
@@ -105,6 +106,27 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
     fun addPackage(p: PackageConfig) {
         packages.add(p)
+    }
+
+//    @Task(name = "generateOsgiManifest", alwaysRunAfter = arrayOf(TASK_ASSEMBLE))
+    fun generateManifest(project: Project): TaskResult {
+        val analyzer = Analyzer().apply {
+            jar = aQute.bnd.osgi.Jar(project.projectProperties.get(Archives.JAR_NAME) as String)
+            val dependencies = project.compileDependencies + project.compileRuntimeDependencies
+            val dependentProjects = project.dependentProjects
+            dependencyManager.calculateDependencies(project, context, dependentProjects, dependencies).forEach {
+                addClasspath(it.jarFile.get())
+            }
+            setProperty(Analyzer.BUNDLE_VERSION, project.version)
+            setProperty(Analyzer.BUNDLE_NAME, project.group)
+            setProperty(Analyzer.BUNDLE_DESCRIPTION, project.description)
+            setProperty(Analyzer.IMPORT_PACKAGE, "*")
+            setProperty(Analyzer.EXPORT_PACKAGE, "*;-noimport:=false;version=" + project.version)
+        }
+
+        val manifest = analyzer.calcManifest()
+        manifest.write(System.out)
+        return TaskResult()
     }
 
 
