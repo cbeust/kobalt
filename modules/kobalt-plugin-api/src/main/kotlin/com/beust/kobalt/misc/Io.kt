@@ -33,6 +33,14 @@ class Io(val dryRun: Boolean = false) {
         }
     }
 
+    fun rename(from: File, to: File) {
+        log("rename $from $to")
+        moveFile(from, to.parentFile)
+        if (from.name != to.name) {
+            File(to, from.name).renameTo(to)
+        }
+    }
+
     fun copyDirectory(from: File, toDir: File) {
         log("cp -r $from $toDir")
 

@@ -123,9 +123,10 @@ public class JarUtils {
             return null
         }
 
-        fun extractJarFile(jarFile: File, destDir: File) {
-            val jar = JarFile(jarFile)
-            val enumEntries = jar.entries()
+        fun extractJarFile(file: File, destDir: File) = extractZipFile(JarFile(file), destDir)
+
+        fun extractZipFile(zipFile: ZipFile, destDir: File) {
+            val enumEntries = zipFile.entries()
             while (enumEntries.hasMoreElements()) {
                 val file = enumEntries.nextElement()
                 val f = File(destDir.path + File.separator + file.name)
@@ -134,7 +135,7 @@ public class JarUtils {
                     continue
                 }
 
-                jar.getInputStream(file).use { ins ->
+                zipFile.getInputStream(file).use { ins ->
                     f.parentFile.mkdirs()
                     FileOutputStream(f).use { fos ->
                         while (ins.available() > 0) {
