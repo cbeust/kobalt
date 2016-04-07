@@ -117,14 +117,17 @@ class GithubApi2 @Inject constructor(
                             } else {
                                 service.getReleasesNoAuth("cbeust", "kobalt")
                             }
-                    val releases = req.execute()
-                        .body()
-                    releases.firstOrNull()?.let {
-                        try {
-                            result = listOf(it.name, it.tagName).filterNotNull().first { !it.isBlank() }
-                        } catch(ex: NoSuchElementException) {
-                            throw KobaltException("Couldn't find the latest release")
+                    val releases = req.execute().body()
+                    if (releases != null) {
+                        releases.firstOrNull()?.let {
+                            try {
+                                result = listOf(it.name, it.tagName).filterNotNull().first { !it.isBlank() }
+                            } catch(ex: NoSuchElementException) {
+                                throw KobaltException("Couldn't find the latest release")
+                            }
                         }
+                    } else {
+                        warn("Didn't receive any body in the response to GitHub.getReleases()")
                     }
                 } catch(e: Exception) {
                     log(1, "Couldn't retrieve releases from github: " + e.message)
