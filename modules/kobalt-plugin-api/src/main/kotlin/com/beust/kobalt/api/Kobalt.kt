@@ -10,9 +10,6 @@ import java.util.*
 
 class Kobalt {
     companion object {
-        // This injector will eventually be replaced with a different injector initialized with the
-        // correct arguments (or with a TestModule) but it's necessary to give it a default value
-        // here so the kobalt-plugin.xml file can be read since this is done very early
         lateinit var INJECTOR : Injector
 
         var context: KobaltContext? = null
