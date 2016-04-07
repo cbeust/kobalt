@@ -41,9 +41,10 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
      * Create an IClasspathDependency from a Kobalt id.
      */
     fun create(id: String): IClasspathDependency {
-        val cr = aether.transitiveDependencies(DefaultArtifact(MavenId.toKobaltId(id)))
-        return if (cr != null) AetherDependency(cr.root.artifact)
-            else throw KobaltException("Couldn't resolve $id")
+        return AetherDependency(DefaultArtifact(id))
+//        val cr = aether.directDependencies(DefaultArtifact(MavenId.toKobaltId(id)))
+//        return if (cr != null) AetherDependency(cr.root.artifact)
+//            else throw KobaltException("Couldn't resolve $id")
     }
 
     /**

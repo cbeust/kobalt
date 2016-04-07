@@ -7,6 +7,8 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import java.io.File
 import java.util.*
+import java.util.concurrent.Future
+import java.util.concurrent.FutureTask
 
 open class Project(
         @Directive open var name: String = "",
@@ -146,14 +148,16 @@ class Dependencies(val project: Project,
         val excludedDependencies: ArrayList<IClasspathDependency>) {
 
     /**
-     * Add the dependencies to the given ArrayList and return a list of jar files corresponding to
-     * these dependencies.
+     * Add the dependencies to the given ArrayList and return a list of future jar files corresponding to
+     * these dependencies. Futures are necessary here since this code is invoked from the build file and
+     * we might not have set up the extra IRepositoryContributors just yet. By the time these
+     * future tasks receive a get(), the repos will be correct.
      */
     private fun addToDependencies(project: Project, dependencies: ArrayList<IClasspathDependency>,
-            dep: Array<out String>): List<File>
+            dep: Array<out String>): List<Future<File>>
         = with(dep.map { DependencyManager.create(it, project)}) {
             dependencies.addAll(this)
-            this.map { it.jarFile.get() }
+            this.map { FutureTask { it.jarFile.get() } }
     }
 
     @Directive
