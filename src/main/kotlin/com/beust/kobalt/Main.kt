@@ -201,11 +201,17 @@ private class Main @Inject constructor(
                     }
 
                     //
-                    // Run all their dependencies through the IDependencyInterceptors
+                    // Run all the dependencies through the IDependencyInterceptors
                     //
                     runClasspathInterceptors(allProjects)
 
                     log(2, "Final list of repos:\n  " + Kobalt.repos.joinToString("\n  "))
+
+                    //
+                    // Call apply() on all plug-ins now that the repos are set up
+                    //
+                    plugins.applyPlugins(Kobalt.context!!, allProjects)
+
 
                     if (args.projectInfo) {
                         // --projectInfo

@@ -55,9 +55,6 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         // Find all the projects in the build file, possibly compiling them
         //
         val projectResult = findProjects(context)
-        if (projectResult.taskResult.success) {
-            plugins.applyPlugins(context, projectResult.projects)
-        }
 
         return projectResult
     }
