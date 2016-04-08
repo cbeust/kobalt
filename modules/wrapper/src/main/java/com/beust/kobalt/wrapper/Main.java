@@ -50,7 +50,7 @@ public class Main {
         boolean exit = false;
         for (int i = 0; i < argv.length; i++) {
             boolean passToKobalt = true;
-            switch(argv[i]) {
+            switch (argv[i]) {
                 case "--version":
                     System.out.println("Kobalt " + version + ", Wrapper " + getWrapperVersion());
                     exit = true;
@@ -73,7 +73,7 @@ public class Main {
             }
         }
         int result = 0;
-        if (! exit) {
+        if (!exit) {
             Path kobaltJarFile = installDistribution();
             if (!noLaunch) {
                 result = launchMain(kobaltJarFile, kobaltArgv.toArray(new String[kobaltArgv.size()]));
@@ -119,7 +119,7 @@ public class Main {
 
     private void initWrapperFile(String version) throws IOException {
         File config = new File(getWrapperDir(), KOBALT_WRAPPER_PROPERTIES);
-        if (! config.exists()) {
+        if (!config.exists()) {
             saveFile(config,
                     PROPERTY_VERSION + "=" + version + "\n"
 //                    + PROPERTY_DOWNLOAD_URL + "=" + downloadUrl(version) + "\n"
@@ -144,7 +144,7 @@ public class Main {
         return System.getProperty("os.name").contains("Windows");
     }
 
-    private static final String[] FILES = new String[] { KOBALTW, "kobalt/wrapper/" + FILE_NAME + "-wrapper.jar" };
+    private static final String[] FILES = new String[]{KOBALTW, "kobalt/wrapper/" + FILE_NAME + "-wrapper.jar"};
 
     private Path installDistribution() throws IOException {
         String wrapperVersion;
@@ -172,34 +172,34 @@ public class Main {
                 isNew ? "kobalt-" + wrapperVersion : "",
                 getWrapperDir().getPath() + "/" + FILE_NAME + "-" + wrapperVersion + ".jar");
         boolean downloadedZipFile = false;
-        if (! Files.exists(localZipFile) || ! Files.exists(kobaltJarFile)) {
+        if (!Files.exists(localZipFile) || !Files.exists(kobaltJarFile)) {
             download(localZipFile.toFile(), wrapperVersion);
             downloadedZipFile = true;
         }
 
-        //
-        // Extract all the zip files
-        //
-        if (! noOverwrite && downloadedZipFile) {
-            int retries = 0;
-            while (retries < 2) {
-                try {
-                    extractZipFile(localZipFile, toZipOutputDir);
-                    break;
-                } catch (ZipException e) {
-                    retries++;
-                    error("Couldn't open zip file " + localZipFile + ": " + e.getMessage());
-                    error("The file is probably corrupt, downloading it again");
-                    Files.delete(localZipFile);
-                    download(localZipFile.toFile(), wrapperVersion);
+        if (!noOverwrite) {
+            //
+            // Extract all the zip files
+            //
+            if (downloadedZipFile) {
+                int retries = 0;
+                while (retries < 2) {
+                    try {
+                        extractZipFile(localZipFile, toZipOutputDir);
+                        break;
+                    } catch (ZipException e) {
+                        retries++;
+                        error("Couldn't open zip file " + localZipFile + ": " + e.getMessage());
+                        error("The file is probably corrupt, downloading it again");
+                        Files.delete(localZipFile);
+                        download(localZipFile.toFile(), wrapperVersion);
+                    }
                 }
             }
-        }
 
-        //
-        // If the user didn't specify --noOverwrite, compare the installed wrapper to the one
-        // we're trying to install and if they are the same, no need to overwrite
-        if (! noOverwrite) {
+            //
+            // If the user didn't specify --noOverwrite, compare the installed wrapper to the one
+            // we're trying to install and if they are the same, no need to overwrite
             if (VERSION_TXT.exists()) {
                 try (FileReader fw = new FileReader(VERSION_TXT)) {
                     try (BufferedReader bw = new BufferedReader(fw)) {
@@ -214,19 +214,17 @@ public class Main {
                     }
                 }
             }
-        }
 
-        //
-        // Copy the wrapper files in the current kobalt/wrapper directory
-        //
-        if (! noOverwrite) {
-             for (String file : FILES) {
+            //
+            // Copy the wrapper files in the current kobalt/wrapper directory
+            //
+            for (String file : FILES) {
                 Path to = Paths.get(file);
                 to.toFile().getAbsoluteFile().getParentFile().mkdirs();
 
                 if (file.endsWith(KOBALTW)) {
                     generateKobaltW(Paths.get(KOBALTW));
-               } else {
+                } else {
                     Path from = Paths.get(fromZipOutputDir, file);
                     try {
                         if (isWindows() && to.toFile().exists()) {
@@ -386,7 +384,7 @@ public class Main {
             } else {
                 error("No file to download. Server replied HTTP code: " + responseCode);
             }
-        } catch(IOException ex) {
+        } catch (IOException ex) {
             log(1, "Warning: couldn't download " + fileUrl);
         } finally {
             if (httpConn != null) {
@@ -396,12 +394,12 @@ public class Main {
     }
 
     private void copyToStreamWithProgress(InputStream inputStream, OutputStream outputStream, long contentLength,
-            String url) throws IOException {
+                                          String url) throws IOException {
         int bytesRead;
         long bytesSoFar = 0;
         byte[] buffer = new byte[100_000];
         boolean hasTerminal = System.console() != null;
-        if (! hasTerminal) {
+        if (!hasTerminal) {
             log2(1, "\rDownloading " + url);
         }
         while ((bytesRead = inputStream.read(buffer)) != -1) {
