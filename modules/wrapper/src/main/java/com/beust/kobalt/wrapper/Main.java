@@ -166,7 +166,6 @@ public class Main {
 
         boolean isNew = Float.parseFloat(version) * 1000 >= 650;
 
-        String fromZipOutputDir = DISTRIBUTIONS_DIR + File.separator + "kobalt-" + version;
         String toZipOutputDir = DISTRIBUTIONS_DIR;
         Path kobaltJarFile = Paths.get(toZipOutputDir,
                 isNew ? "kobalt-" + wrapperVersion : "",
@@ -205,8 +204,10 @@ public class Main {
                     try (BufferedReader bw = new BufferedReader(fw)) {
                         String installedVersion = bw.readLine();
                         if (!wrapperVersion.equals(installedVersion)) {
-                            log(2, "  Trying to install a different version " + wrapperVersion + " != " + installedVersion
+                            log(2, "  Trying to install a different version "
+                                    + wrapperVersion + " != " + installedVersion
                                     + ", overwriting the installed wrapper");
+                            installWrapperFiles(version, wrapperVersion);
                         } else {
                             log(2, "  Trying to install the same version " + wrapperVersion + " == " + installedVersion
                                     + ", not overwriting the installed wrapper");
@@ -216,43 +217,42 @@ public class Main {
             }
         }
 
-        //
-        // Copy the wrapper files in the current kobalt/wrapper directory
-        //
-        if (! noOverwrite) {
-             for (String file : FILES) {
-                Path to = Paths.get(file);
-                to.toFile().getAbsoluteFile().getParentFile().mkdirs();
+        return kobaltJarFile;
+    }
 
-                if (file.endsWith(KOBALTW)) {
-                    generateKobaltW(Paths.get(KOBALTW));
-               } else {
-                    Path from = Paths.get(fromZipOutputDir, file);
-                    try {
-                        if (isWindows() && to.toFile().exists()) {
-                            log(2, "  Windows detected, not overwriting " + to);
-                        } else {
-                            log(2, "  Writing " + to);
-                            Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
-                        }
-                    } catch (IOException ex) {
-                        log(1, "  Couldn't copy " + from + " to " + to + ": " + ex.getMessage());
+    private void installWrapperFiles(String version, String wrapperVersion) throws IOException {
+        String fromZipOutputDir = DISTRIBUTIONS_DIR + File.separator + "kobalt-" + version;
+
+        for (String file : FILES) {
+            Path to = Paths.get(file);
+            to.toFile().getAbsoluteFile().getParentFile().mkdirs();
+
+            if (file.endsWith(KOBALTW)) {
+                generateKobaltW(Paths.get(KOBALTW));
+            } else {
+                Path from = Paths.get(fromZipOutputDir, file);
+                try {
+                    if (isWindows() && to.toFile().exists()) {
+                        log(2, "  Windows detected, not overwriting " + to);
+                    } else {
+                        log(2, "  Writing " + to);
+                        Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
                     }
-                }
-            }
-
-            //
-            // Save wrapper-version.txt
-            //
-            log(2, "  Writing " + VERSION_TXT);
-            try (FileWriter fw = new FileWriter(VERSION_TXT)) {
-                try (BufferedWriter bw = new BufferedWriter(fw)) {
-                    bw.write(wrapperVersion);
+                } catch (IOException ex) {
+                    log(1, "  Couldn't copy " + from + " to " + to + ": " + ex.getMessage());
                 }
             }
         }
 
-        return kobaltJarFile;
+        //
+        // Save wrapper-version.txt
+        //
+        log(2, "  Writing " + VERSION_TXT);
+        try (FileWriter fw = new FileWriter(VERSION_TXT)) {
+            try (BufferedWriter bw = new BufferedWriter(fw)) {
+                bw.write(wrapperVersion);
+            }
+        }
     }
 
     private void generateKobaltW(Path filePath) throws IOException {
