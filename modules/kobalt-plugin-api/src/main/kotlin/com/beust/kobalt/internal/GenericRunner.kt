@@ -68,7 +68,7 @@ abstract class GenericTestRunner : ITestRunnerContributor {
                 val pb = ProcessBuilder(allArgs)
                 pb.directory(File(project.directory))
                 pb.inheritIO()
-                log(1, "Running tests with classpath size ${classpath.size}")
+                log(2, "Running tests with classpath size ${classpath.size}")
                 log(2, "Launching " + allArgs.joinToString(" "))
                 val process = pb.start()
                 val errorCode = process.waitFor()
