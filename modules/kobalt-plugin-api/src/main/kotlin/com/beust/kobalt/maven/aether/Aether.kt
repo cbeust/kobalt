@@ -35,17 +35,10 @@ class DependencyResult(val dependency: IClasspathDependency, val repoUrl: String
 class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether: Aether) {
     val localRepo: File get() = settings.localRepo
 
-    class MaybeArtifact(val result: DependencyResult?, val error: String?)
-
     /**
      * Create an IClasspathDependency from a Kobalt id.
      */
-    fun create(id: String): IClasspathDependency {
-        return AetherDependency(DefaultArtifact(id))
-//        val cr = aether.directDependencies(DefaultArtifact(MavenId.toKobaltId(id)))
-//        return if (cr != null) AetherDependency(cr.root.artifact)
-//            else throw KobaltException("Couldn't resolve $id")
-    }
+    fun create(id: String) = AetherDependency(DefaultArtifact(id))
 
     /**
      * @return the latest artifact for the given group and artifactId.
