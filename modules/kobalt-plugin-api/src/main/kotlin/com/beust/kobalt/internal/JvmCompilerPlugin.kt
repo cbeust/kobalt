@@ -194,29 +194,28 @@ open class JvmCompilerPlugin @Inject constructor(
         if (compilerContributors.isEmpty()) {
             throw KobaltException("Couldn't find any compiler for project ${project.name}")
         } else {
-            compilerContributors.forEach { contributor ->
-                contributor.compilersFor(project, context).forEach { compiler ->
-                    val contributedSourceDirs =
-                        if (isTest) {
-                            context.testSourceDirectories(project)
-                        } else {
-                            context.sourceDirectories(project)
-                        }
-                    val sourceFiles = KFiles.findSourceFiles(project.directory,
-                            contributedSourceDirs.map { it.path }, compiler.sourceSuffixes)
-                    if (sourceFiles.size > 0) {
-                        // TODO: createCompilerActionInfo recalculates the source files, only compute them
-                        // once and pass them
-                        val info = createCompilerActionInfo(project, context, isTest, sourceDirectories,
-                                sourceSuffixes = compiler.sourceSuffixes)
-                        val thisResult = compiler.compile(project, context, info)
-                        results.add(thisResult)
-                        if (!thisResult.success && failedResult == null) {
-                            failedResult = thisResult
-                        }
+            val allCompilers = compilerContributors.flatMap { it.compilersFor(project, context)}.sorted()
+            allCompilers.forEach { compiler ->
+                val contributedSourceDirs =
+                    if (isTest) {
+                        context.testSourceDirectories(project)
                     } else {
-                        log(2, "Compiler $compiler not running on ${project.name} since no source files were found")
+                        context.sourceDirectories(project)
                     }
+                val sourceFiles = KFiles.findSourceFiles(project.directory,
+                        contributedSourceDirs.map { it.path }, compiler.sourceSuffixes)
+                if (sourceFiles.size > 0) {
+                    // TODO: createCompilerActionInfo recalculates the source files, only compute them
+                    // once and pass them
+                    val info = createCompilerActionInfo(project, context, isTest, sourceDirectories,
+                            sourceSuffixes = compiler.sourceSuffixes)
+                    val thisResult = compiler.compile(project, context, info)
+                    results.add(thisResult)
+                    if (!thisResult.success && failedResult == null) {
+                        failedResult = thisResult
+                    }
+                } else {
+                    log(2, "Compiler $compiler not running on ${project.name} since no source files were found")
                 }
             }
             return if (failedResult != null) failedResult!!

@@ -19,8 +19,7 @@ import javax.inject.Singleton
 @Singleton
 class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val dependencyManager: DependencyManager,
         override val configActor: ConfigActor<KotlinConfig>)
-    : BaseJvmPlugin<KotlinConfig>(configActor), IDocContributor, IClasspathContributor, ICompilerContributor,
-        IBuildConfigContributor {
+    : BaseJvmPlugin<KotlinConfig>(configActor), IDocContributor, IClasspathContributor, ICompilerContributor, IBuildConfigContributor {
 
     companion object {
         const val PLUGIN_NAME = "Kotlin"
@@ -115,6 +114,9 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
 
     val compiler = object: ICompiler {
         override val sourceSuffixes = listOf("kt")
+
+        /** The Kotlin compiler should run before the Java one */
+        override val priority: Int get() = ICompiler.DEFAULT_PRIORITY - 1
 
         override val sourceDirectory = "kotlin"
 

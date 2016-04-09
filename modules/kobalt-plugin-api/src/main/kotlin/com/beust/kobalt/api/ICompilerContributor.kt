@@ -2,7 +2,7 @@ package com.beust.kobalt.api
 
 import com.beust.kobalt.TaskResult
 
-interface ICompiler {
+interface ICompiler : Comparable<ICompiler> {
     /**
      * The suffixes handled by this compiler (without the dot, e.g. "java" or "kt").
      */
@@ -17,6 +17,17 @@ interface ICompiler {
      * Run the compilation based on the info.
      */
     fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult
+
+    companion object {
+        val DEFAULT_PRIORITY: Int = 5
+    }
+
+    /**
+     * The priority of this compiler. Lower priority compilers are run first.
+     */
+    val priority: Int get() = DEFAULT_PRIORITY
+
+    override fun compareTo(other: ICompiler) = priority.compareTo(other.priority)
 }
 
 interface ICompilerContributor : IProjectAffinity {
