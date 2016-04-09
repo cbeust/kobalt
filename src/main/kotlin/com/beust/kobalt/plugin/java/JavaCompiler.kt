@@ -68,6 +68,7 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
                         allArgs.add(info.dependencies.map { it.jarFile.get() }.joinToString(File.pathSeparator))
                     }
 
+                    allArgs.addAll(info.compilerArgs)
                     allArgs.addAll(info.sourceFiles)
 
                     val pb = ProcessBuilder(allArgs)
