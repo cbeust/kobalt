@@ -19,7 +19,7 @@ interface ICompiler : Comparable<ICompiler> {
     fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult
 
     companion object {
-        val DEFAULT_PRIORITY: Int = 5
+        val DEFAULT_PRIORITY: Int = 10
     }
 
     /**

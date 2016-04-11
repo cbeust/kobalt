@@ -117,7 +117,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
         override val sourceSuffixes = listOf("kt")
 
         /** The Kotlin compiler should run before the Java one */
-        override val priority: Int get() = ICompiler.DEFAULT_PRIORITY - 1
+        override val priority: Int get() = ICompiler.DEFAULT_PRIORITY - 5
 
         override val sourceDirectory = "kotlin"
 
