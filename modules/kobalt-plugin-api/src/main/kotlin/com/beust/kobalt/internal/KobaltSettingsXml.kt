@@ -21,6 +21,12 @@ class KobaltSettingsXml {
 
     @XmlElement(name = "default-repos") @JvmField
     var defaultRepos: DefaultReposXml? = null
+
+    @XmlElement(name = "kobalt-compiler-version") @JvmField
+    var kobaltCompilerVersion: String = "1.0.0"
+
+    @XmlElement(name = "kobalt-compiler-repo") @JvmField
+    var kobaltCompilerRepo: String? = null
 }
 
 class DefaultReposXml {
@@ -39,6 +45,9 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
     var localRepo = KFiles.makeDir(xmlFile.localRepo) // var for testing
 
     val defaultRepos = xmlFile.defaultRepos?.repo
+
+    var kobaltCompilerVersion = xmlFile.kobaltCompilerVersion
+    var kobaltCompilerRepo = xmlFile.kobaltCompilerRepo
 
     companion object {
         val SETTINGS_FILE_PATH = KFiles.joinDir(KFiles.HOME_KOBALT_DIR.absolutePath, "settings.xml")

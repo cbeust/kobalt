@@ -4,6 +4,7 @@ import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
+import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.kotlin.ParentLastClassLoader
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
@@ -32,14 +33,13 @@ class KotlinCompiler @Inject constructor(
         val files: KFiles,
         val dependencyManager: DependencyManager,
         val executors: KobaltExecutors,
+        val settings: KobaltSettings,
         val jvmCompiler: JvmCompiler) {
-    companion object {
-        val KOTLIN_VERSION = "1.0.0"
-    }
 
     val compilerAction = object: ICompilerAction {
         override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
-            log(1, "  Kotlin compiling " + Strings.pluralizeAll("file", info.sourceFiles.size))
+            val version = settings.kobaltCompilerVersion
+            log(1, "  Kotlin $version compiling " + Strings.pluralizeAll("file", info.sourceFiles.size))
             val cp = compilerFirst(info.dependencies.map {it.jarFile.get()})
             val infoDir = info.directory
             val outputDir = if (infoDir != null) {
@@ -134,7 +134,8 @@ class KotlinCompiler @Inject constructor(
             otherClasspath: List<String>, sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult {
 
         val executor = executors.newExecutor("KotlinCompiler", 10)
-        val compilerDep = dependencyManager.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION")
+        val compilerVersion = settings.kobaltCompilerVersion
+        val compilerDep = dependencyManager.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$compilerVersion")
         val deps = dependencyManager.transitiveClosure(listOf(compilerDep))
 
         // Force a download of the compiler dependencies

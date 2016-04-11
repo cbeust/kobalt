@@ -22,16 +22,25 @@ class Kobalt {
         val repos : Set<HostConfig>
             get() {
                 val settingsRepos = Kobalt.context?.settings?.defaultRepos ?: emptyList()
+                // Repos from <default-repos> in the settings
                 val result = ArrayList(
                         (if (settingsRepos.isEmpty()) Constants.DEFAULT_REPOS
                         else settingsRepos)
                     .map { HostConfig(it) })
 
+                // Repo from <kobalt-compiler-repo> in the settings
+                Kobalt.context?.settings?.kobaltCompilerRepo?.let {
+                    result.add(HostConfig(it))
+                }
+
+                // Repos from the repo contributors
                 Kobalt.context?.pluginInfo?.repoContributors?.forEach {
                     result.addAll(it.reposFor(null))
                 }
 
+                // Repos from the build file
                 result.addAll(reposFromBuildFiles)
+
                 return result.toHashSet()
             }
 
