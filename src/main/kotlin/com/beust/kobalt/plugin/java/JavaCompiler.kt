@@ -73,7 +73,7 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
                     }
 
                     allArgs.addAll(info.compilerArgs)
-                    allArgs.addAll(info.sourceFiles)
+                    allArgs.addAll(info.sourceFiles.filter { File(it).isFile })
 
                     val pb = ProcessBuilder(allArgs)
                     pb.inheritIO()

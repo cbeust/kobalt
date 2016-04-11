@@ -341,8 +341,9 @@ open class JvmCompilerPlugin @Inject constructor(
             }
         }
 
-        extraSourceFiles.addAll(contributedSourceDirs.filter { it.exists() }.map { it.path })
-        val allSources= (sourceFiles + extraSourceFiles).distinct()
+        val allSources = (sourceFiles + extraSourceFiles).distinct().filter { File(it).exists() }.map {
+            File(projectDirectory, it).path
+        }
         // Finally, alter the info with the compiler interceptors before returning it
         val initialActionInfo = CompilerActionInfo(projectDirectory.path, classpath, allSources,
                 sourceSuffixes, buildDirectory, emptyList() /* the flags will be provided by flag contributors */)
