@@ -69,7 +69,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                 log(2, "Marking project ${project.name} as skipped")
                 failedProjects.add(project.name)
                 kobaltError("Not building project ${project.name} since it depends on failed "
-                        + Strings.pluralize("project", fp.size)
+                        + Strings.pluralize(fp.size, "project")
                         + " " + fp.joinToString(","))
             } else {
                 val projectName = project.name
