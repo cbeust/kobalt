@@ -4,8 +4,8 @@ import com.google.common.base.CharMatcher
 
 class Strings {
     companion object {
-        fun pluralize(n:Int, s: String, plural: String = s) = plural + (if (n != 1) "s" else "")
-        fun pluralizeAll(n:Int, s: String, plural: String = s) = "$n " + pluralize(n, s, plural)
+        fun pluralize(n:Int, s: String, plural: String = s + "s") = if (n != 1) s else plural
+        fun pluralizeAll(n:Int, s: String, plural: String = s + "s") = "$n " + pluralize(n, s, plural)
     }
 
 }
