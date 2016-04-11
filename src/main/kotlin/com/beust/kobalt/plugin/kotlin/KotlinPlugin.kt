@@ -121,6 +121,9 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
 
         override val sourceDirectory = "kotlin"
 
+        /** kotlinc can be passed directories */
+        override val canCompileDirectories = true
+
         override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
             val result =
                     if (info.sourceFiles.size > 0) {

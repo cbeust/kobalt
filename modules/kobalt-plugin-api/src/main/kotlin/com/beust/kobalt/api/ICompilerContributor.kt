@@ -28,6 +28,11 @@ interface ICompiler : Comparable<ICompiler> {
     val priority: Int get() = DEFAULT_PRIORITY
 
     override fun compareTo(other: ICompiler) = priority.compareTo(other.priority)
+
+    /**
+     * Can this compiler be passed directories or does it need individual source files?
+     */
+    val canCompileDirectories: Boolean get() = false
 }
 
 interface ICompilerContributor : IProjectAffinity {

@@ -44,7 +44,11 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
                     allArgs.addAll(info.compilerArgs)
 
                     val fileManager = compiler.getStandardFileManager(null, null, null)
-                    val fileObjects = fileManager.getJavaFileObjectsFromFiles(info.sourceFiles.map { File(it) })
+                    val fileObjects = fileManager.getJavaFileObjectsFromFiles(info.sourceFiles.map {
+                            File(it)
+                        }.filter {
+                            it.isFile
+                        })
                     val dc = DiagnosticCollector<JavaFileObject>()
                     val classes = arrayListOf<String>()
                     val writer = PrintWriter(System.out)

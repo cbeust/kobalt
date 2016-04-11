@@ -207,7 +207,7 @@ open class JvmCompilerPlugin @Inject constructor(
                 if (sourceFiles.size > 0) {
                     // TODO: createCompilerActionInfo recalculates the source files, only compute them
                     // once and pass them
-                    val info = createCompilerActionInfo(project, context, isTest, sourceDirectories,
+                    val info = createCompilerActionInfo(project, context, compiler, isTest, sourceDirectories,
                             sourceSuffixes = compiler.sourceSuffixes)
                     val thisResult = compiler.compile(project, context, info)
                     results.add(thisResult)
@@ -239,11 +239,13 @@ open class JvmCompilerPlugin @Inject constructor(
     fun taskJavadoc(project: Project): TaskResult {
         val docGenerator = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.docContributors)
         if (docGenerator != null) {
-            val contributors = ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
+            val contributors =
+                    ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
             var result: TaskResult? = null
             contributors.forEach {
                 it.compilersFor(project, context).forEach { compiler ->
                     result = docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context,
+                            compiler,
                             isTest = false, sourceDirectories = sourceDirectories,
                             sourceSuffixes = compiler.sourceSuffixes))
                 }
@@ -267,8 +269,8 @@ open class JvmCompilerPlugin @Inject constructor(
      * Create a CompilerActionInfo (all the information that a compiler needs to know) for the given parameters.
      * Runs all the contributors and interceptors relevant to that task.
      */
-    protected fun createCompilerActionInfo(project: Project, context: KobaltContext, isTest: Boolean,
-            sourceDirectories: List<File>, sourceSuffixes: List<String>): CompilerActionInfo {
+    protected fun createCompilerActionInfo(project: Project, context: KobaltContext, compiler: ICompiler,
+            isTest: Boolean, sourceDirectories: List<File>, sourceSuffixes: List<String>): CompilerActionInfo {
         copyResources(project, SourceSet.of(isTest))
 
         val fullClasspath = if (isTest) dependencyManager.testDependencies(project, context)
@@ -286,14 +288,16 @@ open class JvmCompilerPlugin @Inject constructor(
 
         val initialSourceDirectories = ArrayList<File>(sourceDirectories)
         // Source directories from the contributors
-        initialSourceDirectories.addAll(
+        val contributedSourceDirs =
             if (isTest) {
                 context.pluginInfo.testSourceDirContributors.flatMap { it.testSourceDirectoriesFor(project, context) }
             } else {
                 context.pluginInfo.sourceDirContributors.flatMap { it.sourceDirectoriesFor(project, context) }
-            })
+            }
 
-        // Transform them with the interceptors, if any
+        initialSourceDirectories.addAll(contributedSourceDirs)
+
+                // Transform them with the interceptors, if any
         val allSourceDirectories =
             if (isTest) {
                 initialSourceDirectories
@@ -308,9 +312,13 @@ open class JvmCompilerPlugin @Inject constructor(
 
         // Now that we have all the source directories, find all the source files in them
         val projectDirectory = File(project.directory)
-        val sourceFiles = files.findRecursively(projectDirectory, allSourceDirectories,
-                { file -> sourceSuffixes.any { file.endsWith(it) }})
-                .map { File(projectDirectory, it).path }
+        val sourceFiles = if (compiler.canCompileDirectories) {
+                allSourceDirectories.map { it.path }
+            } else {
+                files.findRecursively(projectDirectory, allSourceDirectories,
+                        { file -> sourceSuffixes.any { file.endsWith(it) } })
+                        .map { File(projectDirectory, it).path }
+            }
 
         // Special treatment if we are compiling Kotlin files and the project also has a java source
         // directory. In this case, also pass that java source directory to the Kotlin compiler as is
@@ -333,8 +341,10 @@ open class JvmCompilerPlugin @Inject constructor(
             }
         }
 
+        extraSourceFiles.addAll(contributedSourceDirs.filter { it.exists() }.map { it.path })
+        val allSources= (sourceFiles + extraSourceFiles).distinct()
         // Finally, alter the info with the compiler interceptors before returning it
-        val initialActionInfo = CompilerActionInfo(projectDirectory.path, classpath, sourceFiles + extraSourceFiles,
+        val initialActionInfo = CompilerActionInfo(projectDirectory.path, classpath, allSources,
                 sourceSuffixes, buildDirectory, emptyList() /* the flags will be provided by flag contributors */)
         val result = context.pluginInfo.compilerInterceptors.fold(initialActionInfo, { ai, interceptor ->
             interceptor.intercept(project, context, ai)
