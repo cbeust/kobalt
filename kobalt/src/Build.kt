@@ -1,4 +1,3 @@
-
 import com.beust.kobalt.*
 import com.beust.kobalt.api.License
 import com.beust.kobalt.api.Project
@@ -14,8 +13,6 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
-
-val r = repos("http://dl.bintray.com/kotlin/kotlinx.dom")
 
 object Versions {
     val okhttp = "3.2.0"
