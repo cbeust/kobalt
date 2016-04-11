@@ -313,7 +313,7 @@ open class JvmCompilerPlugin @Inject constructor(
         // Now that we have all the source directories, find all the source files in them
         val projectDirectory = File(project.directory)
         val sourceFiles = if (compiler.canCompileDirectories) {
-                allSourceDirectories.map { it.path }
+                allSourceDirectories.map { File(projectDirectory, it.path).path }
             } else {
                 files.findRecursively(projectDirectory, allSourceDirectories,
                         { file -> sourceSuffixes.any { file.endsWith(it) } })
@@ -341,9 +341,8 @@ open class JvmCompilerPlugin @Inject constructor(
             }
         }
 
-        val allSources = (sourceFiles + extraSourceFiles).distinct().filter { File(it).exists() }.map {
-            File(projectDirectory, it).path
-        }
+        val allSources = (sourceFiles + extraSourceFiles).distinct().filter { File(it).exists() }
+
         // Finally, alter the info with the compiler interceptors before returning it
         val initialActionInfo = CompilerActionInfo(projectDirectory.path, classpath, allSources,
                 sourceSuffixes, buildDirectory, emptyList() /* the flags will be provided by flag contributors */)
