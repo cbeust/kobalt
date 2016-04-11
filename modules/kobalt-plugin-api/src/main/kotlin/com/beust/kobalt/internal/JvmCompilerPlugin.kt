@@ -297,7 +297,7 @@ open class JvmCompilerPlugin @Inject constructor(
 
         initialSourceDirectories.addAll(contributedSourceDirs)
 
-                // Transform them with the interceptors, if any
+        // Transform them with the interceptors, if any
         val allSourceDirectories =
             if (isTest) {
                 initialSourceDirectories
