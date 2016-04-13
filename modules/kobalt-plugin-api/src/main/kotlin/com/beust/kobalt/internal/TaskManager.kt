@@ -86,77 +86,13 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                 tasksByNames.keys().forEach {
                     log(3, "  $it: " + tasksByNames.get(it))
                 }
-                val graph = DynamicGraph<PluginTask>()
-                taskNames.forEach { taskName ->
-                    val ti = TaskInfo(taskName)
-                    if (!tasksByNames.keys().contains(ti.taskName)) {
-                        throw KobaltException("Unknown task: $taskName")
-                    }
 
-                    if (ti.matches(projectName)) {
-                        tasksByNames[ti.taskName].forEach { task ->
-                            if (task != null && task.plugin.accept(project)) {
-                                val reverseAfter = hashMapOf<String, String>()
-                                alwaysRunAfter.keys().forEach { from ->
-                                    val tasks = alwaysRunAfter.get(from)
-                                    tasks.forEach {
-                                        reverseAfter.put(it, from)
-                                    }
-                                }
-
-                                //
-                                // If the current target is free, add it as a single node to the graph
-                                //
-                                val allFreeTasks = calculateFreeTasks(tasksByNames, reverseAfter)
-                                val currentFreeTask = allFreeTasks.filter {
-                                    TaskInfo(projectName, it.name).taskName == task.name
-                                }
-                                if (currentFreeTask.size == 1) {
-                                    currentFreeTask[0].let {
-                                        graph.addNode(it)
-                                    }
-                                }
-
-                                //
-                                // Add the transitive closure of the current task as edges to the graph
-                                //
-                                val transitiveClosure = calculateTransitiveClosure(project, tasksByNames, ti)
-                                transitiveClosure.forEach { pluginTask ->
-                                    val rb = runBefore.get(pluginTask.name)
-                                    rb.forEach {
-                                        val tos = tasksByNames[it]
-                                        if (tos != null && tos.size > 0) {
-                                            tos.forEach { to ->
-                                                graph.addEdge(pluginTask, to)
-                                            }
-                                        } else {
-                                            log(2, "Couldn't find node $it: not applicable to project ${project.name}")
-                                        }
-                                    }
-                                }
-
-                                //
-                                // If any of the nodes in the graph has an "alwaysRunAfter", add that edge too
-                                //
-                                val allNodes = arrayListOf<PluginTask>()
-                                allNodes.addAll(graph.nodes)
-                                allNodes.forEach { node ->
-                                    val other = alwaysRunAfter.get(node.name)
-                                    other?.forEach { o ->
-                                        tasksByNames[o]?.forEach {
-                                            graph.addEdge(it, node)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                val graph = createGraph(project, taskNames, tasksByNames)
 
                 //
                 // Now that we have a full graph, run it
                 //
-                log(3, "About to run graph:\n  ${graph.dump()}  ")
+                log(1, "About to run graph:\n  ${graph.dump()}  ")
 
                 val factory = object : IThreadWorkerFactory<PluginTask> {
                     override public fun createWorkers(nodes: List<PluginTask>): List<IWorker<PluginTask>> {
@@ -184,6 +120,78 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
             }
         }
         return RunTargetResult(result, messages)
+    }
+
+    private fun createGraph(project: Project, taskNames: List<String>, tasksByNames: Multimap<String, PluginTask>):
+            DynamicGraph<PluginTask> {
+        val graph = DynamicGraph<PluginTask>()
+        taskNames.forEach { taskName ->
+            val ti = TaskInfo(taskName)
+            if (!tasksByNames.keys().contains(ti.taskName)) {
+                throw KobaltException("Unknown task: $taskName")
+            }
+
+            if (ti.matches(project.name)) {
+                tasksByNames[ti.taskName].forEach { task ->
+                    if (task != null && task.plugin.accept(project)) {
+                        val reverseAfter = hashMapOf<String, String>()
+                        alwaysRunAfter.keys().forEach { from ->
+                            val tasks = alwaysRunAfter.get(from)
+                            tasks.forEach {
+                                reverseAfter.put(it, from)
+                            }
+                        }
+
+                        //
+                        // If the current target is free, add it as a single node to the graph
+                        //
+                        val allFreeTasks = calculateFreeTasks(tasksByNames, reverseAfter)
+                        val currentFreeTask = allFreeTasks.filter {
+                            TaskInfo(project.name, it.name).taskName == task.name
+                        }
+                        if (currentFreeTask.size == 1) {
+                            currentFreeTask[0].let {
+                                graph.addNode(it)
+                            }
+                        }
+
+                        //
+                        // Add the transitive closure of the current task as edges to the graph
+                        //
+                        val transitiveClosure = calculateTransitiveClosure(project, tasksByNames, ti)
+                        transitiveClosure.forEach { pluginTask ->
+                            val rb = runBefore.get(pluginTask.name)
+                            rb.forEach {
+                                val tos = tasksByNames[it]
+                                if (tos != null && tos.size > 0) {
+                                    tos.forEach { to ->
+                                        graph.addEdge(pluginTask, to)
+                                    }
+                                } else {
+                                    log(2, "Couldn't find node $it: not applicable to project ${project.name}")
+                                }
+                            }
+                        }
+
+                        //
+                        // If any of the nodes in the graph has an "alwaysRunAfter", add that edge too
+                        //
+                        val allNodes = arrayListOf<PluginTask>()
+                        allNodes.addAll(graph.nodes)
+                        allNodes.forEach { node ->
+                            val other = alwaysRunAfter.get(node.name)
+                            other?.forEach { o ->
+                                tasksByNames[o]?.forEach {
+                                    graph.addEdge(it, node)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return graph
     }
 
     /**
