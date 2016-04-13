@@ -323,6 +323,8 @@ open class JvmCompilerPlugin @Inject constructor(
         // Special treatment if we are compiling Kotlin files and the project also has a java source
         // directory. In this case, also pass that java source directory to the Kotlin compiler as is
         // so that it can parse its symbols
+        // Note: this should actually be queried on the compiler object so that this method, which
+        // is compiler agnostic, doesn't hardcode Kotlin specific stuff
         val extraSourceFiles = arrayListOf<String>()
         if (sourceSuffixes.any { it.contains("kt")}) {
             project.sourceDirectories.forEach {
