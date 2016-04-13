@@ -155,7 +155,8 @@ open class JvmCompilerPlugin @Inject constructor(
         )
     }
 
-    @IncrementalTask(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project")
+    @IncrementalTask(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project",
+            runAfter = arrayOf(TASK_CLEAN))
     fun taskCompile(project: Project): IncrementalTaskInfo {
         // Generate the BuildConfig before invoking sourceDirectories() since that call
         // might add the buildConfig source directories
