@@ -11,7 +11,7 @@ open class TaskResult2<T>(success: Boolean, errorMessage: String?, val value: T)
     override fun toString() = toString("TaskResult", "value", value, "success", success)
 }
 
-public interface IWorker<T> : Callable<TaskResult2<T>> {
+interface IWorker<T> : Callable<TaskResult2<T>> {
     /**
      * @return list of tasks this worker is working on.
      */
@@ -23,7 +23,7 @@ public interface IWorker<T> : Callable<TaskResult2<T>> {
     val priority : Int
 }
 
-public interface IThreadWorkerFactory<T> {
+interface IThreadWorkerFactory<T> {
 
     /**
      * Creates {@code IWorker} for specified set of tasks. It is not necessary that
@@ -35,7 +35,7 @@ public interface IThreadWorkerFactory<T> {
     fun createWorkers(nodes: List<T>) : List<IWorker<T>>
 }
 
-public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
+class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
         val factory: IThreadWorkerFactory<T>) {
     val executor = Executors.newFixedThreadPool(5, NamedThreadFactory("DynamicGraphExecutor"))
     val completion = ExecutorCompletionService<TaskResult2<T>>(executor)
@@ -43,7 +43,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
     /**
      * @return 0 if all went well, > 0 otherwise
      */
-    public fun run() : Int {
+    fun run() : Int {
         var lastResult = TaskResult()
         var gotError = false
         var nodesRunning = 0
@@ -106,7 +106,7 @@ public class DynamicGraphExecutor<T>(val graph: DynamicGraph<T>,
 /**
  * Representation of the graph of methods.
  */
-public class DynamicGraph<T> {
+class DynamicGraph<T> {
     val nodesReady = linkedSetOf<T>()
     val nodesRunning = linkedSetOf<T>()
     private val nodesFinished = linkedSetOf<T>()
@@ -119,7 +119,7 @@ public class DynamicGraph<T> {
      * Define a comparator for the nodes of this graph, which will be used
      * to order the free nodes when they are asked.
      */
-//    public val comparator : Comparator<T>? = null
+//    val comparator : Comparator<T>? = null
 
     enum class Status {
         READY, RUNNING, FINISHED, ERROR, SKIPPED
@@ -128,7 +128,10 @@ public class DynamicGraph<T> {
     /**
      * Add a node to the graph.
      */
-    public fun addNode(value: T) : T {
+    fun addNode(value: T) : T {
+        if (value.toString().contains("clean")) {
+            println("DONOTCOMMIT")
+        }
         nodes.add(value)
         nodesReady.add(value)
         return value
@@ -138,7 +141,8 @@ public class DynamicGraph<T> {
      * Add an edge between two nodes, which don't have to already be in the graph
      * (they will be added by this method). Makes "to" depend on "from".
      */
-    public fun addEdge(from: T, to: T) {
+    fun addEdge(from: T, to: T) {
+        log(1, "@@@@@ NODE $to DEPENDS ON $from")
         nodes.add(from)
         nodes.add(to)
         val fromNode = addNode(from)
@@ -150,7 +154,7 @@ public class DynamicGraph<T> {
     /**
      * @return a set of all the nodes that don't depend on any other nodes.
      */
-    public val freeNodes : List<T>
+    val freeNodes : List<T>
         get() {
             val result = arrayListOf<T>()
             nodesReady.forEach { m ->
@@ -193,7 +197,7 @@ public class DynamicGraph<T> {
     /**
      * Set the status for a set of nodes.
      */
-    public fun setStatus(nodes: Collection<T>, status: Status) {
+    fun setStatus(nodes: Collection<T>, status: Status) {
         nodes.forEach { setStatus(it, status) }
     }
 
@@ -214,7 +218,7 @@ public class DynamicGraph<T> {
     /**
      * Set the status for a node.
      */
-    public fun setStatus(node: T, status: Status) {
+    fun setStatus(node: T, status: Status) {
         removeNode(node);
         when(status) {
             Status.READY -> nodesReady.add(node)
@@ -243,10 +247,10 @@ public class DynamicGraph<T> {
     /**
      * @return the number of nodes in this graph.
      */
-    public val nodeCount: Int
+    val nodeCount: Int
         get() = nodesReady.size + nodesRunning.size + nodesFinished.size
 
-    override public fun toString() : String {
+    override fun toString() : String {
         val result = StringBuilder("[DynamicGraph ")
         result.append("\n  Ready:" + nodesReady)
         result.append("\n  Running:" + nodesRunning)
