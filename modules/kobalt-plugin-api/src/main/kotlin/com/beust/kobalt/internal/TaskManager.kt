@@ -87,7 +87,9 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                     log(3, "  $it: " + tasksByNames.get(it))
                 }
 
-                val graph = createGraph(project, taskNames, tasksByNames)
+                val graph = createGraph(project, taskNames, tasksByNames,
+                        { task: PluginTask -> task.name },
+                        { task: PluginTask, project: Project -> task.plugin.accept(project) })
 
                 //
                 // Now that we have a full graph, run it
@@ -122,9 +124,11 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
         return RunTargetResult(result, messages)
     }
 
-    private fun createGraph(project: Project, taskNames: List<String>, tasksByNames: Multimap<String, PluginTask>):
-            DynamicGraph<PluginTask> {
-        val graph = DynamicGraph<PluginTask>()
+    private fun <T> createGraph(project: Project, taskNames: List<String>, tasksByNames: Multimap<String, T>,
+            toName: (T) -> String,
+            accept: (T, Project) -> Boolean):
+            DynamicGraph<T> {
+        val graph = DynamicGraph<T>()
         taskNames.forEach { taskName ->
             val ti = TaskInfo(taskName)
             if (!tasksByNames.keys().contains(ti.taskName)) {
@@ -133,7 +137,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
 
             if (ti.matches(project.name)) {
                 tasksByNames[ti.taskName].forEach { task ->
-                    if (task != null && task.plugin.accept(project)) {
+                    if (task != null && accept(task, project)) {
                         val reverseAfter = hashMapOf<String, String>()
                         alwaysRunAfter.keys().forEach { from ->
                             val tasks = alwaysRunAfter.get(from)
@@ -147,7 +151,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                         //
                         val allFreeTasks = calculateFreeTasks(tasksByNames, reverseAfter)
                         val currentFreeTask = allFreeTasks.filter {
-                            TaskInfo(project.name, it.name).taskName == task.name
+                            TaskInfo(project.name, toName(it)).taskName == toName(task)
                         }
                         if (currentFreeTask.size == 1) {
                             currentFreeTask[0].let {
@@ -160,7 +164,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                         //
                         val transitiveClosure = calculateTransitiveClosure(project, tasksByNames, ti)
                         transitiveClosure.forEach { pluginTask ->
-                            val rb = runBefore.get(pluginTask.name)
+                            val rb = runBefore.get(toName(pluginTask))
                             rb.forEach {
                                 val tos = tasksByNames[it]
                                 if (tos != null && tos.size > 0) {
@@ -176,10 +180,10 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                         //
                         // If any of the nodes in the graph has an "alwaysRunAfter", add that edge too
                         //
-                        val allNodes = arrayListOf<PluginTask>()
+                        val allNodes = arrayListOf<T>()
                         allNodes.addAll(graph.nodes)
                         allNodes.forEach { node ->
-                            val other = alwaysRunAfter.get(node.name)
+                            val other = alwaysRunAfter.get(toName(node))
                             other?.forEach { o ->
                                 tasksByNames[o]?.forEach {
                                     graph.addEdge(it, node)
@@ -197,9 +201,9 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
     /**
      * Find the free tasks of the graph.
      */
-    private fun calculateFreeTasks(tasksByNames: Multimap<String, PluginTask>, reverseAfter: HashMap<String, String>)
-            : Collection<PluginTask> {
-        val freeTaskMap = hashMapOf<String, PluginTask>()
+    private fun <T> calculateFreeTasks(tasksByNames: Multimap<String, T>, reverseAfter: HashMap<String, String>)
+            : Collection<T> {
+        val freeTaskMap = hashMapOf<String, T>()
         tasksByNames.keys().forEach {
             if (! runBefore.containsKey(it) && ! reverseAfter.containsKey(it)) {
                 tasksByNames[it].forEach { t ->
@@ -214,11 +218,11 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
     /**
      * Find the transitive closure for the given TaskInfo
      */
-    private fun calculateTransitiveClosure(project: Project, tasksByNames: Multimap<String, PluginTask>, ti: TaskInfo):
-            HashSet<PluginTask> {
+    private fun <T> calculateTransitiveClosure(project: Project, tasksByNames: Multimap<String, T>, ti: TaskInfo):
+            HashSet<T> {
         log(3, "Processing ${ti.taskName}")
 
-        val transitiveClosure = hashSetOf<PluginTask>()
+        val transitiveClosure = hashSetOf<T>()
         val seen = hashSetOf(ti.taskName)
         val toProcess = hashSetOf(ti)
         var done = false
