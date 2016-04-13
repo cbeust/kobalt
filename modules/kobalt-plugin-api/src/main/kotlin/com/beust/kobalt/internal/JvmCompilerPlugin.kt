@@ -140,7 +140,7 @@ open class JvmCompilerPlugin @Inject constructor(
     }
 
     @IncrementalTask(name = TASK_COMPILE_TEST, description = "Compile the tests",
-            runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
+            runAfter = arrayOf(TASK_COMPILE))
     fun taskCompileTest(project: Project): IncrementalTaskInfo {
         sourceTestDirectories.addAll(context.variant.sourceDirectories(project, context, SourceSet.of(isTest = true)))
         return IncrementalTaskInfo(
