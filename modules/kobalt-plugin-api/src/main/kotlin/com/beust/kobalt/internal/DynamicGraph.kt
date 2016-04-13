@@ -142,7 +142,7 @@ class DynamicGraph<T> {
      * (they will be added by this method). Makes "to" depend on "from".
      */
     fun addEdge(from: T, to: T) {
-        log(1, "@@@@@ NODE $to DEPENDS ON $from")
+        log(3, "Node $from depends on $to")
         nodes.add(from)
         nodes.add(to)
         val fromNode = addNode(from)
