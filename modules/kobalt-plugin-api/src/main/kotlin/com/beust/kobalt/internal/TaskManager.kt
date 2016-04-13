@@ -11,6 +11,7 @@ import com.beust.kobalt.misc.Strings
 import com.beust.kobalt.misc.benchmarkMillis
 import com.beust.kobalt.misc.kobaltError
 import com.beust.kobalt.misc.log
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
 import com.google.common.collect.TreeMultimap
@@ -72,7 +73,6 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                         + Strings.pluralize(fp.size, "project")
                         + " " + fp.joinToString(","))
             } else {
-                val projectName = project.name
                 // There can be multiple tasks by the same name (e.g. PackagingPlugin and AndroidPlugin both
                 // define "install"), so use a multimap
                 val tasksByNames = ArrayListMultimap.create<String, PluginTask>()
@@ -87,9 +87,10 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                     log(3, "  $it: " + tasksByNames.get(it))
                 }
 
-                val graph = createGraph(project, taskNames, tasksByNames,
+                val graph = createGraph(project.name, taskNames, tasksByNames,
+                        runBefore, alwaysRunAfter,
                         { task: PluginTask -> task.name },
-                        { task: PluginTask, project: Project -> task.plugin.accept(project) })
+                        { task: PluginTask -> task.plugin.accept(project) })
 
                 //
                 // Now that we have a full graph, run it
@@ -115,20 +116,23 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
         return RunTargetResult(result, messages)
     }
 
-    private fun <T> createGraph(project: Project, taskNames: List<String>, tasksByNames: Multimap<String, T>,
+    @VisibleForTesting
+    fun <T> createGraph(projectName: String, taskNames: List<String>, dependencies: Multimap<String, T>,
+            runBefore: TreeMultimap<String, String>,
+            alwaysRunAfter: TreeMultimap<String, String>,
             toName: (T) -> String,
-            accept: (T, Project) -> Boolean):
+            accept: (T) -> Boolean):
             DynamicGraph<T> {
         val graph = DynamicGraph<T>()
         taskNames.forEach { taskName ->
             val ti = TaskInfo(taskName)
-            if (!tasksByNames.keys().contains(ti.taskName)) {
+            if (!dependencies.keys().contains(ti.taskName)) {
                 throw KobaltException("Unknown task: $taskName")
             }
 
-            if (ti.matches(project.name)) {
-                tasksByNames[ti.taskName].forEach { task ->
-                    if (task != null && accept(task, project)) {
+            if (ti.matches(projectName)) {
+                dependencies[ti.taskName].forEach { task ->
+                    if (task != null && accept(task)) {
                         val reverseAfter = hashMapOf<String, String>()
                         alwaysRunAfter.keys().forEach { from ->
                             val tasks = alwaysRunAfter.get(from)
@@ -140,9 +144,9 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                         //
                         // If the current target is free, add it as a single node to the graph
                         //
-                        val allFreeTasks = calculateFreeTasks(tasksByNames, reverseAfter)
+                        val allFreeTasks = calculateFreeTasks(dependencies, reverseAfter)
                         val currentFreeTask = allFreeTasks.filter {
-                            TaskInfo(project.name, toName(it)).taskName == toName(task)
+                            TaskInfo(projectName, toName(it)).taskName == toName(task)
                         }
                         if (currentFreeTask.size == 1) {
                             currentFreeTask[0].let {
@@ -153,17 +157,17 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                         //
                         // Add the transitive closure of the current task as edges to the graph
                         //
-                        val transitiveClosure = calculateTransitiveClosure(project, tasksByNames, ti)
+                        val transitiveClosure = calculateTransitiveClosure(projectName, dependencies, ti)
                         transitiveClosure.forEach { pluginTask ->
                             val rb = runBefore.get(toName(pluginTask))
                             rb.forEach {
-                                val tos = tasksByNames[it]
+                                val tos = dependencies[it]
                                 if (tos != null && tos.size > 0) {
                                     tos.forEach { to ->
                                         graph.addEdge(pluginTask, to)
                                     }
                                 } else {
-                                    log(2, "Couldn't find node $it: not applicable to project ${project.name}")
+                                    log(2, "Couldn't find node $it: not applicable to project $projectName")
                                 }
                             }
                         }
@@ -176,7 +180,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                         allNodes.forEach { node ->
                             val other = alwaysRunAfter.get(toName(node))
                             other?.forEach { o ->
-                                tasksByNames[o]?.forEach {
+                                dependencies[o]?.forEach {
                                     graph.addEdge(it, node)
                                 }
                             }
@@ -209,7 +213,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
     /**
      * Find the transitive closure for the given TaskInfo
      */
-    private fun <T> calculateTransitiveClosure(project: Project, tasksByNames: Multimap<String, T>, ti: TaskInfo):
+    private fun <T> calculateTransitiveClosure(projectName: String, tasksByNames: Multimap<String, T>, ti: TaskInfo):
             HashSet<T> {
         log(3, "Processing ${ti.taskName}")
 
@@ -222,7 +226,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
             log(3, "toProcess size: " + toProcess.size)
             toProcess.forEach { target ->
 
-                val currentTask = TaskInfo(project.name, target.taskName)
+                val currentTask = TaskInfo(projectName, target.taskName)
                 val thisTask = tasksByNames[currentTask.taskName]
                 if (thisTask != null) {
                     transitiveClosure.addAll(thisTask)
@@ -235,10 +239,10 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                     }
 
                     dependencyNames.forEach {
-                        newToProcess.add(TaskInfo(project.name, it))
+                        newToProcess.add(TaskInfo(projectName, it))
                     }
                 } else {
-                    log(1, "Couldn't find task ${currentTask.taskName}: not applicable to project ${project.name}")
+                    log(1, "Couldn't find task ${currentTask.taskName}: not applicable to project $projectName")
                 }
             }
             done = newToProcess.isEmpty()
