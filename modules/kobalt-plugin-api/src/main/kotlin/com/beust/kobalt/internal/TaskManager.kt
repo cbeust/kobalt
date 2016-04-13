@@ -21,7 +21,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-public class TaskManager @Inject constructor(val args: Args, val incrementalManager: IncrementalManager) {
+public class TaskManager @Inject constructor(val args: Args,
+        val incrementalManagerFactory: IncrementalManager.IFactory) {
     private val runBefore = TreeMultimap.create<String, String>()
     private val alwaysRunAfter = TreeMultimap.create<String, String>()
 
@@ -280,7 +281,7 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
      */
     fun toTaskAnnotation(method: Method, plugin: IPlugin, ta: IncrementalTask)
             = TaskAnnotation(method, plugin, ta.name, ta.description, ta.runBefore, ta.runAfter, ta.alwaysRunAfter,
-            incrementalManager.toIncrementalTaskClosure(ta.name, { project ->
+            incrementalManagerFactory.create().toIncrementalTaskClosure(ta.name, { project ->
                 method.invoke(plugin, project) as IncrementalTaskInfo
             }))
 

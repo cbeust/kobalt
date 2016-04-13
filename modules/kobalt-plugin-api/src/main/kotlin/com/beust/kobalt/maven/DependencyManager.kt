@@ -33,7 +33,9 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
             }
             return createFile(path.path)
         } else {
-            return createMaven(id)
+            // Convert to a Kobalt id first (so that if it doesn't have a version, it gets translated to
+            // an Aether ranged id "[0,)")
+            return createMaven(MavenId.create(id).toId)
         }
     }
 

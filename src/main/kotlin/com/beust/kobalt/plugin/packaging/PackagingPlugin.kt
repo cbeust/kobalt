@@ -20,7 +20,7 @@ import javax.inject.Singleton
 
 @Singleton
 class PackagingPlugin @Inject constructor(val dependencyManager : DependencyManager,
-        val incrementalManager: IncrementalManager,
+        val incrementalManagerFactory: IncrementalManager.IFactory,
         val executors: KobaltExecutors, val jarGenerator: JarGenerator, val warGenerator: WarGenerator,
         val zipGenerator: ZipGenerator, val taskContributor: TaskContributor,
         val pomFactory: PomGenerator.IFactory, val configActor: ConfigActor<InstallConfig>)
@@ -84,8 +84,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         // Incremental assembly contributors
         context.pluginInfo.incrementalAssemblyContributors.forEach {
             val taskInfo = it.assemble(project, context)
-            val closure = incrementalManager.toIncrementalTaskClosure(TASK_ASSEMBLE, { p: Project -> taskInfo },
-                    context.variant)
+            val closure = incrementalManagerFactory.create().toIncrementalTaskClosure(TASK_ASSEMBLE, {
+                p: Project -> taskInfo }, context.variant)
             val thisResult = closure.invoke(project)
             if (! thisResult.success) {
                 // Abort at the first failure

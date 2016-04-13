@@ -11,7 +11,7 @@ import com.beust.kobalt.misc.log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.inject.Inject
-import com.google.inject.Singleton
+import com.google.inject.assistedinject.Assisted
 import java.io.File
 import java.io.FileReader
 import java.nio.charset.Charset
@@ -27,9 +27,11 @@ class BuildInfo(var tasks: List<TaskInfo>)
  * Manage the file .kobalt/buildInfo.json, which keeps track of input and output checksums to manage
  * incremental builds.
  */
-@Singleton
-class IncrementalManager @Inject constructor(val args: Args) {
-    val fileName = IncrementalManager.BUILD_INFO_FILE
+class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileName : String) {
+
+    interface IFactory {
+        fun create(@Assisted fileName: String = IncrementalManager.BUILD_INFO_FILE) : IncrementalManager
+    }
 
     companion object {
         val BUILD_INFO_FILE = KFiles.joinDir(KFiles.KOBALT_DOT_DIR, "buildInfo.json")
