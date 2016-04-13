@@ -129,9 +129,6 @@ class DynamicGraph<T> {
      * Add a node to the graph.
      */
     fun addNode(value: T) : T {
-        if (value.toString().contains("clean")) {
-            println("DONOTCOMMIT")
-        }
         nodes.add(value)
         nodesReady.add(value)
         return value
