@@ -97,17 +97,8 @@ public class TaskManager @Inject constructor(val args: Args, val incrementalMana
                 log(1, "About to run graph:\n  ${graph.dump()}  ")
 
                 val factory = object : IThreadWorkerFactory<PluginTask> {
-                    override public fun createWorkers(nodes: List<PluginTask>): List<IWorker<PluginTask>> {
-//                    val tr = nodes.reduce { workers: List<TaskWorker>, node: PluginTask ->
-//                        val result: List<TaskWorker> = workers + TaskWorker(listOf(node), args.dryRun, messages)
-//                        result
-//                    }
-                        val thisResult = arrayListOf<IWorker<PluginTask>>()
-                        nodes.forEach {
-                            thisResult.add(TaskWorker(listOf(it), args.dryRun, messages))
-                        }
-                        return thisResult
-                    }
+                    override fun createWorkers(nodes: List<PluginTask>)
+                        = nodes.map { TaskWorker(listOf(it), args.dryRun, messages) }
                 }
 
                 val executor = DynamicGraphExecutor(graph, factory)
