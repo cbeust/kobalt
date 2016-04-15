@@ -24,6 +24,7 @@ import javax.inject.Singleton
 public class TaskManager @Inject constructor(val args: Args,
         val incrementalManagerFactory: IncrementalManager.IFactory) {
     private val runBefore = TreeMultimap.create<String, String>()
+    private val runAfter = TreeMultimap.create<String, String>()
     private val alwaysRunAfter = TreeMultimap.create<String, String>()
 
     /**
@@ -35,6 +36,10 @@ public class TaskManager @Inject constructor(val args: Args,
      */
     fun runBefore(task1: String, task2: String) {
         runBefore.put(task1, task2)
+    }
+
+    fun runAfter(task1: String, task2: String) {
+        runAfter.put(task1, task2)
     }
 
     fun alwaysRunAfter(task1: String, task2: String) {
@@ -89,7 +94,7 @@ public class TaskManager @Inject constructor(val args: Args,
                 }
 
                 val graph = createGraph(project.name, taskNames, tasksByNames,
-                        runBefore, alwaysRunAfter,
+                        runBefore, runAfter, alwaysRunAfter,
                         { task: PluginTask -> task.name },
                         { task: PluginTask -> task.plugin.accept(project) })
 
@@ -120,6 +125,7 @@ public class TaskManager @Inject constructor(val args: Args,
     @VisibleForTesting
     fun <T> createGraph(projectName: String, taskNames: List<String>, dependencies: Multimap<String, T>,
             runBefore: TreeMultimap<String, String>,
+            runAfter: TreeMultimap<String, String>,
             alwaysRunAfter: TreeMultimap<String, String>,
             toName: (T) -> String,
             accept: (T) -> Boolean):
@@ -174,13 +180,28 @@ public class TaskManager @Inject constructor(val args: Args,
                         }
 
                         //
+                        // Add all the runAfter nodes if applicable
+                        //
+                        graph.nodes.forEach { node ->
+                            val ra = runAfter[toName(node)]
+                            ra.forEach { o ->
+                                dependencies[o].forEach {
+                                    if (o != null) {
+                                        graph.addEdge(it, node)
+                                    }
+                                }
+                            }
+                            println("RA: $ra")
+                        }
+
+                        //
                         // If any of the nodes in the graph has an "alwaysRunAfter", add that edge too
                         //
                         val allNodes = arrayListOf<T>()
                         allNodes.addAll(graph.nodes)
                         allNodes.forEach { node ->
-                            val other = alwaysRunAfter.get(toName(node))
-                            other?.forEach { o ->
+                            val ra = alwaysRunAfter[toName(node)]
+                            ra?.forEach { o ->
                                 dependencies[o]?.forEach {
                                     graph.addEdge(it, node)
                                 }
@@ -350,7 +371,7 @@ public class TaskManager @Inject constructor(val args: Args,
                     }
                 })
         runBefore.forEach { runBefore(it, name) }
-        runAfter.forEach { runBefore(name, it) }
+        runAfter.forEach { runAfter(it, name) }
         alwaysRunAfter.forEach { alwaysRunAfter(it, name)}
     }
 
