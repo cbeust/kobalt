@@ -132,9 +132,8 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "com.google.code.findbugs:jsr305:3.0.1",
                 "com.google.code.gson:gson:${Versions.gson}",
                 "com.squareup.okhttp3:okhttp:${Versions.okhttp}",
-                "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
-                "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "org.codehaus.plexus:plexus-utils:3.0.22",
+
                 "biz.aQute.bnd:bndlib:2.4.0"
         )
 
