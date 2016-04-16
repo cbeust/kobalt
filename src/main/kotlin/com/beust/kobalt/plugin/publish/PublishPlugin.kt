@@ -85,7 +85,8 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
             // Upload individual files, if applicable
             //
             configuration.files.forEach {
-                val taskResult = jcenter.uploadFile(project, File(project.directory, it.first), configuration)
+                val taskResult = jcenter.uploadFile(File(project.directory, it.first), it.second /* url */,
+                        configuration)
                 success = success and taskResult.success
                 if (!taskResult.success) {
                     messages.add(taskResult.errorMessage!!)
