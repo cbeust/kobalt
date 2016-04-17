@@ -63,19 +63,19 @@ class BintrayApi @Inject constructor(val http: Http,
 
         @Multipart
         @Headers("Content-Type: application/xml")
-        @PUT("/content/{owner}/maven/{repo}/{version}/{group}/{artifact}/{version}/{name}")
+        @PUT("/content/{owner}/maven/{repo}/{version}/{group}/{artifact}/{name}")
         fun uploadPom(@Path("owner") owner: String,
                       @Path("repo") repo: String,
-                      @Path("version") version: String,
                       @Path("group", encoded = true) group: String,
                       @Path("artifact") artifact: String,
+                      @Path("version") version: String,
                       @Path("name") name: String,
                       @Part file: MultipartBody.Part): Call<BintrayResponse>
 
         @Multipart
-        @PUT("/maven/{owner}/maven/{package}/{group}/{artifact}/{version}/{name}")
+        @PUT("/content/{owner}/maven/{repo}/{version}/{group}/{artifact}/{name}")
         fun uploadArtifact(@Path("owner") owner: String,
-                           @Path("package") bintrayPackage: String,
+                           @Path("repo") repo: String,
                            @Path("group", encoded = true) group: String,
                            @Path("artifact") artifact: String,
                            @Path("version") version: String,
@@ -175,13 +175,12 @@ class BintrayApi @Inject constructor(val http: Http,
 
         val fileCount = filesToUpload.size
         if (fileCount > 0) {
-            log(1, "  Found $fileCount artifacts to upload: " + filesToUpload[0]
-                    + if (fileCount > 1) "..." else "")
+            log(1, "  Found $fileCount artifacts to upload")
             val errorMessages = arrayListOf<String>()
 
-            fun dots(total: Int, list: List<Boolean>, file: File?): String {
+            fun dots(total: Int, list: List<Boolean>, file: File? = null): String {
                 val spaces: String = Array(total - list.size, { " " }).joinToString("")
-                return "|" + list.map { if (it) "." else "X" }.joinToString("") + spaces + (if(file != null) "| [ ${file} ]"  else "|")
+                return "|" + list.map { if (it) "." else "X" }.joinToString("") + spaces + (if (file != null) "| [ $file ]" else "|")
             }
 
             val results = arrayListOf<Boolean>()
@@ -190,12 +189,12 @@ class BintrayApi @Inject constructor(val http: Http,
 
                 val body = MultipartBody.Part.createFormData("artifact", file.name, RequestBody.create(type, file));
 
-                var upload = if(file.extension != "pom" ) {
+                var upload = if (file.extension != "pom" ) {
                     service.uploadArtifact(org ?: username!!, project.name,
                             project.group!!.replace('.', '/'), project.artifactId!!, project.version!!, file.name, body)
                 } else {
-                    service.uploadPom(org ?: username!!, project.name,
-                            project.group!!.replace('.', '/'), project.artifactId!!, project.version!!, file.name, body)
+                    service.uploadPom(org ?: username!!, project.name, project.group!!.replace('.', '/'),
+                            project.artifactId!!, project.version!!, file.name, body)
                 }
 
                 val result = upload.execute()
@@ -208,8 +207,11 @@ class BintrayApi @Inject constructor(val http: Http,
                 }
                 log(1, "    Uploading ${i + 1} / $fileCount " + dots(fileCount, results, file), false)
             }
-            log(1, "    Uploading ${fileCount} / $fileCount " + dots(fileCount, results, null), false)
-                        log(1, "", true)
+            val success = results
+                    .filter { it }
+                    .count()
+            log(1, "    Uploaded $success / $fileCount " + dots(fileCount, results), false)
+            log(1, "", true)
             if (errorMessages.isEmpty()) {
                 return TaskResult()
             } else {
