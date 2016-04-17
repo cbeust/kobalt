@@ -23,7 +23,7 @@ class Node<T>(val value: T) {
     override fun toString() = value.toString()
 }
 
-class DG<T> {
+class DynamicGraph<T> {
     val VERBOSE = 1
     val values : Collection<T> get() = nodes.map { it.value }
     val nodes = hashSetOf<Node<T>>()
@@ -101,7 +101,7 @@ class DG<T> {
     }
 }
 
-interface IWorker2<T> : Callable<TaskResult2<T>> {
+interface IWorker<T> : Callable<TaskResult2<T>> {
     /**
      * @return list of tasks this worker is working on.
      */
@@ -113,7 +113,7 @@ interface IWorker2<T> : Callable<TaskResult2<T>> {
     val priority : Int
 }
 
-interface IThreadWorkerFactory2<T> {
+interface IThreadWorkerFactory<T> {
 
     /**
      * Creates {@code IWorker} for specified set of tasks. It is not necessary that
@@ -122,10 +122,10 @@ interface IThreadWorkerFactory2<T> {
      * @param nodes tasks that need to be executed
      * @return list of workers
      */
-    fun createWorkers(nodes: Collection<T>) : List<IWorker2<T>>
+    fun createWorkers(nodes: Collection<T>) : List<IWorker<T>>
 }
 
-class DGExecutor<T>(val graph : DG<T>, val factory: IThreadWorkerFactory2<T>) {
+class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadWorkerFactory<T>) {
     val executor = Executors.newFixedThreadPool(5, NamedThreadFactory("DynamicGraphExecutor"))
     val completion = ExecutorCompletionService<TaskResult2<T>>(executor)
 
@@ -144,7 +144,7 @@ class DGExecutor<T>(val graph : DG<T>, val factory: IThreadWorkerFactory2<T>) {
         var newFreeNodes = HashSet<T>(graph.freeNodes)
         while (! gotError && running > 0 || newFreeNodes.size > 0) {
             nodesRun.addAll(newFreeNodes)
-            val callables : List<IWorker2<T>> = factory.createWorkers(newFreeNodes)
+            val callables : List<IWorker<T>> = factory.createWorkers(newFreeNodes)
             callables.forEach { completion.submit(it) }
             running += callables.size
 
@@ -184,7 +184,7 @@ class DGExecutor<T>(val graph : DG<T>, val factory: IThreadWorkerFactory2<T>) {
 }
 
 fun main(argv: Array<String>) {
-    val dg = DG<String>().apply {
+    val dg = DynamicGraph<String>().apply {
         // a -> b
         // b -> c, d
         // e
@@ -193,10 +193,10 @@ fun main(argv: Array<String>) {
         addEdge("b", "d")
         addNode("e")
     }
-    val factory = object : IThreadWorkerFactory2<String> {
-        override fun createWorkers(nodes: Collection<String>): List<IWorker2<String>> {
+    val factory = object : IThreadWorkerFactory<String> {
+        override fun createWorkers(nodes: Collection<String>): List<IWorker<String>> {
             return nodes.map {
-                object: IWorker2<String> {
+                object: IWorker<String> {
                     override fun call(): TaskResult2<String>? {
                         log(1, "  Running worker $it")
                         return TaskResult2(true, null, it)
@@ -208,5 +208,5 @@ fun main(argv: Array<String>) {
         }
     }
 
-    DGExecutor(dg, factory).run()
+    DynamicGraphExecutor(dg, factory).run()
 }

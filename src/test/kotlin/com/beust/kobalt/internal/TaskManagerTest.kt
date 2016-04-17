@@ -11,7 +11,7 @@ import org.testng.annotations.Test
 @Guice(modules = arrayOf(TestModule::class))
 class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
 
-    class DryRunGraphExecutor<T>(val graph: DG<T>) {
+    class DryRunGraphExecutor<T>(val graph: DynamicGraph<T>) {
         fun run() : List<T> {
             val result = arrayListOf<T>()
             var freeNodes = graph.freeNodes

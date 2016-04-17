@@ -8,23 +8,23 @@ import java.util.*
 
 class DynamicGraphTest {
 
-    private fun <T> assertFreeNodesEquals(graph: DG<T>, expected: Array<T>) {
+    private fun <T> assertFreeNodesEquals(graph: DynamicGraph<T>, expected: Array<T>) {
         val h = HashSet(graph.freeNodes)
         val e = HashSet(expected.toList())
         Assert.assertEquals(h, e)
     }
 
-    private fun <T> createFactory(runNodes: ArrayList<T>, errorFunction: (T) -> Boolean) : IThreadWorkerFactory2<T> {
-        return object: IThreadWorkerFactory2<T> {
-            override fun createWorkers(nodes: Collection<T>): List<IWorker2<T>> {
-                val result = arrayListOf<IWorker2<T>>()
+    private fun <T> createFactory(runNodes: ArrayList<T>, errorFunction: (T) -> Boolean) : IThreadWorkerFactory<T> {
+        return object: IThreadWorkerFactory<T> {
+            override fun createWorkers(nodes: Collection<T>): List<IWorker<T>> {
+                val result = arrayListOf<IWorker<T>>()
                 nodes.forEach { result.add(Worker(runNodes, it, errorFunction)) }
                 return result
             }
         }
     }
 
-    class Worker<T>(val runNodes: ArrayList<T>, val n: T, val errorFunction: (T) -> Boolean) : IWorker2<T> {
+    class Worker<T>(val runNodes: ArrayList<T>, val n: T, val errorFunction: (T) -> Boolean) : IWorker<T> {
         override val priority = 0
 
         override fun call() : TaskResult2<T> {
@@ -36,14 +36,14 @@ class DynamicGraphTest {
 
     @Test
     fun testExecutor() {
-        val dg = DG<String>();
+        val dg = DynamicGraph<String>();
         dg.addEdge("compile", "runApt")
         dg.addEdge("compile", "generateVersion")
 
         val runNodes = arrayListOf<String>()
         val factory = createFactory(runNodes, { true })
 
-        DGExecutor(dg, factory).run()
+        DynamicGraphExecutor(dg, factory).run()
         Assert.assertEquals(runNodes.size, 3)
     }
 
@@ -51,7 +51,7 @@ class DynamicGraphTest {
     @Test
     private fun testExecutorWithSkip() {
 
-        val g = DG<Int>()
+        val g = DynamicGraph<Int>()
         // 2 and 3 depend on 1, 4 depend on 3, 10 depends on 4
         // 3 will blow up, which should make 4 and 10 skipped
         g.addEdge(2, 1)
@@ -61,7 +61,7 @@ class DynamicGraphTest {
         g.addEdge(5, 2)
         val runNodes = arrayListOf<Int>()
         val factory = createFactory(runNodes, { n -> n != 3 })
-        val ex = DGExecutor(g, factory)
+        val ex = DynamicGraphExecutor(g, factory)
         ex.run()
         Thread.`yield`()
         Assert.assertTrue(! runNodes.contains(4))
@@ -70,7 +70,7 @@ class DynamicGraphTest {
 
     @Test
     fun test8() {
-        DG<String>().apply {
+        DynamicGraph<String>().apply {
             addEdge("b1", "a1")
             addEdge("b1", "a2")
             addEdge("b2", "a1")
@@ -97,7 +97,7 @@ class DynamicGraphTest {
 
     @Test
     fun test2() {
-        DG<String>().apply {
+        DynamicGraph<String>().apply {
             addEdge("b1", "a1")
             addEdge("b1", "a2")
             addNode("x")
@@ -131,7 +131,7 @@ class DynamicGraphTest {
     @Test
     fun runAfter() {
 
-        DG<String>().apply {
+        DynamicGraph<String>().apply {
             // a -> b
             // b -> c, d
             // e

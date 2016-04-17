@@ -103,12 +103,12 @@ public class TaskManager @Inject constructor(val args: Args,
                 //
                 log(2, "About to run graph:\n  ${graph.dump()}  ")
 
-                val factory = object : IThreadWorkerFactory2<PluginTask> {
+                val factory = object : IThreadWorkerFactory<PluginTask> {
                     override fun createWorkers(nodes: Collection<PluginTask>)
                         = nodes.map { TaskWorker(listOf(it), args.dryRun, messages) }
                 }
 
-                val executor = DGExecutor(graph, factory)
+                val executor = DynamicGraphExecutor(graph, factory)
                 val thisResult = executor.run()
                 if (thisResult != 0) {
                     log(2, "Marking project ${project.name} as failed")
@@ -129,8 +129,8 @@ public class TaskManager @Inject constructor(val args: Args,
             alwaysRunAfter: TreeMultimap<String, String>,
             toName: (T) -> String,
             accept: (T) -> Boolean):
-            DG<T> {
-        val graph = DG<T>()
+            DynamicGraph<T> {
+        val graph = DynamicGraph<T>()
         taskNames.forEach { taskName ->
             val ti = TaskInfo(taskName)
             if (!dependencies.keys().contains(ti.taskName)) {
@@ -387,7 +387,7 @@ public class TaskManager @Inject constructor(val args: Args,
 }
 
 class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean, val messages: MutableList<String>)
-        : IWorker2<PluginTask> {
+        : IWorker<PluginTask> {
 
     override fun call() : TaskResult2<PluginTask> {
         if (tasks.size > 0) {
