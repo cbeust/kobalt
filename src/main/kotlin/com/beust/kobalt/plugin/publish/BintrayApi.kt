@@ -73,10 +73,8 @@ class BintrayApi @Inject constructor(val http: Http,
                       @Part file: MultipartBody.Part): Call<BintrayResponse>
 
         @Multipart
-//        @PUT("/maven/{owner}/maven/{package}/{group}/{artifact}/{version}/{name}")
         @PUT("/content/{owner}/maven/{repo}/{version}/{group}/{artifact}/{name}")
         fun uploadArtifact(@Path("owner") owner: String,
-//                           @Path("package") bintrayPackage: String,
                            @Path("repo") repo: String,
                            @Path("group", encoded = true) group: String,
                            @Path("artifact") artifact: String,
