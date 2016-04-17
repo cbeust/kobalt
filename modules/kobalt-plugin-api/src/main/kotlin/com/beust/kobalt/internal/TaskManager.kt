@@ -103,12 +103,12 @@ public class TaskManager @Inject constructor(val args: Args,
                 //
                 log(2, "About to run graph:\n  ${graph.dump()}  ")
 
-                val factory = object : IThreadWorkerFactory<PluginTask> {
-                    override fun createWorkers(nodes: List<PluginTask>)
+                val factory = object : IThreadWorkerFactory2<PluginTask> {
+                    override fun createWorkers(nodes: Collection<PluginTask>)
                         = nodes.map { TaskWorker(listOf(it), args.dryRun, messages) }
                 }
 
-                val executor = DynamicGraphExecutor(graph, factory)
+                val executor = DGExecutor(graph, factory)
                 val thisResult = executor.run()
                 if (thisResult != 0) {
                     log(2, "Marking project ${project.name} as failed")
@@ -129,8 +129,8 @@ public class TaskManager @Inject constructor(val args: Args,
             alwaysRunAfter: TreeMultimap<String, String>,
             toName: (T) -> String,
             accept: (T) -> Boolean):
-            DynamicGraph<T> {
-        val graph = DynamicGraph<T>()
+            DG<T> {
+        val graph = DG<T>()
         taskNames.forEach { taskName ->
             val ti = TaskInfo(taskName)
             if (!dependencies.keys().contains(ti.taskName)) {
@@ -180,30 +180,36 @@ public class TaskManager @Inject constructor(val args: Args,
                         }
 
                         //
-                        // Add all the runAfter nodes if applicable
+                        // runAfter nodes are run only if they are explicitly requested
                         //
-                        graph.nodes.forEach { node ->
-                            val ra = runAfter[toName(node)]
-                            ra.forEach { o ->
-                                dependencies[o].forEach {
-                                    if (o != null) {
-                                        graph.addEdge(it, node)
+                        arrayListOf<T>().let { allNodes ->
+                            allNodes.addAll(graph.values)
+                            allNodes.forEach { node ->
+                                val nodeName = toName(node)
+                                if (taskNames.contains(nodeName)) {
+                                    val ra = runAfter[nodeName]
+                                    ra?.forEach { o ->
+                                        dependencies[o]?.forEach {
+                                            if (taskNames.contains(toName(it))) {
+                                                graph.addEdge(node, it)
+                                            }
+                                        }
                                     }
                                 }
                             }
-                            println("RA: $ra")
                         }
 
                         //
                         // If any of the nodes in the graph has an "alwaysRunAfter", add that edge too
                         //
-                        val allNodes = arrayListOf<T>()
-                        allNodes.addAll(graph.nodes)
-                        allNodes.forEach { node ->
-                            val ra = alwaysRunAfter[toName(node)]
-                            ra?.forEach { o ->
-                                dependencies[o]?.forEach {
-                                    graph.addEdge(it, node)
+                        arrayListOf<T>().let { allNodes ->
+                            allNodes.addAll(graph.values)
+                            allNodes.forEach { node ->
+                                val ra = alwaysRunAfter[toName(node)]
+                                ra?.forEach { o ->
+                                    dependencies[o]?.forEach {
+                                        graph.addEdge(it, node)
+                                    }
                                 }
                             }
                         }
@@ -211,7 +217,7 @@ public class TaskManager @Inject constructor(val args: Args,
                 }
             }
         }
-
+        println("@@@ " + graph.dump())
         return graph
     }
 
@@ -381,7 +387,7 @@ public class TaskManager @Inject constructor(val args: Args,
 }
 
 class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean, val messages: MutableList<String>)
-        : IWorker<PluginTask> {
+        : IWorker2<PluginTask> {
 
     override fun call() : TaskResult2<PluginTask> {
         if (tasks.size > 0) {

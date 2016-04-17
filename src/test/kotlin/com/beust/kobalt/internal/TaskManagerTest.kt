@@ -11,14 +11,20 @@ import org.testng.annotations.Test
 @Guice(modules = arrayOf(TestModule::class))
 class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
 
-    class DryRunGraphExecutor<T>(val graph: DynamicGraph<T>) {
+    class DryRunGraphExecutor<T>(val graph: DG<T>) {
         fun run() : List<T> {
             val result = arrayListOf<T>()
-            while (graph.freeNodes.size > 0) {
+            var freeNodes = graph.freeNodes
+            while (freeNodes.size > 0) {
+                val toRemove = arrayListOf<T>()
                 graph.freeNodes.forEach {
                     result.add(it)
-                    graph.setStatus(it, DynamicGraph.Status.FINISHED)
+                    toRemove.add(it)
                 }
+                toRemove.forEach {
+                    graph.removeNode(it)
+                }
+                freeNodes = graph.freeNodes
             }
             return result
         }
@@ -29,13 +35,14 @@ class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
             put("assemble", "compile")
         }
         val runAfter = TreeMultimap.create<String, String>().apply {
-            put("clean", "compile")
+            put("compile", "clean")
+            put("postCompile", "compile")
         }
         val alwaysRunAfter = TreeMultimap.create<String, String>().apply {
             put("clean", "copyVersion")
         }
         val dependencies = TreeMultimap.create<String, String>().apply {
-            listOf("assemble", "compile", "clean").forEach {
+            listOf("assemble", "compile", "clean", "copyVersion", "postCompile").forEach {
                 put(it, it)
             }
         }
@@ -48,10 +55,14 @@ class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
     @Test
     fun graphTest() {
         KobaltLogger.LOG_LEVEL = 3
-        Assert.assertEquals(runTasks(listOf("clean")), listOf("clean", "copyVersion"))
+        Assert.assertEquals(runTasks(listOf("postCompile")), listOf("postCompile"))
         Assert.assertEquals(runTasks(listOf("compile")), listOf("compile"))
+        Assert.assertEquals(runTasks(listOf("compile", "postCompile")), listOf("compile", "postCompile"))
+        Assert.assertEquals(runTasks(listOf("clean")), listOf("clean", "copyVersion"))
+        Assert.assertEquals(runTasks(listOf("clean", "compile")), listOf("clean", "compile", "copyVersion"))
         Assert.assertEquals(runTasks(listOf("assemble")), listOf("compile", "assemble"))
-        Assert.assertEquals(runTasks(listOf("clean", "assemble")), listOf("clean", "compile", "assemble"))
+        Assert.assertEquals(runTasks(listOf("clean", "assemble")), listOf("clean", "compile", "assemble",
+                "copyVersion"))
     }
 }
 
