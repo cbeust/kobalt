@@ -5,7 +5,6 @@ import com.beust.kobalt.misc.NamedThreadFactory
 import com.beust.kobalt.misc.error
 import com.beust.kobalt.misc.log
 import com.google.common.collect.HashMultimap
-import org.testng.Assert
 import java.lang.reflect.InvocationTargetException
 import java.util.*
 import java.util.concurrent.*
@@ -22,7 +21,7 @@ class Node<T>(val value: T) {
 class DG<T> {
     val VERBOSE = 1
     val values : Collection<T> get() = nodes.map { it.value }
-    internal val nodes = hashSetOf<Node<T>>()
+    val nodes = hashSetOf<Node<T>>()
     private val dependedUpon = HashMultimap.create<Node<T>, Node<T>>()
     private val dependingOn = HashMultimap.create<Node<T>, Node<T>>()
 
@@ -205,38 +204,4 @@ fun main(argv: Array<String>) {
     }
 
     DGExecutor(dg, factory).run()
-
-    DG<String>().apply {
-        // a -> b
-        // b -> c, d
-        // e
-        // Order should be: [c,d,e] [b] [a]
-        addEdge("a", "b")
-        addEdge("b", "c")
-        addEdge("b", "d")
-        addNode("e")
-        log(VERBOSE, dump())
-        Assert.assertEquals(freeNodes, setOf("c", "d", "e"))
-
-        removeNode("c")
-        log(VERBOSE, dump())
-        Assert.assertEquals(freeNodes, setOf("d", "e"))
-
-        removeNode("d")
-        log(VERBOSE, dump())
-        Assert.assertEquals(freeNodes, setOf("b", "e"))
-
-        removeNode("e")
-        log(VERBOSE, dump())
-        Assert.assertEquals(freeNodes, setOf("b"))
-
-        removeNode("b")
-        log(VERBOSE, dump())
-        Assert.assertEquals(freeNodes, setOf("a"))
-
-        removeNode("a")
-        log(VERBOSE, dump())
-        Assert.assertTrue(freeNodes.isEmpty())
-        Assert.assertTrue(nodes.isEmpty())
-    }
 }

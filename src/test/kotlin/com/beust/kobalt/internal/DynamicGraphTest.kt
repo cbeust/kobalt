@@ -131,4 +131,43 @@ public class DynamicGraphTest {
         val sorted = dg.sort(arrayListOf("a1", "a2", "b1", "b2", "c1", "x", "y"))
         Assert.assertEquals(sorted, arrayListOf("a1", "a2", "x", "y", "b1", "b2", "c1"))
     }
+
+    @Test
+    fun runAfter() {
+
+        DG<String>().apply {
+            // a -> b
+            // b -> c, d
+            // e
+            // Order should be: [c,d,e] [b] [a]
+            addEdge("a", "b")
+            addEdge("b", "c")
+            addEdge("b", "d")
+            addNode("e")
+            log(VERBOSE, dump())
+            Assert.assertEquals(freeNodes, setOf("c", "d", "e"))
+
+            removeNode("c")
+            log(VERBOSE, dump())
+            Assert.assertEquals(freeNodes, setOf("d", "e"))
+
+            removeNode("d")
+            log(VERBOSE, dump())
+            Assert.assertEquals(freeNodes, setOf("b", "e"))
+
+            removeNode("e")
+            log(VERBOSE, dump())
+            Assert.assertEquals(freeNodes, setOf("b"))
+
+            removeNode("b")
+            log(VERBOSE, dump())
+            Assert.assertEquals(freeNodes, setOf("a"))
+
+            removeNode("a")
+            log(VERBOSE, dump())
+            Assert.assertTrue(freeNodes.isEmpty())
+            Assert.assertTrue(nodes.isEmpty())
+        }
+    }
+
 }
