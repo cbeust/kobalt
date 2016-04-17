@@ -6,9 +6,9 @@ import org.testng.Assert
 import org.testng.annotations.Test
 import java.util.*
 
-public class DynamicGraphTest {
+class DynamicGraphTest {
 
-    private fun <T> assertFreeNodesEquals(graph: DynamicGraph<T>, expected: Array<T>) {
+    private fun <T> assertFreeNodesEquals(graph: DG<T>, expected: Array<T>) {
         val h = HashSet(graph.freeNodes)
         val e = HashSet(expected.toList())
         Assert.assertEquals(h, e)
@@ -24,8 +24,7 @@ public class DynamicGraphTest {
         }
     }
 
-    public class Worker<T>(val runNodes: ArrayList<T>, val n: T,
-            val errorFunction: (T) -> Boolean) : IWorker<T> {
+    class Worker<T>(val runNodes: ArrayList<T>, val n: T, val errorFunction: (T) -> Boolean) : IWorker<T> {
         override val priority = 0
 
         override fun call() : TaskResult2<T> {
@@ -36,7 +35,7 @@ public class DynamicGraphTest {
     }
 
     @Test
-    public fun testExecutor() {
+    fun testExecutor() {
         val dg = DynamicGraph<String>();
         dg.addEdge("compile", "runApt")
         dg.addEdge("compile", "generateVersion")
@@ -71,7 +70,7 @@ public class DynamicGraphTest {
 
     @Test
     public fun test8() {
-        val dg = DynamicGraph<String>();
+        val dg = DG<String>()
         dg.addEdge("b1", "a1")
         dg.addEdge("b1", "a2")
         dg.addEdge("b2", "a1")
@@ -80,43 +79,37 @@ public class DynamicGraphTest {
         dg.addEdge("c1", "b2")
         dg.addNode("x")
         dg.addNode("y")
-        val freeNodes = dg.freeNodes
         assertFreeNodesEquals(dg, arrayOf("a1", "a2", "y", "x"))
 
-        dg.setStatus(freeNodes, DynamicGraph.Status.RUNNING)
-        dg.setStatus("a1", DynamicGraph.Status.FINISHED)
+        dg.removeNode("a1")
         assertFreeNodesEquals(dg, arrayOf<String>())
 
-        dg.setStatus("a2", DynamicGraph.Status.FINISHED)
+        dg.removeNode("a2")
         assertFreeNodesEquals(dg, arrayOf("b1", "b2"))
 
-        dg.setStatus("b2", DynamicGraph.Status.RUNNING)
-        dg.setStatus("b1", DynamicGraph.Status.FINISHED)
+        dg.removeNode("b1")
         assertFreeNodesEquals(dg, arrayOf<String>())
 
-        dg.setStatus("b2", DynamicGraph.Status.FINISHED)
+        dg.removeNode("b2")
         assertFreeNodesEquals(dg, arrayOf("c1"))
     }
 
     @Test
     public fun test2() {
-        val dg = DynamicGraph<String>()
+        val dg = DG<String>()
         dg.addEdge("b1", "a1")
         dg.addEdge("b1", "a2")
         dg.addNode("x")
-        val freeNodes = dg.freeNodes
         assertFreeNodesEquals(dg, arrayOf("a1", "a2", "x" ))
 
-        dg.setStatus(freeNodes, DynamicGraph.Status.RUNNING)
-        dg.setStatus("a1", DynamicGraph.Status.FINISHED)
-        assertFreeNodesEquals(dg, arrayOf<String>())
+        dg.removeNode("a1")
+        assertFreeNodesEquals(dg, arrayOf("a2", "x"))
 
-        dg.setStatus("a2", DynamicGraph.Status.FINISHED)
-        assertFreeNodesEquals(dg, arrayOf("b1"))
+        dg.removeNode("a2")
+        assertFreeNodesEquals(dg, arrayOf("b1", "x"))
 
-        dg.setStatus("b2", DynamicGraph.Status.RUNNING)
-        dg.setStatus("b1", DynamicGraph.Status.FINISHED)
-        assertFreeNodesEquals(dg, arrayOf<String>())
+        dg.removeNode("b1")
+        assertFreeNodesEquals(dg, arrayOf("x"))
     }
 
     @Test
