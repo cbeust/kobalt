@@ -79,19 +79,19 @@ class DynamicGraphTest {
             addEdge("c1", "b2")
             addNode("x")
             addNode("y")
-            assertFreeNodesEquals(this, arrayOf("a1", "a2", "y", "x"))
+            assertFreeNodesEquals(this, arrayOf("a1", "a2", "x", "y"))
 
             removeNode("a1")
-            assertFreeNodesEquals(this, arrayOf<String>())
+            assertFreeNodesEquals(this, arrayOf("a2", "x", "y"))
 
             removeNode("a2")
-            assertFreeNodesEquals(this, arrayOf("b1", "b2"))
+            assertFreeNodesEquals(this, arrayOf("b1", "b2", "x", "y"))
 
             removeNode("b1")
-            assertFreeNodesEquals(this, arrayOf<String>())
+            assertFreeNodesEquals(this, arrayOf("b2", "x", "y"))
 
             removeNode("b2")
-            assertFreeNodesEquals(this, arrayOf("c1"))
+            assertFreeNodesEquals(this, arrayOf("c1", "x", "y"))
         }
     }
 
