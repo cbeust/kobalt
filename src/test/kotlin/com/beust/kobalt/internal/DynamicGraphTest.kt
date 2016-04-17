@@ -14,17 +14,17 @@ class DynamicGraphTest {
         Assert.assertEquals(h, e)
     }
 
-    private fun <T> createFactory(runNodes: ArrayList<T>, errorFunction: (T) -> Boolean) : IThreadWorkerFactory<T> {
-        return object: IThreadWorkerFactory<T> {
-            override fun createWorkers(nodes: List<T>): List<IWorker<T>> {
-                val result = arrayListOf<IWorker<T>>()
+    private fun <T> createFactory(runNodes: ArrayList<T>, errorFunction: (T) -> Boolean) : IThreadWorkerFactory2<T> {
+        return object: IThreadWorkerFactory2<T> {
+            override fun createWorkers(nodes: Collection<T>): List<IWorker2<T>> {
+                val result = arrayListOf<IWorker2<T>>()
                 nodes.forEach { result.add(Worker(runNodes, it, errorFunction)) }
                 return result
             }
         }
     }
 
-    class Worker<T>(val runNodes: ArrayList<T>, val n: T, val errorFunction: (T) -> Boolean) : IWorker<T> {
+    class Worker<T>(val runNodes: ArrayList<T>, val n: T, val errorFunction: (T) -> Boolean) : IWorker2<T> {
         override val priority = 0
 
         override fun call() : TaskResult2<T> {
@@ -36,14 +36,14 @@ class DynamicGraphTest {
 
     @Test
     fun testExecutor() {
-        val dg = DynamicGraph<String>();
+        val dg = DG<String>();
         dg.addEdge("compile", "runApt")
         dg.addEdge("compile", "generateVersion")
 
         val runNodes = arrayListOf<String>()
         val factory = createFactory(runNodes, { true })
 
-        DynamicGraphExecutor(dg, factory).run()
+        DGExecutor(dg, factory).run()
         Assert.assertEquals(runNodes.size, 3)
     }
 
@@ -51,7 +51,7 @@ class DynamicGraphTest {
     @Test
     private fun testExecutorWithSkip() {
 
-        val g = DynamicGraph<Int>()
+        val g = DG<Int>()
         // 2 and 3 depend on 1, 4 depend on 3, 10 depends on 4
         // 3 will blow up, which should make 4 and 10 skipped
         g.addEdge(2, 1)
@@ -61,7 +61,7 @@ class DynamicGraphTest {
         g.addEdge(5, 2)
         val runNodes = arrayListOf<Int>()
         val factory = createFactory(runNodes, { n -> n != 3 })
-        val ex = DynamicGraphExecutor(g, factory)
+        val ex = DGExecutor(g, factory)
         ex.run()
         Thread.`yield`()
         Assert.assertTrue(! runNodes.contains(4))
@@ -69,60 +69,63 @@ class DynamicGraphTest {
     }
 
     @Test
-    public fun test8() {
-        val dg = DG<String>()
-        dg.addEdge("b1", "a1")
-        dg.addEdge("b1", "a2")
-        dg.addEdge("b2", "a1")
-        dg.addEdge("b2", "a2")
-        dg.addEdge("c1", "b1")
-        dg.addEdge("c1", "b2")
-        dg.addNode("x")
-        dg.addNode("y")
-        assertFreeNodesEquals(dg, arrayOf("a1", "a2", "y", "x"))
+    fun test8() {
+        DG<String>().apply {
+            addEdge("b1", "a1")
+            addEdge("b1", "a2")
+            addEdge("b2", "a1")
+            addEdge("b2", "a2")
+            addEdge("c1", "b1")
+            addEdge("c1", "b2")
+            addNode("x")
+            addNode("y")
+            assertFreeNodesEquals(this, arrayOf("a1", "a2", "y", "x"))
 
-        dg.removeNode("a1")
-        assertFreeNodesEquals(dg, arrayOf<String>())
+            removeNode("a1")
+            assertFreeNodesEquals(this, arrayOf<String>())
 
-        dg.removeNode("a2")
-        assertFreeNodesEquals(dg, arrayOf("b1", "b2"))
+            removeNode("a2")
+            assertFreeNodesEquals(this, arrayOf("b1", "b2"))
 
-        dg.removeNode("b1")
-        assertFreeNodesEquals(dg, arrayOf<String>())
+            removeNode("b1")
+            assertFreeNodesEquals(this, arrayOf<String>())
 
-        dg.removeNode("b2")
-        assertFreeNodesEquals(dg, arrayOf("c1"))
+            removeNode("b2")
+            assertFreeNodesEquals(this, arrayOf("c1"))
+        }
     }
 
     @Test
-    public fun test2() {
-        val dg = DG<String>()
-        dg.addEdge("b1", "a1")
-        dg.addEdge("b1", "a2")
-        dg.addNode("x")
-        assertFreeNodesEquals(dg, arrayOf("a1", "a2", "x" ))
+    fun test2() {
+        DG<String>().apply {
+            addEdge("b1", "a1")
+            addEdge("b1", "a2")
+            addNode("x")
+            assertFreeNodesEquals(this, arrayOf("a1", "a2", "x"))
 
-        dg.removeNode("a1")
-        assertFreeNodesEquals(dg, arrayOf("a2", "x"))
+            removeNode("a1")
+            assertFreeNodesEquals(this, arrayOf("a2", "x"))
 
-        dg.removeNode("a2")
-        assertFreeNodesEquals(dg, arrayOf("b1", "x"))
+            removeNode("a2")
+            assertFreeNodesEquals(this, arrayOf("b1", "x"))
 
-        dg.removeNode("b1")
-        assertFreeNodesEquals(dg, arrayOf("x"))
+            removeNode("b1")
+            assertFreeNodesEquals(this, arrayOf("x"))
+        }
     }
 
     @Test
     fun topologicalSort() {
-        val dg = Topological<String>()
-        dg.addEdge("b1", "a1")
-        dg.addEdge("b1", "a2")
-        dg.addEdge("b2", "a1")
-        dg.addEdge("b2", "a2")
-        dg.addEdge("c1", "b1")
-        dg.addEdge("c1", "b2")
-        val sorted = dg.sort(arrayListOf("a1", "a2", "b1", "b2", "c1", "x", "y"))
-        Assert.assertEquals(sorted, arrayListOf("a1", "a2", "x", "y", "b1", "b2", "c1"))
+        Topological<String>().apply {
+            addEdge("b1", "a1")
+            addEdge("b1", "a2")
+            addEdge("b2", "a1")
+            addEdge("b2", "a2")
+            addEdge("c1", "b1")
+            addEdge("c1", "b2")
+            val sorted = sort(arrayListOf("a1", "a2", "b1", "b2", "c1", "x", "y"))
+            Assert.assertEquals(sorted, arrayListOf("a1", "a2", "x", "y", "b1", "b2", "c1"))
+        }
     }
 
     @Test

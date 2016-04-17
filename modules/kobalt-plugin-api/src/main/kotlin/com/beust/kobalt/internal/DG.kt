@@ -1,6 +1,7 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.KobaltException
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.misc.NamedThreadFactory
 import com.beust.kobalt.misc.error
 import com.beust.kobalt.misc.log
@@ -8,6 +9,10 @@ import com.google.common.collect.HashMultimap
 import java.lang.reflect.InvocationTargetException
 import java.util.*
 import java.util.concurrent.*
+
+open class TaskResult2<T>(success: Boolean, errorMessage: String?, val value: T) : TaskResult(success, errorMessage) {
+    override fun toString() = com.beust.kobalt.misc.toString("TaskResult", "value", value, "success", success)
+}
 
 class Node<T>(val value: T) {
     override fun hashCode() = value!!.hashCode()
