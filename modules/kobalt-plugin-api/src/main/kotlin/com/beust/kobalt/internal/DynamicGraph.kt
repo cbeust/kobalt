@@ -142,7 +142,7 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
         var gotError = false
         val nodesRun = hashSetOf<T>()
         var newFreeNodes = HashSet<T>(graph.freeNodes)
-        while (! gotError && running > 0 || newFreeNodes.size > 0) {
+        while (! gotError && (running > 0 || newFreeNodes.size > 0)) {
             nodesRun.addAll(newFreeNodes)
             val callables : List<IWorker<T>> = factory.createWorkers(newFreeNodes)
             callables.forEach { completion.submit(it) }
@@ -160,6 +160,7 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
                     newFreeNodes.addAll(graph.freeNodes.minus(nodesRun))
                 } else {
                     log(2, "Task failed: $taskResult")
+                    newFreeNodes.clear()
                     gotError = true
                 }
             } catch(ex: TimeoutException) {
