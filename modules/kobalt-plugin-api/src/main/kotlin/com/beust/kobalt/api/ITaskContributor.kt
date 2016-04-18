@@ -11,7 +11,8 @@ interface ITaskContributor : IContributor {
 }
 
 class DynamicTask(val plugin: IPlugin, val name: String, val description: String = "",
+        val dependsOn: List<String> = listOf<String>(),
+        val reverseDependsOn: List<String> = listOf<String>(),
         val runBefore: List<String> = listOf<String>(),
         val runAfter: List<String> = listOf<String>(),
-        val alwaysRunAfter: List<String> = listOf<String>(),
         val closure: (Project) -> TaskResult)

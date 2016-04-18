@@ -79,7 +79,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     }
 
     @Task(name = TASK_ASSEMBLE, description = "Package the artifacts",
-            runAfter = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
+            dependsOn = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
     fun doTaskAssemble(project: Project) : TaskResult {
         // Incremental assembly contributors
         context.pluginInfo.incrementalAssemblyContributors.forEach {
@@ -131,7 +131,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
 
     @Task(name = PackagingPlugin.TASK_INSTALL, description = "Install the artifacts",
-            runAfter = arrayOf(PackagingPlugin.TASK_ASSEMBLE))
+            dependsOn = arrayOf(PackagingPlugin.TASK_ASSEMBLE))
     fun taskInstall(project: Project) : TaskResult {
         val config = configurationFor(project) ?: InstallConfig()
         val buildDir = project.projectProperties.getString(LIBS_DIR)

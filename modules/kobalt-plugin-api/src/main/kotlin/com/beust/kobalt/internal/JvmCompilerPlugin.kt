@@ -78,7 +78,7 @@ open class JvmCompilerPlugin @Inject constructor(
             val taskName = if (config.name.isEmpty()) "test" else "test" + config.name
 
             taskManager.addTask(this, project, taskName,
-                    runAfter = listOf(JvmCompilerPlugin.TASK_COMPILE, JvmCompilerPlugin.TASK_COMPILE_TEST),
+                    dependsOn = listOf(JvmCompilerPlugin.TASK_COMPILE, JvmCompilerPlugin.TASK_COMPILE_TEST),
                     task = { taskTest(project, config.name)} )
         }
 
@@ -140,7 +140,7 @@ open class JvmCompilerPlugin @Inject constructor(
     }
 
     @IncrementalTask(name = TASK_COMPILE_TEST, description = "Compile the tests",
-            runAfter = arrayOf(TASK_COMPILE))
+            dependsOn = arrayOf(TASK_COMPILE))
     fun taskCompileTest(project: Project): IncrementalTaskInfo {
         sourceTestDirectories.addAll(context.variant.sourceDirectories(project, context, SourceSet.of(isTest = true)))
         return IncrementalTaskInfo(

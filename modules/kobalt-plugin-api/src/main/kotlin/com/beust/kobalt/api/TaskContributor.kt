@@ -23,16 +23,18 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
      * depends on variants of that task.
      */
     fun addVariantTasks(plugin: IPlugin, project: Project, context: KobaltContext, taskName: String,
+            dependsOn: List<String> = emptyList(),
+            reverseDependsOn : List<String> = emptyList(),
             runBefore : List<String> = emptyList(),
             runAfter : List<String> = emptyList(),
-            alwaysRunAfter : List<String> = emptyList(),
             runTask: (Project) -> TaskResult) {
         Variant.allVariants(project).forEach { variant ->
             val variantTaskName = variant.toTask(taskName)
             dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName,
+                    dependsOn = dependsOn.map { variant.toTask(it) },
+                    reverseDependsOn = reverseDependsOn.map { variant.toTask(it) },
                     runBefore = runBefore.map { variant.toTask(it) },
                     runAfter = runAfter.map { variant.toTask(it) },
-                    alwaysRunAfter = alwaysRunAfter.map { variant.toTask(it) },
                     closure = { p: Project ->
                         context.variant = variant
                         runTask(project)
@@ -41,16 +43,18 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
     }
 
     fun addIncrementalVariantTasks(plugin: IPlugin, project: Project, context: KobaltContext, taskName: String,
+            dependsOn: List<String> = emptyList(),
+            reverseDependsOn : List<String> = emptyList(),
             runBefore : List<String> = emptyList(),
             runAfter : List<String> = emptyList(),
-            alwaysRunAfter : List<String> = emptyList(),
             runTask: (Project) -> IncrementalTaskInfo) {
         Variant.allVariants(project).forEach { variant ->
             val variantTaskName = variant.toTask(taskName)
             dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName,
+                    dependsOn = dependsOn.map { variant.toTask(it) },
+                    reverseDependsOn = reverseDependsOn.map { variant.toTask(it) },
                     runBefore = runBefore.map { variant.toTask(it) },
                     runAfter = runAfter.map { variant.toTask(it) },
-                    alwaysRunAfter = alwaysRunAfter.map { variant.toTask(it) },
                     closure = incrementalManagerFactory.create().toIncrementalTaskClosure(taskName, runTask, variant)))
         }
     }

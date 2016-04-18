@@ -33,7 +33,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
     }
 
     @Suppress("UNUSED_FUNCTION_LITERAL")
-    @Task(name = TASK_GENERATE_POM, description = "Generate the .pom file", runAfter = arrayOf("assemble"))
+    @Task(name = TASK_GENERATE_POM, description = "Generate the .pom file", dependsOn = arrayOf("assemble"))
     fun taskGeneratePom(project: Project): TaskResult {
         factory.create(project).generate()
         return TaskResult()
@@ -56,7 +56,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
     }
 
     @Task(name = TASK_UPLOAD_BINTRAY, description = "Upload files to Bintray",
-            runAfter = arrayOf(TASK_GENERATE_POM))
+            dependsOn = arrayOf(TASK_GENERATE_POM))
     fun taskUploadBintray(project: Project): TaskResult {
         validateProject(project)
         return uploadBintray(project)
@@ -100,7 +100,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
     }
 
     @Task(name = TASK_UPLOAD_GITHUB, description = "Upload files to Github",
-            runAfter = arrayOf(TASK_GENERATE_POM))
+            dependsOn = arrayOf(TASK_GENERATE_POM))
     fun taskUploadGithub(project: Project): TaskResult {
         validateProject(project)
         return uploadGithub(project)

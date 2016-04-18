@@ -21,30 +21,32 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-public class TaskManager @Inject constructor(val args: Args,
+class TaskManager @Inject constructor(val args: Args,
         val incrementalManagerFactory: IncrementalManager.IFactory) {
+    private val dependsOn = TreeMultimap.create<String, String>()
+    private val reverseDependsOn = TreeMultimap.create<String, String>()
     private val runBefore = TreeMultimap.create<String, String>()
     private val runAfter = TreeMultimap.create<String, String>()
-    private val alwaysRunAfter = TreeMultimap.create<String, String>()
 
     /**
-     * Called by plugins to indicate task dependencies defined at runtime. Keys depend on values.
-     * Declare that `task1` depends on `task2`.
-     *
-     * Note: there is no runAfter on this class since a runAfter(a, b) in a task simply translates
-     * to a runBefore(b, a) here.
+     * Dependency: task2 depends on task 1.
      */
-    fun runBefore(task1: String, task2: String) {
-        runBefore.put(task1, task2)
-    }
+    fun dependsOn(task1: String, task2: String) = dependsOn.put(task2, task1)
 
-    fun runAfter(task1: String, task2: String) {
-        runAfter.put(task1, task2)
-    }
+    /**
+     * Dependency: task2 depends on task 1.
+     */
+    fun reverseDependsOn(task1: String, task2: String) = reverseDependsOn.put(task1, task2)
 
-    fun alwaysRunAfter(task1: String, task2: String) {
-        alwaysRunAfter.put(task1, task2)
-    }
+    /**
+     * Ordering: task1 runs before task 2.
+     */
+    fun runBefore(task1: String, task2: String) = runBefore.put(task1, task2)
+
+    /**
+     * Ordering: task2 runs after task 1.
+     */
+    fun runAfter(task1: String, task2: String) = runAfter.put(task2, task1)
 
     data class TaskInfo(val id: String) {
         constructor(project: String, task: String) : this(project + ":" + task)
@@ -58,7 +60,7 @@ public class TaskManager @Inject constructor(val args: Args,
 
     class RunTargetResult(val exitCode: Int, val messages: List<String>)
 
-    public fun runTargets(taskNames: List<String>, projects: List<Project>) : RunTargetResult {
+    fun runTargets(taskNames: List<String>, projects: List<Project>) : RunTargetResult {
         var result = 0
         val failedProjects = hashSetOf<String>()
         val messages = Collections.synchronizedList(arrayListOf<String>())
@@ -94,7 +96,7 @@ public class TaskManager @Inject constructor(val args: Args,
                 }
 
                 val graph = createGraph(project.name, taskNames, tasksByNames,
-                        runBefore, runAfter, alwaysRunAfter,
+                        dependsOn, reverseDependsOn, runBefore, runAfter,
                         { task: PluginTask -> task.name },
                         { task: PluginTask -> task.plugin.accept(project) })
 
@@ -122,109 +124,81 @@ public class TaskManager @Inject constructor(val args: Args,
         return RunTargetResult(result, messages)
     }
 
+    /**
+     * Create a dynamic graph representing all the tasks that need to be run.
+     */
     @VisibleForTesting
-    fun <T> createGraph(projectName: String, taskNames: List<String>, dependencies: Multimap<String, T>,
+    fun <T> createGraph(projectName: String, taskNames: List<String>, nodeMap: Multimap<String, T>,
+            dependsOn: TreeMultimap<String, String>,
+            reverseDependsOn: TreeMultimap<String, String>,
             runBefore: TreeMultimap<String, String>,
             runAfter: TreeMultimap<String, String>,
-            alwaysRunAfter: TreeMultimap<String, String>,
             toName: (T) -> String,
             accept: (T) -> Boolean):
             DynamicGraph<T> {
-        val graph = DynamicGraph<T>()
+
+        val result = DynamicGraph<T>()
         taskNames.forEach { taskName ->
             val ti = TaskInfo(taskName)
-            if (!dependencies.keys().contains(ti.taskName)) {
+            if (!nodeMap.keys().contains(ti.taskName)) {
                 throw KobaltException("Unknown task: $taskName")
             }
 
             if (ti.matches(projectName)) {
-                dependencies[ti.taskName].forEach { task ->
+                nodeMap[ti.taskName].forEach { task ->
                     if (task != null && accept(task)) {
-                        val reverseAfter = hashMapOf<String, String>()
-                        alwaysRunAfter.keys().forEach { from ->
-                            val tasks = alwaysRunAfter.get(from)
-                            tasks.forEach {
-                                reverseAfter.put(it, from)
-                            }
-                        }
+                        val toProcess = arrayListOf(task)
+                        val seen = hashSetOf<String>()
+                        val newToProcess = arrayListOf<T>()
+                        while (toProcess.size > 0) {
+                            toProcess.forEach { current ->
+                                result.addNode(current)
+                                seen.add(toName(current))
 
-                        //
-                        // If the current target is free, add it as a single node to the graph
-                        //
-                        val allFreeTasks = calculateFreeTasks(dependencies, reverseAfter)
-                        val currentFreeTask = allFreeTasks.filter {
-                            TaskInfo(projectName, toName(it)).taskName == toName(task)
-                        }
-                        if (currentFreeTask.size == 1) {
-                            currentFreeTask[0].let {
-                                graph.addNode(it)
-                            }
-                        }
-
-                        //
-                        // Add the transitive closure of the current task as edges to the graph
-                        //
-                        val transitiveClosure = calculateTransitiveClosure(projectName, dependencies, ti)
-                        transitiveClosure.forEach { pluginTask ->
-                            val rb = runBefore.get(toName(pluginTask))
-                            rb.forEach {
-                                val tos = dependencies[it]
-                                if (tos != null && tos.size > 0) {
-                                    tos.forEach { to ->
-                                        graph.addEdge(pluginTask, to)
-                                    }
-                                } else {
-                                    log(2, "Couldn't find node $it: not applicable to project $projectName")
-                                }
-                            }
-                        }
-
-                        //
-                        // runAfter nodes are run only if they are explicitly requested
-                        //
-                        arrayListOf<T>().let { allNodes ->
-                            allNodes.addAll(graph.values)
-                            allNodes.forEach { node ->
-                                val nodeName = toName(node)
-                                if (taskNames.contains(nodeName)) {
-                                    val ra = runAfter[nodeName]
-                                    ra?.forEach { o ->
-                                        dependencies[o]?.forEach {
-                                            if (taskNames.contains(toName(it))) {
-                                                graph.addEdge(node, it)
+                                fun maybeAddEdge(taskName: String, mm: Multimap<String, String>, isDependency: Boolean,
+                                        reverseEdges: Boolean = false) {
+                                    mm[taskName]?.forEach {
+                                        val addEdge = isDependency || (!isDependency && taskNames.contains(it))
+                                        log(3, "    addEdge: $addEdge $taskName")
+                                        if (addEdge) {
+                                            nodeMap[it].forEach { to ->
+                                                if (reverseEdges) {
+                                                    log(3, "     Adding reverse edge $to -> $task")
+                                                    result.addEdge(to, task)
+                                                } else {
+                                                    log(3, "    Adding edge $task -> $to")
+                                                    result.addEdge(task, to)
+                                                }
+                                                if (!seen.contains(it)) newToProcess.add(to)
                                             }
+                                            seen.add(it)
                                         }
                                     }
                                 }
+                                maybeAddEdge(ti.taskName, dependsOn, true, false)
+                                maybeAddEdge(ti.taskName, reverseDependsOn, true, true)
+                                maybeAddEdge(ti.taskName, runBefore, false, false)
+                                maybeAddEdge(ti.taskName, runAfter, false, false)
                             }
-                        }
-
-                        //
-                        // If any of the nodes in the graph has an "alwaysRunAfter", add that edge too
-                        //
-                        arrayListOf<T>().let { allNodes ->
-                            allNodes.addAll(graph.values)
-                            allNodes.forEach { node ->
-                                val ra = alwaysRunAfter[toName(node)]
-                                ra?.forEach { o ->
-                                    dependencies[o]?.forEach {
-                                        graph.addEdge(it, node)
-                                    }
-                                }
-                            }
+                            toProcess.clear()
+                            toProcess.addAll(newToProcess)
+                            newToProcess.clear()
                         }
                     }
                 }
+            } else {
+                log(3, "Task $taskName does not match the current project $projectName, skipping it")
             }
         }
-        println("@@@ " + graph.dump())
-        return graph
+        return result
     }
 
     /**
      * Find the free tasks of the graph.
      */
-    private fun <T> calculateFreeTasks(tasksByNames: Multimap<String, T>, reverseAfter: HashMap<String, String>)
+    private fun <T> calculateFreeTasks(tasksByNames: Multimap<String, T>, runBefore: TreeMultimap<String, String>,
+            reverseAfter: HashMap<String,
+            String>)
             : Collection<T> {
         val freeTaskMap = hashMapOf<String, T>()
         tasksByNames.keys().forEach {
@@ -238,49 +212,6 @@ public class TaskManager @Inject constructor(val args: Args,
         return freeTaskMap.values
     }
 
-    /**
-     * Find the transitive closure for the given TaskInfo
-     */
-    private fun <T> calculateTransitiveClosure(projectName: String, tasksByNames: Multimap<String, T>, ti: TaskInfo):
-            HashSet<T> {
-        log(3, "Processing ${ti.taskName}")
-
-        val transitiveClosure = hashSetOf<T>()
-        val seen = hashSetOf(ti.taskName)
-        val toProcess = hashSetOf(ti)
-        var done = false
-        while (! done) {
-            val newToProcess = hashSetOf<TaskInfo>()
-            log(3, "toProcess size: " + toProcess.size)
-            toProcess.forEach { target ->
-
-                val currentTask = TaskInfo(projectName, target.taskName)
-                val thisTask = tasksByNames[currentTask.taskName]
-                if (thisTask != null) {
-                    transitiveClosure.addAll(thisTask)
-                    val dependencyNames = runBefore.get(currentTask.taskName)
-                    dependencyNames.forEach { dependencyName ->
-                        if (!seen.contains(dependencyName)) {
-                            newToProcess.add(currentTask)
-                            seen.add(dependencyName)
-                        }
-                    }
-
-                    dependencyNames.forEach {
-                        newToProcess.add(TaskInfo(projectName, it))
-                    }
-                } else {
-                    log(1, "Couldn't find task ${currentTask.taskName}: not applicable to project $projectName")
-                }
-            }
-            done = newToProcess.isEmpty()
-            toProcess.clear()
-            toProcess.addAll(newToProcess)
-        }
-
-        return transitiveClosure
-    }
-
     /////
     // Manage the tasks
     //
@@ -290,14 +221,16 @@ public class TaskManager @Inject constructor(val args: Args,
     private val taskAnnotations = arrayListOf<TaskAnnotation>()
 
     class TaskAnnotation(val method: Method, val plugin: IPlugin, val name: String, val description: String,
-            val runBefore: Array<String>, val runAfter: Array<String>, val alwaysRunAfter: Array<String>,
+            val dependsOn: Array<String>, val reverseDependsOn: Array<String>,
+            val runBefore: Array<String>, val runAfter: Array<String>,
             val callable: (Project) -> TaskResult)
 
     /**
      * Invoking a @Task means simply calling the method and returning its returned TaskResult.
      */
     fun toTaskAnnotation(method: Method, plugin: IPlugin, ta: Task)
-            = TaskAnnotation(method, plugin, ta.name, ta.description, ta.runBefore, ta.runAfter, ta.alwaysRunAfter,
+            = TaskAnnotation(method, plugin, ta.name, ta.description, ta.dependsOn, ta.reverseDependsOn,
+                ta.runBefore, ta.runAfter,
             { project ->
                 method.invoke(plugin, project) as TaskResult
             })
@@ -307,7 +240,8 @@ public class TaskManager @Inject constructor(val args: Args,
      * of the returned IncrementalTaskInfo.
      */
     fun toTaskAnnotation(method: Method, plugin: IPlugin, ta: IncrementalTask)
-            = TaskAnnotation(method, plugin, ta.name, ta.description, ta.runBefore, ta.runAfter, ta.alwaysRunAfter,
+            = TaskAnnotation(method, plugin, ta.name, ta.description, ta.dependsOn, ta.reverseDependsOn,
+            ta.runBefore, ta.runAfter,
             incrementalManagerFactory.create().toIncrementalTaskClosure(ta.name, { project ->
                 method.invoke(plugin, project) as IncrementalTaskInfo
             }))
@@ -338,8 +272,9 @@ public class TaskManager @Inject constructor(val args: Args,
         dynamicTasks.forEach { dynamicTask ->
             val task = dynamicTask.task
             projects.filter { dynamicTask.plugin.accept(it) }.forEach { project ->
-                addTask(dynamicTask.plugin, project, task.name, task.description, task.runBefore, task.runAfter,
-                        task.alwaysRunAfter, task.closure)
+                addTask(dynamicTask.plugin, project, task.name, task.description,
+                        task.dependsOn, task.reverseDependsOn, task.runBefore, task.runAfter,
+                        task.closure)
             }
         }
     }
@@ -360,14 +295,17 @@ public class TaskManager @Inject constructor(val args: Args,
 
     private fun addAnnotationTask(plugin: IPlugin, project: Project, annotation: TaskAnnotation,
             task: (Project) -> TaskResult) {
-        addTask(plugin, project, annotation.name, annotation.description, annotation.runBefore.toList(),
-                annotation.runAfter.toList(), annotation.alwaysRunAfter.toList(), task)
+        addTask(plugin, project, annotation.name, annotation.description,
+                annotation.dependsOn.toList(), annotation.reverseDependsOn.toList(),
+                annotation.runBefore.toList(), annotation.runAfter.toList(),
+                task)
     }
 
     fun addTask(plugin: IPlugin, project: Project, name: String, description: String = "",
+            dependsOn: List<String> = listOf<String>(),
+            reverseDependsOn: List<String> = listOf<String>(),
             runBefore: List<String> = listOf<String>(),
             runAfter: List<String> = listOf<String>(),
-            alwaysRunAfter: List<String> = listOf<String>(),
             task: (Project) -> TaskResult) {
         annotationTasks.add(
                 object : BasePluginTask(plugin, name, description, project) {
@@ -376,9 +314,10 @@ public class TaskManager @Inject constructor(val args: Args,
                         return TaskResult2(taskResult.success, taskResult.errorMessage, this)
                     }
                 })
+        dependsOn.forEach { dependsOn(it, name) }
+        reverseDependsOn.forEach { reverseDependsOn(it, name) }
         runBefore.forEach { runBefore(it, name) }
         runAfter.forEach { runAfter(it, name) }
-        alwaysRunAfter.forEach { alwaysRunAfter(it, name)}
     }
 
     //

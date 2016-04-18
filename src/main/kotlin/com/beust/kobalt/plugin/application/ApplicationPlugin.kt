@@ -52,7 +52,7 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
                 runTask = { taskRun(project) })
     }
 
-    @Task(name = "run", description = "Run the main class", runAfter = arrayOf("install"))
+    @Task(name = "run", description = "Run the main class", dependsOn = arrayOf("install"))
     fun taskRun(project: Project): TaskResult {
         val runContributor = ActorUtils.selectAffinityActor(project, context,
                 context.pluginInfo.runnerContributors)

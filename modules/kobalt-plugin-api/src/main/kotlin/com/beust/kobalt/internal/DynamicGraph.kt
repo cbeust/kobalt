@@ -24,7 +24,7 @@ class Node<T>(val value: T) {
 }
 
 class DynamicGraph<T> {
-    val VERBOSE = 1
+    val VERBOSE = 2
     val values : Collection<T> get() = nodes.map { it.value }
     val nodes = hashSetOf<Node<T>>()
     private val dependedUpon = HashMultimap.create<Node<T>, Node<T>>()
