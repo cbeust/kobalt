@@ -21,7 +21,7 @@ annotation class Task(
     val runBefore: Array<String> = arrayOf(),
 
     /** Ordering: tasks this task runs after */
-    val runAfter: Array<String> = arrayOf(),
+    val runAfter: Array<String> = arrayOf()
 )
 
 @Retention(AnnotationRetention.RUNTIME)
@@ -39,7 +39,7 @@ annotation class IncrementalTask(
     val runBefore: Array<String> = arrayOf(),
 
         /** Ordering: tasks this task runs after */
-    val runAfter: Array<String> = arrayOf(),
+    val runAfter: Array<String> = arrayOf()
 )
 
 /**
