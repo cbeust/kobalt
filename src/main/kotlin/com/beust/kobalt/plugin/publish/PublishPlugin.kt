@@ -56,7 +56,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
     }
 
     @Task(name = TASK_UPLOAD_BINTRAY, description = "Upload files to Bintray",
-            dependsOn = arrayOf(TASK_GENERATE_POM))
+            dependsOn = arrayOf(TASK_GENERATE_POM, "assemble"))
     fun taskUploadBintray(project: Project): TaskResult {
         validateProject(project)
         return uploadBintray(project)
@@ -100,7 +100,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
     }
 
     @Task(name = TASK_UPLOAD_GITHUB, description = "Upload files to Github",
-            dependsOn = arrayOf(TASK_GENERATE_POM))
+            dependsOn = arrayOf(TASK_GENERATE_POM, "assemble"))
     fun taskUploadGithub(project: Project): TaskResult {
         validateProject(project)
         return uploadGithub(project)
