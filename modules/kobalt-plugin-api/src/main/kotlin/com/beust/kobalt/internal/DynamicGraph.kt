@@ -154,12 +154,12 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
                 running--
                 if (taskResult.success) {
                     nodesRun.add(taskResult.value)
-                    log(1, "Task succeeded: $taskResult")
+                    log(2, "Task succeeded: $taskResult")
                     graph.removeNode(taskResult.value)
                     newFreeNodes.clear()
                     newFreeNodes.addAll(graph.freeNodes.minus(nodesRun))
                 } else {
-                    log(1, "Task failed: $taskResult")
+                    log(2, "Task failed: $taskResult")
                     gotError = true
                 }
             } catch(ex: TimeoutException) {
