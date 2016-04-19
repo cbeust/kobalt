@@ -39,34 +39,38 @@ class VerifyKobaltZipTest : KobaltTest() {
 
         val mainJarFilePath = "kobalt-$KOBALT_VERSION.jar"
         val zipFilePath = KFiles.joinDir("kobaltBuild", "libs", "kobalt-$KOBALT_VERSION.zip")
-        val zipFile = JarFile(zipFilePath)
-        val stream = JarInputStream(FileInputStream(zipFilePath))
-        var entry = stream.nextEntry
-        while (entry != null) {
-            if (entry.name.endsWith("kobaltw")) {
-                foundKobaltw = true
-            } else if (entry.name.endsWith(mainJarFilePath)) {
-                val ins = zipFile.getInputStream(entry)
-                if (ins.available() < 20000000) {
-                    throw KobaltException(mainJarFilePath + " is too small: " + mainJarFilePath)
+        if (File(zipFilePath).exists()) {
+            val zipFile = JarFile(zipFilePath)
+            val stream = JarInputStream(FileInputStream(zipFilePath))
+            var entry = stream.nextEntry
+            while (entry != null) {
+                if (entry.name.endsWith("kobaltw")) {
+                    foundKobaltw = true
+                } else if (entry.name.endsWith(mainJarFilePath)) {
+                    val ins = zipFile.getInputStream(entry)
+                    if (ins.available() < 20000000) {
+                        throw KobaltException(mainJarFilePath + " is too small: " + mainJarFilePath)
+                    }
+                    verifyMainJarFile(ins)
+                    foundJar = true
+                } else if (entry.name.endsWith("kobalt-wrapper.jar")) {
+                    foundWrapperJar = true
                 }
-                verifyMainJarFile(ins)
-                foundJar = true
-            } else if (entry.name.endsWith("kobalt-wrapper.jar")) {
-                foundWrapperJar = true
+                entry = stream.nextEntry
             }
-            entry = stream.nextEntry
+            if (!foundKobaltw) {
+                throw KobaltException("Couldn't find kobaltw in $zipFilePath")
+            }
+            if (!foundJar) {
+                throw KobaltException("Couldn't find jar in $zipFilePath")
+            }
+            if (!foundWrapperJar) {
+                throw KobaltException("Couldn't find wrapper jar in $zipFilePath")
+            }
+            log(1, "$zipFilePath looks correct")
+        } else {
+            log(1, "Couldn't find $zipFilePath, skipping test")
         }
-        if (! foundKobaltw) {
-            throw KobaltException("Couldn't find kobaltw in $zipFilePath")
-        }
-        if (! foundJar) {
-            throw KobaltException("Couldn't find jar in $zipFilePath")
-        }
-        if (! foundWrapperJar) {
-            throw KobaltException("Couldn't find wrapper jar in $zipFilePath")
-        }
-        log(1, "$zipFilePath looks correct")
     }
 
     private fun assertExistsInJarInputStream(ins: JarInputStream, vararg fileNames: String) {
@@ -79,7 +83,12 @@ class VerifyKobaltZipTest : KobaltTest() {
 
     private fun assertExistsInJar(jarName: String, vararg fileNames: String) {
         val sourceJarPath = KFiles.joinDir("kobaltBuild", "libs", jarName)
-        assertExistsInJarInputStream(JarInputStream(FileInputStream(File(sourceJarPath))), *fileNames)
+        val file = File(sourceJarPath)
+        if (file.exists()) {
+            assertExistsInJarInputStream(JarInputStream(FileInputStream(file)), *fileNames)
+        } else {
+            log(1, "Couldn't find $file, skipping test")
+        }
     }
 
     private fun jarContents(stream: JarInputStream) : Set<String> {
