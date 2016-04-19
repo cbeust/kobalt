@@ -1,7 +1,6 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.TestModule
-import com.beust.kobalt.misc.KobaltLogger
 import com.google.common.collect.TreeMultimap
 import com.google.inject.Inject
 import org.testng.Assert
@@ -56,7 +55,7 @@ class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
 
     @Test
     fun graphTest() {
-        KobaltLogger.LOG_LEVEL = 3
+//        KobaltLogger.LOG_LEVEL = 3
         Assert.assertEquals(runTasks(listOf("compile")), listOf("compile", "postCompile"))
         Assert.assertEquals(runTasks(listOf("postCompile")), listOf("postCompile"))
         Assert.assertEquals(runTasks(listOf("compile", "postCompile")), listOf("compile", "postCompile"))
