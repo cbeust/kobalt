@@ -63,7 +63,6 @@ open class JvmCompilerPlugin @Inject constructor(
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        project.projectProperties.put(DEPENDENT_PROJECTS, projects())
         taskContributor.addIncrementalVariantTasks(this, project, context, "compile",
                 runTask = { taskCompile(project) })
 
@@ -234,6 +233,8 @@ open class JvmCompilerPlugin @Inject constructor(
         with(ProjectDescription(project, dependents)) {
             allProjects.add(this)
         }
+
+        project.projectProperties.put(DEPENDENT_PROJECTS, allProjects)
     }
 
     @Task(name = "doc", description = "Generate the documentation for the project")
