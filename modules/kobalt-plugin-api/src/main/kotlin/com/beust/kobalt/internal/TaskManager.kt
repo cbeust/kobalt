@@ -138,14 +138,15 @@ class TaskManager @Inject constructor(val args: Args,
             DynamicGraph<T> {
 
         val result = DynamicGraph<T>()
-        taskNames.forEach { taskName ->
-            val ti = TaskInfo(taskName)
+        taskNames.forEach { fullTaskName ->
+            val ti = TaskInfo(fullTaskName)
             if (!nodeMap.keys().contains(ti.taskName)) {
-                throw KobaltException("Unknown task: $taskName")
+                throw KobaltException("Unknown task: $fullTaskName")
             }
 
             if (ti.matches(projectName)) {
-                nodeMap[ti.taskName].forEach { task ->
+                val taskName = ti.taskName
+                nodeMap[taskName].forEach { task ->
                     if (task != null && accept(task)) {
                         val toProcess = arrayListOf(task)
                         val seen = hashSetOf<String>()
@@ -175,10 +176,10 @@ class TaskManager @Inject constructor(val args: Args,
                                         }
                                     }
                                 }
-                                maybeAddEdge(ti.taskName, dependsOn, true, false)
-                                maybeAddEdge(ti.taskName, reverseDependsOn, true, true)
-                                maybeAddEdge(ti.taskName, runBefore, false, false)
-                                maybeAddEdge(ti.taskName, runAfter, false, false)
+                                maybeAddEdge(taskName, dependsOn, true, false)
+                                maybeAddEdge(taskName, reverseDependsOn, true, true)
+                                maybeAddEdge(taskName, runBefore, false, false)
+                                maybeAddEdge(taskName, runAfter, false, false)
                             }
                             toProcess.clear()
                             toProcess.addAll(newToProcess)
@@ -187,7 +188,7 @@ class TaskManager @Inject constructor(val args: Args,
                     }
                 }
             } else {
-                log(3, "Task $taskName does not match the current project $projectName, skipping it")
+                log(3, "Task $fullTaskName does not match the current project $projectName, skipping it")
             }
         }
         return result
