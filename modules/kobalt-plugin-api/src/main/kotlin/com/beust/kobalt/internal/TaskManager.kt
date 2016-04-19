@@ -129,10 +129,10 @@ class TaskManager @Inject constructor(val args: Args,
      */
     @VisibleForTesting
     fun <T> createGraph(projectName: String, taskNames: List<String>, nodeMap: Multimap<String, T>,
-            dependsOn: TreeMultimap<String, String>,
-            reverseDependsOn: TreeMultimap<String, String>,
-            runBefore: TreeMultimap<String, String>,
-            runAfter: TreeMultimap<String, String>,
+            dependsOn: Multimap<String, String>,
+            reverseDependsOn: Multimap<String, String>,
+            runBefore: Multimap<String, String>,
+            runAfter: Multimap<String, String>,
             toName: (T) -> String,
             accept: (T) -> Boolean):
             DynamicGraph<T> {
@@ -176,10 +176,10 @@ class TaskManager @Inject constructor(val args: Args,
                                         }
                                     }
                                 }
-                                maybeAddEdge(taskName, dependsOn, true, false)
                                 maybeAddEdge(taskName, reverseDependsOn, true, true)
+                                maybeAddEdge(taskName, dependsOn, true, false)
                                 maybeAddEdge(taskName, runBefore, false, false)
-                                maybeAddEdge(taskName, runAfter, false, false)
+                                maybeAddEdge(taskName, runAfter, false, true)
                             }
                             toProcess.clear()
                             toProcess.addAll(newToProcess)
