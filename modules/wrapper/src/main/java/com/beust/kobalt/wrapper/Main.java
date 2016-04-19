@@ -214,6 +214,9 @@ public class Main {
                         }
                     }
                 }
+            } else {
+                log(2, "  Couldn't find $VERSION_TEXT, overwriting the installed wrapper");
+                installWrapperFiles(version, wrapperVersion);
             }
         }
 
@@ -245,7 +248,7 @@ public class Main {
         }
 
         //
-        // Save wrapper-version.txt
+        // Save wrapperVersion.txt
         //
         log(2, "  Writing " + VERSION_TXT);
         try (FileWriter fw = new FileWriter(VERSION_TXT)) {
