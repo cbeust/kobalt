@@ -27,7 +27,12 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
     override fun create(id: String, project: Project?) : IClasspathDependency {
         if (id.startsWith(FileDependency.PREFIX_FILE)) {
             val path = if (project?.directory != null) {
-                File(project!!.directory, id.substring(FileDependency.PREFIX_FILE.length))
+                val idPath = id.substring(FileDependency.PREFIX_FILE.length)
+                if (! File(idPath).isAbsolute) {
+                    File(project!!.directory, idPath)
+                } else {
+                    File(idPath)
+                }
             } else {
                 File(id.substring(FileDependency.PREFIX_FILE.length))
             }
