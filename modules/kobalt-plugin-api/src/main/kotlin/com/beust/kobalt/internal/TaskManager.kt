@@ -145,47 +145,49 @@ class TaskManager @Inject constructor(val args: Args,
             }
 
             if (ti.matches(projectName)) {
-                val taskName = ti.taskName
-                nodeMap[taskName].forEach { task ->
+                val tiTaskName = ti.taskName
+                nodeMap[tiTaskName].forEach { task ->
                     if (task != null && accept(task)) {
                         val toProcess = arrayListOf(task)
                         val seen = hashSetOf<String>()
                         val newToProcess = arrayListOf<T>()
+
+                        fun maybeAddEdge(task: T, mm: Multimap<String, String>, isDependency: Boolean,
+                                reverseEdges: Boolean = false) {
+                            val taskName = toName(task)
+                            mm[taskName]?.forEach { toName ->
+                                val addEdge = isDependency || (!isDependency && taskNames.contains(toName))
+                                log(3, "   addEdge: $addEdge taskName: $taskName toName: $toName")
+                                if (addEdge) {
+                                    nodeMap[toName].forEach { to ->
+                                        if (reverseEdges) {
+                                            log(3, "     Adding reverse edge $to -> $task it=$toName")
+                                            result.addEdge(to, task)
+                                        } else {
+                                            log(3, "    Adding edge $task -> $to")
+                                            result.addEdge(task, to)
+                                        }
+                                        if (!seen.contains(toName(to))) {
+                                            log(3, "    New node to process: $to")
+                                            newToProcess.add(to)
+                                        } else {
+                                            log(3, "    Already seen: $to")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         while (toProcess.size > 0) {
+                            log(3, "  New batch of nodes to process: $toProcess")
                             toProcess.forEach { current ->
                                 result.addNode(current)
                                 seen.add(toName(current))
 
-                                fun maybeAddEdge(taskName: String, mm: Multimap<String, String>, isDependency: Boolean,
-                                        reverseEdges: Boolean = false) {
-                                    mm[taskName]?.forEach {
-                                        val addEdge = isDependency || (!isDependency && taskNames.contains(it))
-                                        log(3, "    addEdge: $addEdge $taskName")
-                                        if (addEdge) {
-                                            nodeMap[it].filter { it != task }.forEach { to ->
-                                                if (reverseEdges) {
-                                                    log(3, "     Adding reverse edge $to -> $task")
-                                                    result.addEdge(to, task)
-                                                } else {
-                                                    log(3, "    Adding edge $task -> $to")
-                                                    result.addEdge(task, to)
-                                                }
-                                                if (!seen.contains(toName(to))) {
-                                                    log(3, "    New node to process: $to")
-                                                    newToProcess.add(to)
-                                                } else {
-                                                    log(3, "    Already seen: $to")
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                toName(current).let { currentName ->
-                                    maybeAddEdge(currentName, reverseDependsOn, true, true)
-                                    maybeAddEdge(currentName, dependsOn, true, false)
-                                    maybeAddEdge(currentName, runBefore, false, false)
-                                    maybeAddEdge(currentName, runAfter, false, true)
-                                }
+                                maybeAddEdge(current, reverseDependsOn, true, true)
+                                maybeAddEdge(current, dependsOn, true, false)
+                                maybeAddEdge(current, runBefore, false, false)
+                                maybeAddEdge(current, runAfter, false, true)
                             }
                             toProcess.clear()
                             toProcess.addAll(newToProcess)

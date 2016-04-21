@@ -43,9 +43,10 @@ class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
         return result
     }
 
-    @Test
+    @Test(enabled = true)
     fun graphTest() {
 //        KobaltLogger.LOG_LEVEL = 3
+        val t = runCompileTasks(listOf("compile"))
         Assert.assertEquals(runCompileTasks(listOf("compile")), listOf("compile", "postCompile"))
         Assert.assertEquals(runCompileTasks(listOf("postCompile")), listOf("postCompile"))
         Assert.assertEquals(runCompileTasks(listOf("compile", "postCompile")), listOf("compile", "postCompile"))
@@ -84,6 +85,16 @@ class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
 
     @Test
     fun exampleInTheDocTest() {
+        Assert.assertEquals(runTasks(listOf("assemble"),
+                dependsOn = TreeMultimap.create<String, String>().apply {
+                    put("assemble", "compile")
+                },
+                reverseDependsOn = TreeMultimap.create<String, String>().apply {
+                    put("compile", "copyVersionForWrapper")
+                    put("copyVersionForWrapper", "assemble")
+                }),
+                listOf("compile", "copyVersionForWrapper", "assemble"))
+
         Assert.assertEquals(runTasks(listOf("compile"),
                 dependsOn = TreeMultimap.create<String, String>().apply {
                     put("compile", "clean")
