@@ -11,7 +11,7 @@ public class TestNgRunner() : GenericTestRunner() {
 
     override val mainClass = "org.testng.TestNG"
 
-    override val dependencyName = "org.testng"
+    override val dependencyName = "testng"
 
     fun defaultOutput(project: Project) = KFiles.joinDir(project.buildDirectory, "test-output")
 
