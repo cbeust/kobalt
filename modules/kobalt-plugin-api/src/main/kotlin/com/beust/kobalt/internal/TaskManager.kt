@@ -162,7 +162,7 @@ class TaskManager @Inject constructor(val args: Args,
                                         val addEdge = isDependency || (!isDependency && taskNames.contains(it))
                                         log(3, "    addEdge: $addEdge $taskName")
                                         if (addEdge) {
-                                            nodeMap[it].forEach { to ->
+                                            nodeMap[it].filter { it != task }.forEach { to ->
                                                 if (reverseEdges) {
                                                     log(3, "     Adding reverse edge $to -> $task")
                                                     result.addEdge(to, task)
@@ -170,16 +170,22 @@ class TaskManager @Inject constructor(val args: Args,
                                                     log(3, "    Adding edge $task -> $to")
                                                     result.addEdge(task, to)
                                                 }
-                                                if (!seen.contains(it)) newToProcess.add(to)
+                                                if (!seen.contains(toName(to))) {
+                                                    log(3, "    New node to process: $to")
+                                                    newToProcess.add(to)
+                                                } else {
+                                                    log(3, "    Already seen: $to")
+                                                }
                                             }
-                                            seen.add(it)
                                         }
                                     }
                                 }
-                                maybeAddEdge(taskName, reverseDependsOn, true, true)
-                                maybeAddEdge(taskName, dependsOn, true, false)
-                                maybeAddEdge(taskName, runBefore, false, false)
-                                maybeAddEdge(taskName, runAfter, false, true)
+                                toName(current).let { currentName ->
+                                    maybeAddEdge(currentName, reverseDependsOn, true, true)
+                                    maybeAddEdge(currentName, dependsOn, true, false)
+                                    maybeAddEdge(currentName, runBefore, false, false)
+                                    maybeAddEdge(currentName, runAfter, false, true)
+                                }
                             }
                             toProcess.clear()
                             toProcess.addAll(newToProcess)
