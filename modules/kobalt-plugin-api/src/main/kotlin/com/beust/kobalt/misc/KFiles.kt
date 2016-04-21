@@ -204,7 +204,7 @@ class KFiles {
                             dstFile.mkdirs()
                         } else {
                             if (Features.USE_TIMESTAMPS && dstFile.exists() && Md5.toMd5(src) == Md5.toMd5(dstFile)) {
-                                log(2, "  Identical files, not copying $src to $dstFile")
+                                log(3, "  Identical files, not copying $src to $dstFile")
                             } else {
                                 val target = src.copyTo(dstFile, true)
                                 if (target.length() != src.length()) {
@@ -257,10 +257,10 @@ class KFiles {
                 try {
                     if (from != null && to != null) {
                         if (!Files.exists(to) || Md5.toMd5(from.toFile()) != Md5.toMd5(to.toFile())) {
-                            log(2, "Copy from $from to ${to}")
+                            log(3, "Copy from $from to $to")
                             Files.copy(from, to, option)
                         } else {
-                            log(2, "  Not copying, indentical files: $from $to")
+                            log(3, "  Not copying, indentical files: $from $to")
                         }
                     }
                 } catch(ex: IOException) {
