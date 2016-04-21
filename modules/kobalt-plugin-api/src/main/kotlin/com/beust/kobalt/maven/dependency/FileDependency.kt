@@ -5,7 +5,7 @@ import com.beust.kobalt.maven.CompletedFuture
 import org.apache.maven.model.Dependency
 import java.io.File
 
-open public class FileDependency(open val fileName: String) : IClasspathDependency, Comparable<FileDependency> {
+open class FileDependency(open val fileName: String) : IClasspathDependency, Comparable<FileDependency> {
     companion object {
         val PREFIX_FILE: String = "file://"
     }
