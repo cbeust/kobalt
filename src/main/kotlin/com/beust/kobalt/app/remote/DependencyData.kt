@@ -6,6 +6,7 @@ import com.beust.kobalt.api.ProjectDescription
 import com.beust.kobalt.app.BuildFileCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.PluginInfo
+import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
@@ -16,7 +17,8 @@ import java.io.File
 import java.nio.file.Paths
 
 class DependencyData @Inject constructor(val executors: KobaltExecutors, val dependencyManager: DependencyManager,
-        val buildFileCompilerFactory: BuildFileCompiler.IFactory, val pluginInfo: PluginInfo) {
+        val buildFileCompilerFactory: BuildFileCompiler.IFactory, val pluginInfo: PluginInfo,
+        val taskManager: TaskManager) {
     fun dependenciesDataFor(buildFilePath: String, args: Args) : GetDependenciesData {
         val projectDatas = arrayListOf<ProjectData>()
 
@@ -54,7 +56,8 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
             val tests = project.sourceDirectoriesTest.partition { KFiles.isResource(it) }
             projectDatas.add(ProjectData(project.name, project.directory, dependentProjects,
                     compileDependencies, testDependencies,
-                    sources.second.toSet(), tests.second.toSet(), sources.first.toSet(), tests.first.toSet()))
+                    sources.second.toSet(), tests.second.toSet(), sources.first.toSet(), tests.first.toSet(),
+                    taskManager.tasksByNames(project).keySet()))
         }
         return GetDependenciesData(projectDatas, projectResult.taskResult.errorMessage)
     }
@@ -69,7 +72,8 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
             val dependentProjects: List<String>,
             val compileDependencies: List<DependencyData>,
             val testDependencies: List<DependencyData>, val sourceDirs: Set<String>, val testDirs: Set<String>,
-            val sourceResourceDirs: Set<String>, val testResourceDirs: Set<String>)
+            val sourceResourceDirs: Set<String>, val testResourceDirs: Set<String>,
+            val tasks: Collection<String>)
 
     class GetDependenciesData(val projects: List<ProjectData>, val errorMessage: String?)
 }
