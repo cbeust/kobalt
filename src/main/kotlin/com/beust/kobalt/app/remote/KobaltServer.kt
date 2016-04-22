@@ -2,19 +2,20 @@ package com.beust.kobalt.app.remote
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.remote.CommandData
 import com.beust.kobalt.internal.remote.ICommandSender
 import com.beust.kobalt.internal.remote.PingCommand
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.inject.Singleton
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.PrintWriter
+import java.io.*
 import java.net.ServerSocket
 import java.net.SocketException
+import java.util.*
 import javax.inject.Inject
 
 @Singleton
@@ -28,6 +29,30 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
         }.toMap()
 
     override fun run() {
+        try {
+            createServerFile(args.port)
+            privateRun()
+        } finally {
+            deleteServerFile()
+        }
+    }
+
+    val SERVER_FILE = KFiles.joinDir(homeDir(KFiles.KOBALT_DOT_DIR, "kobaltServer.properties"))
+    val KEY_PORT = "port"
+
+    private fun createServerFile(port: Int) {
+        Properties().apply {
+            put(KEY_PORT, port.toString())
+        }.store(FileWriter(SERVER_FILE), "")
+        log(2, "KobaltServer created $SERVER_FILE")
+    }
+
+    private fun deleteServerFile() {
+        log(1, "KobaltServer deleting $SERVER_FILE")
+        File(SERVER_FILE).delete()
+    }
+
+    private fun privateRun() {
         val portNumber = args.port
 
         log(1, "Listening to port $portNumber")
@@ -71,7 +96,9 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
                 clientSocket = serverSocket.accept()
             } catch(ex: Throwable) {
                 ex.printStackTrace()
-                sendData(CommandData(commandName!!, null, ex.message))
+                if (commandName != null) {
+                    sendData(CommandData(commandName, null, ex.message))
+                }
                 log(1, "Command failed: ${ex.message}")
             }
         }

@@ -48,7 +48,7 @@ class KFiles {
     }
 
     companion object {
-        internal const val KOBALT_DOT_DIR : String = ".kobalt"
+        const val KOBALT_DOT_DIR : String = ".kobalt"
         val KOBALT_DIR : String = "kobalt"
         val HOME_KOBALT_DIR = makeDir(homeDir(".config", KOBALT_DIR))
         val KOBALT_BUILD_DIR = "kobaltBuild"
