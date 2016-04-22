@@ -30,7 +30,7 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
             runTask: (Project) -> TaskResult) {
         Variant.allVariants(project).forEach { variant ->
             val variantTaskName = variant.toTask(taskName)
-            dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName,
+            dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName, project,
                     dependsOn = dependsOn.map { variant.toTask(it) },
                     reverseDependsOn = reverseDependsOn.map { variant.toTask(it) },
                     runBefore = runBefore.map { variant.toTask(it) },
@@ -50,7 +50,7 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
             runTask: (Project) -> IncrementalTaskInfo) {
         Variant.allVariants(project).forEach { variant ->
             val variantTaskName = variant.toTask(taskName)
-            dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName,
+            dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName, project,
                     dependsOn = dependsOn.map { variant.toTask(it) },
                     reverseDependsOn = reverseDependsOn.map { variant.toTask(it) },
                     runBefore = runBefore.map { variant.toTask(it) },

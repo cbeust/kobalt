@@ -3,13 +3,16 @@ package com.beust.kobalt.api
 import com.beust.kobalt.internal.TaskResult2
 import java.util.concurrent.Callable
 
-abstract class PluginTask : Callable<TaskResult2<PluginTask>> {
-    abstract val plugin: IPlugin
-    open val name: String = ""
-    open val doc: String = ""
-    abstract val project: Project
+interface ITask : Callable<TaskResult2<ITask>> {
+    val plugin: IPlugin
+    val project: Project
+    val name: String
+    val doc: String
+}
 
-    override fun toString() : String {
-        return project.name + ":" + name
-    }
+abstract class PluginTask : ITask {
+    override val name: String = ""
+    override open val doc: String = ""
+
+    override fun toString() = project.name + ":" + name
 }

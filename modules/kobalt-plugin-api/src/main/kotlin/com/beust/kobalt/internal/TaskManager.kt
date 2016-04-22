@@ -1,10 +1,7 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.*
-import com.beust.kobalt.api.DynamicTask
-import com.beust.kobalt.api.IPlugin
-import com.beust.kobalt.api.PluginTask
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.misc.Strings
@@ -13,6 +10,7 @@ import com.beust.kobalt.misc.kobaltError
 import com.beust.kobalt.misc.log
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.ListMultimap
 import com.google.common.collect.Multimap
 import com.google.common.collect.TreeMultimap
 import java.lang.reflect.Method
@@ -60,6 +58,27 @@ class TaskManager @Inject constructor(val args: Args,
 
     class RunTargetResult(val exitCode: Int, val messages: List<String>)
 
+    /**
+     * @return the list of tasks available for the given project.
+     *
+     * There can be multiple tasks by the same name (e.g. PackagingPlugin and AndroidPlugin both
+     * define "install"), so return a multimap.
+     */
+    fun tasksByNames(project: Project): ListMultimap<String, out ITask> {
+        return ArrayListMultimap.create<String, ITask>().apply {
+            annotationTasks.filter {
+                it.project.name == project.name
+            }.forEach {
+                put(it.name, it)
+            }
+            dynamicTasks.filter {
+                it.plugin.accept(project)
+            }.forEach {
+                put(it.name, it)
+            }
+        }
+    }
+
     fun runTargets(taskNames: List<String>, projects: List<Project>) : RunTargetResult {
         var result = 0
         val failedProjects = hashSetOf<String>()
@@ -83,12 +102,7 @@ class TaskManager @Inject constructor(val args: Args,
             } else {
                 // There can be multiple tasks by the same name (e.g. PackagingPlugin and AndroidPlugin both
                 // define "install"), so use a multimap
-                val tasksByNames = ArrayListMultimap.create<String, PluginTask>()
-                annotationTasks.filter {
-                    it.project.name == project.name
-                }.forEach {
-                    tasksByNames.put(it.name, it)
-                }
+                val tasksByNames = tasksByNames(project)
 
                 log(3, "Tasks:")
                 tasksByNames.keys().forEach {
@@ -97,16 +111,16 @@ class TaskManager @Inject constructor(val args: Args,
 
                 val graph = createGraph(project.name, taskNames, tasksByNames,
                         dependsOn, reverseDependsOn, runBefore, runAfter,
-                        { task: PluginTask -> task.name },
-                        { task: PluginTask -> task.plugin.accept(project) })
+                        { task: ITask -> task.name },
+                        { task: ITask -> task.plugin.accept(project) })
 
                 //
                 // Now that we have a full graph, run it
                 //
                 log(2, "About to run graph:\n  ${graph.dump()}  ")
 
-                val factory = object : IThreadWorkerFactory<PluginTask> {
-                    override fun createWorkers(nodes: Collection<PluginTask>)
+                val factory = object : IThreadWorkerFactory<ITask> {
+                    override fun createWorkers(nodes: Collection<ITask>)
                         = nodes.map { TaskWorker(listOf(it), args.dryRun, messages) }
                 }
 
@@ -128,7 +142,7 @@ class TaskManager @Inject constructor(val args: Args,
      * Create a dynamic graph representing all the tasks that need to be run.
      */
     @VisibleForTesting
-    fun <T> createGraph(projectName: String, taskNames: List<String>, nodeMap: Multimap<String, T>,
+    fun <T> createGraph(projectName: String, taskNames: List<String>, nodeMap: Multimap<String, out T>,
             dependsOn: Multimap<String, String>,
             reverseDependsOn: Multimap<String, String>,
             runBefore: Multimap<String, String>,
@@ -255,13 +269,11 @@ class TaskManager @Inject constructor(val args: Args,
                 method.invoke(plugin, project) as IncrementalTaskInfo
             }))
 
-    class PluginDynamicTask(val plugin: IPlugin, val task: DynamicTask)
-
     /** Tasks annotated with @Task or @IncrementalTask */
     val annotationTasks = arrayListOf<PluginTask>()
 
     /** Tasks provided by ITaskContributors */
-    val dynamicTasks = arrayListOf<PluginDynamicTask>()
+    val dynamicTasks = arrayListOf<DynamicTask>()
 
     fun addAnnotationTask(plugin: IPlugin, method: Method, annotation: Task) =
         taskAnnotations.add(toTaskAnnotation(method, plugin, annotation))
@@ -278,10 +290,9 @@ class TaskManager @Inject constructor(val args: Args,
     }
 
     private fun installDynamicTasks(projects: List<Project>) {
-        dynamicTasks.forEach { dynamicTask ->
-            val task = dynamicTask.task
-            projects.filter { dynamicTask.plugin.accept(it) }.forEach { project ->
-                addTask(dynamicTask.plugin, project, task.name, task.description,
+        dynamicTasks.forEach { task ->
+            projects.filter { task.plugin.accept(it) }.forEach { project ->
+                addTask(task.plugin, project, task.name, task.doc,
                         task.dependsOn, task.reverseDependsOn, task.runBefore, task.runAfter,
                         task.closure)
             }
@@ -318,7 +329,7 @@ class TaskManager @Inject constructor(val args: Args,
             task: (Project) -> TaskResult) {
         annotationTasks.add(
                 object : BasePluginTask(plugin, name, description, project) {
-                    override fun call(): TaskResult2<PluginTask> {
+                    override fun call(): TaskResult2<ITask> {
                         val taskResult = task(project)
                         return TaskResult2(taskResult.success, taskResult.errorMessage, this)
                     }
@@ -334,10 +345,10 @@ class TaskManager @Inject constructor(val args: Args,
     /////
 }
 
-class TaskWorker(val tasks: List<PluginTask>, val dryRun: Boolean, val messages: MutableList<String>)
-        : IWorker<PluginTask> {
+class TaskWorker(val tasks: List<ITask>, val dryRun: Boolean, val messages: MutableList<String>)
+        : IWorker<ITask> {
 
-    override fun call() : TaskResult2<PluginTask> {
+    override fun call() : TaskResult2<ITask> {
         if (tasks.size > 0) {
             tasks[0].let {
                 log(1, AsciiArt.taskColor(AsciiArt.horizontalSingleLine + " ${it.project.name}:${it.name}"))
