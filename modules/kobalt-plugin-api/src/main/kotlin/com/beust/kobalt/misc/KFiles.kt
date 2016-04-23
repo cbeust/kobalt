@@ -222,22 +222,18 @@ class KFiles {
             }
         }
 
-        fun findDotDir(startDir: File) : File {
-            var result = startDir
-            while (result != null && result.parentFile != null && ! File(result, KOBALT_DOT_DIR).exists()) {
-                result = result.parentFile
+        private fun findDotDir(buildFile: BuildFile) : File {
+            val result = File(buildFile.directory.parentFile.parentFile, KOBALT_DOT_DIR).apply {
+                mkdirs()
             }
-            if (result == null) {
-                throw IllegalArgumentException("Couldn't locate $KOBALT_DOT_DIR in $startDir")
-            }
-            return File(result, KOBALT_DOT_DIR)
+            return result
         }
 
         /**
          * The build location for build scripts is .kobalt/build
          */
         fun findBuildScriptLocation(buildFile: BuildFile, jarFile: String) : String {
-            val result = joinDir(findDotDir(buildFile.directory).absolutePath, KFiles.SCRIPT_BUILD_DIR, jarFile)
+            val result = joinDir(buildFile.dotKobaltDir.absolutePath, KFiles.SCRIPT_BUILD_DIR, jarFile)
             log(2, "Script jar file: $result")
             return result
         }

@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal.build
 
+import com.beust.kobalt.misc.KFiles
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -9,10 +10,17 @@ import java.nio.file.attribute.BasicFileAttributes
  * @param path is the path where that file was moved, @param realPath is where the actual file is.
  */
 class BuildFile(val path: Path, val name: String, val realPath: Path = path) {
-    public fun exists() : Boolean = Files.exists(path)
+    fun exists() : Boolean = Files.exists(path)
 
-    public val lastModified : Long
+    val lastModified : Long
         get() = Files.readAttributes(realPath, BasicFileAttributes::class.java).lastModifiedTime().toMillis()
 
-    public val directory : File get() = path.toFile().parentFile
+    val directory : File get() = path.toFile().parentFile
+
+    /**
+     * @return the .kobalt directory where this build file will be compiled.
+     */
+    val dotKobaltDir: File get() = File(directory.parentFile.parentFile, KFiles.KOBALT_DOT_DIR).apply {
+        mkdirs()
+    }
 }
