@@ -3,6 +3,7 @@ package com.beust.kobalt.maven.aether
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.toAetherProxy
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.KobaltSettingsXml
@@ -80,6 +81,7 @@ class Aether(val localRepo: File) {
     private val kobaltRepositories : List<RemoteRepository>
             get() = Kobalt.repos.map {
                 RemoteRepository.Builder("maven", "default", it.url)
+                        .setProxy(Kobalt.proxyConfig.toAetherProxy())
 //                    .setSnapshotPolicy(RepositoryPolicy(false, null, null))
                     .build()
             }

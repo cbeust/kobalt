@@ -30,6 +30,8 @@ fun plugins(vararg dependencies : String) {
     }
 }
 
+data class ProxyConfig(var host: String = "", var port: Int = 0, val type: String = "")
+
 data class HostConfig(var url: String = "", var username: String? = null, var password: String? = null) {
     fun hasAuth() : Boolean {
         return (! username.isNullOrBlank()) && (! password.isNullOrBlank())

@@ -1,6 +1,8 @@
 package com.beust.kobalt.misc
 
 import com.beust.kobalt.KobaltException
+import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.toProxy
 import com.beust.kobalt.internal.DocUrl
 import com.beust.kobalt.maven.Http
 import com.google.gson.Gson
@@ -58,7 +60,7 @@ class GithubApi2 @Inject constructor(
     // Read only Api
     //
     private val service = Retrofit.Builder()
-            .client(OkHttpClient())
+            .client(OkHttpClient.Builder().proxy(Kobalt.proxyConfig.toProxy()).build())
             .baseUrl("https://api.github.com")
             .addConverterFactory(GsonConverterFactory.create())
             .build()

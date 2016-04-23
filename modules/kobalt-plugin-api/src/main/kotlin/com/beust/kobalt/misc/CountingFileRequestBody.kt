@@ -54,7 +54,7 @@ class CountingFileRequestBody(val file: File, val contentType: String,
 //                    //                    .post(requestBody)
 //                    .build();
 //
-//            val response = OkHttpClient().newCall(request).execute()
+//            val response = OkHttpClient.Builder().proxy(Kobalt.proxyConfig.toProxy()).build().newCall(request).execute()
 //            if (! response.isSuccessful) {
 //                println("ERROR")
 //            } else {
