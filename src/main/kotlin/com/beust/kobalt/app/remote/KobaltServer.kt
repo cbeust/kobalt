@@ -3,6 +3,7 @@ package com.beust.kobalt.app.remote
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.homeDir
+import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.remote.CommandData
 import com.beust.kobalt.internal.remote.ICommandSender
 import com.beust.kobalt.internal.remote.PingCommand
@@ -19,8 +20,8 @@ import java.util.*
 import javax.inject.Inject
 
 @Singleton
-public class KobaltServer @Inject constructor(val args: Args) : Runnable, ICommandSender {
-    var outgoing: PrintWriter? = null
+public class KobaltServer @Inject constructor(val args: Args, val pluginInfo: PluginInfo) : Runnable, ICommandSender {
+//    var outgoing: PrintWriter? = null
     val pending = arrayListOf<CommandData>()
 
     private val COMMAND_CLASSES = listOf(GetDependenciesCommand::class.java, PingCommand::class.java)
@@ -30,8 +31,11 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
 
     override fun run() {
         try {
-            createServerFile(args.port)
-            privateRun()
+            if (createServerFile(args.port)) {
+                privateRun()
+            }
+        } catch(ex: Exception) {
+            ex.printStackTrace()
         } finally {
             deleteServerFile()
         }
@@ -40,11 +44,17 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
     val SERVER_FILE = KFiles.joinDir(homeDir(KFiles.KOBALT_DOT_DIR, "kobaltServer.properties"))
     val KEY_PORT = "port"
 
-    private fun createServerFile(port: Int) {
-        Properties().apply {
-            put(KEY_PORT, port.toString())
-        }.store(FileWriter(SERVER_FILE), "")
-        log(2, "KobaltServer created $SERVER_FILE")
+    private fun createServerFile(port: Int) : Boolean {
+        if (File(SERVER_FILE).exists()) {
+            log(1, "Server file $SERVER_FILE already exists, is another server running?")
+            return false
+        } else {
+            Properties().apply {
+                put(KEY_PORT, port.toString())
+            }.store(FileWriter(SERVER_FILE), "")
+            log(2, "KobaltServer created $SERVER_FILE")
+            return true
+        }
     }
 
     private fun deleteServerFile() {
@@ -52,15 +62,35 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
         File(SERVER_FILE).delete()
     }
 
+    lateinit var serverInfo: ServerInfo
+
+    class ServerInfo(val port: Int) {
+        lateinit var reader: BufferedReader
+        lateinit var writer: PrintWriter
+        var serverSocket : ServerSocket? = null
+
+        init {
+            reset()
+        }
+
+        fun reset() {
+            if (serverSocket != null) {
+                serverSocket!!.close()
+            }
+            serverSocket = ServerSocket(port)
+            var clientSocket = serverSocket!!.accept()
+            reader = BufferedReader(InputStreamReader(clientSocket.inputStream))
+            writer = PrintWriter(clientSocket.outputStream, true)
+        }
+    }
+
     private fun privateRun() {
         val portNumber = args.port
 
         log(1, "Listening to port $portNumber")
         var quit = false
-        val serverSocket = ServerSocket(portNumber)
-        var clientSocket = serverSocket.accept()
+        serverInfo = ServerInfo(portNumber)
         while (!quit) {
-            outgoing = PrintWriter(clientSocket.outputStream, true)
             if (pending.size > 0) {
                 log(1, "Emptying the queue, size $pending.size()")
                 synchronized(pending) {
@@ -68,10 +98,9 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
                     pending.clear()
                 }
             }
-            val ins = BufferedReader(InputStreamReader(clientSocket.inputStream))
             var commandName: String? = null
             try {
-                var line = ins.readLine()
+                var line = serverInfo.reader.readLine()
                 while (!quit && line != null) {
                     log(1, "Received from client $line")
                     val jo = JsonParser().parse(line) as JsonObject
@@ -85,15 +114,15 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
                         // Done, send a quit to the client
                         sendData(CommandData("quit", ""))
 
-                        line = ins.readLine()
+                        line = serverInfo.reader.readLine()
                     }
                 }
                 if (line == null) {
-                    quit = true
+                    serverInfo.reset()
                 }
             } catch(ex: SocketException) {
                 log(1, "Client disconnected, resetting")
-                clientSocket = serverSocket.accept()
+                serverInfo.reset()
             } catch(ex: Throwable) {
                 ex.printStackTrace()
                 if (commandName != null) {
@@ -101,6 +130,8 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
                 }
                 log(1, "Command failed: ${ex.message}")
             }
+
+            pluginInfo.shutdown()
         }
     }
 
@@ -115,8 +146,8 @@ public class KobaltServer @Inject constructor(val args: Args) : Runnable, IComma
 
     override fun sendData(commandData: CommandData) {
         val content = Gson().toJson(commandData)
-        if (outgoing != null) {
-            outgoing!!.println(content)
+        if (serverInfo.writer != null) {
+            serverInfo.writer!!.println(content)
         } else {
             log(1, "Queuing $content")
             synchronized(pending) {
