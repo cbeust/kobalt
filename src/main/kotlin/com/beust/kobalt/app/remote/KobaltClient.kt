@@ -13,7 +13,7 @@ import java.net.Socket
 import java.nio.file.Paths
 import javax.inject.Inject
 
-public class KobaltClient @Inject constructor() : Runnable {
+class KobaltClient @Inject constructor() : Runnable {
     var outgoing: PrintWriter? = null
 
     override fun run() {

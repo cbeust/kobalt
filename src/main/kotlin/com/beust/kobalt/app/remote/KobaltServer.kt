@@ -20,7 +20,7 @@ import java.util.*
 import javax.inject.Inject
 
 @Singleton
-public class KobaltServer @Inject constructor(val args: Args, val pluginInfo: PluginInfo) : Runnable, ICommandSender {
+class KobaltServer @Inject constructor(val args: Args, val pluginInfo: PluginInfo) : Runnable, ICommandSender {
 //    var outgoing: PrintWriter? = null
     val pending = arrayListOf<CommandData>()
 
