@@ -5,7 +5,7 @@ import java.io.File
 /**
  * Plug-ins that add tets source directories to be compiled need to implement this interface.
  */
-interface ITestSourceDirectoryContributor {
+interface ITestSourceDirectoryContributor : IContributor {
     fun testSourceDirectoriesFor(project: Project, context: KobaltContext): List<File>
 }
 

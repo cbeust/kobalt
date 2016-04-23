@@ -6,7 +6,7 @@ import com.beust.kobalt.Args
  * Plugins that want to participate in the --init process (they can generate files to initialize
  * a new project).
  */
-interface ITemplateContributor {
+interface ITemplateContributor : IContributor {
     companion object {
         val DIRECTORY_NAME = "templates"
     }

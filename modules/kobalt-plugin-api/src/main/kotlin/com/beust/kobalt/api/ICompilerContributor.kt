@@ -35,6 +35,6 @@ interface ICompiler : Comparable<ICompiler> {
     val canCompileDirectories: Boolean get() = false
 }
 
-interface ICompilerContributor : IProjectAffinity {
+interface ICompilerContributor : IProjectAffinity, IContributor {
     fun compilersFor(project: Project, context: KobaltContext): List<ICompiler>
 }

@@ -5,7 +5,7 @@ import java.io.File
 /**
  * Plug-ins that add source directories to be compiled need to implement this interface.
  */
-interface ISourceDirectoryContributor {
+interface ISourceDirectoryContributor : IContributor {
     fun sourceDirectoriesFor(project: Project, context: KobaltContext): List<File>
 }
 
