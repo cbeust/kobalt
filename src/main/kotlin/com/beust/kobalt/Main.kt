@@ -45,6 +45,7 @@ fun mainNoExit(argv: Array<String>): Int {
     Kobalt.INJECTOR = Guice.createInjector(MainModule(args, KobaltSettings.readSettingsXml()))
     val result = Kobalt.INJECTOR.getInstance(Main::class.java).run {
         val runResult = run(jc, args, argv)
+        pluginInfo.shutdown()
         executors.shutdown()
         runResult
     }

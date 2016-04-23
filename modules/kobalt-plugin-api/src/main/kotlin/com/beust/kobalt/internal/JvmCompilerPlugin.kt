@@ -226,7 +226,12 @@ open class JvmCompilerPlugin @Inject constructor(
 
     val allProjects = arrayListOf<ProjectDescription>()
 
+    // IProjectContributor
     override fun projects() = allProjects
+
+    override fun shutdownActors() {
+        allProjects.clear()
+    }
 
     fun addDependentProjects(project: Project, dependents: List<Project>) {
         project.projectExtra.dependsOn.addAll(dependents)

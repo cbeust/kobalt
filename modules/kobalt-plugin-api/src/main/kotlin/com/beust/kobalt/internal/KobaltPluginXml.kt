@@ -168,6 +168,22 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         }
     }
 
+    fun shutdown() {
+        listOf(projectContributors, classpathContributors, initContributors,
+                repoContributors, compilerFlagContributors, compilerInterceptors,
+                sourceDirectoriesInterceptors, buildDirectoryInterceptors,
+                runnerContributors, testRunnerContributors, classpathInterceptors,
+                compilerContributors, docContributors, sourceDirContributors,
+                testSourceDirContributors, buildConfigFieldContributors,
+                taskContributors, assemblyContributors,
+                incrementalAssemblyContributors
+            ).forEach {
+                it.forEach {
+                    it.shutdownActors()
+                }
+            }
+    }
+
     /**
      * Populate pluginInfo with what was found in the plug-in's kobalt-plugin.xml
      */
