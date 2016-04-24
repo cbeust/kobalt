@@ -3,8 +3,11 @@ package com.beust.kobalt.api
 import com.beust.kobalt.Constants
 import com.beust.kobalt.HostConfig
 import com.beust.kobalt.Plugins
+import com.beust.kobalt.ProxyConfig
 import com.google.inject.Injector
+import org.eclipse.aether.repository.Proxy
 import java.io.InputStream
+import java.net.InetSocketAddress
 import java.time.Duration
 import java.util.*
 
@@ -13,6 +16,18 @@ class Kobalt {
         lateinit var INJECTOR : Injector
 
         var context: KobaltContext? = null
+
+        val proxyConfig = with(Kobalt.context?.settings?.proxy) {
+                if (this != null) {
+                    ProxyConfig(host, port.toIntOr(0), type)
+                } else null
+            }
+
+        fun String.toIntOr(defaultValue: Int) = try {   //TODO can be extracted to some global Utils
+            toInt()
+        } catch(e: NumberFormatException) {
+            defaultValue
+        }
 
         /**
          * @return the repos calculated from the following places:
@@ -99,3 +114,10 @@ class Kobalt {
         fun findPlugin(name: String) = Plugins.findPlugin(name)
     }
 }
+
+
+fun ProxyConfig?.toProxy() = if (this != null) {
+    java.net.Proxy(java.net.Proxy.Type.HTTP, InetSocketAddress(host, port))
+} else null
+
+fun ProxyConfig?.toAetherProxy() = if (this != null) Proxy(type, host, port) else null //TODO make support for proxy auth

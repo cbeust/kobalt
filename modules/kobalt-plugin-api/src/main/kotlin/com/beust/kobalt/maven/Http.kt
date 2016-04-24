@@ -1,6 +1,8 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.KobaltException
+import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.toProxy
 import com.beust.kobalt.misc.CountingFileRequestBody
 import com.beust.kobalt.misc.log
 import okhttp3.*
@@ -19,7 +21,7 @@ class Http {
     }
 
     fun get(user: String?, password: String?, url: String) : Response {
-        val client = OkHttpClient()
+        val client = OkHttpClient.Builder().proxy(Kobalt.proxyConfig.toProxy()).build()
         val request = Request.Builder().url(url)
         if (user != null) {
             request.header("Authorization", Credentials.basic(user, password))
@@ -73,7 +75,7 @@ class Http {
             .build()
 
         log(2, "Uploading $file to $url")
-        val response = OkHttpClient().newCall(request).execute()
+        val response = OkHttpClient.Builder().proxy(Kobalt.proxyConfig.toProxy()).build().newCall(request).execute()
         if (! response.isSuccessful) {
             error(response)
         } else {
