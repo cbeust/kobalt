@@ -1,9 +1,7 @@
 package com.beust.kobalt.app.remote
 
-import com.beust.kobalt.Args
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.homeDir
-import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.remote.CommandData
 import com.beust.kobalt.internal.remote.ICommandSender
 import com.beust.kobalt.internal.remote.PingCommand
@@ -12,15 +10,14 @@ import com.beust.kobalt.misc.log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import com.google.inject.Singleton
 import java.io.*
+import java.lang.management.ManagementFactory
 import java.net.ServerSocket
 import java.net.SocketException
 import java.util.*
-import javax.inject.Inject
+import java.util.concurrent.Callable
 
-@Singleton
-class KobaltServer @Inject constructor(val args: Args, val pluginInfo: PluginInfo) : Runnable, ICommandSender {
+class KobaltServer(val force: Boolean, val shutdownCallback: () -> Unit) : Callable<Int>, ICommandSender {
 //    var outgoing: PrintWriter? = null
     val pending = arrayListOf<CommandData>()
 
@@ -29,28 +26,34 @@ class KobaltServer @Inject constructor(val args: Args, val pluginInfo: PluginInf
             Kobalt.INJECTOR.getInstance(it).let { Pair(it.name, it) }
         }.toMap()
 
-    override fun run() {
+    override fun call() : Int {
+        val port = ProcessUtil.findAvailablePort()
         try {
-            if (createServerFile(args.port)) {
-                privateRun()
+            if (createServerFile(port, force)) {
+                privateRun(port)
             }
         } catch(ex: Exception) {
             ex.printStackTrace()
         } finally {
             deleteServerFile()
         }
+        return port
     }
 
     val SERVER_FILE = KFiles.joinDir(homeDir(KFiles.KOBALT_DOT_DIR, "kobaltServer.properties"))
     val KEY_PORT = "port"
+    val KEY_PID = "pid"
 
-    private fun createServerFile(port: Int) : Boolean {
-        if (File(SERVER_FILE).exists()) {
+    private fun createServerFile(port: Int, force: Boolean) : Boolean {
+        if (File(SERVER_FILE).exists() && ! force) {
             log(1, "Server file $SERVER_FILE already exists, is another server running?")
             return false
         } else {
+            val processName = ManagementFactory.getRuntimeMXBean().name
+            val pid = processName.split("@")[0]
             Properties().apply {
                 put(KEY_PORT, port.toString())
+                put(KEY_PID, pid)
             }.store(FileWriter(SERVER_FILE), "")
             log(2, "KobaltServer created $SERVER_FILE")
             return true
@@ -84,12 +87,10 @@ class KobaltServer @Inject constructor(val args: Args, val pluginInfo: PluginInf
         }
     }
 
-    private fun privateRun() {
-        val portNumber = args.port
-
-        log(1, "Listening to port $portNumber")
+    private fun privateRun(port: Int) {
+        log(1, "Listening to port $port")
         var quit = false
-        serverInfo = ServerInfo(portNumber)
+        serverInfo = ServerInfo(port)
         while (!quit) {
             if (pending.size > 0) {
                 log(1, "Emptying the queue, size $pending.size()")
@@ -114,10 +115,13 @@ class KobaltServer @Inject constructor(val args: Args, val pluginInfo: PluginInf
                         // Done, send a quit to the client
                         sendData(CommandData("quit", ""))
 
+                        // Clean up all the plug-in actors
+                        shutdownCallback()
                         line = serverInfo.reader.readLine()
                     }
                 }
                 if (line == null) {
+                    log(1, "Received null line, resetting the server")
                     serverInfo.reset()
                 }
             } catch(ex: SocketException) {
@@ -130,8 +134,6 @@ class KobaltServer @Inject constructor(val args: Args, val pluginInfo: PluginInf
                 }
                 log(1, "Command failed: ${ex.message}")
             }
-
-            pluginInfo.shutdown()
         }
     }
 
@@ -156,3 +158,4 @@ class KobaltServer @Inject constructor(val args: Args, val pluginInfo: PluginInf
         }
     }
 }
+

@@ -6,6 +6,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.*
+import com.beust.kobalt.app.remote.DependencyData
 import com.beust.kobalt.app.remote.KobaltClient
 import com.beust.kobalt.app.remote.KobaltServer
 import com.beust.kobalt.internal.Gc
@@ -18,7 +19,6 @@ import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.*
 import com.google.common.collect.HashMultimap
-import com.google.inject.Guice
 import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Paths
@@ -42,7 +42,7 @@ private fun parseArgs(argv: Array<String>): Main.RunInfo {
 
 fun mainNoExit(argv: Array<String>): Int {
     val (jc, args) = parseArgs(argv)
-    Kobalt.INJECTOR = Guice.createInjector(MainModule(args, KobaltSettings.readSettingsXml()))
+    Kobalt.init(MainModule(args, KobaltSettings.readSettingsXml()))
     val result = Kobalt.INJECTOR.getInstance(Main::class.java).run {
         val runResult = run(jc, args, argv)
         pluginInfo.shutdown()
@@ -64,8 +64,8 @@ private class Main @Inject constructor(
         val github: GithubApi2,
         val updateKobalt: UpdateKobalt,
         val client: KobaltClient,
-        val server: KobaltServer,
         val pluginInfo: PluginInfo,
+        val dependencyData: DependencyData,
         val projectGenerator: ProjectGenerator,
         val resolveDependency: ResolveDependency) {
 
@@ -91,20 +91,11 @@ private class Main @Inject constructor(
     }
 
     fun run(jc: JCommander, args: Args, argv: Array<String>): Int {
+
         //
         // Install plug-ins requested from the command line
         //
         val pluginClassLoader = installCommandLinePlugins(args)
-
-        //
-        // Add all the plugins read in kobalt-plugin.xml to the Plugins singleton, so that code
-        // in the build file that calls Plugins.findPlugin() can find them (code in the
-        // build file do not have access to the KobaltContext).
-        //
-        pluginInfo.plugins.forEach { Plugins.addPluginInstance(it) }
-
-//        val data = dependencyData.dependenciesDataFor(homeDir("kotlin/klaxon/kobalt/src/Build.kt"), Args())
-//        println("Data: $data")
 
         // --listTemplates
         if (args.listTemplates) {
@@ -166,7 +157,7 @@ private class Main @Inject constructor(
         } else if (args.usage) {
             jc.usage()
         } else if (args.serverMode) {
-            server.run()
+            val port = KobaltServer(args.force, { pluginInfo.shutdown()}).call()
         } else {
             // Options that don't need Build.kt to be parsed first
             if (args.gc) {
@@ -213,6 +204,9 @@ private class Main @Inject constructor(
                     //
                     plugins.applyPlugins(Kobalt.context!!, allProjects)
 
+                    // DONOTCOMMIT
+//                    val data = dependencyData.dependenciesDataFor(homeDir("kotlin/klaxon/kobalt/src/Build.kt"), Args())
+//                    println("Data: $data")
 
                     if (args.projectInfo) {
                         // --projectInfo

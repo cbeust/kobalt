@@ -26,6 +26,10 @@ class Args {
             "actually running them")
     var dryRun: Boolean = false
 
+    @Parameter(names = arrayOf("--force"), description = "Force a new server to be launched even if another one" +
+            " is already running")
+    var force: Boolean = false
+
     @Parameter(names = arrayOf("--gc"), description = "Delete old files")
     var gc: Boolean = false
 

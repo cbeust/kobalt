@@ -6,6 +6,9 @@ import com.beust.kobalt.Plugins
 import com.beust.kobalt.ProxyConfig
 import com.google.inject.Injector
 import org.eclipse.aether.repository.Proxy
+import com.beust.kobalt.internal.PluginInfo
+import com.google.inject.Guice
+import com.google.inject.Module
 import java.io.InputStream
 import java.net.InetSocketAddress
 import java.time.Duration
@@ -14,6 +17,18 @@ import java.util.*
 class Kobalt {
     companion object {
         lateinit var INJECTOR : Injector
+
+        fun init(module: Module) {
+            Kobalt.INJECTOR = Guice.createInjector(module)
+
+            //
+            // Add all the plugins read in kobalt-plugin.xml to the Plugins singleton, so that code
+            // in the build file that calls Plugins.findPlugin() can find them (code in the
+            // build file do not have access to the KobaltContext).
+            //
+            val pluginInfo = Kobalt.INJECTOR.getInstance(PluginInfo::class.java)
+            pluginInfo.plugins.forEach { Plugins.addPluginInstance(it) }
+        }
 
         var context: KobaltContext? = null
 
