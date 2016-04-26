@@ -229,7 +229,7 @@ open class JvmCompilerPlugin @Inject constructor(
     // IProjectContributor
     override fun projects() = allProjects
 
-    override fun shutdownActors() {
+    override fun cleanUpActors() {
         allProjects.clear()
     }
 

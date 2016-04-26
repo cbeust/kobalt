@@ -45,7 +45,7 @@ fun mainNoExit(argv: Array<String>): Int {
     Kobalt.init(MainModule(args, KobaltSettings.readSettingsXml()))
     val result = Kobalt.INJECTOR.getInstance(Main::class.java).run {
         val runResult = run(jc, args, argv)
-        pluginInfo.shutdown()
+        pluginInfo.cleanUp()
         executors.shutdown()
         runResult
     }
@@ -221,8 +221,8 @@ private class Main @Inject constructor(
     }
 
     private fun cleanUp() {
-        pluginInfo.shutdown()
-        taskManager.shutdown()
+        pluginInfo.cleanUp()
+        taskManager.cleanUp()
     }
 
     private fun initForBuildFile(buildFile: BuildFile, args: Args): List<Project> {

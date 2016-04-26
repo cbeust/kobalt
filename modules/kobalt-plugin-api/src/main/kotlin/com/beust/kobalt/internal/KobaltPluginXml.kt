@@ -168,7 +168,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         }
     }
 
-    fun shutdown() {
+    fun cleanUp() {
         listOf(projectContributors, classpathContributors, initContributors,
                 repoContributors, compilerFlagContributors, compilerInterceptors,
                 sourceDirectoriesInterceptors, buildDirectoryInterceptors,
@@ -179,7 +179,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
                 incrementalAssemblyContributors
             ).forEach {
                 it.forEach {
-                    it.shutdownActors()
+                    it.cleanUpActors()
                 }
             }
     }
