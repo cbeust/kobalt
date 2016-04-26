@@ -1,6 +1,7 @@
 package com.beust.kobalt.app.remote
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.remote.ICommand
 import com.beust.kobalt.internal.remote.ICommandSender
 import com.google.gson.Gson
@@ -17,8 +18,9 @@ class GetDependenciesCommand @Inject constructor(val args: Args, val dependencyD
 
     override val name = "getDependencies"
 
-    override fun run(sender: ICommandSender, received: JsonObject) {
+    override fun run(sender: ICommandSender, received: JsonObject, initCallback: (String) -> List<Project>) {
         val buildFile = received.get("buildFile").asString
+        val projects = initCallback(buildFile)
         val dd = dependencyData.dependenciesDataFor(buildFile, args)
         val data = toCommandData(Gson().toJson(dd), dd.errorMessage)
         sender.sendData(data)

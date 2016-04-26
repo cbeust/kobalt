@@ -36,7 +36,7 @@ class ServerProcess {
         var port = launchPrivate()
         while (port == 0) {
             executor.submit {
-                KobaltServer(force = true, shutdownCallback = {}).call()
+                KobaltServer(force = true, initCallback = { buildFile -> emptyList()}, cleanUpCallback = {}).call()
             }
             //            launchServer(ProcessUtil.findAvailablePort())
             port = launchPrivate()

@@ -1,6 +1,7 @@
 package com.beust.kobalt.app.remote
 
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.remote.CommandData
 import com.beust.kobalt.internal.remote.ICommandSender
@@ -17,7 +18,16 @@ import java.net.SocketException
 import java.util.*
 import java.util.concurrent.Callable
 
-class KobaltServer(val force: Boolean, val shutdownCallback: () -> Unit) : Callable<Int>, ICommandSender {
+/**
+ * Launch a Kobalt server. If @param{force} is specified, a new server will be launched even if one was detected
+ * to be already running (from the ~/.kobalt/kobaltServer.properties file).
+ *
+ * The callbacks are used to initialize and clean up the state before and after each command, so that Kobalt's state
+ * can be properly reset, making the server reentrant.
+ */
+class KobaltServer(val force: Boolean,
+        val initCallback: (String) -> List<Project>,
+        val cleanUpCallback: () -> Unit) : Callable<Int>, ICommandSender {
 //    var outgoing: PrintWriter? = null
     val pending = arrayListOf<CommandData>()
 
@@ -110,13 +120,13 @@ class KobaltServer(val force: Boolean, val shutdownCallback: () -> Unit) : Calla
                         log(1, "Quitting")
                         quit = true
                     } else {
-                        runCommand(jo)
+                        runCommand(jo, initCallback)
 
                         // Done, send a quit to the client
                         sendData(CommandData("quit", ""))
 
                         // Clean up all the plug-in actors
-                        shutdownCallback()
+                        cleanUpCallback()
                         line = serverInfo.reader.readLine()
                     }
                 }
@@ -137,10 +147,10 @@ class KobaltServer(val force: Boolean, val shutdownCallback: () -> Unit) : Calla
         }
     }
 
-    private fun runCommand(jo: JsonObject) {
+    private fun runCommand(jo: JsonObject, initCallback: (String) -> List<Project>) {
         val command = jo.get("name").asString
         if (command != null) {
-            (COMMANDS[command] ?: COMMANDS["ping"])!!.run(this, jo)
+            (COMMANDS[command] ?: COMMANDS["ping"])!!.run(this, jo, initCallback)
         } else {
             error("Did not find a name in command: $jo")
         }

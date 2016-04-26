@@ -157,7 +157,11 @@ private class Main @Inject constructor(
         } else if (args.usage) {
             jc.usage()
         } else if (args.serverMode) {
-            val port = KobaltServer(args.force, { pluginInfo.shutdown()}).call()
+            // --server
+            val port = KobaltServer(args.force,
+                    { buildFile -> initForBuildFile(BuildFile(Paths.get(buildFile), buildFile), args)},
+                    { cleanUp() })
+                .call()
         } else {
             // Options that don't need Build.kt to be parsed first
             if (args.gc) {
@@ -172,37 +176,8 @@ private class Main @Inject constructor(
                 if (!buildFile.exists()) {
                     error(buildFile.path.toFile().path + " does not exist")
                 } else {
-                    val findProjectResult = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
-                            .compileBuildFiles(args)
-                    if (! findProjectResult.taskResult.success) {
-                        throw KobaltException("Couldn't compile build file: "
-                                + findProjectResult.taskResult.errorMessage)
-                    }
 
-                    val allProjects = findProjectResult.projects
-
-                    //
-                    // Now that we have projects, add all the repos from repo contributors that need a Project
-                    //
-                    allProjects.forEach { project ->
-                        pluginInfo.repoContributors.forEach {
-                            it.reposFor(project).forEach {
-                                Kobalt.addRepo(it)
-                            }
-                        }
-                    }
-
-                    //
-                    // Run all the dependencies through the IDependencyInterceptors
-                    //
-                    runClasspathInterceptors(allProjects)
-
-                    log(2, "Final list of repos:\n  " + Kobalt.repos.joinToString("\n  "))
-
-                    //
-                    // Call apply() on all plug-ins now that the repos are set up
-                    //
-                    plugins.applyPlugins(Kobalt.context!!, allProjects)
+                    val allProjects = initForBuildFile(buildFile, args)
 
                     // DONOTCOMMIT
 //                    val data = dependencyData.dependenciesDataFor(homeDir("kotlin/klaxon/kobalt/src/Build.kt"), Args())
@@ -243,6 +218,47 @@ private class Main @Inject constructor(
             }
         }
         return result
+    }
+
+    private fun cleanUp() {
+        pluginInfo.shutdown()
+        taskManager.shutdown()
+    }
+
+    private fun initForBuildFile(buildFile: BuildFile, args: Args): List<Project> {
+        val findProjectResult = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
+                .compileBuildFiles(args)
+        if (! findProjectResult.taskResult.success) {
+            throw KobaltException("Couldn't compile build file: "
+                    + findProjectResult.taskResult.errorMessage)
+        }
+
+        val allProjects = findProjectResult.projects
+
+        //
+        // Now that we have projects, add all the repos from repo contributors that need a Project
+        //
+        allProjects.forEach { project ->
+            pluginInfo.repoContributors.forEach {
+                it.reposFor(project).forEach {
+                    Kobalt.addRepo(it)
+                }
+            }
+        }
+
+        //
+        // Run all the dependencies through the IDependencyInterceptors
+        //
+        runClasspathInterceptors(allProjects)
+
+        log(2, "Final list of repos:\n  " + Kobalt.repos.joinToString("\n  "))
+
+        //
+        // Call apply() on all plug-ins now that the repos are set up
+        //
+        plugins.applyPlugins(Kobalt.context!!, allProjects)
+
+        return allProjects
     }
 
     private fun displayTasks() {

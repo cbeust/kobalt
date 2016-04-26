@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal.remote
 
+import com.beust.kobalt.api.Project
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 
@@ -14,7 +15,7 @@ import com.google.gson.JsonObject
 class PingCommand() : ICommand {
     override val name = "ping"
 
-    override fun run(sender: ICommandSender, received: JsonObject) {
+    override fun run(sender: ICommandSender, received: JsonObject, initCallback: (String) -> List<Project>) {
         sender.sendData(toCommandData(Gson().toJson(PingData(received.toString()))))
     }
 

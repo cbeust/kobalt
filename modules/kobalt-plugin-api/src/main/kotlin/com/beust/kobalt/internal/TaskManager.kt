@@ -340,6 +340,15 @@ class TaskManager @Inject constructor(val args: Args,
         runAfter.forEach { runAfter(it, name) }
     }
 
+    /**
+     * Invoked by the server whenever it's done processing a command so the state can be reset for the next command.
+     */
+    private fun cleanUp() {
+        annotationTasks.clear()
+        dynamicTasks.clear()
+        taskAnnotations.clear()
+    }
+
     //
     // Manage the tasks
     /////

@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal.remote
 
+import com.beust.kobalt.api.Project
 import com.google.gson.JsonObject
 
 /**
@@ -14,15 +15,16 @@ interface ICommand {
     /**
      * Run this command based on the information received from the client. When done, use
      * the sender object to send back a response.
+     * @param initCallback The string is a path to the build file
      */
-    fun run(sender: ICommandSender, received: JsonObject)
+    fun run(sender: ICommandSender, received: JsonObject, initCallback: (String) -> List<Project>)
 
     fun toCommandData(data: String, error: String? = null) = CommandData(name, data, error)
 }
 
 /**
  * Passed to a command in its `run` method so it can send information back to the caller.
- * @param The string content that will be sent in the "data" field.
+ * @param commandData The string content that will be sent in the "data" field.
  */
 interface ICommandSender {
     fun sendData(commandData: CommandData)
