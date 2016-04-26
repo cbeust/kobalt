@@ -54,26 +54,31 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
             // Separate resource from source directories
             val sources = project.sourceDirectories.partition { KFiles.isResource(it) }
             val tests = project.sourceDirectoriesTest.partition { KFiles.isResource(it) }
+            val allTasks = taskManager.tasksByNames(project).values().map {
+                TaskData(it.name, it.doc)
+            }
             projectDatas.add(ProjectData(project.name, project.directory, dependentProjects,
                     compileDependencies, testDependencies,
                     sources.second.toSet(), tests.second.toSet(), sources.first.toSet(), tests.first.toSet(),
-                    taskManager.tasksByNames(project).keySet()))
+                    allTasks))
         }
         return GetDependenciesData(projectDatas, projectResult.taskResult.errorMessage)
     }
 
     /////
-    // The JSON payloads that this command uses
+    // The JSON payloads that this command uses. The IDEA plug-in (and any client of the server) needs to
+    // use these same classes.
     //
 
     class DependencyData(val id: String, val scope: String, val path: String)
+    class TaskData(val name: String, val description: String)
 
     class ProjectData(val name: String, val directory: String,
             val dependentProjects: List<String>,
             val compileDependencies: List<DependencyData>,
             val testDependencies: List<DependencyData>, val sourceDirs: Set<String>, val testDirs: Set<String>,
             val sourceResourceDirs: Set<String>, val testResourceDirs: Set<String>,
-            val tasks: Collection<String>)
+            val tasks: Collection<TaskData>)
 
     class GetDependenciesData(val projects: List<ProjectData>, val errorMessage: String?)
 }
