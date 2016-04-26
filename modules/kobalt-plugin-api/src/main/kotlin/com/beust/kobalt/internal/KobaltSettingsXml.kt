@@ -1,12 +1,15 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.ProxyConfig
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import com.google.inject.Singleton
+import org.eclipse.aether.repository.Proxy
 import java.io.File
 import java.io.FileInputStream
+import java.net.InetSocketAddress
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
@@ -62,6 +65,21 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
 
     val proxy = xmlFile.proxy
 
+
+    val proxyConfig = with(proxy) {
+        if (this != null) {
+            com.beust.kobalt.ProxyConfig(host, port.toIntOr(0), type)
+        } else null
+    }
+
+    fun String.toIntOr(defaultValue: Int) = try {   //TODO can be extracted to some global Utils
+        toInt()
+    } catch(e: NumberFormatException) {
+        defaultValue
+    }
+
+
+
     var kobaltCompilerVersion = xmlFile.kobaltCompilerVersion
     var kobaltCompilerRepo = xmlFile.kobaltCompilerRepo
 
@@ -86,3 +104,9 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
     }
 
 }
+
+fun ProxyConfig?.toProxy() = if (this != null) {
+    java.net.Proxy(java.net.Proxy.Type.HTTP, InetSocketAddress(host, port))
+} else null
+
+fun ProxyConfig?.toAetherProxy() = if (this != null) Proxy(type, host, port) else null //TODO make support for proxy auth
