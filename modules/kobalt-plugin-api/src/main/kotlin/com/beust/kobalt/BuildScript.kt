@@ -5,7 +5,9 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
+import org.eclipse.aether.repository.Proxy
 import java.io.File
+import java.net.InetSocketAddress
 
 @Directive
 fun homeDir(vararg dirs: String) : String = SystemProperties.homeDir +
@@ -30,7 +32,11 @@ fun plugins(vararg dependencies : String) {
     }
 }
 
-data class ProxyConfig(var host: String = "", var port: Int = 0, val type: String = "")
+data class ProxyConfig(var host: String = "", var port: Int = 0, val type: String = "") {
+    fun toProxy() = java.net.Proxy(java.net.Proxy.Type.HTTP, InetSocketAddress(host, port))
+
+    fun toAetherProxy() = Proxy(type, host, port) // TODO make support for proxy auth
+}
 
 data class HostConfig(var url: String = "", var username: String? = null, var password: String? = null) {
     fun hasAuth() : Boolean {
