@@ -224,7 +224,7 @@ public class Main {
     }
 
     private void installWrapperFiles(String version, String wrapperVersion) throws IOException {
-        String fromZipOutputDir = DISTRIBUTIONS_DIR + File.separator + "kobalt-" + version;
+        String fromZipOutputDir = DISTRIBUTIONS_DIR + File.separator + "kobalt-" + wrapperVersion;
 
         for (String file : FILES) {
             Path to = Paths.get(file);
