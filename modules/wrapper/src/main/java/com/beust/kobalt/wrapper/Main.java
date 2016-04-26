@@ -251,6 +251,7 @@ public class Main {
         // Save wrapperVersion.txt
         //
         log(2, "  Writing " + VERSION_TXT);
+        VERSION_TXT.getParentFile().mkdirs();
         try (FileWriter fw = new FileWriter(VERSION_TXT)) {
             try (BufferedWriter bw = new BufferedWriter(fw)) {
                 bw.write(wrapperVersion);
