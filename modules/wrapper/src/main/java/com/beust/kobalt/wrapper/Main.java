@@ -238,7 +238,7 @@ public class Main {
                     if (isWindows() && to.toFile().exists()) {
                         log(2, "  Windows detected, not overwriting " + to);
                     } else {
-                        log(2, "  Writing " + to);
+                        log(2, "  Copying " + from + " to " + to);
                         Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
                     }
                 } catch (IOException ex) {
