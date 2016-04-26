@@ -1,9 +1,9 @@
 package com.beust.kobalt.misc
 
 import com.beust.kobalt.KobaltException
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.toProxy
 import com.beust.kobalt.internal.DocUrl
+import com.beust.kobalt.internal.KobaltSettings
+import com.beust.kobalt.internal.toProxy
 import com.beust.kobalt.maven.Http
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
@@ -20,7 +20,7 @@ import java.util.concurrent.Callable
 import java.util.concurrent.Future
 
 class GithubApi2 @Inject constructor(
-        val executors: KobaltExecutors, val localProperties: LocalProperties, val http: Http) {
+        val executors: KobaltExecutors, val localProperties: LocalProperties, val http: Http, val settings:KobaltSettings) {
 
     companion object {
         const val PROPERTY_ACCESS_TOKEN = "github.accessToken"
@@ -60,7 +60,7 @@ class GithubApi2 @Inject constructor(
     // Read only Api
     //
     private val service = Retrofit.Builder()
-            .client(OkHttpClient.Builder().proxy(Kobalt.proxyConfig.toProxy()).build())
+            .client(OkHttpClient.Builder().proxy(settings.proxyConfig.toProxy()).build())
             .baseUrl("https://api.github.com")
             .addConverterFactory(GsonConverterFactory.create())
             .build()

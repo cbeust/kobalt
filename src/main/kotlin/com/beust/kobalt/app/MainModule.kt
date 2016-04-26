@@ -53,7 +53,7 @@ public open class MainModule(val args: Args, val settings: KobaltSettings) : Abs
         bind(KobaltSettings::class.java).toProvider(Provider<KobaltSettings> {
             settings
         }).`in`(Singleton::class.java)
-        bind(Aether::class.java).toInstance(Aether(settings.localRepo))
+        bind(Aether::class.java).toInstance(Aether(settings.localRepo,settings))
 
 //        bindListener(Matchers.any(), object: TypeListener {
 //            override fun <I> hear(typeLiteral: TypeLiteral<I>?, typeEncounter: TypeEncounter<I>?) {

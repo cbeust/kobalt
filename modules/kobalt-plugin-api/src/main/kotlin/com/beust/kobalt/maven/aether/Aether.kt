@@ -3,10 +3,10 @@ package com.beust.kobalt.maven.aether
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.toAetherProxy
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.KobaltSettingsXml
+import com.beust.kobalt.internal.toAetherProxy
 import com.beust.kobalt.maven.CompletedFuture
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.misc.KobaltLogger
@@ -72,7 +72,7 @@ class ExcludeOptionalDependencyFilter: DependencyFilter {
 }
 
 @Singleton
-class Aether(val localRepo: File) {
+class Aether(val localRepo: File, val settings: KobaltSettings) {
     private val system = Booter.newRepositorySystem()
     private val session = Booter.newRepositorySystemSession(system, localRepo)
     private val classpathFilter = AndDependencyFilter(
@@ -81,7 +81,7 @@ class Aether(val localRepo: File) {
     private val kobaltRepositories : List<RemoteRepository>
             get() = Kobalt.repos.map {
                 RemoteRepository.Builder("maven", "default", it.url)
-                        .setProxy(Kobalt.proxyConfig.toAetherProxy())
+                        .setProxy(settings.proxyConfig.toAetherProxy())
 //                    .setSnapshotPolicy(RepositoryPolicy(false, null, null))
                     .build()
             }
@@ -227,7 +227,7 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
 fun main(argv: Array<String>) {
     KobaltLogger.LOG_LEVEL = 1
     val id = "org.testng:testng:6.9.11"
-    val aether = KobaltAether(KobaltSettings(KobaltSettingsXml()), Aether(File(homeDir(".aether"))))
+    val aether = KobaltAether(KobaltSettings(KobaltSettingsXml()), Aether(File(homeDir(".aether")),KobaltSettings(KobaltSettingsXml())))
     val r = aether.resolve(id)
     val r2 = aether.resolve(id)
     val d = org.eclipse.aether.artifact.DefaultArtifact("org.testng:testng:6.9")
