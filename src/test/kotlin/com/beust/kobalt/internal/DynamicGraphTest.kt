@@ -36,36 +36,38 @@ class DynamicGraphTest {
 
     @Test
     fun testExecutor() {
-        val dg = DynamicGraph<String>();
-        dg.addEdge("compile", "runApt")
-        dg.addEdge("compile", "generateVersion")
+        DynamicGraph<String>().apply {
+            addEdge("compile", "runApt")
+            addEdge("compile", "generateVersion")
 
-        val runNodes = arrayListOf<String>()
-        val factory = createFactory(runNodes, { true })
+            val runNodes = arrayListOf<String>()
+            val factory = createFactory(runNodes, { true })
 
-        DynamicGraphExecutor(dg, factory).run()
-        Assert.assertEquals(runNodes.size, 3)
+            DynamicGraphExecutor(this, factory).run()
+            Assert.assertEquals(runNodes.size, 3)
+        }
     }
 
 
     @Test
     private fun testExecutorWithSkip() {
-
-        val g = DynamicGraph<Int>()
-        // 2 and 3 depend on 1, 4 depend on 3, 10 depends on 4
-        // 3 will blow up, which should make 4 and 10 skipped
-        g.addEdge(2, 1)
-        g.addEdge(3, 1)
-        g.addEdge(4, 3)
-        g.addEdge(10, 4)
-        g.addEdge(5, 2)
-        val runNodes = arrayListOf<Int>()
-        val factory = createFactory(runNodes, { n -> n != 3 })
-        val ex = DynamicGraphExecutor(g, factory)
-        ex.run()
-        Thread.`yield`()
-        Assert.assertTrue(! runNodes.contains(4))
-        Assert.assertTrue(! runNodes.contains(10))
+        DynamicGraph<Int>().apply {
+            // 2 and 3 depend on 1, 4 depend on 3, 10 depends on 4
+            // 3 will blow up, which should make 4 and 10 skipped
+            addEdge(2, 1)
+            addEdge(3, 1)
+            addEdge(4, 3)
+            addEdge(10, 4)
+            addEdge(5, 2)
+            arrayListOf<Int>().let { runNodes ->
+                val factory = createFactory(runNodes, { n -> n != 3 })
+                val ex = DynamicGraphExecutor(this, factory)
+                ex.run()
+                Thread.`yield`()
+                Assert.assertTrue(!runNodes.contains(4))
+                Assert.assertTrue(!runNodes.contains(10))
+            }
+        }
     }
 
     @Test
@@ -130,7 +132,6 @@ class DynamicGraphTest {
 
     @Test
     fun runAfter() {
-
         DynamicGraph<String>().apply {
             // a -> b
             // b -> c, d
