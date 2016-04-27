@@ -9,23 +9,82 @@ import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
-import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.inject.Guice
+import okhttp3.OkHttpClient
+import retrofit2.Call
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.POST
+import retrofit2.http.Query
 import java.io.*
-import java.net.ConnectException
 import java.net.Socket
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.Executors
-import javax.inject.Inject
 
 fun main(argv: Array<String>) {
     Kobalt.INJECTOR = Guice.createInjector(MainModule(Args(), KobaltSettings.readSettingsXml()))
-    val port = ServerProcess().launch()
-    println("SERVER RUNNING ON PORT $port")
+    KobaltClient().run()
 }
+
+interface Api {
+    @POST("/getDependencies")
+    fun getDependencies(@Query("buildFile") buildFile: String) : Call<List<DependencyData.GetDependenciesData>>
+}
+
+class KobaltClient : Runnable {
+    var outgoing: PrintWriter? = null
+
+    private val service = Retrofit.Builder()
+            .client(OkHttpClient.Builder().build())
+            .baseUrl("http://localhost:1252")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(Api::class.java)
+
+    override fun run() {
+        val buildFile = Paths.get(SystemProperties.homeDir, "kotlin/klaxon/kobalt/src/Build.kt").toString()
+        val dependencies = service.getDependencies(buildFile)
+        val results = dependencies.execute()
+        println("Dependencies: $results")
+//        .toString())
+//        var done = false
+//        var attempts = 1
+//        while (attempts < 10 && ! done) {
+//            try {
+//                val socket = Socket("localhost", portNumber)
+//                outgoing = PrintWriter(socket.outputStream, true)
+//                val testBuildfile = Paths.get(SystemProperties.homeDir, "kotlin/klaxon/kobalt/src/Build.kt")
+//                    .toFile().absolutePath
+//                val c : String = """{ "name": "getDependencies", "buildFile": "$testBuildfile"}"""
+//                outgoing!!.println(c)
+//                val ins = BufferedReader(InputStreamReader(socket.inputStream))
+//                var line = ins.readLine()
+//                while (! done && line != null) {
+//                    log(1, "Received from server:\n" + line)
+//                    val jo = JsonParser().parse(line) as JsonObject
+//                    if (jo.has("name") && "quit" == jo.get("name").asString.toLowerCase()) {
+//                        log(1, "Quitting")
+////                        outgoing!!.println("{ \"name\": \"Quit\" }")
+//                        done = true
+//                    } else {
+//                        val data = jo.get("data").asString
+//                        val dd = Gson().fromJson(data, DependencyData.GetDependenciesData::class.java)
+//                        println("Read GetDependencyData, project count: ${dd.projects.size}")
+//                        line = ins.readLine()
+//                    }
+//                }
+//            } catch(ex: ConnectException) {
+//                log(1, "Server not up, sleeping a bit")
+//                Thread.sleep(2000)
+//                attempts++
+//            }
+//        }
+    }
+}
+
 
 class ServerProcess {
     val SERVER_FILE = KFiles.joinDir(homeDir(KFiles.KOBALT_DOT_DIR, "kobaltServer.properties"))
@@ -123,43 +182,3 @@ class ServerProcess {
     }
 }
 
-class KobaltClient @Inject constructor() : Runnable {
-    var outgoing: PrintWriter? = null
-
-    override fun run() {
-        val portNumber = 1234
-
-        var done = false
-        var attempts = 1
-        while (attempts < 10 && ! done) {
-            try {
-                val socket = Socket("localhost", portNumber)
-                outgoing = PrintWriter(socket.outputStream, true)
-                val testBuildfile = Paths.get(SystemProperties.homeDir, "kotlin/klaxon/kobalt/src/Build.kt")
-                    .toFile().absolutePath
-                val c : String = """{ "name": "getDependencies", "buildFile": "$testBuildfile"}"""
-                outgoing!!.println(c)
-                val ins = BufferedReader(InputStreamReader(socket.inputStream))
-                var line = ins.readLine()
-                while (! done && line != null) {
-                    log(1, "Received from server:\n" + line)
-                    val jo = JsonParser().parse(line) as JsonObject
-                    if (jo.has("name") && "quit" == jo.get("name").asString.toLowerCase()) {
-                        log(1, "Quitting")
-//                        outgoing!!.println("{ \"name\": \"Quit\" }")
-                        done = true
-                    } else {
-                        val data = jo.get("data").asString
-                        val dd = Gson().fromJson(data, DependencyData.GetDependenciesData::class.java)
-                        println("Read GetDependencyData, project count: ${dd.projects.size}")
-                        line = ins.readLine()
-                    }
-                }
-            } catch(ex: ConnectException) {
-                log(1, "Server not up, sleeping a bit")
-                Thread.sleep(2000)
-                attempts++
-            }
-        }
-    }
-}

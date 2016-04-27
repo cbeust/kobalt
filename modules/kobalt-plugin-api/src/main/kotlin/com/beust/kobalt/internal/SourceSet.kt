@@ -16,7 +16,7 @@ enum class SourceSet(val outputDir: String) {
 
     companion object {
         fun of(isTest: Boolean) = if (isTest) TEST else MAIN
-        private fun unknown(sourceSet: SourceSet) = throw KobaltException("Unknown source set: $sourceSet")
+        private fun unknown(sourceSet: SourceSet) : Nothing = throw KobaltException("Unknown source set: $sourceSet")
     }
 }
 

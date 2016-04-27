@@ -1,14 +1,18 @@
-import com.beust.kobalt.*
+
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.License
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.Scm
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.homeDir
 import com.beust.kobalt.plugin.application.application
 import com.beust.kobalt.plugin.java.javaCompiler
 import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.packaging.assemble
 import com.beust.kobalt.plugin.publish.bintray
 import com.beust.kobalt.plugin.publish.github
+import com.beust.kobalt.project
+import com.beust.kobalt.test
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -22,6 +26,8 @@ object Versions {
     val aether = "1.1.0"
     val sonatypeAether = "1.13.1"
     val maven = "3.3.9"
+    val jersey = "2.22.2"
+    val jetty = "8.1.19.v20160209" // "9.3.9.M1"
 }
 
 val wrapper = project {
@@ -57,7 +63,7 @@ val kobaltPluginApi = project {
     directory = "modules/kobalt-plugin-api"
     description = "A build system in Kotlin"
     url = "http://beust.com/kobalt"
-    licenses = arrayListOf(License("Apache 2.0", "http://www.apache.org/licenses/LICENSE-2.0"))
+    licenses = listOf(License("Apache 2.0", "http://www.apache.org/licenses/LICENSE-2.0"))
     scm = Scm(url = "http://github.com/cbeust/kobalt",
             connection = "https://github.com/cbeust/kobalt.git",
             developerConnection = "git@github.com:cbeust/kobalt.git")
@@ -135,7 +141,14 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "org.codehaus.plexus:plexus-utils:3.0.22",
-                "biz.aQute.bnd:bndlib:2.4.0"
+                "biz.aQute.bnd:bndlib:2.4.0",
+                "org.eclipse.jetty:jetty-server:${Versions.jetty}",
+                "org.eclipse.jetty:jetty-servlet:${Versions.jetty}",
+                "org.glassfish.jersey.core:jersey-server:${Versions.jersey}",
+                "org.glassfish.jersey.containers:jersey-container-servlet-core:${Versions.jersey}",
+                "org.glassfish.jersey.containers:jersey-container-jetty-http:${Versions.jersey}",
+                "org.glassfish.jersey.media:jersey-media-moxy:${Versions.jersey}"
+//                "org.eclipse.jetty.aggregate:jetty-all::uber:9.3.9.M1"
         )
 
     }

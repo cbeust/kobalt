@@ -1,5 +1,6 @@
 package com.beust.kobalt.app.remote
 
+import com.beust.kobalt.Args
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.homeDir
@@ -11,12 +12,21 @@ import com.beust.kobalt.misc.log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import org.glassfish.jersey.jetty.JettyHttpContainerFactory
+import org.glassfish.jersey.server.ResourceConfig
+import org.glassfish.jersey.server.ServerProperties
 import java.io.*
 import java.lang.management.ManagementFactory
 import java.net.ServerSocket
 import java.net.SocketException
 import java.util.*
 import java.util.concurrent.Callable
+import javax.ws.rs.GET
+import javax.ws.rs.Path
+import javax.ws.rs.Produces
+import javax.ws.rs.QueryParam
+import javax.ws.rs.core.MediaType
+import javax.ws.rs.core.UriBuilder
 
 /**
  * Launch a Kobalt server. If @param{force} is specified, a new server will be launched even if one was detected
@@ -31,6 +41,16 @@ class KobaltServer(val force: Boolean, val port: Int = 1234,
 //    var outgoing: PrintWriter? = null
     val pending = arrayListOf<CommandData>()
 
+    companion object {
+        lateinit var initCallback: (String) -> List<Project>
+        lateinit var cleanUpCallback: () -> Unit
+    }
+
+    init {
+        KobaltServer.initCallback = initCallback
+        KobaltServer.cleanUpCallback = cleanUpCallback
+    }
+
     private val COMMAND_CLASSES = listOf(GetDependenciesCommand::class.java, PingCommand::class.java)
     private val COMMANDS = COMMAND_CLASSES.map {
             Kobalt.INJECTOR.getInstance(it).let { Pair(it.name, it) }
@@ -39,8 +59,9 @@ class KobaltServer(val force: Boolean, val port: Int = 1234,
     override fun call() : Int {
         val availablePort = ProcessUtil.findAvailablePort(port)
         try {
-            if (createServerFile(availablePort, force)) {
-                privateRun(availablePort)
+            if (createServerFile(port, force)) {
+//                oldRun(port)
+                privateRun(port)
             }
         } catch(ex: Exception) {
             ex.printStackTrace()
@@ -97,7 +118,49 @@ class KobaltServer(val force: Boolean, val port: Int = 1234,
         }
     }
 
+    @Path("/v0")
+    class MyResource : ResourceConfig() {
+        init {
+            property(ServerProperties.TRACING, "ALL")
+        }
+
+        @GET
+        @Path("getDependencies")
+        @Produces(MediaType.APPLICATION_JSON)
+        fun getDependencies(@QueryParam("buildFile") buildFile: String) : String {
+            try {
+                val dependencyData = Kobalt.INJECTOR.getInstance(DependencyData::class.java)
+                val args = Kobalt.INJECTOR.getInstance(Args::class.java)
+
+                val projects = initCallback(buildFile)
+                val dd = dependencyData.dependenciesDataFor(buildFile, args)
+                val data = CommandData("getDependencies", Gson().toJson(dd), dd.errorMessage)
+
+                return Gson().toJson(data)
+            } catch(ex: Exception) {
+                return "Error: " + ex.message
+            } finally {
+                cleanUpCallback()
+            }
+        }
+    }
+
     private fun privateRun(port: Int) {
+        log(1, "Listening to port $port")
+
+        val baseUri = UriBuilder.fromUri("http://localhost/").port(port).build()
+        val config = ResourceConfig(MyResource::class.java)
+        with (JettyHttpContainerFactory.createServer(baseUri, config)) {
+            try {
+                start()
+                join()
+            } finally {
+                destroy()
+            }
+        }
+    }
+
+    private fun oldRun(port: Int) {
         log(1, "Listening to port $port")
         var quit = false
         serverInfo = ServerInfo(port)
