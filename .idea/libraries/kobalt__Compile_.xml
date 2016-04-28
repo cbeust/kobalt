@@ -49,8 +49,8 @@
       <root url="jar://$USER_HOME$/.kobalt/repository/org/glassfish/jersey/bundles/repackaged/jersey-guava/2.22.2/jersey-guava-2.22.2.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.0.0/kotlin-compiler-embeddable-1.0.0.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/retrofit2/converter-gson/2.0.0/converter-gson-2.0.0.jar!/" />
-      <root url="jar://$USER_HOME$/.kobalt/repository/org/eclipse/persistence/org.eclipse.persistence.moxy/2.6.0/org.eclipse.persistence.moxy-2.6.0.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/org/eclipse/persistence/org.eclipse.persistence.asm/2.6.0/org.eclipse.persistence.asm-2.6.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/eclipse/persistence/org.eclipse.persistence.moxy/2.6.0/org.eclipse.persistence.moxy-2.6.0.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/org/glassfish/hk2/hk2-locator/2.4.0-b34/hk2-locator-2.4.0-b34.jar!/" />
     </CLASSES>
     <JAVADOC />

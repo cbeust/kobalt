@@ -10,12 +10,12 @@ object Constants {
     internal val DEFAULT_REPOS = listOf<String>(
 //            "https://maven-central.storage.googleapis.com/",
             "http://repo1.maven.org/maven2/",
-            "https://jcenter.bintray.com/"
+            "https://jcenter.bintray.com/",
+            "http://repository.jetbrains.com/all/"
 
             // snapshots
 //            "https://oss.sonatype.org/content/repositories/snapshots/"
 //            , "https://repository.jboss.org/nexus/content/repositories/root_repository/"
-//            , "http://repository.jetbrains.com/all/"
     )
 
 }

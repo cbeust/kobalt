@@ -48,10 +48,6 @@ class Args {
     @Parameter(names = arrayOf("--noIncremental"), description = "Turn off incremental builds")
     var noIncremental: Boolean = false
 
-    companion object {
-        const val DEFAULT_SERVER_PORT = 1234
-    }
-
     @Parameter(names = arrayOf("--plugins"), description = "Comma-separated list of plug-in Maven id's")
     var pluginIds: String? = null
 
@@ -59,7 +55,7 @@ class Args {
     var pluginJarFiles: String? = null
 
     @Parameter(names = arrayOf("--port"), description = "Port, if --server was specified")
-    var port: Int = DEFAULT_SERVER_PORT
+    var port: Int? = null
 
     @Parameter(names = arrayOf("--profiles"), description = "Comma-separated list of profiles to run")
     var profiles: String? = null

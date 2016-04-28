@@ -142,13 +142,15 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "org.codehaus.plexus:plexus-utils:3.0.22",
                 "biz.aQute.bnd:bndlib:2.4.0",
+
                 "org.eclipse.jetty:jetty-server:${Versions.jetty}",
                 "org.eclipse.jetty:jetty-servlet:${Versions.jetty}",
                 "org.glassfish.jersey.core:jersey-server:${Versions.jersey}",
                 "org.glassfish.jersey.containers:jersey-container-servlet-core:${Versions.jersey}",
                 "org.glassfish.jersey.containers:jersey-container-jetty-http:${Versions.jersey}",
                 "org.glassfish.jersey.media:jersey-media-moxy:${Versions.jersey}"
-//                "org.eclipse.jetty.aggregate:jetty-all::uber:9.3.9.M1"
+
+//                "org.wasabi:wasabi:0.1.182"
         )
 
     }
