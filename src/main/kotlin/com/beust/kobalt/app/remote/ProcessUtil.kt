@@ -5,8 +5,10 @@ import java.net.Socket
 
 class ProcessUtil {
     companion object {
-        fun findAvailablePort(): Int {
-            for (i in 1234..65000) {
+        fun findAvailablePort(port: Int = 1234): Int {
+            if (isPortAvailable(port)) return port
+
+            for (i in 1235..65000) {
                 if (isPortAvailable(i)) return i
             }
             throw IllegalArgumentException("Couldn't find any port available, something is very wrong")

@@ -158,7 +158,7 @@ private class Main @Inject constructor(
             jc.usage()
         } else if (args.serverMode) {
             // --server
-            val port = KobaltServer(args.force,
+            val port = KobaltServer(args.force, args.port,
                     { buildFile -> initForBuildFile(BuildFile(Paths.get(buildFile), buildFile), args)},
                     { cleanUp() })
                 .call()

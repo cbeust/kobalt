@@ -25,7 +25,7 @@ import java.util.concurrent.Callable
  * The callbacks are used to initialize and clean up the state before and after each command, so that Kobalt's state
  * can be properly reset, making the server reentrant.
  */
-class KobaltServer(val force: Boolean,
+class KobaltServer(val force: Boolean, val port: Int = 1234,
         val initCallback: (String) -> List<Project>,
         val cleanUpCallback: () -> Unit) : Callable<Int>, ICommandSender {
 //    var outgoing: PrintWriter? = null
@@ -37,17 +37,17 @@ class KobaltServer(val force: Boolean,
         }.toMap()
 
     override fun call() : Int {
-        val port = ProcessUtil.findAvailablePort()
+        val availablePort = ProcessUtil.findAvailablePort(port)
         try {
-            if (createServerFile(port, force)) {
-                privateRun(port)
+            if (createServerFile(availablePort, force)) {
+                privateRun(availablePort)
             }
         } catch(ex: Exception) {
             ex.printStackTrace()
         } finally {
             deleteServerFile()
         }
-        return port
+        return availablePort
     }
 
     val SERVER_FILE = KFiles.joinDir(homeDir(KFiles.KOBALT_DOT_DIR, "kobaltServer.properties"))
