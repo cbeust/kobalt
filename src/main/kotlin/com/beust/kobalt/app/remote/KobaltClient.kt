@@ -112,18 +112,19 @@ class ServerProcess {
                 }
 
                 try {
-                    val socket = Socket("localhost", result)
-                    val outgoing = PrintWriter(socket.outputStream, true)
-                    val c: String = """{ "name": "ping"}"""
-                    outgoing.println(c)
-                    val ins = BufferedReader(InputStreamReader(socket.inputStream))
-                    var line = ins.readLine()
-                    val jo = JsonParser().parse(line) as JsonObject
-                    val jsonData = jo["data"]?.asString
-                    val dataObject = JsonParser().parse(jsonData) as JsonObject
-                    val received = JsonParser().parse(dataObject["received"].asString) as JsonObject
-                    if (received["name"].asString == "ping") {
-                        result = properties.getProperty(KEY_PORT).toInt()
+                    Socket("localhost", result).use { socket ->
+                        val outgoing = PrintWriter(socket.outputStream, true)
+                        val c: String = """{ "name": "ping"}"""
+                        outgoing.println(c)
+                        val ins = BufferedReader(InputStreamReader(socket.inputStream))
+                        var line = ins.readLine()
+                        val jo = JsonParser().parse(line) as JsonObject
+                        val jsonData = jo["data"]?.asString
+                        val dataObject = JsonParser().parse(jsonData) as JsonObject
+                        val received = JsonParser().parse(dataObject["received"].asString) as JsonObject
+                        if (received["name"].asString == "ping") {
+                            result = properties.getProperty(KEY_PORT).toInt()
+                        }
                     }
                 } catch(ex: IOException) {
                     log(1, "Couldn't connect to current server, launching a new one")
