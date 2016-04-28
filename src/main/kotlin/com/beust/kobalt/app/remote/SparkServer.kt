@@ -4,6 +4,7 @@ import com.beust.kobalt.Args
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.google.gson.Gson
+import spark.ResponseTransformer
 import spark.Route
 import spark.Spark
 
@@ -20,30 +21,36 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
         SparkServer.cleanUpCallback = cleanUpCallback
     }
 
+    class JsonTransformer : ResponseTransformer {
+        val gson = Gson()
+        override fun render(model: Any) = gson.toJson(model)
+    }
+
     override fun run(port: Int) {
         Spark.port(port)
-        Spark.get("/hello", Route { req, res -> "Hello world" })
-        Spark.get("/v0/getDependencies", { request, response ->
+        Spark.get("/hello", { req, res -> "Hello world" })
+        Spark.get("/v0/getDependencies", "application/json", Route { request, response ->
             val buildFile = request.queryParams("buildFile")
-            if (buildFile != null) {
-                val projects = initCallback(buildFile)
-                val result = try {
-                    val dependencyData = Kobalt.INJECTOR.getInstance(DependencyData::class.java)
-                    val args = Kobalt.INJECTOR.getInstance(Args::class.java)
+            initCallback(buildFile)
+            val result =
+                if (buildFile != null) {
+                    initCallback(buildFile)
+                    try {
+                        val dependencyData = Kobalt.INJECTOR.getInstance(DependencyData::class.java)
+                        val args = Kobalt.INJECTOR.getInstance(Args::class.java)
 
-                    val dd = dependencyData.dependenciesDataFor(buildFile, args)
-                    Gson().toJson(dd)
-                } catch(ex: Exception) {
-                    "Error: " + ex.message
-                } finally {
-                    cleanUpCallback()
+                        dependencyData.dependenciesDataFor(buildFile, args)
+                    } catch(ex: Exception) {
+                        "Error: " + ex.message
+                    } finally {
+                        cleanUpCallback()
+                    }
+                } else {
+                    "error"
                 }
-
-                result
-            } else {
-                "error"
-            }
-        })
+            cleanUpCallback()
+            result
+        }, JsonTransformer())
     }
 }
 
