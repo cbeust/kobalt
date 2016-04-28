@@ -11,8 +11,8 @@
       <root url="jar://$USER_HOME$/.kobalt/repository/com/beust/jcommander/1.48/jcommander-1.48.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/org/apache/maven/maven-artifact/3.3.9/maven-artifact-3.3.9.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/org/sonatype/aether/aether-util/1.13.1/aether-util-1.13.1.jar!/" />
-      <root url="jar://$USER_HOME$/.kobalt/repository/org/eclipse/aether/aether-transport-http/1.1.0/aether-transport-http-1.1.0.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/org/slf4j/slf4j-nop/1.6.0/slf4j-nop-1.6.0.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/eclipse/aether/aether-transport-http/1.1.0/aether-transport-http-1.1.0.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/org/sonatype/aether/aether-connector-wagon/1.13.1/aether-connector-wagon-1.13.1.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/com/squareup/okhttp3/okhttp/3.2.0/okhttp-3.2.0.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/org/eclipse/aether/aether-spi/1.1.0/aether-spi-1.1.0.jar!/" />
@@ -21,8 +21,8 @@
       <root url="jar://$USER_HOME$/.kobalt/repository/org/apache/maven/maven-model-builder/3.3.9/maven-model-builder-3.3.9.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/org/sonatype/aether/aether-api/1.13.1/aether-api-1.13.1.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/io/reactivex/rxjava/1.0.16/rxjava-1.0.16.jar!/" />
-      <root url="jar://$USER_HOME$/.kobalt/repository/org/sonatype/sisu/sisu-inject-bean/2.2.3/sisu-inject-bean-2.2.3.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/org/apache/maven/maven-aether-provider/3.3.9/maven-aether-provider-3.3.9.jar!/" />
+      <root url="jar://$USER_HOME$/.kobalt/repository/org/sonatype/sisu/sisu-inject-bean/2.2.3/sisu-inject-bean-2.2.3.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/com/google/guava/guava/19.0-rc2/guava-19.0-rc2.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/org/codehaus/plexus/plexus-component-annotations/1.6/plexus-component-annotations-1.6.jar!/" />
       <root url="jar://$USER_HOME$/.kobalt/repository/com/google/inject/guice/4.0/guice-4.0.jar!/" />
