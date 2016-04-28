@@ -125,6 +125,11 @@ class KobaltServer(val force: Boolean, val port: Int = 1234,
         }
 
         @GET
+        @Path("ping")
+        @Produces(MediaType.TEXT_PLAIN)
+        fun getDependencies() = "pong"
+
+        @GET
         @Path("getDependencies")
         @Produces(MediaType.APPLICATION_JSON)
         fun getDependencies(@QueryParam("buildFile") buildFile: String) : String {
@@ -134,9 +139,8 @@ class KobaltServer(val force: Boolean, val port: Int = 1234,
 
                 val projects = initCallback(buildFile)
                 val dd = dependencyData.dependenciesDataFor(buildFile, args)
-                val data = CommandData("getDependencies", Gson().toJson(dd), dd.errorMessage)
-
-                return Gson().toJson(data)
+                val result = Gson().toJson(dd)
+                return result
             } catch(ex: Exception) {
                 return "Error: " + ex.message
             } finally {
