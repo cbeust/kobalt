@@ -5,14 +5,8 @@ import java.net.Socket
 
 class ProcessUtil {
     companion object {
-        fun findAvailablePort(port: Int = 1234): Int {
-            if (isPortAvailable(port)) return port
-
-            for (i in 1235..65000) {
-                if (isPortAvailable(i)) return i
-            }
-            throw IllegalArgumentException("Couldn't find any port available, something is very wrong")
-        }
+        fun findAvailablePort(port: Int = 1234) = (port .. 65000).firstOrNull { isPortAvailable(it) }
+                ?: throw IllegalArgumentException("Couldn't find any port available, something is very wrong")
 
         private fun isPortAvailable(port: Int): Boolean {
             var s: Socket? = null
