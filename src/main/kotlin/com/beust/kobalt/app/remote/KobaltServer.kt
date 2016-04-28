@@ -30,14 +30,16 @@ class KobaltServer(val force: Boolean, val givenPort: Int? = null,
         val port = givenPort ?: ProcessUtil.findAvailablePort(1234)
         try {
             if (createServerFile(port, force)) {
+                log(1, "KobaltServer listening on port $port")
 //                OldServer(initCallback, cleanUpCallback).run(port)
-                JerseyServer(initCallback, cleanUpCallback).run(port)
+//                JerseyServer(initCallback, cleanUpCallback).run(port)
+                SparkServer(initCallback, cleanUpCallback).run(port)
 //                WasabiServer(initCallback, cleanUpCallback).run(port)
             }
         } catch(ex: Exception) {
             ex.printStackTrace()
         } finally {
-            deleteServerFile()
+//            deleteServerFile()
         }
         return port
     }
