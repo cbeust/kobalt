@@ -55,6 +55,8 @@ class KotlinCompiler @Inject constructor(
             // create a directory if the output is not a jar file
             if (! outputDir.endsWith(".jar")) {
                 File(outputDir).mkdirs()
+            } else {
+                File(outputDir).parentFile.mkdirs()
             }
             val allArgs = arrayListOf(
                     "-d", outputDir,
