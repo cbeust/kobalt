@@ -63,6 +63,7 @@ open class JvmCompilerPlugin @Inject constructor(
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
+        cleanUpActors()
         taskContributor.addIncrementalVariantTasks(this, project, context, "compile",
                 runTask = { taskCompile(project) })
 
