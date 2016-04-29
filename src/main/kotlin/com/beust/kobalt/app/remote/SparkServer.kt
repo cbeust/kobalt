@@ -34,7 +34,6 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
             initCallback(buildFile)
             val result =
                 if (buildFile != null) {
-                    initCallback(buildFile)
                     try {
                         val dependencyData = Kobalt.INJECTOR.getInstance(DependencyData::class.java)
                         val args = Kobalt.INJECTOR.getInstance(Args::class.java)
