@@ -54,7 +54,9 @@ class VerifyKobaltZipTest : KobaltTest() {
                     verifyMainJarFile(ins)
                     foundJar = true
                 } else if (entry.name.endsWith("kobalt-wrapper.jar")) {
+                    val ins = zipFile.getInputStream(entry)
                     foundWrapperJar = true
+                    assertExistsInJarInputStream(JarInputStream(ins), "kobalt.properties")
                 }
                 entry = stream.nextEntry
             }
