@@ -152,7 +152,7 @@ class DownloadTest @Inject constructor(
         // version is being fetched instead of moshi:1.2.0-SNAPSHOT (which gets discarded anyway
         // since snapshots are not allowed to be returned when looking up a versionless id)
         val host = HostConfig("http://repository.jetbrains.com/all/")
-        val id = "com.squareup.moshi:moshi:(0,]"
+        val id = "com.squareup.moshi:moshi:1.1.0"
         val dr = aether.resolve(id)
         Assert.assertEquals(dr.dependency.version, "1.1.0")
     }
