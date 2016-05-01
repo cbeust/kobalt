@@ -251,11 +251,17 @@ public class Main {
         // Save wrapperVersion.txt
         //
         log(2, "  Writing " + VERSION_TXT);
-        VERSION_TXT.getParentFile().mkdirs();
-        try (FileWriter fw = new FileWriter(VERSION_TXT)) {
-            try (BufferedWriter bw = new BufferedWriter(fw)) {
-                bw.write(wrapperVersion);
+        File parentDir = VERSION_TXT.getParentFile();
+        boolean success = parentDir.mkdirs();
+        if (success) {
+            try (FileWriter fw = new FileWriter(VERSION_TXT)) {
+                try (BufferedWriter bw = new BufferedWriter(fw)) {
+                    bw.write(wrapperVersion);
+                }
             }
+        } else {
+            log(1, "Warning: could not create the directory " + parentDir.getAbsolutePath()
+                    + ", can't write " + VERSION_TXT);
         }
     }
 
