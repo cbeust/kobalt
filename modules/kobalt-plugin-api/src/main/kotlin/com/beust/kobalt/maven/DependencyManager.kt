@@ -1,6 +1,7 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.api.*
+import com.beust.kobalt.maven.aether.ConsoleRepositoryListener
 import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
@@ -108,7 +109,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
         var result = hashSetOf<IClasspathDependency>()
 
         dependencies.forEach { projectDependency ->
-            log(3, "$indent Resolving $projectDependency")
+            log(ConsoleRepositoryListener.LOG_LEVEL, "$indent Resolving $projectDependency")
             result.add(projectDependency)
             projectDependency.id.let {
                 result.add(create(it))

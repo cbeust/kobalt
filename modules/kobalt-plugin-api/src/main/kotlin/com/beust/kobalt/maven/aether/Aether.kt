@@ -49,7 +49,7 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
         }
 
     fun resolve(id: String): DependencyResult {
-        log(3, "Resolving $id")
+        log(ConsoleRepositoryListener.LOG_LEVEL, "Resolving $id")
         val results = aether.resolve(DefaultArtifact(MavenId.toKobaltId(id)))
         if (results != null && results.size > 0) {
             return DependencyResult(AetherDependency(results[0].artifact), results[0].repository.toString())
@@ -201,11 +201,11 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
                     if (! it.dependency.isOptional) {
                         result.add(AetherDependency(it.artifact))
                     } else {
-                        log(3, "Skipping optional dependency " + deps.root.artifact)
+                        log(ConsoleRepositoryListener.LOG_LEVEL, "Skipping optional dependency " + deps.root.artifact)
                     }
                 }
             } else {
-                log(3, "Skipping optional dependency " + deps.root.artifact)
+                log(ConsoleRepositoryListener.LOG_LEVEL, "Skipping optional dependency " + deps.root.artifact)
             }
         } else {
             warn("Couldn't resolve $artifact")

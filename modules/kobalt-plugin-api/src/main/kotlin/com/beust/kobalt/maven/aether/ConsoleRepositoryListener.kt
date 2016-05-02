@@ -9,7 +9,9 @@ import java.io.PrintStream
  * A simplistic repository listener that logs events to the console.
  */
 class ConsoleRepositoryListener @JvmOverloads constructor(out: PrintStream? = null) : AbstractRepositoryListener() {
-    val LOG_LEVEL = 3
+    companion object {
+        val LOG_LEVEL = 4
+    }
 
     private val out: PrintStream
 
