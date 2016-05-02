@@ -48,7 +48,7 @@ class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
 //        KobaltLogger.LOG_LEVEL = 3
         val t = runCompileTasks(listOf("compile"))
         Assert.assertEquals(runCompileTasks(listOf("compile")), listOf("compile", "postCompile"))
-        Assert.assertEquals(runCompileTasks(listOf("postCompile")), listOf("postCompile"))
+        Assert.assertEquals(runCompileTasks(listOf("postCompile")), listOf("compile", "postCompile"))
         Assert.assertEquals(runCompileTasks(listOf("compile", "postCompile")), listOf("compile", "postCompile"))
         Assert.assertEquals(runCompileTasks(listOf("clean")), listOf("clean", "copyVersion"))
         Assert.assertEquals(runCompileTasks(listOf("clean", "compile")), listOf("clean", "compile", "copyVersion",
@@ -85,6 +85,8 @@ class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
 
     @Test
     fun exampleInTheDocTest() {
+//        KobaltLogger.LOG_LEVEL = 3
+
         Assert.assertEquals(runTasks(listOf("assemble"),
                 dependsOn = TreeMultimap.create<String, String>().apply {
                     put("assemble", "compile")
@@ -136,7 +138,7 @@ class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
                 runBefore = TreeMultimap.create<String, String>().apply {
                     put("compile", "example")
                 }),
-            listOf("clean", "example", "compile"))
+            listOf("clean", "compile", "example"))
 
         Assert.assertEquals(runTasks(listOf("compile", "example"),
                 dependsOn = TreeMultimap.create<String, String>().apply {
@@ -145,7 +147,36 @@ class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
                 runAfter = TreeMultimap.create<String, String>().apply {
                     put("compile", "example")
                 }),
-            listOf("clean", "compile", "example"))
+            listOf("clean", "example", "compile"))
+    }
+
+    @Test
+    fun jacocoTest() {
+        val runTasks = runTasks(listOf("test"),
+                dependsOn = TreeMultimap.create<String, String>().apply {
+                    put("test", "compileTest")
+                    put("test", "compile")
+                    put("compileTest", "compile")
+                },
+                reverseDependsOn = TreeMultimap.create<String, String>().apply {
+                    put("coverage", "test")
+                })
+        Assert.assertTrue(runTasks[0] == "coverage" && runTasks[1] == "compile"
+                || runTasks[1] == "coverage" && runTasks[0] == "compile")
+        Assert.assertEquals(runTasks[2], "compileTest")
+        Assert.assertEquals(runTasks[3], "test")
+    }
+
+    @Test
+    fun simple() {
+        val runTasks = runTasks(listOf("assemble"),
+                dependsOn = TreeMultimap.create<String, String>().apply {
+                    put("assemble", "compile")
+                },
+                reverseDependsOn = TreeMultimap.create<String, String>().apply {
+                    put("copyVersionForWrapper", "compile")
+                })
+        Assert.assertEquals(runTasks, listOf("copyVersionForWrapper", "compile", "assemble"))
     }
 }
 

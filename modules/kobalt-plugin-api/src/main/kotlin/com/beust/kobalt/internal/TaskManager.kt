@@ -39,7 +39,7 @@ class TaskManager @Inject constructor(val args: Args,
     /**
      * Ordering: task1 runs before task 2.
      */
-    fun runBefore(task1: String, task2: String) = runBefore.put(task1, task2)
+    fun runBefore(task1: String, task2: String) = runBefore.put(task2, task1)
 
     /**
      * Ordering: task2 runs after task 1.
@@ -167,41 +167,71 @@ class TaskManager @Inject constructor(val args: Args,
                         val newToProcess = arrayListOf<T>()
 
                         fun maybeAddEdge(task: T, mm: Multimap<String, String>, isDependency: Boolean,
-                                reverseEdges: Boolean = false) {
+                                reverseEdges: Boolean = false) : Boolean {
+                            var added = false
                             val taskName = toName(task)
                             mm[taskName]?.forEach { toName ->
                                 val addEdge = isDependency || (!isDependency && taskNames.contains(toName))
-                                log(3, "   addEdge: $addEdge taskName: $taskName toName: $toName")
                                 if (addEdge) {
                                     nodeMap[toName].forEach { to ->
                                         if (reverseEdges) {
-                                            log(3, "     Adding reverse edge $to -> $task it=$toName")
+                                            log(3, "     Adding reverse edge \"$to\" -> \"$task\" it=\"$toName\"")
+                                            added = true
                                             result.addEdge(to, task)
                                         } else {
-                                            log(3, "    Adding edge $task -> $to")
+                                            log(3, "     Adding edge \"$task\" -> \"$to\"")
+                                            added = true
                                             result.addEdge(task, to)
                                         }
                                         if (!seen.contains(toName(to))) {
-                                            log(3, "    New node to process: $to")
+                                            log(3, "        New node to process: \"$to\"")
                                             newToProcess.add(to)
                                         } else {
-                                            log(3, "    Already seen: $to")
+                                            log(3, "        Already seen: $to")
                                         }
                                     }
                                 }
                             }
+                            return added
                         }
 
+                        fun reverseMultimap(mm: Multimap<String, String>) : Multimap<String, String> {
+                            val result = TreeMultimap.create<String, String>()
+                            mm.keySet().forEach { key ->
+                                mm[key].forEach { value ->
+                                    result.put(value, key)
+                                }
+                            }
+                            return result
+                        }
+
+                        // These two maps indicate reversed dependencies so we want to have
+                        // a reverse map for them so we consider all the cases. For example,
+                        // if we are looking at task "a", we want to find all the relationships
+                        // that depend on "a" and also all the relationships that "a" depends on
+                        val invertedReverseDependsOn = reverseMultimap(reverseDependsOn)
+                        val invertedRunBefore = reverseMultimap(runBefore)
+                        val invertedDependsOn = reverseMultimap(dependsOn)
+                        val invertedRunAfter = reverseMultimap(runAfter)
+
                         while (toProcess.size > 0) {
-                            log(3, "  New batch of nodes to process: $toProcess")
+                            log(3, " New batch of nodes to process: $toProcess")
                             toProcess.forEach { current ->
                                 result.addNode(current)
                                 seen.add(toName(current))
 
-                                maybeAddEdge(current, reverseDependsOn, true, true)
-                                maybeAddEdge(current, dependsOn, true, false)
-                                maybeAddEdge(current, runBefore, false, false)
-                                maybeAddEdge(current, runAfter, false, true)
+//                                if (! maybeAddEdge(current, invertedDependsOn, true, true)) {
+                                    maybeAddEdge(current, dependsOn, true, false)
+//                                }
+//                                if (! maybeAddEdge(current, invertedRunAfter, false, true)) {
+                                    maybeAddEdge(current, runAfter, false, false)
+//                                }
+                                if (! maybeAddEdge(current, invertedReverseDependsOn, true, false)) {
+                                    maybeAddEdge(current, reverseDependsOn, true, true)
+                                }
+                                if (! maybeAddEdge(current, invertedRunBefore, false, false)) {
+                                    maybeAddEdge(current, runBefore, false, true)
+                                }
                             }
                             toProcess.clear()
                             toProcess.addAll(newToProcess)
@@ -246,7 +276,9 @@ class TaskManager @Inject constructor(val args: Args,
     class TaskAnnotation(val method: Method, val plugin: IPlugin, val name: String, val description: String,
             val dependsOn: Array<String>, val reverseDependsOn: Array<String>,
             val runBefore: Array<String>, val runAfter: Array<String>,
-            val callable: (Project) -> TaskResult)
+            val callable: (Project) -> TaskResult) {
+        override fun toString() = "[TaskAnnotation $name]"
+    }
 
     /**
      * Invoking a @Task means simply calling the method and returning its returned TaskResult.
