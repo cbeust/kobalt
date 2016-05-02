@@ -61,7 +61,8 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
 
     val parsedBuildFiles = arrayListOf<ParsedBuildFile>()
 
-    class FindProjectResult(val projects: List<Project>, val taskResult: TaskResult)
+    class FindProjectResult(val projects: List<Project>, val pluginUrls: List<URL>,
+            val taskResult: TaskResult)
 
     private fun findProjects(context: KobaltContext): FindProjectResult {
         var errorTaskResult: TaskResult? = null
@@ -96,7 +97,8 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
                 }
             }
         }
-        return FindProjectResult(projects, if (errorTaskResult != null) errorTaskResult!! else TaskResult())
+        val pluginUrls = parsedBuildFiles.flatMap { it.pluginUrls }
+        return FindProjectResult(projects, pluginUrls, if (errorTaskResult != null) errorTaskResult!! else TaskResult())
     }
 
     private fun maybeCompileBuildFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File,

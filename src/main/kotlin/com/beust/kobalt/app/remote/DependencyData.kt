@@ -32,9 +32,10 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
         val buildFile = BuildFile(Paths.get(buildFilePath), "GetDependenciesCommand")
         val buildFileCompiler = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
         val projectResult = buildFileCompiler.compileBuildFiles(args)
-        val pluginUrls = buildFileCompiler.parsedBuildFiles.flatMap { it.pluginUrls }
 
-        val pluginDependencies = pluginUrls.map { File(it.toURI()) }.map { FileDependency(it.absolutePath) }
+        val pluginDependencies = projectResult.pluginUrls.map { File(it.toURI()) }.map {
+            FileDependency(it.absolutePath)
+        }
         projectResult.projects.forEach { project ->
             val compileDependencies = pluginDependencies.map { toDependencyData(it, "compile") } +
                     allDeps(project.compileDependencies).map { toDependencyData(it, "compile") } +
