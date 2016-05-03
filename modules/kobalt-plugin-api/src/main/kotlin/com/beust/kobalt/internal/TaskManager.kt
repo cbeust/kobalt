@@ -164,7 +164,7 @@ class TaskManager @Inject constructor(val args: Args,
                     if (task != null && accept(task)) {
                         val toProcess = arrayListOf(task)
                         val seen = hashSetOf<String>()
-                        val newToProcess = arrayListOf<T>()
+                        val newToProcess = hashSetOf<T>()
 
                         fun maybeAddEdge(task: T, mm: Multimap<String, String>, isDependency: Boolean,
                                 reverseEdges: Boolean = false) : Boolean {
