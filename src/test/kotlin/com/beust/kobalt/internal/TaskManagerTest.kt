@@ -47,13 +47,12 @@ class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
     @Test(enabled = true)
     fun graphTest() {
 //        KobaltLogger.LOG_LEVEL = 3
-        val t = runCompileTasks(listOf("compile"))
-        Assert.assertEquals(runCompileTasks(listOf("compile")), listOf("compile", "postCompile"))
-        Assert.assertEquals(runCompileTasks(listOf("postCompile")), listOf("compile", "postCompile"))
-        Assert.assertEquals(runCompileTasks(listOf("compile", "postCompile")), listOf("compile", "postCompile"))
+        Assert.assertEquals(runCompileTasks(listOf("compile")), listOf("compile", "assemble", "postCompile"))
+        Assert.assertEquals(runCompileTasks(listOf("postCompile")), listOf("compile", "assemble", "postCompile"))
+        Assert.assertEquals(runCompileTasks(listOf("compile", "postCompile")), listOf("compile", "assemble", "postCompile"))
         Assert.assertEquals(runCompileTasks(listOf("clean")), listOf("clean", "copyVersion"))
-        Assert.assertEquals(runCompileTasks(listOf("clean", "compile")), listOf("clean", "compile", "copyVersion",
-                "postCompile"))
+        Assert.assertEquals(runCompileTasks(listOf("clean", "compile")), listOf("clean", "compile", "assemble",
+                "copyVersion", "postCompile"))
         Assert.assertEquals(runCompileTasks(listOf("assemble")), listOf("compile", "assemble", "postCompile"))
         Assert.assertEquals(runCompileTasks(listOf("clean", "assemble")), listOf("clean", "compile", "assemble",
                 "copyVersion", "postCompile"))
