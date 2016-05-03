@@ -180,7 +180,7 @@ class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
 
     @Test
     fun allDepends() {
-        val runTasks = runTasks(listOf("assemble"),
+        val runTasks = runTasks(listOf("uploadGithub"),
                 dependsOn = TreeMultimap.create<String, String>().apply {
                     put("uploadGithub", "assemble")
                     put("uploadBintray", "assemble")
