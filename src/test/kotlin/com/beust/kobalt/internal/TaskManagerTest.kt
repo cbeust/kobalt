@@ -1,7 +1,6 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.TestModule
-import com.beust.kobalt.misc.KobaltLogger
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
 import com.google.common.collect.TreeMultimap
@@ -177,6 +176,16 @@ class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
                     put("copyVersionForWrapper", "compile")
                 })
         Assert.assertEquals(runTasks, listOf("copyVersionForWrapper", "compile", "assemble"))
+    }
+
+    @Test
+    fun allDepends() {
+        val runTasks = runTasks(listOf("assemble"),
+                dependsOn = TreeMultimap.create<String, String>().apply {
+                    put("uploadGithub", "assemble")
+                    put("uploadBintray", "assemble")
+                })
+        Assert.assertEquals(runTasks, listOf("assemble", "uploadGithub"))
     }
 }
 
