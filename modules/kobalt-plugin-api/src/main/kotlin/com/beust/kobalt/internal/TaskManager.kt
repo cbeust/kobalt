@@ -234,7 +234,6 @@ class TaskManager @Inject constructor(val args: Args,
                                 }
 
                                 newToProcess.addAll(dependsOn[toName(current)].flatMap { nodeMap[it] })
-                                return@forEach Unit
                             }
                             toProcess.clear()
                             toProcess.addAll(newToProcess)
