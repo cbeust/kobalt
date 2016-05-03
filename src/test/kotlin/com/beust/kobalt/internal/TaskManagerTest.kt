@@ -1,6 +1,7 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.TestModule
+import com.beust.kobalt.misc.KobaltLogger
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
 import com.google.common.collect.TreeMultimap
@@ -152,19 +153,19 @@ class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
 
     @Test
     fun jacocoTest() {
+//        KobaltLogger.LOG_LEVEL = 3
         val runTasks = runTasks(listOf("test"),
                 dependsOn = TreeMultimap.create<String, String>().apply {
+                    put("coverage", "test")
                     put("test", "compileTest")
                     put("test", "compile")
                     put("compileTest", "compile")
                 },
                 reverseDependsOn = TreeMultimap.create<String, String>().apply {
-                    put("coverage", "test")
+                    put("enableJacoco", "test")
+                    put("compileTest", "enableJacoco")
                 })
-        Assert.assertTrue(runTasks[0] == "coverage" && runTasks[1] == "compile"
-                || runTasks[1] == "coverage" && runTasks[0] == "compile")
-        Assert.assertEquals(runTasks[2], "compileTest")
-        Assert.assertEquals(runTasks[3], "test")
+        Assert.assertTrue(runTasks == listOf("compile", "compileTest", "enableJacoco", "test", "coverage"))
     }
 
     @Test

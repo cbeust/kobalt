@@ -216,22 +216,25 @@ class TaskManager @Inject constructor(val args: Args,
 
                         while (toProcess.size > 0) {
                             log(3, " New batch of nodes to process: $toProcess")
-                            toProcess.forEach { current ->
+                            toProcess.filter { !seen.contains(toName(it)) }.forEach { current ->
                                 result.addNode(current)
                                 seen.add(toName(current))
 
-//                                if (! maybeAddEdge(current, invertedDependsOn, true, true)) {
+                                if (! maybeAddEdge(current, invertedDependsOn, true, true)) {
                                     maybeAddEdge(current, dependsOn, true, false)
-//                                }
-//                                if (! maybeAddEdge(current, invertedRunAfter, false, true)) {
+                                }
+                                if (! maybeAddEdge(current, invertedRunAfter, false, true)) {
                                     maybeAddEdge(current, runAfter, false, false)
-//                                }
-                                if (! maybeAddEdge(current, invertedReverseDependsOn, true, false)) {
-                                    maybeAddEdge(current, reverseDependsOn, true, true)
                                 }
-                                if (! maybeAddEdge(current, invertedRunBefore, false, false)) {
-                                    maybeAddEdge(current, runBefore, false, true)
+                                if (! maybeAddEdge(current, reverseDependsOn, true, true)) {
+                                    maybeAddEdge(current, invertedReverseDependsOn, true, false)
                                 }
+                                if (! maybeAddEdge(current, runBefore, false, true)) {
+                                    maybeAddEdge(current, invertedRunBefore, false, false)
+                                }
+
+                                newToProcess.addAll(dependsOn[toName(current)].flatMap { nodeMap[it] })
+                                return@forEach Unit
                             }
                             toProcess.clear()
                             toProcess.addAll(newToProcess)
