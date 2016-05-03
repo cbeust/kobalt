@@ -12,24 +12,14 @@ import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.google.inject.assistedinject.Assisted
-import okhttp3.Credentials
-import okhttp3.Interceptor
-import okhttp3.MediaType
-import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.RequestBody
+import okhttp3.*
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
-import retrofit2.http.GET
+import retrofit2.http.*
 import retrofit2.http.Headers
-import retrofit2.http.Multipart
-import retrofit2.http.POST
-import retrofit2.http.PUT
-import retrofit2.http.Part
-import retrofit2.http.Path
 import java.io.File
 import javax.annotation.Nullable
 import javax.inject.Inject
@@ -44,6 +34,7 @@ class BintrayApi @Inject constructor(val http: Http,
 
     companion object {
         const val BINTRAY_URL_API = "https://api.bintray.com"
+        const val BINTRAY_URL_API_CONTENT = BINTRAY_URL_API + "/content"
     }
 
     interface IFactory {
@@ -89,6 +80,9 @@ class BintrayApi @Inject constructor(val http: Http,
 
     init {
         val builder = OkHttpClient.Builder()
+//                .addInterceptor(HttpLoggingInterceptor().apply {
+//                    level = HttpLoggingInterceptor.Level.BASIC
+//                })
         builder.interceptors().add(Interceptor { chain ->
             var original = chain.request();
 
@@ -180,7 +174,8 @@ class BintrayApi @Inject constructor(val http: Http,
 
             fun dots(total: Int, list: List<Boolean>, file: File? = null): String {
                 val spaces: String = Array(total - list.size, { " " }).joinToString("")
-                return "|" + list.map { if (it) "." else "X" }.joinToString("") + spaces + (if (file != null) "| [ $file ]" else "|")
+                return "|" + list.map { if (it) "." else "X" }.joinToString("") + spaces +
+                        (if (file != null) "| [ $file ]" else "|")
             }
 
             val results = arrayListOf<Boolean>()
@@ -189,22 +184,31 @@ class BintrayApi @Inject constructor(val http: Http,
 
                 val body = MultipartBody.Part.createFormData("artifact", file.name, RequestBody.create(type, file));
 
-                var upload = if (file.extension != "pom" ) {
-                    service.uploadArtifact(org ?: username!!, project.name,
+                if (file.extension != "pom") {
+                    val upload = service.uploadArtifact(org ?: username!!, project.name,
                             project.group!!.replace('.', '/'), project.artifactId!!, project.version!!, file.name, body)
+                    val result = upload.execute()
+                    val error = result.errorBody()?.string()
+                    if (result.errorBody() != null) {
+                        errorMessages.add(error!!)
+                        results.add(false)
+                    } else {
+                        results.add(true)
+                    }
                 } else {
-                    service.uploadPom(org ?: username!!, project.name, project.group!!.replace('.', '/'),
-                            project.artifactId!!, project.version!!, file.name, body)
+                    http.uploadFile(username, password, fileToPath(project, file) + optionPath,
+                            Http.TypedFile(com.google.common.net.MediaType.ANY_APPLICATION_TYPE.toString(), file),
+                            post = false, // Bintray requires PUT
+                            success = { r: Response -> results.add(true) },
+                            error = { r: Response ->
+                                results.add(false)
+                                val jcResponse = parseResponse(r)
+                                errorMessages.add(jcResponse.errorMessage!!)
+                            })
+//                    service.uploadPom(org ?: username!!, project.name, project.group!!.replace('.', '/'),
+//                            project.artifactId!!, project.version!!, file.name, body)
                 }
 
-                val result = upload.execute()
-                val error = result.errorBody()?.string()
-                if (result.errorBody() != null) {
-                    errorMessages.add(error!!)
-                    results.add(false)
-                } else {
-                    results.add(true)
-                }
                 log(1, "    Uploading ${i + 1} / $fileCount " + dots(fileCount, results, file), false)
             }
             val success = results
@@ -221,6 +225,37 @@ class BintrayApi @Inject constructor(val http: Http,
         } else {
             warn("Found no artifacts to upload")
             return TaskResult()
+        }
+    }
+
+    fun fileToPath(project: Project, f: File) : String {
+        return listOf(
+                BINTRAY_URL_API_CONTENT,
+                org ?: username!!,
+                "maven",
+                project.name,
+                project.version!!,
+                project.group!!.replace(".", "/"),
+                project.artifactId!!,
+                project.version!!,
+                f.name)
+                .joinToString("/")
+    }
+
+    class BintrayResponse(val jo: JsonObject?, val errorMessage: String?)
+
+    fun parseResponse(r: Response): BintrayResponse {
+        val networkResponse = r.networkResponse()
+        if (networkResponse.code() != 200) {
+            val message = networkResponse.message()
+            try {
+                val errorObject = JsonParser().parse(r.body().string()).asJsonObject
+                return BintrayResponse(null, message + ": " + errorObject.get("message").asString)
+            } catch(ex: Exception) {
+                return BintrayResponse(null, message)
+            }
+        } else {
+            return BintrayResponse(JsonParser().parse(r.body().string()).asJsonObject, null)
         }
     }
 
