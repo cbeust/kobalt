@@ -145,7 +145,7 @@ class TaskManager @Inject constructor(val args: Args,
         return RunTargetResult(result, messages)
     }
 
-    val LOG_LEVEL = 1
+    val LOG_LEVEL = 3
 
     @VisibleForTesting
     fun <T> createGraph2(projectName: String, taskNames: List<String>, nodeMap: Multimap<String, T>,
