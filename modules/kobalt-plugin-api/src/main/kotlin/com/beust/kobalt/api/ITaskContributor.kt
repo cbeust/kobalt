@@ -17,6 +17,7 @@ class DynamicTask(override val plugin: IPlugin, override val name: String, overr
         val reverseDependsOn: List<String> = listOf<String>(),
         val runBefore: List<String> = listOf<String>(),
         val runAfter: List<String> = listOf<String>(),
+        val alwaysRunAfter: List<String> = listOf<String>(),
         val closure: (Project) -> TaskResult) : ITask {
 
     override fun call(): TaskResult2<ITask> {
