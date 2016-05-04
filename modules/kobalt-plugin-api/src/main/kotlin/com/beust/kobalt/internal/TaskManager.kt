@@ -212,24 +212,38 @@ class TaskManager @Inject constructor(val args: Args,
             }
 
             log(LOG_LEVEL, "  Current batch to process: $toProcess")
-            val invertedReverseDependsOn = reverseMultimap(reverseDependsOn)
 
+            //
+            // Move dependsOn + reverseDependsOn in one multimap called allDepends
+            //
+            val allDependsOn = ArrayListMultimap.create<String, String>()
+            dependsOn.keySet().forEach { key ->
+                dependsOn[key].forEach { value ->
+                    allDependsOn.put(key, value)
+                }
+            }
+            reverseDependsOn.keySet().forEach { key ->
+                reverseDependsOn[key].forEach { value ->
+                    allDependsOn.put(value, key)
+                }
+            }
+
+            //
+            // Process each node one by one
+            //
             toProcess.forEach { taskInfo ->
                 val taskName = taskInfo.taskName
                 log(LOG_LEVEL, "    ***** Current node: $taskName")
-                nodeMap[taskName].forEach { processAlways(always, it) }
+                nodeMap[taskName].forEach {
+                    result.addNode(it)
+                    processAlways(always, it)
+                }
 
                 //
                 // dependsOn and reverseDependsOn are considered for all tasks, explicit and implicit
                 //
-                dependsOn[taskName].forEach { to ->
+                allDependsOn[taskName].forEach { to ->
                     addEdge(result, taskName, to, newToProcess, "dependsOn")
-                }
-                reverseDependsOn[taskName].forEach { from ->
-                    addEdge(result, from, taskName, newToProcess, "reverseDependsOn")
-                }
-                invertedReverseDependsOn[taskName].forEach { to ->
-                    addEdge(result, taskName, to, newToProcess, "invertedReverseDependsOn")
                 }
 
                 //
@@ -258,15 +272,15 @@ class TaskManager @Inject constructor(val args: Args,
         return result
     }
 
-    private fun reverseMultimap(mm: Multimap<String, String>) : Multimap<String, String> {
-        val result = TreeMultimap.create<String, String>()
-        mm.keySet().forEach { key ->
-            mm[key].forEach { value ->
-                result.put(value, key)
-            }
-        }
-        return result
-    }
+//    private fun reverseMultimap(mm: Multimap<String, String>) : Multimap<String, String> {
+//        val result = TreeMultimap.create<String, String>()
+//        mm.keySet().forEach { key ->
+//            mm[key].forEach { value ->
+//                result.put(value, key)
+//            }
+//        }
+//        return result
+//    }
 
     /**
      * Create a dynamic graph representing all the tasks that need to be run.
