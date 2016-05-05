@@ -143,6 +143,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "org.codehaus.plexus:plexus-utils:3.0.22",
                 "biz.aQute.bnd:bndlib:2.4.0",
 
+                "com.squareup.okhttp3:logging-interceptor:3.2.0",
 
                 "com.sparkjava:spark-core:2.3"
 
