@@ -147,6 +147,13 @@ class TaskManager @Inject constructor(val args: Args,
 
     val LOG_LEVEL = 3
 
+    /**
+     * Create a graph representing the tasks and their dependencies. That graph will then be run
+     * in topological order.
+     *
+     * @taskNames is the list of tasks requested by the user. @nodeMap maps these tasks to the nodes
+     * we'll be adding to the graph while @toName extracts the name of a node.
+     */
     @VisibleForTesting
     fun <T> createGraph2(projectName: String, taskNames: List<String>, nodeMap: Multimap<String, T>,
             dependsOn: Multimap<String, String>,
@@ -162,6 +169,9 @@ class TaskManager @Inject constructor(val args: Args,
         val newToProcess = arrayListOf<T>()
         val seen = hashSetOf<String>()
 
+        //
+        // Reverse the always map so that tasks can be looked up.
+        //
         val always = ArrayListMultimap.create<String, String>()
         alwaysRunAfter.keySet().forEach { k ->
             alwaysRunAfter[k].forEach { v ->
@@ -183,6 +193,9 @@ class TaskManager @Inject constructor(val args: Args,
 
         while (toProcess.size > 0) {
 
+            /**
+             * Add an edge from @param from to all its tasks.
+             */
             fun addEdge(result: DynamicGraph<T>, from: String, to: String, newToProcess: ArrayList<T>, text: String) {
                 val froms = nodeMap[from]
                 froms.forEach { f: T ->
