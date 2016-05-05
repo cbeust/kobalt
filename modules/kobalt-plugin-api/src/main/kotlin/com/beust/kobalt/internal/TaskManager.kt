@@ -187,9 +187,12 @@ class TaskManager @Inject constructor(val args: Args,
             if (!nodeMap.keys().contains(it.taskName)) {
                 throw KobaltException("Unknown task: $it")
             }
-                it.matches(projectName)
-            }
+            it.matches(projectName)
+        }
 
+        // The nodes we need to process, initialized with the set of tasks requested by the user.
+        // As we run the graph and discover dependencies, new nodes get added to @param[newToProcess]. At
+        // the end of the loop, @param[toProcess] is cleared and all the new nodes get added to it. Then we loop.
         val toProcess = ArrayList(taskInfos)
 
         while (toProcess.size > 0) {
