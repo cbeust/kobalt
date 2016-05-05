@@ -69,6 +69,6 @@ class IncludeExcludeTest : KobaltTest() {
 //            println("FAILURE")
 //            val files2 = g.toFiles(null, root.path, excludedSpec.map { Glob(it) })
 //        }
-        Assert.assertEquals(files.map { it.name }, expectedFiles)
+        Assert.assertEquals(files.map { it.name }.toHashSet(), expectedFiles.toHashSet())
     }
 }
