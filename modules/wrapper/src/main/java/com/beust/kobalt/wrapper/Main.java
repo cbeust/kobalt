@@ -252,8 +252,8 @@ public class Main {
         //
         log(2, "  Writing " + VERSION_TXT);
         File parentDir = VERSION_TXT.getParentFile();
-        boolean success = parentDir.mkdirs();
-        if (success) {
+        parentDir.mkdirs();
+        if (parentDir.exists()) {
             try (FileWriter fw = new FileWriter(VERSION_TXT)) {
                 try (BufferedWriter bw = new BufferedWriter(fw)) {
                     bw.write(wrapperVersion);
