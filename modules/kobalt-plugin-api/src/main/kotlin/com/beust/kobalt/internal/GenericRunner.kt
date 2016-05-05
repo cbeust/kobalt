@@ -66,21 +66,28 @@ abstract class GenericTestRunner: ITestRunnerContributor {
                     add(mainClass)
                 }
 
-                // JVM args from the contributors
                 val pluginInfo = Kobalt.INJECTOR.getInstance(PluginInfo::class.java)
 
+                // JVM flags from the contributors
                 val flagsFromContributors = pluginInfo.testJvmFlagContributors.flatMap {
                     it.testJvmFlagsFor(project, context, jvmFlags)
                 }
 
-                if (flagsFromContributors.any()) {
-                    log(2, "Adding JVM flags from contributors: " + flagsFromContributors)
+                // JVM flags from the interceptors (these overwrite flags instead of just adding to the list)
+                var interceptedArgs = ArrayList(flagsFromContributors)
+                pluginInfo.testJvmFlagInterceptors.forEach {
+                    val newFlags = it.testJvmFlagsFor(project, context, interceptedArgs)
+                    interceptedArgs.clear()
+                    interceptedArgs.addAll(newFlags)
+                }
+
+                if (interceptedArgs.any()) {
+                    log(2, "Final JVM test flags after running the contributors and interceptors: $interceptedArgs")
                 }
 
                 val allArgs = arrayListOf<String>().apply {
                     add(java!!.absolutePath)
-                    addAll(flagsFromContributors)
-                    addAll(jvmFlags)
+                    addAll(interceptedArgs)
                     addAll(args)
                 }
 
