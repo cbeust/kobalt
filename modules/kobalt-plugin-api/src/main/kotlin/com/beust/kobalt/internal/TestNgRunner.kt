@@ -7,7 +7,7 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.warn
 import java.io.File
 
-public class TestNgRunner() : GenericTestRunner() {
+class TestNgRunner : GenericTestRunner() {
 
     override val mainClass = "org.testng.TestNG"
 

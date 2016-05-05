@@ -11,14 +11,14 @@ import java.util.*
  * Base class for testing frameworks that are invoked from a main class with arguments. Test runners can
  * subclass this class and override mainClass, args and the name of the dependency that should trigger this runner.
  */
-abstract class GenericTestRunner : ITestRunnerContributor {
+abstract class GenericTestRunner: ITestRunnerContributor {
     abstract val dependencyName : String
     abstract val mainClass: String
     abstract fun args(project: Project, classpath: List<IClasspathDependency>, testConfig: TestConfig) : List<String>
 
     override fun run(project: Project, context: KobaltContext, configName: String,
             classpath: List<IClasspathDependency>)
-        = TaskResult(runTests(project, classpath, configName))
+        = TaskResult(runTests(project, context, classpath, configName))
 
     override fun affinity(project: Project, context: KobaltContext) =
             if (project.testDependencies.any { it.id.contains(dependencyName)}) IAffinity.DEFAULT_POSITIVE_AFFINITY
@@ -46,7 +46,8 @@ abstract class GenericTestRunner : ITestRunnerContributor {
     /**
      * @return true if all the tests passed
      */
-    fun runTests(project: Project, classpath: List<IClasspathDependency>, configName: String) : Boolean {
+    fun runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
+            configName: String) : Boolean {
         val jvm = JavaInfo.create(File(SystemProperties.javaBase))
         val java = jvm.javaExecutable
         var result = false
@@ -56,12 +57,30 @@ abstract class GenericTestRunner : ITestRunnerContributor {
         if (testConfig != null) {
             val args = args(project, classpath, testConfig)
             if (args.size > 0) {
-                val allArgs = arrayListOf<String>().apply {
-                    add(java!!.absolutePath)
+
+                // Default JVM args
+                val jvmFlags = arrayListOf<String>().apply {
                     addAll(testConfig.jvmArgs)
                     add("-classpath")
                     add(classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator))
                     add(mainClass)
+                }
+
+                // JVM args from the contributors
+                val pluginInfo = Kobalt.INJECTOR.getInstance(PluginInfo::class.java)
+
+                val flagsFromContributors = pluginInfo.testJvmFlagContributors.flatMap {
+                    it.testJvmFlagsFor(project, context, jvmFlags)
+                }
+
+                if (flagsFromContributors.any()) {
+                    log(2, "Adding JVM flags from contributors: " + flagsFromContributors)
+                }
+
+                val allArgs = arrayListOf<String>().apply {
+                    add(java!!.absolutePath)
+                    addAll(flagsFromContributors)
+                    addAll(jvmFlags)
                     addAll(args)
                 }
 

@@ -4,7 +4,7 @@ import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Project
 
-open public class JUnitRunner() : GenericTestRunner() {
+open class JUnitRunner() : GenericTestRunner() {
 
     override val mainClass = "org.junit.runner.JUnitCore"
 
