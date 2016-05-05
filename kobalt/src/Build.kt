@@ -159,7 +159,8 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
     }
 
     dependenciesTest {
-        compile("org.testng:testng:6.9.10")
+        compile("org.testng:testng:6.9.10",
+                "org.assertj:assertj-core:3.4.1")
     }
 
     assemble {
