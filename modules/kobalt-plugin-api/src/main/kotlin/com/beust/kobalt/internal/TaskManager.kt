@@ -172,10 +172,11 @@ class TaskManager @Inject constructor(val args: Args,
         //
         // Reverse the always map so that tasks can be looked up.
         //
-        val always = ArrayListMultimap.create<String, String>()
-        alwaysRunAfter.keySet().forEach { k ->
-            alwaysRunAfter[k].forEach { v ->
-                always.put(v, k)
+        val always = ArrayListMultimap.create<String, String>().apply {
+            alwaysRunAfter.keySet().forEach { k ->
+                alwaysRunAfter[k].forEach { v ->
+                    put(v, k)
+                }
             }
         }
 
