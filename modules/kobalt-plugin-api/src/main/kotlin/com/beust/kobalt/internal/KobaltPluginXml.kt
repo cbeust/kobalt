@@ -176,8 +176,17 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
                 if (this is IIncrementalAssemblyContributor) incrementalAssemblyContributors.add(this)
 
                 // Not documented yet
-                if (this is ITestJvmFlagContributor) testJvmFlagContributors.add(this)
+                if (this is ITestJvmFlagContributor) {
+                    println("ADDING CONTRIBUTOR $this")
+                    testJvmFlagContributors.add(this)
+                }
                 if (this is ITestJvmFlagInterceptor) testJvmFlagInterceptors.add(this)
+
+                if (it.contains("CoverageAgent")) {
+                    val rec = this
+                    println("IS: " + (rec is ITestJvmFlagContributor))
+                    println("DONOTCOMMIT")
+                }
             }
         }
     }
@@ -199,7 +208,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
     }
 
     /**
-     * Populate pluginInfo with what was found in the plug-in's kobalt-plugin.xml
+     * Add the content of @param[pluginInfo] to this pluginInfo.
      */
     fun addPluginInfo(pluginInfo: PluginInfo) {
         log(2, "Found new plug-in, adding it to pluginInfo: $pluginInfo")
@@ -226,6 +235,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
         buildConfigContributors.addAll(pluginInfo.buildConfigContributors)
         assemblyContributors.addAll(pluginInfo.assemblyContributors)
         incrementalAssemblyContributors.addAll(pluginInfo.incrementalAssemblyContributors)
+        testJvmFlagContributors.addAll(pluginInfo.testJvmFlagContributors)
         testJvmFlagInterceptors.addAll(pluginInfo.testJvmFlagInterceptors)
     }
 }
