@@ -14,11 +14,11 @@ import org.eclipse.aether.artifact.DefaultArtifact
  * usually means "latest version") but it doesn't handle version ranges yet.
  */
 class MavenId private constructor(val groupId: String, val artifactId: String, val packaging: String?,
-        val version: String?) {
+        val classifier: String?, val version: String?) {
 
     companion object {
         fun isMavenId(id: String) = with(id.split(":")) {
-            size == 3 || size == 4
+            size >= 3 && size <= 5
         }
 
         fun isRangedVersion(s: String): Boolean {
@@ -29,7 +29,7 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
          * Similar to create(MavenId) but don't run IMavenIdInterceptors.
          */
         fun createNoInterceptors(id: String) : MavenId = DefaultArtifact(id).run {
-                MavenId(groupId, artifactId, extension, version)
+                MavenId(groupId, artifactId, extension, classifier, version)
             }
 
         fun toKobaltId(id: String) = if (id.endsWith(":")) id + "(0,]" else id
@@ -51,18 +51,19 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
             return interceptedMavenId
         }
 
-        fun create(groupId: String, artifactId: String, packaging: String?, version: String?) =
-               create(toId(groupId, artifactId, packaging, version))
+        fun create(groupId: String, artifactId: String, packaging: String?, classifier: String?, version: String?) =
+               create(toId(groupId, artifactId, packaging, classifier, version))
 
-        fun toId(groupId: String, artifactId: String, packaging: String? = null, version: String?) =
+        fun toId(groupId: String, artifactId: String, packaging: String? = null, classifier: String? = null, version: String?) =
                 "$groupId:$artifactId" +
                     (if (packaging != null && packaging != "") ":$packaging" else "") +
+                    (if (classifier != null && classifier != "") ":$classifier" else "") +
                     ":$version"
     }
 
 
     val hasVersion = version != null
 
-    val toId = MavenId.toId(groupId, artifactId, packaging, version)
+    val toId = MavenId.toId(groupId, artifactId, packaging, classifier, version)
 
 }
