@@ -39,7 +39,7 @@ open class LocalRepo @Inject constructor(val kobaltSettings: KobaltSettings) {
                     v2.compareTo(v1) // we want the most recent at position 0
                 })
                 val result = directories[0].name
-                val newDep = LocalDep(MavenId.create(groupId, artifactId, packaging, result), this)
+                val newDep = LocalDep(MavenId.create(groupId, artifactId, packaging, null, result), this)
                 if (existsPom(newDep, result) && existsJar(newDep, result)) {
                     return result
                 }

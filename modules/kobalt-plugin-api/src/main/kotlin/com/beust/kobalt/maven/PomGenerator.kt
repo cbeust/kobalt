@@ -56,7 +56,8 @@ public class PomGenerator @Inject constructor(@Assisted val project: Project) {
 
         val buildDir = KFiles.makeDir(project.directory, project.buildDirectory)
         val outputDir = KFiles.makeDir(buildDir.path, "libs")
-        val mavenId = MavenId.create(project.group!!, project.artifactId!!, project.packaging, project.version!!)
+        val NO_CLASSIFIER = null
+        val mavenId = MavenId.create(project.group!!, project.artifactId!!, project.packaging, NO_CLASSIFIER, project.version!!)
         val pomFile = SimpleDep(mavenId).toPomFileName()
         val outputFile = File(outputDir, pomFile)
         outputFile.writeText(s.toString(), Charset.defaultCharset())
