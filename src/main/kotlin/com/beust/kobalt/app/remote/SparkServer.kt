@@ -40,12 +40,13 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
 
                         dependencyData.dependenciesDataFor(buildFile, args)
                     } catch(ex: Exception) {
-                        "Error: " + ex.message
+                        DependencyData.GetDependenciesData(emptyList<DependencyData.ProjectData>(), ex.message)
                     } finally {
                         cleanUpCallback()
                     }
                 } else {
-                    "error"
+                    DependencyData.GetDependenciesData(emptyList<DependencyData.ProjectData>(),
+                            "buildFile wasn't passed in the query parameter")
                 }
             cleanUpCallback()
             result
