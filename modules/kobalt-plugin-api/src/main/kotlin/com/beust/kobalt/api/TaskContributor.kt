@@ -23,6 +23,7 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
      * depends on variants of that task.
      */
     fun addVariantTasks(plugin: IPlugin, project: Project, context: KobaltContext, taskName: String,
+            group: String,
             dependsOn: List<String> = emptyList(),
             reverseDependsOn : List<String> = emptyList(),
             runBefore : List<String> = emptyList(),
@@ -30,7 +31,7 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
             runTask: (Project) -> TaskResult) {
         Variant.allVariants(project).forEach { variant ->
             val variantTaskName = variant.toTask(taskName)
-            dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName, project,
+            dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName, group, project,
                     dependsOn = dependsOn.map { variant.toTask(it) },
                     reverseDependsOn = reverseDependsOn.map { variant.toTask(it) },
                     runBefore = runBefore.map { variant.toTask(it) },
@@ -43,6 +44,7 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
     }
 
     fun addIncrementalVariantTasks(plugin: IPlugin, project: Project, context: KobaltContext, taskName: String,
+            group: String,
             dependsOn: List<String> = emptyList(),
             reverseDependsOn : List<String> = emptyList(),
             runBefore : List<String> = emptyList(),
@@ -50,7 +52,7 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
             runTask: (Project) -> IncrementalTaskInfo) {
         Variant.allVariants(project).forEach { variant ->
             val variantTaskName = variant.toTask(taskName)
-            dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName, project,
+            dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName, group, project,
                     dependsOn = dependsOn.map { variant.toTask(it) },
                     reverseDependsOn = reverseDependsOn.map { variant.toTask(it) },
                     runBefore = runBefore.map { variant.toTask(it) },

@@ -56,7 +56,7 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
             val sources = project.sourceDirectories.partition { KFiles.isResource(it) }
             val tests = project.sourceDirectoriesTest.partition { KFiles.isResource(it) }
             val allTasks = taskManager.tasksByNames(project).values().map {
-                TaskData(it.name, it.doc)
+                TaskData(it.name, it.doc, it.group)
             }
             projectDatas.add(ProjectData(project.name, project.directory, dependentProjects,
                     compileDependencies, testDependencies,
@@ -72,7 +72,7 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
     //
 
     class DependencyData(val id: String, val scope: String, val path: String)
-    class TaskData(val name: String, val description: String)
+    class TaskData(val name: String, val description: String, val group: String)
 
     class ProjectData(val name: String, val directory: String,
             val dependentProjects: List<String>,

@@ -430,6 +430,7 @@ class TaskManager @Inject constructor(val args: Args,
     private val taskAnnotations = arrayListOf<TaskAnnotation>()
 
     class TaskAnnotation(val method: Method, val plugin: IPlugin, val name: String, val description: String,
+            val group: String,
             val dependsOn: Array<String>, val reverseDependsOn: Array<String>,
             val runBefore: Array<String>, val runAfter: Array<String>,
             val alwaysRunAfter: Array<String>,
@@ -441,7 +442,7 @@ class TaskManager @Inject constructor(val args: Args,
      * Invoking a @Task means simply calling the method and returning its returned TaskResult.
      */
     fun toTaskAnnotation(method: Method, plugin: IPlugin, ta: Task)
-            = TaskAnnotation(method, plugin, ta.name, ta.description, ta.dependsOn, ta.reverseDependsOn,
+            = TaskAnnotation(method, plugin, ta.name, ta.description, ta.group, ta.dependsOn, ta.reverseDependsOn,
                 ta.runBefore, ta.runAfter, ta.alwaysRunAfter,
             { project ->
                 method.invoke(plugin, project) as TaskResult
@@ -452,7 +453,7 @@ class TaskManager @Inject constructor(val args: Args,
      * of the returned IncrementalTaskInfo.
      */
     fun toTaskAnnotation(method: Method, plugin: IPlugin, ta: IncrementalTask)
-            = TaskAnnotation(method, plugin, ta.name, ta.description, ta.dependsOn, ta.reverseDependsOn,
+            = TaskAnnotation(method, plugin, ta.name, ta.description, ta.group, ta.dependsOn, ta.reverseDependsOn,
             ta.runBefore, ta.runAfter, ta.alwaysRunAfter,
             incrementalManagerFactory.create().toIncrementalTaskClosure(ta.name, { project ->
                 method.invoke(plugin, project) as IncrementalTaskInfo
@@ -481,7 +482,7 @@ class TaskManager @Inject constructor(val args: Args,
     private fun installDynamicTasks(projects: List<Project>) {
         dynamicTasks.forEach { task ->
             projects.filter { task.plugin.accept(it) }.forEach { project ->
-                addTask(task.plugin, project, task.name, task.doc,
+                addTask(task.plugin, project, task.name, task.doc, task.group,
                         task.dependsOn, task.reverseDependsOn, task.runBefore, task.runAfter, task.alwaysRunAfter,
                         task.closure)
             }
@@ -504,13 +505,13 @@ class TaskManager @Inject constructor(val args: Args,
 
     private fun addAnnotationTask(plugin: IPlugin, project: Project, annotation: TaskAnnotation,
             task: (Project) -> TaskResult) {
-        addTask(plugin, project, annotation.name, annotation.description,
+        addTask(plugin, project, annotation.name, annotation.description, annotation.group,
                 annotation.dependsOn.toList(), annotation.reverseDependsOn.toList(),
                 annotation.runBefore.toList(), annotation.runAfter.toList(),
                 annotation.alwaysRunAfter.toList(), task)
     }
 
-    fun addTask(plugin: IPlugin, project: Project, name: String, description: String = "",
+    fun addTask(plugin: IPlugin, project: Project, name: String, description: String = "", group: String,
             dependsOn: List<String> = listOf<String>(),
             reverseDependsOn: List<String> = listOf<String>(),
             runBefore: List<String> = listOf<String>(),
@@ -518,7 +519,7 @@ class TaskManager @Inject constructor(val args: Args,
             alwaysRunAfter: List<String> = listOf<String>(),
             task: (Project) -> TaskResult) {
         annotationTasks.add(
-                object : BasePluginTask(plugin, name, description, project) {
+                object : BasePluginTask(plugin, name, description, group, project) {
                     override fun call(): TaskResult2<ITask> {
                         val taskResult = task(project)
                         return TaskResult2(taskResult.success, taskResult.errorMessage, this)
