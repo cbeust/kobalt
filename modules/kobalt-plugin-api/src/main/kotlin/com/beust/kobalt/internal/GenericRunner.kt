@@ -74,7 +74,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
                 }
 
                 // JVM flags from the interceptors (these overwrite flags instead of just adding to the list)
-                var interceptedArgs = ArrayList(flagsFromContributors)
+                var interceptedArgs = ArrayList(jvmFlags + flagsFromContributors)
                 pluginInfo.testJvmFlagInterceptors.forEach {
                     val newFlags = it.testJvmFlagsFor(project, context, interceptedArgs)
                     interceptedArgs.clear()
