@@ -176,17 +176,8 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
                 if (this is IIncrementalAssemblyContributor) incrementalAssemblyContributors.add(this)
 
                 // Not documented yet
-                if (this is ITestJvmFlagContributor) {
-                    println("ADDING CONTRIBUTOR $this")
-                    testJvmFlagContributors.add(this)
-                }
+                if (this is ITestJvmFlagContributor) testJvmFlagContributors.add(this)
                 if (this is ITestJvmFlagInterceptor) testJvmFlagInterceptors.add(this)
-
-                if (it.contains("CoverageAgent")) {
-                    val rec = this
-                    println("IS: " + (rec is ITestJvmFlagContributor))
-                    println("DONOTCOMMIT")
-                }
             }
         }
     }
