@@ -7,6 +7,7 @@ import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.warn
 import com.google.common.collect.ArrayListMultimap
 import java.io.File
 import java.util.*
@@ -30,7 +31,15 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
             val path = if (project?.directory != null) {
                 val idPath = id.substring(FileDependency.PREFIX_FILE.length)
                 if (! File(idPath).isAbsolute) {
-                    File(project!!.directory, idPath)
+                    // If the project directory is relative, we might not be in the correct directory to locate
+                    // that file, so we'll use the absolute directory deduced from the build file path. Pick
+                    // the first one that produces an actual file
+                    val result = listOf(File(project!!.directory), Kobalt.context?.internalContext?.absoluteDir).map {
+                        File(it, idPath)
+                    }.first {
+                        it.exists()
+                    }
+                    result
                 } else {
                     File(idPath)
                 }
@@ -119,7 +128,14 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
             }
         }
 
-        val result2 = reorderDependencies(result).filter {
+        val reordered = reorderDependencies(result)
+
+        val nonexistent = reordered.filter{ ! it.jarFile.get().exists() }
+        if (nonexistent.any()) {
+            warn("Nonexistent dependencies: $nonexistent")
+        }
+
+        val result2 = reordered.filter {
             // Only keep existent files (nonexistent files are probably optional dependencies or parent poms
             // that point to other poms but don't have a jar file themselves)
             it.jarFile.get().exists()

@@ -7,6 +7,7 @@ import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KobaltExecutors
+import java.io.File
 
 class KobaltContext(val args: Args) {
     var variant: Variant = Variant()
@@ -47,4 +48,9 @@ class InternalContext {
      * will be disabled.
      */
     var buildFileOutOfDate: Boolean = false
+
+    /**
+     * The absolute directory of the current project.
+     */
+    var absoluteDir: File? = null
 }

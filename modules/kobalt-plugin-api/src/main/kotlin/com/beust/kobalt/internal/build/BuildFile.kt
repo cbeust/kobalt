@@ -23,4 +23,9 @@ class BuildFile(val path: Path, val name: String, val realPath: Path = path) {
     val dotKobaltDir: File get() = File(directory.parentFile.parentFile, KFiles.KOBALT_DOT_DIR).apply {
         mkdirs()
     }
+
+    /**
+     * @return the absolute directory of this build file, assuming the build file is in $project/kobalt/src/Build.kt
+     */
+    val absoluteDir = path.parent.parent.parent.toFile()
 }
