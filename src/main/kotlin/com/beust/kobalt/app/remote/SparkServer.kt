@@ -29,6 +29,10 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
     override fun run(port: Int) {
         Spark.port(port)
         Spark.get("/ping", { req, res -> "The Kobalt server is up and running" })
+        Spark.get("/quit", {
+            req, res -> println("Kobalt server quitting...")
+            Spark.stop()
+        })
         Spark.get("/v0/getDependencies", "application/json", Route { request, response ->
             val buildFile = request.queryParams("buildFile")
             initCallback(buildFile)
