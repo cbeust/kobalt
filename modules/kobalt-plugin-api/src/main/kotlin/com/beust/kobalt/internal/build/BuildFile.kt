@@ -29,8 +29,8 @@ class BuildFile(val path: Path, val name: String, val realPath: Path = path) {
      * @return the absolute directory of this projects' location, assuming the build file is in
      * $project/kobalt/src/Build.kt.
      */
-    val absoluteDir : File get() {
+    val absoluteDir : File? get() {
         log(1, "Current path: $path")
-        return path.parent.parent.parent.toFile()
+        return path.parent?.parent?.parent?.toFile()
     }
 }
