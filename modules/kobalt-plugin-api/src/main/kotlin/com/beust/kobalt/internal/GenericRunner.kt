@@ -63,31 +63,31 @@ abstract class GenericTestRunner: ITestRunnerContributor {
                     addAll(testConfig.jvmArgs)
                     add("-classpath")
                     add(classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator))
-                    add(mainClass)
                 }
 
                 val pluginInfo = Kobalt.INJECTOR.getInstance(PluginInfo::class.java)
 
                 // JVM flags from the contributors
-                val flagsFromContributors = pluginInfo.testJvmFlagContributors.flatMap {
+                val jvmFlagsFromContributors = pluginInfo.testJvmFlagContributors.flatMap {
                     it.testJvmFlagsFor(project, context, jvmFlags)
                 }
 
                 // JVM flags from the interceptors (these overwrite flags instead of just adding to the list)
-                var interceptedArgs = ArrayList(jvmFlags + flagsFromContributors)
+                var interceptedJvmFlags = ArrayList(jvmFlags + jvmFlagsFromContributors)
                 pluginInfo.testJvmFlagInterceptors.forEach {
-                    val newFlags = it.testJvmFlagsFor(project, context, interceptedArgs)
-                    interceptedArgs.clear()
-                    interceptedArgs.addAll(newFlags)
+                    val newFlags = it.testJvmFlagsFor(project, context, interceptedJvmFlags)
+                    interceptedJvmFlags.clear()
+                    interceptedJvmFlags.addAll(newFlags)
                 }
 
-                if (interceptedArgs.any()) {
-                    log(2, "Final JVM test flags after running the contributors and interceptors: $interceptedArgs")
+                if (interceptedJvmFlags.any()) {
+                    log(2, "Final JVM test flags after running the contributors and interceptors: $interceptedJvmFlags")
                 }
 
                 val allArgs = arrayListOf<String>().apply {
                     add(java!!.absolutePath)
-                    addAll(interceptedArgs)
+                    addAll(interceptedJvmFlags)
+                    add(mainClass)
                     addAll(args)
                 }
 
