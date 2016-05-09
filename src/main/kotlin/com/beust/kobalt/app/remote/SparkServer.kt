@@ -7,6 +7,7 @@ import com.google.gson.Gson
 import spark.ResponseTransformer
 import spark.Route
 import spark.Spark
+import java.util.concurrent.Executors
 
 class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallback: () -> Unit)
         : KobaltServer .IServer {
@@ -29,9 +30,15 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
     override fun run(port: Int) {
         Spark.port(port)
         Spark.get("/ping", { req, res -> "The Kobalt server is up and running" })
-        Spark.get("/quit", {
-            req, res -> println("Kobalt server quitting...")
-            Spark.stop()
+        Spark.get("/quit", { req, res ->
+            Executors.newFixedThreadPool(1).let { executor ->
+                executor.submit {
+                    Thread.sleep(1000)
+                    Spark.stop()
+                    executor.shutdown()
+                }
+                "ok"
+            }
         })
         Spark.get("/v0/getDependencies", "application/json", Route { request, response ->
             val buildFile = request.queryParams("buildFile")
