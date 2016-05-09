@@ -50,12 +50,22 @@ class ClassNameXml {
     var className: List<String> = arrayListOf()
 }
 
+interface IPluginInfo {
+    val testJvmFlagContributors : List<ITestJvmFlagContributor>
+    val testJvmFlagInterceptors : List<ITestJvmFlagInterceptor>
+}
+
+open class BasePluginInfo : IPluginInfo {
+    override val testJvmFlagContributors = arrayListOf<ITestJvmFlagContributor>()
+    override val testJvmFlagInterceptors = arrayListOf<ITestJvmFlagInterceptor>()
+}
 /**
  * Turn a KobaltPluginXml (the raw content of kobalt-plugin.xml mapped to POJO's) into a PluginInfo object, which
  * contains all the contributors instantiated and other information that Kobalt can actually use. Kobalt code that
  * needs to access plug-in info can then just inject a PluginInfo object.
  */
-class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, val classLoader: ClassLoader?) {
+class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, val classLoader: ClassLoader?)
+        : BasePluginInfo() {
     val plugins = arrayListOf<IPlugin>()
     val projectContributors = arrayListOf<IProjectContributor>()
     val classpathContributors = arrayListOf<IClasspathContributor>()
@@ -80,8 +90,11 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
     // Not documented yet
     val buildConfigContributors = arrayListOf<IBuildConfigContributor>()
     val mavenIdInterceptors = arrayListOf<IMavenIdInterceptor>()
-    val testJvmFlagContributors = arrayListOf<ITestJvmFlagContributor>()
-    val testJvmFlagInterceptors = arrayListOf<ITestJvmFlagInterceptor>()
+
+    // Note: intentionally repeating them here even though they are defined by our base class so
+    // that this class always contains the full list of contributors and interceptors
+    override val testJvmFlagContributors = arrayListOf<ITestJvmFlagContributor>()
+    override val testJvmFlagInterceptors = arrayListOf<ITestJvmFlagInterceptor>()
 
     companion object {
         /**

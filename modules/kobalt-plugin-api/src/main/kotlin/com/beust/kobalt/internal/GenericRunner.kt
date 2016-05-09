@@ -4,6 +4,7 @@ import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
+import com.google.common.annotations.VisibleForTesting
 import java.io.File
 import java.util.*
 
@@ -48,8 +49,6 @@ abstract class GenericTestRunner: ITestRunnerContributor {
      */
     fun runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             configName: String) : Boolean {
-        val jvm = JavaInfo.create(File(SystemProperties.javaBase))
-        val java = jvm.javaExecutable
         var result = false
 
         val testConfig = project.testConfigs.firstOrNull { it.name == configName }
@@ -58,35 +57,12 @@ abstract class GenericTestRunner: ITestRunnerContributor {
             val args = args(project, classpath, testConfig)
             if (args.size > 0) {
 
-                // Default JVM args
-                val jvmFlags = arrayListOf<String>().apply {
-                    addAll(testConfig.jvmArgs)
-                    add("-classpath")
-                    add(classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator))
-                }
-
-                val pluginInfo = Kobalt.INJECTOR.getInstance(PluginInfo::class.java)
-
-                // JVM flags from the contributors
-                val jvmFlagsFromContributors = pluginInfo.testJvmFlagContributors.flatMap {
-                    it.testJvmFlagsFor(project, context, jvmFlags)
-                }
-
-                // JVM flags from the interceptors (these overwrite flags instead of just adding to the list)
-                var interceptedJvmFlags = ArrayList(jvmFlags + jvmFlagsFromContributors)
-                pluginInfo.testJvmFlagInterceptors.forEach {
-                    val newFlags = it.testJvmFlagsFor(project, context, interceptedJvmFlags)
-                    interceptedJvmFlags.clear()
-                    interceptedJvmFlags.addAll(newFlags)
-                }
-
-                if (interceptedJvmFlags.any()) {
-                    log(2, "Final JVM test flags after running the contributors and interceptors: $interceptedJvmFlags")
-                }
-
+                val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable
+                val jvmArgs = calculateAllJvmArgs(project, context, testConfig, classpath,
+                        Kobalt.INJECTOR.getInstance (PluginInfo::class.java))
                 val allArgs = arrayListOf<String>().apply {
                     add(java!!.absolutePath)
-                    addAll(interceptedJvmFlags)
+                    addAll(jvmArgs)
                     add(mainClass)
                     addAll(args)
                 }
@@ -113,5 +89,39 @@ abstract class GenericTestRunner: ITestRunnerContributor {
         }
         return result
     }
+
+    /*
+     ** @return all the JVM flags from contributors and interceptors.
+     */
+    @VisibleForTesting
+    fun calculateAllJvmArgs(project: Project, context: KobaltContext,
+            testConfig: TestConfig, classpath: List<IClasspathDependency>, pluginInfo: IPluginInfo) : List<String> {
+        // Default JVM args
+        val jvmFlags = arrayListOf<String>().apply {
+            addAll(testConfig.jvmArgs)
+            add("-classpath")
+            add(classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator))
+        }
+
+        // JVM flags from the contributors
+        val jvmFlagsFromContributors = pluginInfo.testJvmFlagContributors.flatMap {
+            it.testJvmFlagsFor(project, context, jvmFlags)
+        }
+
+        // JVM flags from the interceptors (these overwrite flags instead of just adding to the list)
+        var result = ArrayList(jvmFlags + jvmFlagsFromContributors)
+        pluginInfo.testJvmFlagInterceptors.forEach {
+            val newFlags = it.testJvmFlagsFor(project, context, result)
+            result.clear()
+            result.addAll(newFlags)
+        }
+
+        if (result.any()) {
+            log(2, "Final JVM test flags after running the contributors and interceptors: $result")
+        }
+
+        return result
+    }
+
 }
 
