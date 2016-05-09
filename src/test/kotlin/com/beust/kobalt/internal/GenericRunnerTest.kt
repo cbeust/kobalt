@@ -16,8 +16,11 @@ import javax.inject.Inject
  * Test ITestJvmFlagContributor and ITestJvmFlagInterceptor.
  */
 class DependencyTest @Inject constructor() {
+    private val A_JAR = "/tmp/a.jar"
+    private val B_JAR = "/tmp/b.jar"
+
     private val project : Project get() = project { name = "dummy" }
-    private val classpath = listOf(FileDependency("/tmp/a.jar"))
+    private val classpath = listOf(FileDependency(A_JAR))
     private val context = KobaltContext(Args())
     private val contributor = object : ITestJvmFlagContributor {
         override fun testJvmFlagsFor(project: Project, context: KobaltContext,
@@ -25,8 +28,6 @@ class DependencyTest @Inject constructor() {
             return listOf("-agent", "foo")
         }
     }
-    private val A_JAR = "/tmp/a.jar"
-    private val B_JAR = "/tmp/b.jar"
 
     private val interceptor = object : ITestJvmFlagInterceptor {
         override fun testJvmFlagsFor(project: Project, context: KobaltContext,
