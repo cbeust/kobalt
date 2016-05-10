@@ -173,6 +173,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
         zip {
             val dir = "kobalt-$version"
             include(from("dist"), to("$dir/bin"), "kobaltw")
+            include(from("dist"), to("$dir/bin"), "kobaltw.bat")
             include(from("$buildDirectory/libs"), to("$dir/kobalt/wrapper"),
                     "$projectName-$version.jar")
             include(from("modules/wrapper/$buildDirectory/libs"), to("$dir/kobalt/wrapper"),
