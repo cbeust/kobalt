@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.log
 import java.io.ByteArrayInputStream
@@ -49,12 +50,22 @@ class ClassNameXml {
     var className: List<String> = arrayListOf()
 }
 
+interface IPluginInfo {
+    val testJvmFlagContributors : List<ITestJvmFlagContributor>
+    val testJvmFlagInterceptors : List<ITestJvmFlagInterceptor>
+}
+
+open class BasePluginInfo : IPluginInfo {
+    override val testJvmFlagContributors = arrayListOf<ITestJvmFlagContributor>()
+    override val testJvmFlagInterceptors = arrayListOf<ITestJvmFlagInterceptor>()
+}
 /**
  * Turn a KobaltPluginXml (the raw content of kobalt-plugin.xml mapped to POJO's) into a PluginInfo object, which
  * contains all the contributors instantiated and other information that Kobalt can actually use. Kobalt code that
  * needs to access plug-in info can then just inject a PluginInfo object.
  */
-class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
+class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, val classLoader: ClassLoader?)
+        : BasePluginInfo() {
     val plugins = arrayListOf<IPlugin>()
     val projectContributors = arrayListOf<IProjectContributor>()
     val classpathContributors = arrayListOf<IClasspathContributor>()
@@ -79,8 +90,11 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     // Not documented yet
     val buildConfigContributors = arrayListOf<IBuildConfigContributor>()
     val mavenIdInterceptors = arrayListOf<IMavenIdInterceptor>()
-    val testJvmFlagContributors = arrayListOf<ITestJvmFlagContributor>()
-    val testJvmFlagInterceptors = arrayListOf<ITestJvmFlagInterceptor>()
+
+    // Note: intentionally repeating them here even though they are defined by our base class so
+    // that this class always contains the full list of contributors and interceptors
+    override val testJvmFlagContributors = arrayListOf<ITestJvmFlagContributor>()
+    override val testJvmFlagInterceptors = arrayListOf<ITestJvmFlagInterceptor>()
 
     companion object {
         /**
@@ -112,16 +126,24 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         /**
          * Read a general kobalt-plugin.xml.
          */
-        fun readPluginXml(ins: InputStream, classLoader: ClassLoader? = null): PluginInfo {
+        fun readPluginXml(ins: InputStream, pluginClassLoader: ClassLoader? = null,
+                classLoader: ClassLoader? = null): PluginInfo {
             val jaxbContext = JAXBContext.newInstance(KobaltPluginXml::class.java)
-            val kotlinPlugin: KobaltPluginXml = jaxbContext.createUnmarshaller().unmarshal(ins)
+            val kobaltPlugin: KobaltPluginXml = jaxbContext.createUnmarshaller().unmarshal(ins)
                     as KobaltPluginXml
-            log(2, "Parsed plugin XML file, found: " + kotlinPlugin.name)
-            return PluginInfo(kotlinPlugin, classLoader)
+            log(2, "Parsed plugin XML file, found: " + kobaltPlugin.name)
+            val result =
+                try {
+                    PluginInfo(kobaltPlugin, pluginClassLoader, classLoader)
+                } catch(ex: Exception) {
+                    throw KobaltException("Couldn't create PluginInfo: " + ex.message, ex)
+                }
+            return result
         }
 
-        fun readPluginXml(s: String, classLoader: ClassLoader? = null)
-                = readPluginXml(ByteArrayInputStream(s.toByteArray(Charsets.UTF_8)), classLoader)
+        fun readPluginXml(s: String, pluginClassLoader: ClassLoader?, scriptClassLoader: ClassLoader? = null)
+                = readPluginXml(ByteArrayInputStream(s.toByteArray(Charsets.UTF_8)), pluginClassLoader,
+                        scriptClassLoader)
     }
 
     init {
@@ -132,7 +154,8 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         }
 
         fun forName(className: String) =
-            if (classLoader != null) classLoader.loadClass(className)
+            if (pluginClassLoader != null) pluginClassLoader.loadClass(className)
+            else if (classLoader != null) classLoader.loadClass(className)
             else Class.forName(className)
 
         //
@@ -189,7 +212,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
     }
 
     /**
-     * Populate pluginInfo with what was found in the plug-in's kobalt-plugin.xml
+     * Add the content of @param[pluginInfo] to this pluginInfo.
      */
     fun addPluginInfo(pluginInfo: PluginInfo) {
         log(2, "Found new plug-in, adding it to pluginInfo: $pluginInfo")
@@ -216,6 +239,7 @@ class PluginInfo(val xml: KobaltPluginXml, val classLoader: ClassLoader?) {
         buildConfigContributors.addAll(pluginInfo.buildConfigContributors)
         assemblyContributors.addAll(pluginInfo.assemblyContributors)
         incrementalAssemblyContributors.addAll(pluginInfo.incrementalAssemblyContributors)
+        testJvmFlagContributors.addAll(pluginInfo.testJvmFlagContributors)
         testJvmFlagInterceptors.addAll(pluginInfo.testJvmFlagInterceptors)
     }
 }

@@ -8,8 +8,14 @@ annotation class Directive
 
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Task(
+    /* This task's name */
     val name: String,
+
+    /* The documentation for this task */
     val description: String = "",
+
+    /** Used to show the task in the correct group in the IDE */
+    val group: String = "other",
 
     /** Dependency: tasks this task depends on */
     val dependsOn: Array<String> = arrayOf(),
@@ -29,8 +35,14 @@ annotation class Task(
 
 @Retention(AnnotationRetention.RUNTIME)
 annotation class IncrementalTask(
+    /* This task's name */
     val name: String,
+
+    /* The documentation for this task */
     val description: String = "",
+
+    /** Used to show the task in the correct group in the IDE */
+    val group: String = "other",
 
     /** Dependency: tasks this task depends on */
     val dependsOn: Array<String> = arrayOf(),

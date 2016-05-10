@@ -12,6 +12,7 @@ interface ITaskContributor : IContributor {
 }
 
 class DynamicTask(override val plugin: IPlugin, override val name: String, override val doc: String,
+        override val group: String,
         override val project: Project,
         val dependsOn: List<String> = listOf<String>(),
         val reverseDependsOn: List<String> = listOf<String>(),

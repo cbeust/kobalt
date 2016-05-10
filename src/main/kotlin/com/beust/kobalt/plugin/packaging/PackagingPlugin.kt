@@ -48,7 +48,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
         project.projectProperties.put(LIBS_DIR, KFiles.libsDir(project))
-        taskContributor.addVariantTasks(this, project, context, "assemble", runAfter = listOf("compile"),
+        taskContributor.addVariantTasks(this, project, context, "assemble", group = "build",
+                runAfter = listOf ("compile"),
                 runTask = { doTaskAssemble(project) })
     }
 
@@ -78,7 +79,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             }}, context)
     }
 
-    @Task(name = TASK_ASSEMBLE, description = "Package the artifacts",
+    @Task(name = TASK_ASSEMBLE, description = "Package the artifacts", group = JvmCompilerPlugin.GROUP_BUILD,
             dependsOn = arrayOf(JvmCompilerPlugin.TASK_COMPILE))
     fun doTaskAssemble(project: Project) : TaskResult {
         // Incremental assembly contributors

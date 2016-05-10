@@ -14,6 +14,7 @@ import com.beust.kobalt.misc.log
 import com.google.inject.Provider
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.net.URLClassLoader
 import java.util.*
 import java.util.jar.JarFile
 import javax.inject.Inject
@@ -148,7 +149,7 @@ class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManage
 
     val dependencies = arrayListOf<IClasspathDependency>()
 
-    fun installPlugins(dependencies: List<IClasspathDependency>, classLoader: ClassLoader) {
+    fun installPlugins(dependencies: List<IClasspathDependency>, scriptClassLoader: ClassLoader) {
         val executor = executors.newExecutor("Plugins", 5)
         dependencies.forEach {
             //
@@ -161,7 +162,8 @@ class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManage
             //
             val pluginXml = JarUtils.extractTextFile(JarFile(it.jarFile.get()), PluginInfo.PLUGIN_XML)
             if (pluginXml != null) {
-                val thisPluginInfo = PluginInfo.readPluginXml(pluginXml, classLoader)
+                val pluginClassLoader = URLClassLoader(arrayOf(it.jarFile.get().toURI().toURL()))
+                val thisPluginInfo = PluginInfo.readPluginXml(pluginXml, pluginClassLoader, scriptClassLoader)
                 pluginInfo.addPluginInfo(thisPluginInfo)
                 thisPluginInfo.plugins.forEach {
                     Plugins.addPluginInstance(it)

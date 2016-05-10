@@ -48,6 +48,10 @@ open class JvmCompilerPlugin @Inject constructor(
         const val TASK_TEST = "test"
 
         const val DOCS_DIRECTORY = "docs/javadoc"
+
+        const val GROUP_TEST = "test"
+        const val GROUP_BUILD = "build"
+        const val GROUP_DOCUMENTATION = "documentation"
     }
 
     override val name: String = PLUGIN_NAME
@@ -64,7 +68,7 @@ open class JvmCompilerPlugin @Inject constructor(
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
 //        cleanUpActors()
-        taskContributor.addIncrementalVariantTasks(this, project, context, "compile",
+        taskContributor.addIncrementalVariantTasks(this, project, context, "compile", GROUP_BUILD,
                 runTask = { taskCompile(project) })
 
         //
@@ -77,7 +81,7 @@ open class JvmCompilerPlugin @Inject constructor(
         project.testConfigs.forEach { config ->
             val taskName = if (config.name.isEmpty()) TASK_TEST else TASK_TEST + config.name
 
-            taskManager.addTask(this, project, taskName,
+            taskManager.addTask(this, project, taskName, group = GROUP_TEST,
                     dependsOn = listOf(JvmCompilerPlugin.TASK_COMPILE, JvmCompilerPlugin.TASK_COMPILE_TEST),
                     task = { taskTest(project, config.name)} )
         }
@@ -98,7 +102,7 @@ open class JvmCompilerPlugin @Inject constructor(
         }
     }
 
-    @Task(name = TASK_CLEAN, description = "Clean the project")
+    @Task(name = TASK_CLEAN, description = "Clean the project", group = GROUP_BUILD)
     fun taskClean(project: Project): TaskResult {
         java.io.File(project.directory, project.buildDirectory).let { dir ->
             if (!dir.deleteRecursively()) {
@@ -139,7 +143,7 @@ open class JvmCompilerPlugin @Inject constructor(
         }
     }
 
-    @IncrementalTask(name = TASK_COMPILE_TEST, description = "Compile the tests",
+    @IncrementalTask(name = TASK_COMPILE_TEST, description = "Compile the tests", group = GROUP_BUILD,
             dependsOn = arrayOf(TASK_COMPILE))
     fun taskCompileTest(project: Project): IncrementalTaskInfo {
         sourceTestDirectories.addAll(context.variant.sourceDirectories(project, context, SourceSet.of(isTest = true)))
@@ -155,7 +159,7 @@ open class JvmCompilerPlugin @Inject constructor(
         )
     }
 
-    @IncrementalTask(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project",
+    @IncrementalTask(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project", group = GROUP_BUILD,
             runAfter = arrayOf(TASK_CLEAN))
     fun taskCompile(project: Project): IncrementalTaskInfo {
         // Generate the BuildConfig before invoking sourceDirectories() since that call
@@ -243,7 +247,7 @@ open class JvmCompilerPlugin @Inject constructor(
         project.projectProperties.put(DEPENDENT_PROJECTS, allProjects)
     }
 
-    @Task(name = "doc", description = "Generate the documentation for the project")
+    @Task(name = "doc", description = "Generate the documentation for the project", group = GROUP_DOCUMENTATION)
     fun taskJavadoc(project: Project): TaskResult {
         val docGenerator = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.docContributors)
         if (docGenerator != null) {

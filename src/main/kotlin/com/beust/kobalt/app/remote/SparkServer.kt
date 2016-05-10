@@ -7,6 +7,7 @@ import com.google.gson.Gson
 import spark.ResponseTransformer
 import spark.Route
 import spark.Spark
+import java.util.concurrent.Executors
 
 class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallback: () -> Unit)
         : KobaltServer .IServer {
@@ -28,7 +29,17 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
 
     override fun run(port: Int) {
         Spark.port(port)
-        Spark.get("/hello", { req, res -> "Hello world" })
+        Spark.get("/ping", { req, res -> "The Kobalt server is up and running" })
+        Spark.get("/quit", { req, res ->
+            Executors.newFixedThreadPool(1).let { executor ->
+                executor.submit {
+                    Thread.sleep(1000)
+                    Spark.stop()
+                    executor.shutdown()
+                }
+                "ok"
+            }
+        })
         Spark.get("/v0/getDependencies", "application/json", Route { request, response ->
             val buildFile = request.queryParams("buildFile")
             initCallback(buildFile)
@@ -40,12 +51,13 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
 
                         dependencyData.dependenciesDataFor(buildFile, args)
                     } catch(ex: Exception) {
-                        "Error: " + ex.message
+                        DependencyData.GetDependenciesData(emptyList<DependencyData.ProjectData>(), ex.message)
                     } finally {
                         cleanUpCallback()
                     }
                 } else {
-                    "error"
+                    DependencyData.GetDependenciesData(emptyList<DependencyData.ProjectData>(),
+                            "buildFile wasn't passed in the query parameter")
                 }
             cleanUpCallback()
             result
