@@ -88,7 +88,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
     override fun calculateDependencies(project: Project?, context: KobaltContext,
             dependentProjects: List<ProjectDescription>,
             vararg allDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
-        var result = arrayListOf<IClasspathDependency>()
+        val result = arrayListOf<IClasspathDependency>()
         allDependencies.forEach { dependencies ->
             result.addAll(transitiveClosure(dependencies))
         }
@@ -189,7 +189,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
 
     private fun dependencies(project: Project, context: KobaltContext, isTest: Boolean)
             : List<IClasspathDependency> {
-        val result = arrayListOf<IClasspathDependency>()
+        val transitive = hashSetOf<IClasspathDependency>()
         val projects = listOf(ProjectDescription(project, project.projectExtra.dependsOn))
         with(project) {
             val deps = arrayListOf(compileDependencies, compileProvidedDependencies)
@@ -197,17 +197,17 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
                 deps.add(testDependencies)
                 deps.add(testProvidedDependencies)
             }
-            deps.forEach {
-                result.addAll(calculateDependencies(project, context, projects, it))
+            deps.filter { it.any() }.forEach {
+                transitive.addAll(calculateDependencies(project, context, projects, it))
             }
         }
 
         // Make sure that classes/ and test-classes/ are always at the top of this classpath,
         // so that older versions of that project on the classpath don't shadow them
-        val result2 = listOf(FileDependency(KFiles.makeOutputDir(project).absolutePath),
+        val result = listOf(FileDependency(KFiles.makeOutputDir(project).absolutePath),
             FileDependency(KFiles.makeOutputTestDir(project).absolutePath)) +
-            reorderDependencies(result)
-        return result2
+            reorderDependencies(transitive)
+        return result
     }
 
 }

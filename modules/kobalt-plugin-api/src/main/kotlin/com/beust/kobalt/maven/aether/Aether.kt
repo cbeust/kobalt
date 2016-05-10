@@ -220,6 +220,10 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
                 other.artifact.version))
     }
 
+    override fun hashCode() = id.hashCode()
+
+    override fun equals(other: Any?) = if (other is AetherDependency) other.id == id else false
+
     override fun toString() = id
 }
 
