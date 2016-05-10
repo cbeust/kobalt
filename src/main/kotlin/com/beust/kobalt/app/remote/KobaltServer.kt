@@ -20,6 +20,14 @@ import java.util.concurrent.Callable
 class KobaltServer(val force: Boolean, val givenPort: Int? = null,
         val initCallback: (String) -> List<Project>,
         val cleanUpCallback: () -> Unit) : Callable<Int> {
+
+    companion object {
+        /**
+         * Default response sent for calls that don't return a payload.
+         */
+        val OK = "ok"
+    }
+
 //    var outgoing: PrintWriter? = null
 
     interface IServer {

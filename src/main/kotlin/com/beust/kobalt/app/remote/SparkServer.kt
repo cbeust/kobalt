@@ -29,7 +29,7 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
 
     override fun run(port: Int) {
         Spark.port(port)
-        Spark.get("/ping", { req, res -> "The Kobalt server is up and running" })
+        Spark.get("/ping", { req, res -> KobaltServer.OK })
         Spark.get("/quit", { req, res ->
             Executors.newFixedThreadPool(1).let { executor ->
                 executor.submit {
@@ -37,7 +37,7 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
                     Spark.stop()
                     executor.shutdown()
                 }
-                "ok"
+                KobaltServer.OK
             }
         })
         Spark.get("/v0/getDependencies", "application/json", Route { request, response ->
