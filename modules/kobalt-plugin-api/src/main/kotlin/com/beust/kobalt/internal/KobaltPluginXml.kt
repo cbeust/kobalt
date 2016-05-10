@@ -50,6 +50,9 @@ class ClassNameXml {
     var className: List<String> = arrayListOf()
 }
 
+/**
+ * The fields in this interface have tests.
+ */
 interface IPluginInfo {
     val testJvmFlagContributors : List<ITestJvmFlagContributor>
     val testJvmFlagInterceptors : List<ITestJvmFlagInterceptor>
