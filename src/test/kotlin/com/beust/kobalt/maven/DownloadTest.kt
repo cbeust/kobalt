@@ -55,7 +55,7 @@ class DownloadTest @Inject constructor(
     val artifactId = "joda-time"
     val idNoVersion = "$groupId:$artifactId:"
 
-    @Test(description = "Make sure that versionless id's, e.g. org.testng:testng:, get downloaded")
+    @Test(enabled = false, description = "Make sure that versionless id's, e.g. org.testng:testng:, get downloaded")
     fun shouldDownloadNoVersion() {
         val success = deleteDir()
         if (success) {
