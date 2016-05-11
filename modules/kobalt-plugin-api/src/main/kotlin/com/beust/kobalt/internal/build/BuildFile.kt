@@ -1,7 +1,6 @@
 package com.beust.kobalt.internal.build
 
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -30,7 +29,6 @@ class BuildFile(val path: Path, val name: String, val realPath: Path = path) {
      * $project/kobalt/src/Build.kt.
      */
     val absoluteDir : File? get() {
-        log(1, "Current path: $path")
         return path.parent?.parent?.parent?.toFile()
     }
 }
