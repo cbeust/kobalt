@@ -7,23 +7,26 @@ import com.beust.kobalt.app.kotlin.KotlinTemplateGenerator
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
-import com.google.inject.Inject
+import com.google.common.collect.ListMultimap
 
-class Templates @Inject constructor() : ITemplateContributor {
+class Templates : ITemplateContributor {
     override val templates = listOf(JavaTemplateGenerator(), KotlinTemplateGenerator(), IdeaFilesTemplate())
 
-    fun list(pluginInfo: PluginInfo) {
+    fun getTemplates(pluginInfo: PluginInfo): ListMultimap<String, ITemplate> {
         val map = ArrayListMultimap.create<String, ITemplate>()
         pluginInfo.initContributors.forEach {
             it.templates.forEach {
                 map.put(it.pluginName, it)
             }
         }
+        return map
+    }
 
-        log(1, "Available templates")
-        map.keySet().forEach {
+    fun displayTemplates(pluginInfo : PluginInfo) {
+        val templates = getTemplates(pluginInfo)
+        templates.keySet().forEach {
             log(1, "  Plug-in: $it")
-            map[it].forEach {
+            templates[it].forEach {
                 log(1, "    \"" + it.templateName + "\"\t\t" + it.templateDescription)
             }
         }

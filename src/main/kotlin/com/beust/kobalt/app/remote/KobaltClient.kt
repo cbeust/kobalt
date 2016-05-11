@@ -12,6 +12,7 @@ import com.beust.kobalt.misc.warn
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.inject.Guice
+import com.google.inject.Inject
 import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Retrofit
@@ -49,44 +50,10 @@ class KobaltClient : Runnable {
         val dependencies = service.getDependencies(buildFile)
         val results = dependencies.execute()
         println("Dependencies: $results")
-//        .toString())
-//        var done = false
-//        var attempts = 1
-//        while (attempts < 10 && ! done) {
-//            try {
-//                val socket = Socket("localhost", portNumber)
-//                outgoing = PrintWriter(socket.outputStream, true)
-//                val testBuildfile = Paths.get(SystemProperties.homeDir, "kotlin/klaxon/kobalt/src/Build.kt")
-//                    .toFile().absolutePath
-//                val c : String = """{ "name": "getDependencies", "buildFile": "$testBuildfile"}"""
-//                outgoing!!.println(c)
-//                val ins = BufferedReader(InputStreamReader(socket.inputStream))
-//                var line = ins.readLine()
-//                while (! done && line != null) {
-//                    log(1, "Received from server:\n" + line)
-//                    val jo = JsonParser().parse(line) as JsonObject
-//                    if (jo.has("name") && "quit" == jo.get("name").asString.toLowerCase()) {
-//                        log(1, "Quitting")
-////                        outgoing!!.println("{ \"name\": \"Quit\" }")
-//                        done = true
-//                    } else {
-//                        val data = jo.get("data").asString
-//                        val dd = Gson().fromJson(data, DependencyData.GetDependenciesData::class.java)
-//                        println("Read GetDependencyData, project count: ${dd.projects.size}")
-//                        line = ins.readLine()
-//                    }
-//                }
-//            } catch(ex: ConnectException) {
-//                log(1, "Server not up, sleeping a bit")
-//                Thread.sleep(2000)
-//                attempts++
-//            }
-//        }
     }
 }
 
-
-class ServerProcess {
+class ServerProcess @Inject constructor(val serverFactory: KobaltServer.IFactory) {
     val SERVER_FILE = KFiles.joinDir(homeDir(KFiles.KOBALT_DOT_DIR, "kobaltServer.properties"))
     val KEY_PORT = "port"
     val executor = Executors.newFixedThreadPool(5)
@@ -95,7 +62,10 @@ class ServerProcess {
         var port = launchPrivate()
         while (port == 0) {
             executor.submit {
-                KobaltServer(force = true, initCallback = { buildFile -> emptyList()}, cleanUpCallback = {}).call()
+                serverFactory.create(force = true,
+                        initCallback = { buildFile -> emptyList()},
+                        cleanUpCallback = {})
+                    .call()
             }
             //            launchServer(ProcessUtil.findAvailablePort())
             port = launchPrivate()

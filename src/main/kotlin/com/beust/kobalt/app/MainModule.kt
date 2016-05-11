@@ -1,6 +1,7 @@
 package com.beust.kobalt.app
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.app.remote.KobaltServer
 import com.beust.kobalt.internal.IncrementalManager
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
@@ -29,12 +30,13 @@ public open class MainModule(val args: Args, val settings: KobaltSettings) : Abs
 
         configureTest()
         val builder = FactoryModuleBuilder()
-        arrayListOf(
+        listOf(
                 PomGenerator.IFactory::class.java,
                 BintrayApi.IFactory::class.java,
                 Pom.IFactory::class.java,
                 BuildFileCompiler.IFactory::class.java,
-                IncrementalManager.IFactory::class.java)
+                IncrementalManager.IFactory::class.java,
+                KobaltServer.IFactory::class.java)
             .forEach {
                 install(builder.build(it))
             }

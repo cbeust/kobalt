@@ -2,13 +2,17 @@ package com.beust.kobalt.app.remote
 
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.homeDir
+import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
+import com.google.inject.Inject
+import com.google.inject.assistedinject.Assisted
 import java.io.File
 import java.io.FileWriter
 import java.lang.management.ManagementFactory
 import java.util.*
 import java.util.concurrent.Callable
+import javax.annotation.Nullable
 
 /**
  * Launch a Kobalt server. If @param{force} is specified, a new server will be launched even if one was detected
@@ -17,9 +21,16 @@ import java.util.concurrent.Callable
  * The callbacks are used to initialize and clean up the state before and after each command, so that Kobalt's state
  * can be properly reset, making the server reentrant.
  */
-class KobaltServer(val force: Boolean, val givenPort: Int? = null,
-        val initCallback: (String) -> List<Project>,
-        val cleanUpCallback: () -> Unit) : Callable<Int> {
+class KobaltServer @Inject constructor(@Assisted val force: Boolean, @Assisted @Nullable val givenPort: Int?,
+        @Assisted val initCallback: (String) -> List<Project>,
+        @Assisted val cleanUpCallback: () -> Unit,
+        val pluginInfo : PluginInfo) : Callable<Int> {
+
+    interface IFactory {
+        fun create(force: Boolean, givenPort: Int? = null,
+                initCallback: (String) -> List<Project>,
+                cleanUpCallback: () -> Unit) : KobaltServer
+    }
 
     companion object {
         /**
@@ -41,7 +52,7 @@ class KobaltServer(val force: Boolean, val givenPort: Int? = null,
                 log(1, "KobaltServer listening on port $port")
 //                OldServer(initCallback, cleanUpCallback).run(port)
 //                JerseyServer(initCallback, cleanUpCallback).run(port)
-                SparkServer(initCallback, cleanUpCallback).run(port)
+                SparkServer(initCallback, cleanUpCallback, pluginInfo).run(port)
 //                WasabiServer(initCallback, cleanUpCallback).run(port)
             }
         } catch(ex: Exception) {

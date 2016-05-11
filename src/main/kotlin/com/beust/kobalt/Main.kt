@@ -67,6 +67,7 @@ private class Main @Inject constructor(
         val pluginInfo: PluginInfo,
         val dependencyData: DependencyData,
         val projectGenerator: ProjectGenerator,
+        val serverFactory: KobaltServer.IFactory,
         val resolveDependency: ResolveDependency) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
@@ -99,7 +100,7 @@ private class Main @Inject constructor(
 
         // --listTemplates
         if (args.listTemplates) {
-            Templates().list(pluginInfo)
+            Templates().displayTemplates(pluginInfo)
             return 0
         }
 
@@ -158,7 +159,7 @@ private class Main @Inject constructor(
             jc.usage()
         } else if (args.serverMode) {
             // --server
-            val port = KobaltServer(args.force, args.port,
+            val port = serverFactory.create(args.force, args.port,
                     { buildFile -> initForBuildFile(BuildFile(Paths.get(buildFile), buildFile), args)},
                     { cleanUp() })
                 .call()
