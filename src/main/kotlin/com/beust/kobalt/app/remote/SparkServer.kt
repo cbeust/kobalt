@@ -70,22 +70,22 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
             result
         })
         jsonRoute("/v0/getTemplates", Route { request, response ->
-            TemplatesInfo.create(Templates().getTemplates(pluginInfo))
+            TemplatesData.create(Templates().getTemplates(pluginInfo))
         })
     }
 }
 
-class TemplateInfo(val pluginName: String, val templates: List<String>)
+class TemplateData(val pluginName: String, val templates: List<String>)
 
-class TemplatesInfo(val templates: List<TemplateInfo>) {
+class TemplatesData(val templates: List<TemplateData>) {
     companion object {
-        fun create(map: ListMultimap<String, ITemplate>) : TemplatesInfo {
-            val templateList = arrayListOf<TemplateInfo>()
+        fun create(map: ListMultimap<String, ITemplate>) : TemplatesData {
+            val templateList = arrayListOf<TemplateData>()
             map.keySet().forEach { pluginName ->
                 val list = map[pluginName].map { it.templateName }
-                templateList.add(TemplateInfo(pluginName, list))
+                templateList.add(TemplateData(pluginName, list))
             }
-            return TemplatesInfo(templateList)
+            return TemplatesData(templateList)
         }
     }
 }
