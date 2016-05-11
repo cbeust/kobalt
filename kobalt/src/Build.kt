@@ -208,7 +208,7 @@ fun readVersion() : String {
     }
 }
 
-@Task(name = "copyVersionForWrapper", reverseDependsOn = arrayOf("assemble"), description = "")
+@Task(name = "copyVersionForWrapper", reverseDependsOn = arrayOf("assemble"))
 fun taskCopyVersionForWrapper(project: Project) : TaskResult {
     if (project.name == "kobalt-wrapper") {
         val toString = "modules/wrapper/kobaltBuild/classes"
