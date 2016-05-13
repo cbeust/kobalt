@@ -12,7 +12,7 @@ class KobaltPluginTemplate : ITemplateContributor {
         val NAME = "kobaltPlugin"
     }
 
-    val pluginTemplate = object: JarTemplate(ITemplateContributor.DIRECTORY_NAME + "/" + NAME) {
+    val pluginTemplate = object: JarTemplate(ITemplateContributor.DIRECTORY_NAME + "/$NAME/$NAME.jar") {
         override val templateDescription = "Generate a sample Kobalt plug-in project"
 
         override val templateName = NAME
