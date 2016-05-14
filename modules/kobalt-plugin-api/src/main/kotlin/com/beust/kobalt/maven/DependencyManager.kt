@@ -7,7 +7,6 @@ import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.misc.warn
 import com.google.common.collect.ArrayListMultimap
 import java.io.File
 import java.util.*
@@ -132,7 +131,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
 
         val nonexistent = reordered.filter{ ! it.jarFile.get().exists() }
         if (nonexistent.any()) {
-            warn("Nonexistent dependencies: $nonexistent")
+            log(2, "[Warning] Nonexistent dependencies: $nonexistent")
         }
 
         val result2 = reordered.filter {

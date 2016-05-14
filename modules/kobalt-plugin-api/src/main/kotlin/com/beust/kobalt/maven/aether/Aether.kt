@@ -141,7 +141,11 @@ class Aether(val localRepo: File, val settings: KobaltSettings) {
             val result = system.resolveDependencies(session, dependencyRequest).artifactResults
             return result
         } catch(ex: DependencyResolutionException) {
-            warn("Couldn't resolve $artifact")
+            if (artifact.extension == "pom") {
+                // Only display a warning for .pom files. Not resolving a .jar or other artifact
+                // is not necessarily an error as long as there is a pom file.
+                warn("Couldn't resolve $artifact")
+            }
             return emptyList()
         }
     }
