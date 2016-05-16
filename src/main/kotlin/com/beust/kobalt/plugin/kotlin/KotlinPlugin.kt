@@ -103,13 +103,13 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
     // IClasspathContributor
 
     override fun classpathEntriesFor(project: Project?, context: KobaltContext): List<IClasspathDependency> =
-            if (project == null || accept(project)) {
-                // All Kotlin projects automatically get the Kotlin runtime added to their class path
-                listOf(getKotlinCompilerJar("kotlin-stdlib"), getKotlinCompilerJar("kotlin-runtime"))
-                        .map { FileDependency(it) }
-            } else {
-                emptyList()
-            }
+        if (project == null || accept(project)) {
+            // All Kotlin projects automatically get the Kotlin runtime added to their class path
+            listOf(getKotlinCompilerJar("kotlin-stdlib"), getKotlinCompilerJar("kotlin-runtime"))
+                    .map { FileDependency(it) }
+        } else {
+            emptyList()
+        }
 
     // ICompilerContributor
 
