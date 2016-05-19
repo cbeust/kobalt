@@ -65,9 +65,6 @@ class KFiles {
 
         val TEST_CLASSES_DIR : String = "test-classes"
 
-        private fun generatedDir(project: Project, variant: Variant)
-                = KFiles.joinDir(project.directory, project.buildDirectory, "generated", variant.toIntermediateDir())
-
         fun generatedSourceDir(project: Project, variant: Variant, name: String) =
                 KFiles.joinDir(project.directory, project.buildDirectory, "generated", "source", name,
                         variant.toIntermediateDir())
