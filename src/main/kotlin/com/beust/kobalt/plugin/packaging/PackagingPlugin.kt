@@ -57,7 +57,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
      * "assemble" is an incremental task but with a twist. Because it can be costly to determine if any
      * of the class files generated in the previous phase is new or not, we just don't do that and always
      * return "null" for both input and output checksums, which would cause that task to always be rerun.
-     * However, we are depending on Kobalt's cascading incremental management to skip up whenever appropriate:
+     * However, we are depending on Kobalt's cascading incremental management to skip us whenever appropriate:
      * whenever a previous incremental task was a success, all following incremental tasks are automatically
      * skipped.
      */
