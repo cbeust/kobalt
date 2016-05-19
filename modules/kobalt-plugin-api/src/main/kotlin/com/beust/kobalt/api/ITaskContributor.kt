@@ -26,5 +26,6 @@ class DynamicTask(override val plugin: IPlugin, override val name: String, overr
         return TaskResult2(taskResult.success, taskResult.errorMessage, this)
     }
 
+    override fun toString() = "[DynamicTask $name dependsOn=$dependsOn reverseDependsOn=$reverseDependsOn]"
 }
 
