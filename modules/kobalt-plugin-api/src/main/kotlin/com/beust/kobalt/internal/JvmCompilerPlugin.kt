@@ -162,13 +162,6 @@ open class JvmCompilerPlugin @Inject constructor(
     @IncrementalTask(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project", group = GROUP_BUILD,
             runAfter = arrayOf(TASK_CLEAN))
     fun taskCompile(project: Project): IncrementalTaskInfo {
-        // Generate the BuildConfig before invoking sourceDirectories() since that call
-        // might add the buildConfig source directories
-        val sourceDirectory = context.variant.maybeGenerateBuildConfig(project, context)
-        if (sourceDirectory != null) {
-            sourceDirectories.add(sourceDirectory)
-        }
-
         // Set up the source files now that we have the variant
         sourceDirectories.addAll(context.variant.sourceDirectories(project, context, SourceSet.of(isTest = false)))
 

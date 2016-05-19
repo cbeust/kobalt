@@ -78,11 +78,6 @@ class TaskManager @Inject constructor(val args: Args,
             }.forEach {
                 put(it.name, it)
             }
-            dynamicTasks.filter {
-                it.plugin.accept(project)
-            }.forEach {
-                put(it.name, it)
-            }
         }
     }
 

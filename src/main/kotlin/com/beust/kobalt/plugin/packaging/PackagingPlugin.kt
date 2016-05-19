@@ -49,7 +49,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         super.apply(project, context)
         project.projectProperties.put(LIBS_DIR, KFiles.libsDir(project))
         taskContributor.addVariantTasks(this, project, context, "assemble", group = "build",
-                runAfter = listOf ("compile"),
+                dependsOn = listOf("compile"),
                 runTask = { doTaskAssemble(project) })
     }
 
