@@ -3,6 +3,7 @@ package com.beust.kobalt.wrapper;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -460,6 +461,7 @@ public class Main {
     private int launchMain(Path kobaltJarFile, String[] argv) throws IOException, InterruptedException {
         List<String> args = new ArrayList<>();
         args.add("java");
+        args.add("-Dfile.encoding=" + Charset.defaultCharset().name());
         args.add("-jar");
         args.add(kobaltJarFile.toFile().getAbsolutePath());
         Collections.addAll(args, argv);
