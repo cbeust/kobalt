@@ -6,6 +6,10 @@ package com.beust.kobalt.api.annotation
  */
 annotation class Directive
 
+object AnnotationDefault {
+    const val GROUP = "other"
+}
+
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Task(
     /* This task's name */
@@ -15,7 +19,7 @@ annotation class Task(
     val description: String = "",
 
     /** Used to show the task in the correct group in the IDE */
-    val group: String = "other",
+    val group: String = AnnotationDefault.GROUP,
 
     /** Dependency: tasks this task depends on */
     val dependsOn: Array<String> = arrayOf(),
@@ -42,7 +46,7 @@ annotation class IncrementalTask(
     val description: String = "",
 
     /** Used to show the task in the correct group in the IDE */
-    val group: String = "other",
+    val group: String = AnnotationDefault.GROUP,
 
     /** Dependency: tasks this task depends on */
     val dependsOn: Array<String> = arrayOf(),

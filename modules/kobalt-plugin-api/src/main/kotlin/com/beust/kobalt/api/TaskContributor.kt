@@ -3,6 +3,7 @@ package com.beust.kobalt.api
 import com.beust.kobalt.IncrementalTaskInfo
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.Variant
+import com.beust.kobalt.api.annotation.AnnotationDefault
 import com.beust.kobalt.internal.IncrementalManager
 import com.google.inject.Inject
 
@@ -23,7 +24,7 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
      * depends on variants of that task.
      */
     fun addVariantTasks(plugin: IPlugin, project: Project, context: KobaltContext, taskName: String,
-            group: String,
+            group: String = AnnotationDefault.GROUP,
             dependsOn: List<String> = emptyList(),
             reverseDependsOn : List<String> = emptyList(),
             runBefore : List<String> = emptyList(),
@@ -44,7 +45,7 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
     }
 
     fun addIncrementalVariantTasks(plugin: IPlugin, project: Project, context: KobaltContext, taskName: String,
-            group: String,
+            group: String = AnnotationDefault.GROUP,
             dependsOn: List<String> = emptyList(),
             reverseDependsOn : List<String> = emptyList(),
             runBefore : List<String> = emptyList(),
