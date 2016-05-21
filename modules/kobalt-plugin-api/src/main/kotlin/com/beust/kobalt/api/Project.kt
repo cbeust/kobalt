@@ -18,12 +18,12 @@ open class Project(
         @Directive open var group: String? = null,
         @Directive open var artifactId: String? = null,
         @Directive open var packaging: String? = null,
-        @Directive open var dependencies: Dependencies? = null,
         @Directive open var description : String = "",
         @Directive open var scm : Scm? = null,
         @Directive open var url: String? = null,
         @Directive open var licenses: List<License> = arrayListOf<License>(),
-        @Directive open var packageName: String? = group) : IBuildConfig {
+        @Directive open var packageName: String? = group)
+    : IBuildConfig, IDependencyHolder by DependencyHolder(null) {
 
     class ProjectExtra(project: Project) {
         val dependsOn = arrayListOf<Project>()
@@ -82,19 +82,6 @@ open class Project(
     //
     // Dependencies
     //
-
-    @Directive
-    fun dependencies(init: Dependencies.() -> Unit) : Dependencies {
-        dependencies = Dependencies(this, compileDependencies, compileProvidedDependencies,
-                compileRuntimeDependencies, excludedDependencies)
-        dependencies!!.init()
-        return dependencies!!
-    }
-
-    val compileDependencies : ArrayList<IClasspathDependency> = arrayListOf()
-    val compileProvidedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
-    val compileRuntimeDependencies : ArrayList<IClasspathDependency> = arrayListOf()
-    val excludedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
 
     @Directive
     fun dependenciesTest(init: Dependencies.() -> Unit) : Dependencies {
@@ -207,36 +194,6 @@ interface IBuildConfig {
         }
     }
 }
-
-class ProductFlavorConfig(val name: String) : IBuildConfig {
-    var applicationId: String? = null
-    override var buildConfig : BuildConfig? = BuildConfig()
-}
-
-@Directive
-fun Project.productFlavor(name: String, init: ProductFlavorConfig.() -> Unit) = ProductFlavorConfig(name).apply {
-        init()
-        addProductFlavor(name, this)
-    }
-
-class BuildTypeConfig(val project: Project?, val name: String) : IBuildConfig {
-    var minifyEnabled = false
-    var applicationIdSuffix: String? = null
-    var proguardFile: String? = null
-
-//    fun getDefaultProguardFile(name: String) : String {
-//        val androidPlugin = Plugins.findPlugin(AndroidPlugin.PLUGIN_NAME) as AndroidPlugin
-//        return Proguard(androidPlugin.androidHome(project)).getDefaultProguardFile(name)
-//    }
-
-    override var buildConfig : BuildConfig? = BuildConfig()
-}
-
-@Directive
-fun Project.buildType(name: String, init: BuildTypeConfig.() -> Unit) = BuildTypeConfig(this, name).apply {
-        init()
-        addBuildType(name, this)
-    }
 
 fun Project.defaultConfig(init: BuildConfig.() -> Unit) = let { project ->
     BuildConfig().apply {

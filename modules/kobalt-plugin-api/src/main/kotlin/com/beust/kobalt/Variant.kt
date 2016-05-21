@@ -188,7 +188,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     override fun toString() = toTask("")
 
     companion object {
-        val DEFAULT_PRODUCT_FLAVOR = ProductFlavorConfig("")
+        val DEFAULT_PRODUCT_FLAVOR = ProductFlavorConfig(null, "")
         val DEFAULT_BUILD_TYPE = BuildTypeConfig(null, "")
 
         fun allVariants(project: Project): List<Variant> {

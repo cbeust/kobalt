@@ -191,7 +191,12 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
         val transitive = hashSetOf<IClasspathDependency>()
         val projects = listOf(ProjectDescription(project, project.projectExtra.dependsOn))
         with(project) {
-            val deps = arrayListOf(compileDependencies, compileProvidedDependencies)
+            val deps = arrayListOf(compileDependencies, compileProvidedDependencies,
+                    context.variant.buildType.compileDependencies,
+                    context.variant.buildType.compileProvidedDependencies,
+                    context.variant.productFlavor.compileDependencies,
+                    context.variant.productFlavor.compileProvidedDependencies
+            )
             if (isTest) {
                 deps.add(testDependencies)
                 deps.add(testProvidedDependencies)

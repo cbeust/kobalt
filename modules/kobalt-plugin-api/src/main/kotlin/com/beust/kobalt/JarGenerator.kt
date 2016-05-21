@@ -99,7 +99,11 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
             @Suppress("UNCHECKED_CAST")
             val dependentProjects = project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
                     as List<ProjectDescription>
-            val allDependencies = project.compileDependencies + project.compileRuntimeDependencies
+            val allDependencies = project.compileDependencies + project.compileRuntimeDependencies +
+                context.variant.buildType.compileDependencies +
+                context.variant.buildType.compileRuntimeDependencies +
+                context.variant.productFlavor.compileDependencies +
+                context.variant.productFlavor.compileRuntimeDependencies
             val transitiveDependencies = dependencyManager.calculateDependencies(project, context, dependentProjects,
                     allDependencies)
             transitiveDependencies.map {
