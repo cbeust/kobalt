@@ -48,6 +48,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
         project.projectProperties.put(LIBS_DIR, KFiles.libsDir(project))
+        project.projectProperties.put(PACKAGES, packages)
+
         taskContributor.addVariantTasks(this, project, context, "assemble", group = "build",
                 dependsOn = listOf("compile"),
                 runTask = { doTaskAssemble(project) })
@@ -64,7 +66,6 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     override fun assemble(project: Project, context: KobaltContext) : IncrementalTaskInfo {
         return IncrementalTaskInfo({ null }, { null }, { project ->
             try {
-                project.projectProperties.put(PACKAGES, packages)
                 packages.filter { it.project.name == project.name }.forEach { pkg ->
                     pkg.jars.forEach { jarGenerator.generateJar(pkg.project, context, it) }
                     pkg.wars.forEach { warGenerator.generateWar(pkg.project, context, it) }

@@ -9,6 +9,7 @@ import com.beust.kobalt.archive.Jar
 import com.beust.kobalt.internal.ActorUtils
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.misc.warn
@@ -86,7 +87,7 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
         var result = TaskResult()
         configurationFor(project)?.let { config ->
             if (config.mainClass != null) {
-                result = runJarFile(project, config)
+                result = runJarFile(project, context, config)
             } else {
                 throw KobaltException("No \"mainClass\" specified in the application{} part of project ${project.name}")
             }
@@ -94,8 +95,11 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
         return result
     }
 
-    private fun runJarFile(project: Project, config: ApplicationConfig) : TaskResult {
-        val jarName = project.projectProperties.get(Archives.JAR_NAME) as String
+    private fun runJarFile(project: Project, context: KobaltContext, config: ApplicationConfig) : TaskResult {
+        val jarFileName = project.projectProperties.get(Archives.JAR_NAME)
+        val jarName = (jarFileName ?: KFiles.joinDir(KFiles.libsDir(project),
+                context.variant.archiveName(project, null, ".jar")))
+            as String
         @Suppress("UNCHECKED_CAST")
         val packages = project.projectProperties.get(PackagingPlugin.PACKAGES) as List<PackageConfig>
         val allDeps = arrayListOf(jarName)
