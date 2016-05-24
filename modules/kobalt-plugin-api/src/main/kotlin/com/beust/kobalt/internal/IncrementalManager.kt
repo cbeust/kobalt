@@ -85,7 +85,7 @@ class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileN
      * on the content of that IncrementalTaskInfo
      */
     fun toIncrementalTaskClosure(shortTaskName: String, method: (Project) -> IncrementalTaskInfo,
-            variant: Variant = Variant()): (Project) -> TaskResult {
+            variant: Variant): (Project) -> TaskResult {
         return { project: Project ->
             Kobalt.context?.variant = variant
             val iti = method(project)

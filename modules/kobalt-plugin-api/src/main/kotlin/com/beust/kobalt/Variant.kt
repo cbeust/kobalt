@@ -30,11 +30,11 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
      * for {internal, release}, return [internalRelease, internal, release]
      */
     fun allDirectories(project: Project): List<String> {
-        val result = arrayListOf<String>()
-        result.add(toCamelcaseDir())
-        if (productFlavor != null) result.add(productFlavor.name)
-        if (buildType != null) result.add(buildType.name)
-        return result
+        return arrayListOf<String>().apply {
+            add(toCamelcaseDir())
+            add(productFlavor.name)
+            add(buildType.name)
+        }
     }
 
     fun sourceDirectories(project: Project, context: KobaltContext, sourceSet: SourceSet) : List<File> {
@@ -187,9 +187,10 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
 
     override fun toString() = toTask("")
 
+
     companion object {
-        val DEFAULT_PRODUCT_FLAVOR = ProductFlavorConfig(null, "")
-        val DEFAULT_BUILD_TYPE = BuildTypeConfig(null, "")
+        val DEFAULT_PRODUCT_FLAVOR = ProductFlavorConfig("")
+        val DEFAULT_BUILD_TYPE = BuildTypeConfig("")
 
         fun allVariants(project: Project): List<Variant> {
             val result = arrayListOf<Variant>()

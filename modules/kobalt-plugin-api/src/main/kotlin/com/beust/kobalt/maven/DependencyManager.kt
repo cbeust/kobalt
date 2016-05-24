@@ -18,22 +18,22 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
         : IDependencyManager {
 
     companion object {
-        fun create(id: String, project: Project? = null) =
-                Kobalt.INJECTOR.getInstance(DependencyManager::class.java).create(id, project)
+        fun create(id: String, projectDirectory: String? = null) =
+                Kobalt.INJECTOR.getInstance(DependencyManager::class.java).create(id, projectDirectory)
     }
 
     /**
      * Parse the id and return the correct IClasspathDependency
      */
-    override fun create(id: String, project: Project?) : IClasspathDependency {
+    override fun create(id: String, projectDirectory: String?) : IClasspathDependency {
         if (id.startsWith(FileDependency.PREFIX_FILE)) {
-            val path = if (project?.directory != null) {
+            val path = if (projectDirectory != null) {
                 val idPath = id.substring(FileDependency.PREFIX_FILE.length)
                 if (! File(idPath).isAbsolute) {
                     // If the project directory is relative, we might not be in the correct directory to locate
                     // that file, so we'll use the absolute directory deduced from the build file path. Pick
                     // the first one that produces an actual file
-                    val result = listOf(File(project!!.directory), Kobalt.context?.internalContext?.absoluteDir).map {
+                    val result = listOf(File(projectDirectory), Kobalt.context?.internalContext?.absoluteDir).map {
                         File(it, idPath)
                     }.first {
                         it.exists()

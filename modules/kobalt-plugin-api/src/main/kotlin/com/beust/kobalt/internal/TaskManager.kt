@@ -320,7 +320,7 @@ class TaskManager @Inject constructor(val args: Args,
             ta.runBefore, ta.runAfter, ta.alwaysRunAfter,
             incrementalManagerFactory.create().toIncrementalTaskClosure(ta.name, { project ->
                 method.invoke(plugin, project) as IncrementalTaskInfo
-            }))
+            }, Variant()))
 
     /** Tasks annotated with @Task or @IncrementalTask */
     val annotationTasks = arrayListOf<PluginTask>()

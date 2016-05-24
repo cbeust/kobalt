@@ -17,12 +17,12 @@ public class CheckVersions @Inject constructor(val depManager: DependencyManager
         val executor = executors.newExecutor("CheckVersions", 5)
 
         val newVersions = hashSetOf<String>()
-        projects.forEach {
-            listOf(it.compileDependencies, it.testDependencies).forEach { cds ->
+        projects.forEach { project ->
+            listOf(project.compileDependencies, project.testDependencies).forEach { cds ->
                 cds.forEach { compileDependency ->
                     if (MavenId.isMavenId(compileDependency.id)) {
                         try {
-                            val dep = depManager.create(compileDependency.shortId)
+                            val dep = depManager.create(compileDependency.shortId, project.directory)
                             val other = compileDependency as AetherDependency
                             if (dep.id != compileDependency.id
                                    && Versions.toLongVersion(dep.version) > Versions.toLongVersion(other.version)) {

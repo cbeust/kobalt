@@ -23,7 +23,11 @@ open class Project(
         @Directive open var url: String? = null,
         @Directive open var licenses: List<License> = arrayListOf<License>(),
         @Directive open var packageName: String? = group)
-    : IBuildConfig, IDependencyHolder by DependencyHolder(null) {
+    : IBuildConfig, IDependencyHolder by DependencyHolder() {
+
+    init {
+        this.project = this
+    }
 
     class ProjectExtra(project: Project) {
         val dependsOn = arrayListOf<Project>()
@@ -142,7 +146,7 @@ class Dependencies(val project: Project,
      */
     private fun addToDependencies(project: Project, dependencies: ArrayList<IClasspathDependency>,
             dep: Array<out String>): List<Future<File>>
-        = with(dep.map { DependencyManager.create(it, project)}) {
+        = with(dep.map { DependencyManager.create(it, project.directory)}) {
             dependencies.addAll(this)
             this.map { FutureTask { it.jarFile.get() } }
     }
@@ -200,4 +204,17 @@ fun Project.defaultConfig(init: BuildConfig.() -> Unit) = let { project ->
         init()
         project.defaultConfig = this
     }
+}
+
+@Directive
+fun Project.buildType(name: String, init: BuildTypeConfig.() -> Unit) = BuildTypeConfig(name).apply {
+    init()
+    addBuildType(name, this)
+}
+
+
+@Directive
+fun Project.productFlavor(name: String, init: ProductFlavorConfig.() -> Unit) = ProductFlavorConfig(name).apply {
+    init()
+    addProductFlavor(name, this)
 }

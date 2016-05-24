@@ -5,9 +5,11 @@ import java.util.*
 
 /**
  * Various elements in a build file let you specify dependencies: projects, buildType and productFlavor.
- * They all implement this interface and delegate to an instance of the concrete class below.
+ * They all implement this interface and delegate to an instance of the `DependencyHolder` concrete class.
  */
 interface IDependencyHolder {
+    var project: Project
+
     val compileDependencies : ArrayList<IClasspathDependency>
     val compileProvidedDependencies : ArrayList<IClasspathDependency>
     val compileRuntimeDependencies : ArrayList<IClasspathDependency>
@@ -20,7 +22,8 @@ interface IDependencyHolder {
     fun dependencies(init: Dependencies.() -> Unit) : Dependencies
 }
 
-open class DependencyHolder(val project: Project?) : IDependencyHolder {
+open class DependencyHolder : IDependencyHolder {
+    override lateinit var project: Project
     override val compileDependencies : ArrayList<IClasspathDependency> = arrayListOf()
     override val compileProvidedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
     override val compileRuntimeDependencies : ArrayList<IClasspathDependency> = arrayListOf()
@@ -29,7 +32,7 @@ open class DependencyHolder(val project: Project?) : IDependencyHolder {
     override var dependencies : Dependencies? = null
 
     override fun dependencies(init: Dependencies.() -> Unit) : Dependencies {
-        dependencies = Dependencies(project!!, compileDependencies, compileProvidedDependencies,
+        dependencies = Dependencies(project, compileDependencies, compileProvidedDependencies,
                 compileRuntimeDependencies, excludedDependencies)
         dependencies!!.init()
         return dependencies!!

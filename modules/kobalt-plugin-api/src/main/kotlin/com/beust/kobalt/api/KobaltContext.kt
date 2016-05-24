@@ -10,7 +10,7 @@ import com.beust.kobalt.misc.KobaltExecutors
 import java.io.File
 
 class KobaltContext(val args: Args) {
-    var variant: Variant = Variant()
+    lateinit var variant: Variant
     val profiles = arrayListOf<String>()
 
     init {
