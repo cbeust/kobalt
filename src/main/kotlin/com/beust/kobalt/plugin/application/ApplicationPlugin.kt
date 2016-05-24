@@ -49,11 +49,11 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        taskContributor.addVariantTasks(this, project, context, "run", group = "run", runAfter = listOf("install"),
+        taskContributor.addVariantTasks(this, project, context, "run", group = "run", dependsOn = listOf("install"),
                 runTask = { taskRun(project) })
     }
 
-    @Task(name = "run", description = "Run the main class", dependsOn = arrayOf("install"))
+    @Task(name = "run", description = "Run the main class", group = "run", dependsOn = arrayOf("install"))
     fun taskRun(project: Project): TaskResult {
         val runContributor = ActorUtils.selectAffinityActor(project, context,
                 context.pluginInfo.runnerContributors)
