@@ -10,7 +10,7 @@ import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
 
 class Templates : ITemplateContributor {
-    override val templates = listOf(JavaTemplateGenerator(), KotlinTemplateGenerator(), IdeaFilesTemplate())
+    override val templates = listOf(JavaTemplateGenerator(), KotlinTemplateGenerator())
 
     fun getTemplates(pluginInfo: PluginInfo): ListMultimap<String, ITemplate> {
         val map = ArrayListMultimap.create<String, ITemplate>()
