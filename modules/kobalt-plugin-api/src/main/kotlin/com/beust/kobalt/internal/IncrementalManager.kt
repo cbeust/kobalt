@@ -93,7 +93,8 @@ class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileN
             var upToDate = false
             var taskOutputChecksum : String? = null
 
-            if (args.noIncremental || (Kobalt.context?.internalContext?.buildFileOutOfDate as Boolean)) {
+            if (! args.forceIncremental &&
+                    (args.noIncremental || (Kobalt.context?.internalContext?.buildFileOutOfDate as Boolean))) {
                 //
                 // If the user turned off incremental builds or if the build file was modified, always run this task
                 //
