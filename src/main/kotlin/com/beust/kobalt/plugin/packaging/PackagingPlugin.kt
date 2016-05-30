@@ -118,8 +118,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val analyzer = Analyzer().apply {
             jar = aQute.bnd.osgi.Jar(project.projectProperties.get(Archives.JAR_NAME) as String)
             val dependencies = project.compileDependencies + project.compileRuntimeDependencies
-            val dependentProjects = project.dependentProjects
-            dependencyManager.calculateDependencies(project, context, dependentProjects, dependencies).forEach {
+            dependencyManager.calculateDependencies(project, context, dependencies).forEach {
                 addClasspath(it.jarFile.get())
             }
             setProperty(Analyzer.BUNDLE_VERSION, project.version)

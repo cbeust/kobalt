@@ -7,7 +7,6 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.archive.Jar
 import com.beust.kobalt.internal.ActorUtils
-import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -106,12 +105,10 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
         val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
         if (! isFatJar(packages, jarName)) {
             @Suppress("UNCHECKED_CAST")
-            val projDeps = project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
-                    as List<ProjectDescription>
             // If the jar file is not fat, we need to add the transitive closure of all dependencies
             // on the classpath
             val allTheDependencies =
-                    dependencyManager.calculateDependencies(project, context, projDeps,
+                    dependencyManager.calculateDependencies(project, context,
                             allDependencies = project.compileDependencies).map { it.jarFile.get().path }
             allDeps.addAll(allTheDependencies)
         }

@@ -85,14 +85,13 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      * allDependencies is typically either compileDependencies or testDependencies
      */
     override fun calculateDependencies(project: Project?, context: KobaltContext,
-            dependentProjects: List<ProjectDescription>,
             vararg allDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         allDependencies.forEach { dependencies ->
             result.addAll(transitiveClosure(dependencies))
         }
         result.addAll(runClasspathContributors(project, context))
-        result.addAll(dependentProjectDependencies(dependentProjects, project, context))
+        result.addAll(dependentProjectDependencies(project, context))
 
         return result
     }
@@ -169,27 +168,25 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      * If this project depends on other projects, we need to include their jar file and also
      * their own dependencies
      */
-    private fun dependentProjectDependencies(projectDescriptions: List<ProjectDescription>,
+    private fun dependentProjectDependencies(
             project: Project?, context: KobaltContext) : List<IClasspathDependency> {
-        val result = arrayListOf<IClasspathDependency>()
-        projectDescriptions.filter {
-            it.project.name == project?.name
-        }.forEach { pd ->
-            pd.dependsOn.forEach { p ->
+        if (project == null) {
+            return emptyList()
+        } else {
+            val result = arrayListOf<IClasspathDependency>()
+            project.projectExtra.dependsOn.forEach { p ->
                 result.add(FileDependency(KFiles.joinDir(p.directory, p.classesDir(context))))
-                val otherDependencies = calculateDependencies(p, context, projectDescriptions,
-                        p.compileDependencies)
+                val otherDependencies = calculateDependencies(p, context, p.compileDependencies)
                 result.addAll(otherDependencies)
-            }
-        }
 
-        return result
+            }
+            return result
+        }
     }
 
     private fun dependencies(project: Project, context: KobaltContext, isTest: Boolean)
             : List<IClasspathDependency> {
         val transitive = hashSetOf<IClasspathDependency>()
-        val projects = listOf(ProjectDescription(project, project.projectExtra.dependsOn))
         with(project) {
             val deps = arrayListOf(compileDependencies, compileProvidedDependencies,
                     context.variant.buildType.compileDependencies,
@@ -202,7 +199,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
                 deps.add(testProvidedDependencies)
             }
             deps.filter { it.any() }.forEach {
-                transitive.addAll(calculateDependencies(project, context, projects, it))
+                transitive.addAll(calculateDependencies(project, context, it))
             }
         }
 

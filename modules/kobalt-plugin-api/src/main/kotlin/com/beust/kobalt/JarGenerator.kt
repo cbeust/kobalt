@@ -2,10 +2,8 @@ package com.beust.kobalt
 
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.ProjectDescription
 import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.archive.Jar
-import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.*
 import com.google.inject.Inject
@@ -97,15 +95,12 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
 
             val seen = hashSetOf<String>()
             @Suppress("UNCHECKED_CAST")
-            val dependentProjects = project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
-                    as List<ProjectDescription>
             val allDependencies = project.compileDependencies + project.compileRuntimeDependencies +
                 context.variant.buildType.compileDependencies +
                 context.variant.buildType.compileRuntimeDependencies +
                 context.variant.productFlavor.compileDependencies +
                 context.variant.productFlavor.compileRuntimeDependencies
-            val transitiveDependencies = dependencyManager.calculateDependencies(project, context, dependentProjects,
-                    allDependencies)
+            val transitiveDependencies = dependencyManager.calculateDependencies(project, context, allDependencies)
             transitiveDependencies.map {
                 it.jarFile.get()
             }.forEach { file : File ->
