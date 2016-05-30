@@ -161,7 +161,7 @@ class KotlinCompiler @Inject constructor(
 }
 
 class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
-    val classpath = arrayListOf<String>()
+    private val classpath = arrayListOf<String>()
     val dependencies = arrayListOf<IClasspathDependency>()
     var source = arrayListOf<String>()
     var output: File by Delegates.notNull()
