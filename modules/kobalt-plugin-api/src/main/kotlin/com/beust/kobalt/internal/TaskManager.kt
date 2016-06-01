@@ -81,10 +81,11 @@ class TaskManager @Inject constructor(val args: Args,
         }
     }
 
-    fun runTargets(taskNames: List<String>, projects: List<Project>): RunTargetResult {
+    fun runTargets(passedTaskNames: List<String>, projects: List<Project>): RunTargetResult {
         var result = 0
         val failedProjects = hashSetOf<String>()
         val messages = Collections.synchronizedList(arrayListOf<String>())
+        val taskNames = calculateDependentTaskNames(passedTaskNames, projects)
         projects.forEach { project ->
             AsciiArt.logBox("Building ${project.name}")
 
@@ -138,6 +139,28 @@ class TaskManager @Inject constructor(val args: Args,
             }
         }
         return RunTargetResult(result, messages)
+    }
+
+    /**
+     * If the user wants to run a single task on a single project (e.g. "kobalt:assemble"), we need to
+     * see if that project depends on others and if it does, invoke these tasks on all of them. This
+     * function returns all these task names (including dependent).
+     */
+    private fun calculateDependentTaskNames(taskNames: List<String>, projects: List<Project>): List<String> {
+        val projectMap = hashMapOf<String, Project>().apply {
+            projects.forEach { put(it.name, it)}
+        }
+        val result = ArrayList(taskNames)
+        taskNames.forEach { taskName ->
+            val ti = TaskInfo(taskName)
+            projectMap[ti.project]?.let { project ->
+                project.projectExtra.dependsOn.forEach { dp ->
+                    result.add(TaskInfo(dp.projectName, ti.taskName).id)
+                }
+            }
+        }
+
+        return result
     }
 
     val LOG_LEVEL = 3
