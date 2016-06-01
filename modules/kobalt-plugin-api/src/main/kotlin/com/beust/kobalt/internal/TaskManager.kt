@@ -151,13 +151,28 @@ class TaskManager @Inject constructor(val args: Args,
             projects.forEach { put(it.name, it)}
         }
         val result = ArrayList(taskNames)
-        taskNames.forEach { taskName ->
-            val ti = TaskInfo(taskName)
-            projectMap[ti.project]?.let { project ->
-                project.projectExtra.dependsOn.forEach { dp ->
-                    result.add(TaskInfo(dp.projectName, ti.taskName).id)
+        val toProcess = ArrayList(taskNames)
+        val newToProcess = arrayListOf<String>()
+        val seen = hashSetOf<String>()
+        var stop = false
+        while (! stop) {
+            toProcess.forEach { taskName ->
+                val ti = TaskInfo(taskName)
+                projectMap[ti.project]?.let { project ->
+                    project.projectExtra.dependsOn.forEach { dp ->
+                        val newTask = TaskInfo(dp.projectName, ti.taskName).id
+                        result.add(newTask)
+                        if (! seen.contains(newTask)) {
+                            newToProcess.add(newTask)
+                            seen.add(newTask)
+                        }
+                    }
                 }
             }
+            stop = newToProcess.isEmpty()
+            toProcess.clear()
+            toProcess.addAll(newToProcess)
+            newToProcess.clear()
         }
 
         return result
