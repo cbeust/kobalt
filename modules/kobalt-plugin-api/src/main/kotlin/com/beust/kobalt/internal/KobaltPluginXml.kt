@@ -76,8 +76,8 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
     val repoContributors = arrayListOf<IRepoContributor>()
     val compilerFlagContributors = arrayListOf<ICompilerFlagContributor>()
     val compilerInterceptors = arrayListOf<ICompilerInterceptor>()
-    val sourceDirectoriesInterceptors = arrayListOf<ISourceDirectoryIncerceptor>()
-    val buildDirectoryInterceptors = arrayListOf<IBuildDirectoryIncerceptor>()
+    val sourceDirectoriesInterceptors = arrayListOf<ISourceDirectoryInterceptor>()
+    val buildDirectoryInterceptors = arrayListOf<IBuildDirectoryInterceptor>()
     val runnerContributors = arrayListOf<IRunnerContributor>()
     val testRunnerContributors = arrayListOf<ITestRunnerContributor>()
     val classpathInterceptors = arrayListOf<IClasspathInterceptor>()
@@ -169,7 +169,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
             with(factory.instanceOf(forName(it))) {
                 // Note: can't use "when" here since the same instance can implement multiple interfaces
                 if (this is IBuildConfigFieldContributor) buildConfigFieldContributors.add(this)
-                if (this is IBuildDirectoryIncerceptor) buildDirectoryInterceptors.add(this)
+                if (this is IBuildDirectoryInterceptor) buildDirectoryInterceptors.add(this)
                 if (this is IClasspathContributor) classpathContributors.add(this)
                 if (this is IClasspathInterceptor) classpathInterceptors.add(this)
                 if (this is ICompilerContributor) compilerContributors.add(this)
@@ -182,7 +182,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
                 if (this is IRepoContributor) repoContributors.add(this)
                 if (this is IRunnerContributor) runnerContributors.add(this)
                 if (this is ISourceDirectoryContributor) sourceDirContributors.add(this)
-                if (this is ISourceDirectoryIncerceptor) sourceDirectoriesInterceptors.add(this)
+                if (this is ISourceDirectoryInterceptor) sourceDirectoriesInterceptors.add(this)
                 if (this is ITaskContributor) taskContributors.add(this)
                 if (this is ITestRunnerContributor) testRunnerContributors.add(this)
                 if (this is IMavenIdInterceptor) mavenIdInterceptors.add(this)
