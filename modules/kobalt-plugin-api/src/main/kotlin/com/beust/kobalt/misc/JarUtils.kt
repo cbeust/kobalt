@@ -55,7 +55,7 @@ public class JarUtils {
                     if (!name.isEmpty()) {
                         if (!name.endsWith("/")) name += "/"
                         val entry = JarEntry(name)
-                        entry.time = foundFile.lastModified()
+                        entry.time = localFile.lastModified()
                         try {
                             outputStream.putNextEntry(entry)
                         } catch(ex: ZipException) {
@@ -81,7 +81,7 @@ public class JarUtils {
                     } else {
                         val entryFileName = file.to(foundFile.path).path.replace("\\", "/")
                         val entry = JarEntry(entryFileName)
-                        entry.time = foundFile.lastModified()
+                        entry.time = localFile.lastModified()
                         addEntry(FileInputStream(localFile), entry, outputStream, onError)
                     }
                 }
