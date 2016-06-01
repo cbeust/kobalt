@@ -36,6 +36,8 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
         val pluginDependencies = projectResult.pluginUrls.map { File(it.toURI()) }.map {
             FileDependency(it.absolutePath)
         }
+
+        val allTasks = hashSetOf<TaskData>()
         projectResult.projects.forEach { project ->
             val compileDependencies = pluginDependencies.map { toDependencyData(it, "compile") } +
                     allDeps(project.compileDependencies).map { toDependencyData(it, "compile") } +
@@ -55,15 +57,16 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
             // Separate resource from source directories
             val sources = project.sourceDirectories.partition { KFiles.isResource(it) }
             val tests = project.sourceDirectoriesTest.partition { KFiles.isResource(it) }
-            val allTasks = taskManager.tasksByNames(project).values().map {
+            val projectTasks = taskManager.tasksByNames(project).values().map {
                 TaskData(it.name, it.doc, it.group)
             }
+            allTasks.addAll(projectTasks)
             projectDatas.add(ProjectData(project.name, project.directory, dependentProjects,
                     compileDependencies, testDependencies,
                     sources.second.toSet(), tests.second.toSet(), sources.first.toSet(), tests.first.toSet(),
-                    allTasks))
+                    projectTasks))
         }
-        return GetDependenciesData(projectDatas, projectResult.taskResult.errorMessage)
+        return GetDependenciesData(projectDatas, allTasks, projectResult.taskResult.errorMessage)
     }
 
     /////
@@ -72,7 +75,9 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
     //
 
     class DependencyData(val id: String, val scope: String, val path: String)
-    class TaskData(val name: String, val description: String, val group: String)
+    data class TaskData(val name: String, val description: String, val group: String) {
+        override fun toString() = name
+    }
 
     class ProjectData(val name: String, val directory: String,
             val dependentProjects: List<String>,
@@ -81,5 +86,7 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
             val sourceResourceDirs: Set<String>, val testResourceDirs: Set<String>,
             val tasks: Collection<TaskData>)
 
-    class GetDependenciesData(val projects: List<ProjectData>, val errorMessage: String?)
+    class GetDependenciesData(val projects: List<ProjectData> = emptyList(),
+            val allTasks: Collection<TaskData> = emptySet(),
+            val errorMessage: String?)
 }
