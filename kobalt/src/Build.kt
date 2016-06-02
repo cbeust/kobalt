@@ -21,7 +21,7 @@ import java.nio.file.StandardCopyOption
 object Versions {
     val okhttp = "3.2.0"
     val okio = "1.6.0"
-    val retrofit = "2.0.0"
+    val retrofit = "2.0.2"
     val gson = "2.6.2"
     val aether = "1.1.0"
     val sonatypeAether = "1.13.1"
