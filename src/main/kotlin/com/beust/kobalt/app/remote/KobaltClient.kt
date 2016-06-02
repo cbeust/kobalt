@@ -17,6 +17,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
 import java.io.*
@@ -31,7 +32,10 @@ fun main(argv: Array<String>) {
 }
 
 interface Api {
-    @POST("/getDependencies")
+    @GET("/ping")
+    fun ping() : Call<String>
+
+    @POST("/v0/getDependencies")
     fun getDependencies(@Query("buildFile") buildFile: String) : Call<List<DependencyData.GetDependenciesData>>
 }
 
@@ -40,16 +44,25 @@ class KobaltClient : Runnable {
 
     private val service = Retrofit.Builder()
             .client(OkHttpClient.Builder().build())
-            .baseUrl("http://localhost:1252")
+            .baseUrl("http://localhost:1238")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(Api::class.java)
 
     override fun run() {
+
+//        val pong = service.ping().execute()
+//        println("Result from ping: " + pong)
+
         val buildFile = Paths.get(SystemProperties.homeDir, "kotlin/klaxon/kobalt/src/Build.kt").toString()
         val dependencies = service.getDependencies(buildFile)
-        val results = dependencies.execute()
-        println("Dependencies: $results")
+        val response = dependencies.execute()
+        if (response.isSuccessful) {
+            println("Dependencies: $response")
+        } else {
+            println("Error calling getDependencies: " + response.errorBody().string())
+        }
+        println("")
     }
 }
 
