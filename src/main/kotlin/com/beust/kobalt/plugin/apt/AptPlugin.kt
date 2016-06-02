@@ -28,7 +28,10 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
         val result =
             if (config != null) {
                 listOf(File(
-                        KFiles.joinDir(KFiles.KOBALT_BUILD_DIR, config.outputDir, context.variant.toIntermediateDir())))
+                        KFiles.joinDir(project.directory,
+                                KFiles.KOBALT_BUILD_DIR,
+                                config.outputDir,
+                                context.variant.toIntermediateDir())))
             } else {
                 emptyList()
             }
@@ -54,13 +57,6 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
         val result = arrayListOf<String>()
         configurationFor(project)?.let { config ->
             aptDependencies[project.name]?.let { aptDependencies ->
-                val deps = aptDependencies.map { dependencyManager.create(it) }
-
-                val dependencies = context.dependencyManager.calculateDependencies(null, context, emptyList(), deps)
-                        .map { it.jarFile.get().path }
-
-                result.add("-processorpath")
-                result.add((dependencies).joinToString(":"))
                 result.add("-s")
                 result.add(generated(project, context, config.outputDir))
             }
