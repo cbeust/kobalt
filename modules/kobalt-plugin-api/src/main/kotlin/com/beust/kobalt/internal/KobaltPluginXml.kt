@@ -156,10 +156,22 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
             GuiceFactory()
         }
 
-        fun forName(className: String) =
-            if (pluginClassLoader != null) pluginClassLoader.loadClass(className)
-            else if (classLoader != null) classLoader.loadClass(className)
-            else Class.forName(className)
+        fun forName(className: String) : Class<*> {
+            fun loadClass(className: String, classLoader: ClassLoader?) : Class<*>? {
+                try {
+                    return classLoader?.loadClass(className)
+                } catch(ex: ClassNotFoundException) {
+                    return null
+                }
+            }
+
+            val result = loadClass(className, classLoader)
+                    ?: Class.forName(className)
+                    ?: loadClass(className, pluginClassLoader)
+                    ?: throw ClassNotFoundException(className)
+
+            return result
+        }
 
         //
         // Populate pluginInfo with what was found in Kobalt's own kobalt-plugin.xml
