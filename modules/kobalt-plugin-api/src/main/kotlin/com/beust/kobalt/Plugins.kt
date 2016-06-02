@@ -161,10 +161,13 @@ class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManage
             //
             // Open the jar, parse its kobalt-plugin.xml and add the resulting PluginInfo to pluginInfo
             //
-            val file = it.jarFile.get();
-            val pluginXml = if (file.isDirectory()) {
+            val file = it.jarFile.get()
+            val pluginXml = if (file.isDirectory) {
+                // The plug-in can point to a directory (e.g. plugin("classes")), in which case we just
+                // read kobalt-plugin.xml directly
                 File(file, PluginInfo.PLUGIN_XML).readText()
             } else {
+                // The plug-in is pointing to a jar file, read kobalt-plugin.xml from it
                 JarUtils.extractTextFile(JarFile(file), PluginInfo.PLUGIN_XML)
             }
             if (pluginXml != null) {
