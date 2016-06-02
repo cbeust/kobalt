@@ -146,7 +146,6 @@ open class JvmCompilerPlugin @Inject constructor(
     @IncrementalTask(name = TASK_COMPILE_TEST, description = "Compile the tests", group = GROUP_BUILD,
             dependsOn = arrayOf(TASK_COMPILE))
     fun taskCompileTest(project: Project): IncrementalTaskInfo {
-        sourceTestDirectories.addAll(context.variant.sourceDirectories(project, context, SourceSet.of(isTest = true)))
         return IncrementalTaskInfo(
             inputChecksum = {
                 Md5.toMd5Directories(context.testSourceDirectories(project).map { File(project.directory, it.path)})
@@ -159,12 +158,12 @@ open class JvmCompilerPlugin @Inject constructor(
         )
     }
 
+    private fun sourceDirectories(project: Project, context: KobaltContext)
+        = context.variant.sourceDirectories(project, context, SourceSet.of(isTest = false))
+
     @IncrementalTask(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project", group = GROUP_BUILD,
             runAfter = arrayOf(TASK_CLEAN))
     fun taskCompile(project: Project): IncrementalTaskInfo {
-        // Set up the source files now that we have the variant
-        sourceDirectories.addAll(context.variant.sourceDirectories(project, context, SourceSet.of(isTest = false)))
-
         return IncrementalTaskInfo(
                 inputChecksum = {
                     Md5.toMd5Directories(context.sourceDirectories(project).map { File(project.directory, it.path) })
@@ -205,8 +204,8 @@ open class JvmCompilerPlugin @Inject constructor(
                 if (sourceFiles.size > 0) {
                     // TODO: createCompilerActionInfo recalculates the source files, only compute them
                     // once and pass them
-                    val info = createCompilerActionInfo(project, context, compiler, isTest, sourceDirectories,
-                            sourceSuffixes = compiler.sourceSuffixes)
+                    val info = createCompilerActionInfo(project, context, compiler, isTest,
+                            sourceDirectories(project, context), sourceSuffixes = compiler.sourceSuffixes)
                     val thisResult = compiler.compile(project, context, info)
                     results.add(thisResult)
                     if (!thisResult.success && failedResult == null) {
@@ -251,7 +250,7 @@ open class JvmCompilerPlugin @Inject constructor(
                 it.compilersFor(project, context).forEach { compiler ->
                     result = docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context,
                             compiler,
-                            isTest = false, sourceDirectories = sourceDirectories,
+                            isTest = false, sourceDirectories = sourceDirectories(project, context),
                             sourceSuffixes = compiler.sourceSuffixes))
                 }
             }
@@ -359,13 +358,10 @@ open class JvmCompilerPlugin @Inject constructor(
         return result
     }
 
-    val sourceDirectories = arrayListOf<File>()
-    val sourceTestDirectories = arrayListOf<File>()
-
     // ISourceDirectoryContributor
     override fun sourceDirectoriesFor(project: Project, context: KobaltContext)
         = if (accept(project)) {
-                sourceDirectories.toList()
+                sourceDirectories(project, context)
             } else {
                 arrayListOf()
             }
