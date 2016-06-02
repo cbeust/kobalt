@@ -84,9 +84,9 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Kobalt: org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:1.0.0">
+      <library name="Kobalt: org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:1.0.2">
         <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.0.0/kotlin-compiler-embeddable-1.0.0.jar!/" />
+          <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.0.2/kotlin-compiler-embeddable-1.0.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

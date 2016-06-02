@@ -12,9 +12,9 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="module-library">
-      <library name="Kobalt: org.jetbrains.kotlin:kotlin-runtime:jar:1.0.0">
+      <library name="Kobalt: org.jetbrains.kotlin:kotlin-runtime:jar:1.0.2">
         <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlin/kotlin-runtime/1.0.0/kotlin-runtime-1.0.0.jar!/" />
+          <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlin/kotlin-runtime/1.0.2/kotlin-runtime-1.0.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -390,9 +390,9 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Kobalt: org.jetbrains.kotlin:kotlin-stdlib:jar:1.0.0">
+      <library name="Kobalt: org.jetbrains.kotlin:kotlin-stdlib:jar:1.0.2">
         <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlin/kotlin-stdlib/1.0.0/kotlin-stdlib-1.0.0.jar!/" />
+          <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlin/kotlin-stdlib/1.0.2/kotlin-stdlib-1.0.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
