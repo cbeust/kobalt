@@ -12,6 +12,7 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.google.inject.Provider
+import java.io.File
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.net.URLClassLoader
@@ -160,9 +161,14 @@ class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManage
             //
             // Open the jar, parse its kobalt-plugin.xml and add the resulting PluginInfo to pluginInfo
             //
-            val pluginXml = JarUtils.extractTextFile(JarFile(it.jarFile.get()), PluginInfo.PLUGIN_XML)
+            val file = it.jarFile.get();
+            val pluginXml = if (file.isDirectory()) {
+                File(file, PluginInfo.PLUGIN_XML).readText()
+            } else {
+                JarUtils.extractTextFile(JarFile(file), PluginInfo.PLUGIN_XML)
+            }
             if (pluginXml != null) {
-                val pluginClassLoader = URLClassLoader(arrayOf(it.jarFile.get().toURI().toURL()))
+                val pluginClassLoader = URLClassLoader(arrayOf(file.toURI().toURL()))
                 val thisPluginInfo = PluginInfo.readPluginXml(pluginXml, pluginClassLoader, scriptClassLoader)
                 pluginInfo.addPluginInfo(thisPluginInfo)
                 thisPluginInfo.plugins.forEach {
