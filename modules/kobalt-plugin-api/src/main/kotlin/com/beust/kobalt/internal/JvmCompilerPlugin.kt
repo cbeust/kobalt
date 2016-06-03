@@ -164,8 +164,8 @@ open class JvmCompilerPlugin @Inject constructor(
             allCompilers.forEach { compiler ->
                 val compilerResults = compilerUtils.invokeCompiler(project, context, compiler,
                         sourceDirectories(project, context), isTest)
-                results.addAll(compilerResults.first)
-                if (failedResult == null) failedResult = compilerResults.second
+                results.addAll(compilerResults.successResults)
+                if (failedResult == null) failedResult = compilerResults.failedResult
             }
             return if (failedResult != null) failedResult!!
                 else if (results.size > 0) results[0]

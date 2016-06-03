@@ -15,9 +15,10 @@ import java.util.*
 class CompilerUtils @Inject constructor(val files: KFiles,
         val dependencyManager: DependencyManager) {
 
+    class CompilerResult(val successResults: List<TaskResult>, val failedResult: TaskResult?)
+
     fun invokeCompiler(project: Project, context: KobaltContext, compiler: ICompiler,
-            sourceDirectories: List<File>, isTest: Boolean):
-            Pair<List<TaskResult>, TaskResult?> {
+            sourceDirectories: List<File>, isTest: Boolean): CompilerResult {
         val results = arrayListOf<TaskResult>()
         var failedResult: TaskResult? = null
         val contributedSourceDirs =
@@ -42,7 +43,7 @@ class CompilerUtils @Inject constructor(val files: KFiles,
             log(2, "Compiler $compiler not running on ${project.name} since no source files were found")
         }
 
-        return Pair(results, failedResult)
+        return CompilerResult(results, failedResult)
     }
 
     /**
