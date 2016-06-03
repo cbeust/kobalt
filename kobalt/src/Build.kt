@@ -19,13 +19,13 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
 object Versions {
+    val okhttp = "3.2.0"
+    val okio = "1.6.0"
     val retrofit = "2.0.2"
     val gson = "2.6.2"
     val aether = "1.1.0"
     val sonatypeAether = "1.13.1"
     val maven = "3.3.9"
-    val jersey = "2.22.2"
-    val jetty = "8.1.19.v20160209" // "9.3.9.M1"
 }
 
 val wrapper = project {
@@ -75,7 +75,9 @@ val kobaltPluginApi = project {
                 "com.google.guava:guava:19.0",
                 "org.apache.maven:maven-model:${Versions.maven}",
                 "io.reactivex:rxjava:1.1.5",
+                "com.squareup.okio:okio:${Versions.okio}",
                 "com.google.code.gson:gson:${Versions.gson}",
+                "com.squareup.okhttp3:okhttp:${Versions.okhttp}",
                 "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "com.beust:jcommander:1.48",
