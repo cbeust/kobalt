@@ -16,6 +16,7 @@ import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
 import java.io.File
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -161,12 +162,32 @@ open class JvmCompilerPlugin @Inject constructor(
             throw KobaltException("Couldn't find any compiler for project ${project.name}")
         } else {
             val allCompilers = compilerContributors.flatMap { it.compilersFor(project, context)}.sorted()
-            allCompilers.forEach { compiler ->
+
+            /**
+             * Swap the Java and Kotlin compilers from the list.
+             */
+            fun swapJavaAndKotlin(allCompilers: List<ICompiler>): List<ICompiler> {
+                val result = ArrayList(allCompilers)
+                var ik = -1
+                var ij = -1
+                allCompilers.withIndex().forEach { wi ->
+                    if (wi.value.sourceSuffixes.contains("java")) ij = wi.index
+                    if (wi.value.sourceSuffixes.contains("kt")) ik = wi.index
+                }
+                Collections.swap(result, ik, ij)
+                return result
+            }
+
+            // If this project has a kapt{} directive, we want to run the Java compiler first
+            val hasKapt = project.projectProperties.get("kaptConfig") != null
+            var finalAllCompilers = if (hasKapt) swapJavaAndKotlin(allCompilers) else allCompilers
+            finalAllCompilers.forEach { compiler ->
                 val compilerResults = compilerUtils.invokeCompiler(project, context, compiler,
                         sourceDirectories(project, context), isTest)
                 results.addAll(compilerResults.successResults)
                 if (failedResult == null) failedResult = compilerResults.failedResult
             }
+
             return if (failedResult != null) failedResult!!
                 else if (results.size > 0) results[0]
                 else TaskResult(true)

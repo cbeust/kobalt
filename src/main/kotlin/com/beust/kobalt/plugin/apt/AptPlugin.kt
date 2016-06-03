@@ -47,6 +47,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
 
     companion object {
         const val PLUGIN_NAME = "Apt"
+        const val KAPT_CONFIG = "kaptConfig"
     }
 
     override val name = PLUGIN_NAME
@@ -125,7 +126,10 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
 
     private val kaptConfigs: HashMap<String, KaptConfig> = hashMapOf()
 
-    fun addKaptConfig(project: Project, kapt: KaptConfig) = kaptConfigs.put(project.name, kapt)
+    fun addKaptConfig(project: Project, kapt: KaptConfig) {
+        project.projectProperties.put(KAPT_CONFIG, kapt)
+        kaptConfigs.put(project.name, kapt)
+    }
 }
 
 class AptConfig(var outputDir: String = "generated/source/apt")
