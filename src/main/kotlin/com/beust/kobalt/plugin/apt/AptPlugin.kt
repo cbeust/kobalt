@@ -22,25 +22,26 @@ import javax.inject.Singleton
  * (outputDir, etc...).
  */
 @Singleton
-class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, val configActor: ConfigActor<AptConfig>,
-        val compilerUtils: CompilerUtils)
-    : BasePlugin(), ICompilerFlagContributor, ISourceDirectoryContributor, ITaskContributor,
-        IConfigActor<AptConfig> by configActor {
+class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, val compilerUtils: CompilerUtils)
+    : BasePlugin(), ICompilerFlagContributor, ISourceDirectoryContributor, ITaskContributor {
 
     // ISourceDirectoryContributor
 
     override fun sourceDirectoriesFor(project: Project, context: KobaltContext): List<File> {
-        val config = configurationFor(project)
-        val result =
-            if (config != null) {
-                listOf(File(
-                        KFiles.joinDir(project.directory,
-                                KFiles.KOBALT_BUILD_DIR,
-                                config.outputDir,
-                                context.variant.toIntermediateDir())))
-            } else {
-                emptyList()
-            }
+        val result = arrayListOf<File>()
+        aptConfigs[project.name]?.let { config ->
+            result.add(File(
+                    KFiles.joinDir(project.directory,
+                            KFiles.KOBALT_BUILD_DIR,
+                            config.outputDir)))
+        }
+
+        kaptConfigs[project.name]?.let { config ->
+            result.add(File(
+                    KFiles.joinDir(project.directory,
+                            KFiles.KOBALT_BUILD_DIR,
+                            config.outputDir)))
+        }
 
         return result
     }
@@ -48,6 +49,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
     companion object {
         const val PLUGIN_NAME = "Apt"
         const val KAPT_CONFIG = "kaptConfig"
+        const val APT_CONFIG = "aptConfig"
     }
 
     override val name = PLUGIN_NAME
@@ -93,7 +95,6 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
                     listOf())
 
             val results = compilerUtils.invokeCompiler(project, context, javaCompiler, info)
-            println("RESULTS: $results")
         }
     }
 
@@ -108,13 +109,22 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
 
         val result = arrayListOf<String>()
 
-        configurationFor(project)?.let { config ->
+        fun addFlags(outputDir: String) {
             aptDependencies[project.name]?.let { aptDependencies ->
                 result.add("-s")
-                result.add(generated(project, context, config.outputDir))
+                result.add(generated(project, context, outputDir))
             }
-            log(2, "New flags from apt: " + result.joinToString(" "))
         }
+
+        aptConfigs[project.name]?.let { config ->
+            addFlags(config.outputDir)
+        }
+
+        kaptConfigs[project.name]?.let { config ->
+            addFlags(config.outputDir)
+        }
+
+        log(2, "New flags from apt: " + result.joinToString(" "))
         return result
     }
 
@@ -124,7 +134,13 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
         aptDependencies.put(dependencies.project.name, it)
     }
 
+    private val aptConfigs: HashMap<String, AptConfig> = hashMapOf()
     private val kaptConfigs: HashMap<String, KaptConfig> = hashMapOf()
+
+    fun addAptConfig(project: Project, kapt: AptConfig) {
+        project.projectProperties.put(APT_CONFIG, kapt)
+        aptConfigs.put(project.name, kapt)
+    }
 
     fun addKaptConfig(project: Project, kapt: KaptConfig) {
         project.projectProperties.put(KAPT_CONFIG, kapt)
@@ -138,7 +154,7 @@ class AptConfig(var outputDir: String = "generated/source/apt")
 fun Project.apt(init: AptConfig.() -> Unit) {
     AptConfig().let {
         it.init()
-        (Kobalt.findPlugin(AptPlugin.PLUGIN_NAME) as AptPlugin).addConfiguration(this, it)
+        (Kobalt.findPlugin(AptPlugin.PLUGIN_NAME) as AptPlugin).addAptConfig(this, it)
     }
 }
 
