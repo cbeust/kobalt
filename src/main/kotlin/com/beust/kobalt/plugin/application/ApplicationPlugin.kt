@@ -127,6 +127,6 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
     }
 
     //ITaskContributor
-    override fun tasksFor(context: KobaltContext): List<DynamicTask> = taskContributor.dynamicTasks
+    override fun tasksFor(project: Project, context: KobaltContext): List<DynamicTask> = taskContributor.dynamicTasks
 }
 

@@ -8,7 +8,7 @@ import com.beust.kobalt.internal.TaskResult2
  * to implement this interface.
  */
 interface ITaskContributor : IContributor {
-    fun tasksFor(context: KobaltContext) : List<DynamicTask>
+    fun tasksFor(project: Project, context: KobaltContext) : List<DynamicTask>
 }
 
 class DynamicTask(override val plugin: IPlugin, override val name: String, override val doc: String,

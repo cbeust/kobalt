@@ -79,7 +79,9 @@ class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManage
 
         // Collect all the tasks from the task contributors
         context.pluginInfo.taskContributors.forEach {
-            taskManager.dynamicTasks.addAll(it.tasksFor(context))
+            projects.forEach { project ->
+                taskManager.dynamicTasks.addAll(it.tasksFor(project, context))
+            }
         }
 
         // Now that we have collected all static and dynamic tasks, turn them all into plug-in tasks

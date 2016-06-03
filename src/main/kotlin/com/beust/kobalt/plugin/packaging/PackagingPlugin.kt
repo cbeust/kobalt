@@ -151,7 +151,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     }
 
     //ITaskContributor
-    override fun tasksFor(context: KobaltContext): List<DynamicTask> = taskContributor.dynamicTasks
+    override fun tasksFor(project: Project, context: KobaltContext): List<DynamicTask> = taskContributor.dynamicTasks
 }
 
 @Directive

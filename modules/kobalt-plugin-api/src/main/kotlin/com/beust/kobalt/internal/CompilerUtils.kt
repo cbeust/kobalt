@@ -34,15 +34,27 @@ class CompilerUtils @Inject constructor(val files: KFiles,
             // once and pass them
             val info = createCompilerActionInfo(project, context, compiler, isTest,
                     sourceDirectories, sourceSuffixes = compiler.sourceSuffixes)
-            val thisResult = compiler.compile(project, context, info)
-            results.add(thisResult)
-            if (!thisResult.success && failedResult == null) {
-                failedResult = thisResult
+            val thisResult = invokeCompiler(project, context, compiler, info)
+            results.addAll(thisResult.successResults)
+            if (failedResult == null) {
+                failedResult = thisResult.failedResult
             }
         } else {
             log(2, "Compiler $compiler not running on ${project.name} since no source files were found")
         }
 
+        return CompilerResult(results, failedResult)
+    }
+
+    fun invokeCompiler(project: Project, context: KobaltContext, compiler: ICompiler, info: CompilerActionInfo)
+            : CompilerResult {
+        val results = arrayListOf<TaskResult>()
+        var failedResult: TaskResult? = null
+        val thisResult = compiler.compile(project, context, info)
+        results.add(thisResult)
+        if (!thisResult.success && failedResult == null) {
+            failedResult = thisResult
+        }
         return CompilerResult(results, failedResult)
     }
 
@@ -55,7 +67,7 @@ class CompilerUtils @Inject constructor(val files: KFiles,
         copyResources(project, context, SourceSet.of(isTest))
 
         val fullClasspath = if (isTest) dependencyManager.testDependencies(project, context)
-        else dependencyManager.dependencies(project, context)
+            else dependencyManager.dependencies(project, context)
 
         // Remove all the excluded dependencies from the classpath
         val classpath = fullClasspath.filter {
@@ -65,7 +77,6 @@ class CompilerUtils @Inject constructor(val files: KFiles,
         val buildDirectory = if (isTest) File(project.buildDirectory, KFiles.TEST_CLASSES_DIR)
         else File(project.classesDir(context))
         buildDirectory.mkdirs()
-
 
         val initialSourceDirectories = ArrayList<File>(sourceDirectories)
         // Source directories from the contributors

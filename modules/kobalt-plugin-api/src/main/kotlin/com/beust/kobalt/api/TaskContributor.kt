@@ -63,5 +63,5 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
         }
     }
 
-    override fun tasksFor(context: KobaltContext) : List<DynamicTask> = dynamicTasks
+    override fun tasksFor(project: Project, context: KobaltContext) : List<DynamicTask> = dynamicTasks
 }
