@@ -16,7 +16,6 @@ import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
 import java.io.File
-import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,7 +29,8 @@ open class JvmCompilerPlugin @Inject constructor(
         open val files: KFiles,
         open val dependencyManager: DependencyManager,
         open val executors: KobaltExecutors,
-        open val taskContributor : TaskContributor)
+        open val taskContributor : TaskContributor,
+        val compilerUtils: CompilerUtils)
             : BasePlugin(), ISourceDirectoryContributor, IProjectContributor, ITaskContributor by taskContributor {
 
     companion object {
@@ -52,18 +52,18 @@ open class JvmCompilerPlugin @Inject constructor(
         const val GROUP_TEST = "test"
         const val GROUP_BUILD = "build"
         const val GROUP_DOCUMENTATION = "documentation"
+
+        /**
+         * Log with a project.
+         */
+        fun lp(project: Project, s: String) {
+            log(2, "${project.name}: $s")
+        }
     }
 
     override val name: String = PLUGIN_NAME
 
     override fun accept(project: Project) = true
-
-    /**
-     * Log with a project.
-     */
-    protected fun lp(project: Project, s: String) {
-        log(2, "${project.name}: $s")
-    }
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
@@ -110,37 +110,6 @@ open class JvmCompilerPlugin @Inject constructor(
             }
         }
         return TaskResult()
-    }
-
-    /**
-     * Copy the resources from a source directory to the build one
-     */
-    protected fun copyResources(project: Project, sourceSet: SourceSet) {
-        var outputDir = sourceSet.outputDir
-
-        val variantSourceDirs = context.variant.resourceDirectories(project, sourceSet)
-        if (variantSourceDirs.size > 0) {
-            lp(project, "Copying $sourceSet resources")
-            val absOutputDir = File(KFiles.joinDir(project.directory, project.buildDirectory, outputDir))
-            variantSourceDirs.map { File(project.directory, it.path) }.filter {
-                it.exists()
-            }.forEach {
-                log(2, "Copying from $it to $absOutputDir")
-                KFiles.copyRecursively(it, absOutputDir, deleteFirst = false)
-            }
-        } else {
-            lp(project, "No resources to copy for $sourceSet")
-        }
-    }
-
-    protected fun compilerArgsFor(project: Project): List<String> {
-        val result = project.projectProperties.get(COMPILER_ARGS)
-        if (result != null) {
-            @Suppress("UNCHECKED_CAST")
-            return result as List<String>
-        } else {
-            return emptyList()
-        }
     }
 
     @IncrementalTask(name = TASK_COMPILE_TEST, description = "Compile the tests", group = GROUP_BUILD,
@@ -193,27 +162,10 @@ open class JvmCompilerPlugin @Inject constructor(
         } else {
             val allCompilers = compilerContributors.flatMap { it.compilersFor(project, context)}.sorted()
             allCompilers.forEach { compiler ->
-                val contributedSourceDirs =
-                    if (isTest) {
-                        context.testSourceDirectories(project)
-                    } else {
-                        context.sourceDirectories(project)
-                    }
-                val sourceFiles = KFiles.findSourceFiles(project.directory,
-                        contributedSourceDirs.map { it.path }, compiler.sourceSuffixes)
-                if (sourceFiles.size > 0) {
-                    // TODO: createCompilerActionInfo recalculates the source files, only compute them
-                    // once and pass them
-                    val info = createCompilerActionInfo(project, context, compiler, isTest,
-                            sourceDirectories(project, context), sourceSuffixes = compiler.sourceSuffixes)
-                    val thisResult = compiler.compile(project, context, info)
-                    results.add(thisResult)
-                    if (!thisResult.success && failedResult == null) {
-                        failedResult = thisResult
-                    }
-                } else {
-                    log(2, "Compiler $compiler not running on ${project.name} since no source files were found")
-                }
+                val compilerResults = compilerUtils.invokeCompiler(project, context, compiler,
+                        sourceDirectories(project, context), isTest)
+                results.addAll(compilerResults.first)
+                if (failedResult == null) failedResult = compilerResults.second
             }
             return if (failedResult != null) failedResult!!
                 else if (results.size > 0) results[0]
@@ -248,9 +200,9 @@ open class JvmCompilerPlugin @Inject constructor(
             var result: TaskResult? = null
             contributors.forEach {
                 it.compilersFor(project, context).forEach { compiler ->
-                    result = docGenerator.generateDoc(project, context, createCompilerActionInfo(project, context,
-                            compiler,
-                            isTest = false, sourceDirectories = sourceDirectories(project, context),
+                    result = docGenerator.generateDoc(project, context,
+                            compilerUtils.createCompilerActionInfo(project, context, compiler,
+                                    isTest = false, sourceDirectories = sourceDirectories(project, context),
                             sourceSuffixes = compiler.sourceSuffixes))
                 }
             }
@@ -259,103 +211,6 @@ open class JvmCompilerPlugin @Inject constructor(
             warn("Couldn't find any doc contributor for project ${project.name}")
             return TaskResult()
         }
-    }
-
-    /**
-     * Naïve implementation: just exclude all dependencies that start with one of the excluded dependencies.
-     * Should probably make exclusion more generic (full on string) or allow exclusion to be specified
-     * formally by groupId or artifactId.
-     */
-    private fun isDependencyExcluded(id: IClasspathDependency, excluded: List<IClasspathDependency>)
-            = excluded.any { id.id.startsWith(it.id) }
-
-    /**
-     * Create a CompilerActionInfo (all the information that a compiler needs to know) for the given parameters.
-     * Runs all the contributors and interceptors relevant to that task.
-     */
-    protected fun createCompilerActionInfo(project: Project, context: KobaltContext, compiler: ICompiler,
-            isTest: Boolean, sourceDirectories: List<File>, sourceSuffixes: List<String>): CompilerActionInfo {
-        copyResources(project, SourceSet.of(isTest))
-
-        val fullClasspath = if (isTest) dependencyManager.testDependencies(project, context)
-            else dependencyManager.dependencies(project, context)
-
-        // Remove all the excluded dependencies from the classpath
-        val classpath = fullClasspath.filter {
-            ! isDependencyExcluded(it, project.excludedDependencies)
-        }
-
-        val buildDirectory = if (isTest) File(project.buildDirectory, KFiles.TEST_CLASSES_DIR)
-            else File(project.classesDir(context))
-        buildDirectory.mkdirs()
-
-
-        val initialSourceDirectories = ArrayList<File>(sourceDirectories)
-        // Source directories from the contributors
-        val contributedSourceDirs =
-            if (isTest) {
-                context.pluginInfo.testSourceDirContributors.flatMap { it.testSourceDirectoriesFor(project, context) }
-            } else {
-                context.pluginInfo.sourceDirContributors.flatMap { it.sourceDirectoriesFor(project, context) }
-            }
-
-        initialSourceDirectories.addAll(contributedSourceDirs)
-
-        // Transform them with the interceptors, if any
-        val allSourceDirectories =
-            if (isTest) {
-                initialSourceDirectories
-            } else {
-                context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories.toList(),
-                        { sd, interceptor -> interceptor.intercept(project, context, sd) })
-            }.filter {
-                File(project.directory, it.path).exists()
-            }.filter {
-                ! KFiles.isResource(it.path)
-            }.distinct()
-
-        // Now that we have all the source directories, find all the source files in them
-        val projectDirectory = File(project.directory)
-        val sourceFiles = if (compiler.canCompileDirectories) {
-                allSourceDirectories.map { File(projectDirectory, it.path).path }
-            } else {
-                files.findRecursively(projectDirectory, allSourceDirectories,
-                        { file -> sourceSuffixes.any { file.endsWith(it) } })
-                        .map { File(projectDirectory, it).path }
-            }
-
-        // Special treatment if we are compiling Kotlin files and the project also has a java source
-        // directory. In this case, also pass that java source directory to the Kotlin compiler as is
-        // so that it can parse its symbols
-        // Note: this should actually be queried on the compiler object so that this method, which
-        // is compiler agnostic, doesn't hardcode Kotlin specific stuff
-        val extraSourceFiles = arrayListOf<String>()
-        if (sourceSuffixes.any { it.contains("kt")}) {
-            project.sourceDirectories.forEach {
-                val javaDir = KFiles.joinDir(project.directory, it)
-                if (File(javaDir).exists()) {
-                    if (it.contains("java")) {
-                        extraSourceFiles.add(javaDir)
-                        // Add all the source directories contributed as potential Java directories too
-                        // (except our own)
-                        context.pluginInfo.sourceDirContributors.filter { it != this }.forEach {
-                            extraSourceFiles.addAll(it.sourceDirectoriesFor(project, context).map { it.path })
-                        }
-
-                    }
-                }
-            }
-        }
-
-        val allSources = (sourceFiles + extraSourceFiles).distinct().filter { File(it).exists() }
-
-        // Finally, alter the info with the compiler interceptors before returning it
-        val initialActionInfo = CompilerActionInfo(projectDirectory.path, classpath, allSources,
-                sourceSuffixes, buildDirectory, emptyList() /* the flags will be provided by flag contributors */)
-        val result = context.pluginInfo.compilerInterceptors.fold(initialActionInfo, { ai, interceptor ->
-            interceptor.intercept(project, context, ai)
-        })
-        return result
     }
 
     // ISourceDirectoryContributor
