@@ -60,13 +60,14 @@ class BintrayApi @Inject constructor(val http: Http,
         fun createPackage(@Path("owner") owner: String,
                           @Body content: JsonObject): Call<BintrayResponse>
 
-        @PUT("/content/{owner}/maven/{repo}/{version}/{group}/{artifact}/{version}/{name}")
+        @PUT("/content/{owner}/maven/{repo}/{version}/{group}/{artifact}/{version}/{name};publish={publish}")
         fun uploadArtifact(@Path("owner") owner: String,
                            @Path("repo") repo: String,
                            @Path("group", encoded = true) group: String,
                            @Path("artifact") artifact: String,
                            @Path("version") version: String,
                            @Path("name") name: String,
+                           @Path("publish") publish: Int,
                            @Body file: File): Call<BintrayResponse>
     }
 
@@ -122,18 +123,18 @@ class BintrayApi @Inject constructor(val http: Http,
         return jsonObject
     }
 
-    fun uploadMaven(project: Project, files: List<File>, config: BintrayConfig?): TaskResult {
+    fun uploadMaven(project: Project, files: List<File>, config: BintrayConfig): TaskResult {
         validatePackage(project)
         return upload(project, files, config, generateMd5 = true)
     }
 
-    fun uploadFile(project: Project, file: File, config: BintrayConfig?, generateMd5: Boolean = false) =
+    fun uploadFile(project: Project, file: File, config: BintrayConfig, generateMd5: Boolean = false) =
             upload(project, arrayListOf(file), config, generateMd5)
 
-    private fun upload(project: Project, files: List<File>, config: BintrayConfig?, generateMd5: Boolean = false): TaskResult {
+    private fun upload(project: Project, files: List<File>, config: BintrayConfig, generateMd5: Boolean): TaskResult {
         val filesToUpload = arrayListOf<File>()
 
-        if (config != null && config.sign) {
+        if (config.sign) {
             // Create the .asc files
             filesToUpload.addAll(gpg.runGpg(files))
         }
@@ -148,17 +149,6 @@ class BintrayApi @Inject constructor(val http: Http,
                     filesToUpload.add(md5File)
                 }
             }
-        }
-
-        //
-        // If any configuration was given, apply them so the URL reflects them, e.g. ?publish=1
-        //
-        val options = arrayListOf<String>()
-        if (config?.publish == true) options.add("publish=1")
-
-        val optionPath = StringBuffer()
-        if (options.size > 0) {
-            optionPath.append("?" + options.joinToString("&"))
         }
 
         val fileCount = filesToUpload.size
@@ -180,7 +170,8 @@ class BintrayApi @Inject constructor(val http: Http,
                 val artifact = project.artifactId!!
                 val version = project.version!!
 
-                val result = service.uploadArtifact(owner, repo, group, artifact, version, file.name, file)
+                val result = service.uploadArtifact(owner, repo, group, artifact, version, file.name,
+                        if (config.publish) 1 else 0, file)
                         .execute()
                 val error = result.errorBody()?.string()
                 if (result.errorBody() != null) {
