@@ -115,7 +115,7 @@ private class Main @Inject constructor(
         val seconds = benchmarkSeconds {
             try {
                 result = runWithArgs(jc, args, argv, pluginClassLoader)
-            } catch(ex: KobaltException) {
+            } catch(ex: Throwable) {
                 error("", ex.cause ?: ex)
                 result = 1
             }
