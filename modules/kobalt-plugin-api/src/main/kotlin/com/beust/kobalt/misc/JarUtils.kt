@@ -51,19 +51,6 @@ public class JarUtils {
                     log(2, "Writing contents of directory $foundFile")
 
                     // Directory
-                    var name = foundFile.name
-                    if (!name.isEmpty()) {
-                        if (!name.endsWith("/")) name += "/"
-                        val entry = JarEntry(name)
-                        entry.time = localFile.lastModified()
-                        try {
-                            outputStream.putNextEntry(entry)
-                        } catch(ex: ZipException) {
-                            log(2, "Can't add $name: ${ex.message}")
-                        } finally {
-                            outputStream.closeEntry()
-                        }
-                    }
                     val includedFile = IncludedFile(From(foundFile.path), To(""), listOf(IFileSpec.GlobSpec("**")))
                     addSingleFile(".", includedFile, outputStream, expandJarFiles)
                 } else {
