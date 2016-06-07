@@ -123,6 +123,8 @@ open class Project(
         })
         return result
     }
+
+    override fun toString() = "[Project $name]"
 }
 
 class Sources(val project: Project, val sources: HashSet<String>) {
