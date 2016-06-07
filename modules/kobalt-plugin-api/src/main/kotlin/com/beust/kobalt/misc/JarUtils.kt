@@ -47,12 +47,12 @@ public class JarUtils {
                     throw AssertionError("File should exist: $localFile")
                 }
 
-                if (foundFile.isDirectory) {
+                if (localFile.isDirectory) {
                     log(2, "Writing contents of directory $foundFile")
 
                     // Directory
-                    val includedFile = IncludedFile(From(foundFile.path), To(""), listOf(IFileSpec.GlobSpec("**")))
-                    addSingleFile(".", includedFile, outputStream, expandJarFiles)
+                    val includedFile = IncludedFile(From(""), To(""), listOf(IFileSpec.GlobSpec("**")))
+                    addSingleFile(localFile.path, includedFile, outputStream, expandJarFiles)
                 } else {
                     if (file.expandJarFiles && foundFile.name.endsWith(".jar") && ! file.from.contains("resources")) {
                         log(2, "Writing contents of jar file $foundFile")
