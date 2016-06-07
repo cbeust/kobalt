@@ -83,7 +83,7 @@ class TaskManager @Inject constructor(val args: Args,
 
     fun runTargets(passedTaskNames: List<String>, allProjects: List<Project>): RunTargetResult {
         val taskInfos = calculateDependentTaskNames(passedTaskNames, allProjects)
-        val projectsToRun = findProjectsToRun(passedTaskNames, allProjects)
+        val projectsToRun = findProjectsToRun(taskInfos, allProjects)
         return runProjects(taskInfos, projectsToRun)
     }
 
@@ -91,7 +91,7 @@ class TaskManager @Inject constructor(val args: Args,
      * Determine which projects to run based on the request tasks. Also make sure that all the requested projects
      * exist.
      */
-    private fun findProjectsToRun(passedTaskNames: List<String>, projects: List<Project>) : List<Project> {
+    private fun findProjectsToRun(taskInfos: List<TaskInfo>, projects: List<Project>) : List<Project> {
 
         // Validate projects
         val result = arrayListOf<Project>()
@@ -100,7 +100,7 @@ class TaskManager @Inject constructor(val args: Args,
         }
 
         // Extract all the projects we need to run from the tasks
-        val taskInfos = calculateDependentTaskNames(passedTaskNames, projects)
+//        val orderedTaskInfos = calculateDependentTaskNames(taskInfos.map { it.id }, projects)
         taskInfos.forEach {
             val p = it.project
             if (p != null) {
@@ -185,17 +185,17 @@ class TaskManager @Inject constructor(val args: Args,
             projects.forEach { put(it.name, it)}
         }
         val result = ArrayList(taskNames.map { TaskInfo(it) })
-        val toProcess = ArrayList(taskNames)
-        val newToProcess = arrayListOf<String>()
-        val seen = hashSetOf<String>()
+        val toProcess = ArrayList(result)
+        val newToProcess = arrayListOf<TaskInfo>()
+        val seen = hashSetOf<TaskInfo>()
         var stop = false
         while (! stop) {
-            toProcess.forEach { taskName ->
-                val ti = TaskInfo(taskName)
+            toProcess.forEach { ti ->
                 projectMap[ti.project]?.let { project ->
                     project.projectExtra.dependsOn.forEach { dp ->
-                        val newTask = TaskInfo(dp.projectName, ti.taskName).id
-                        result.add(TaskInfo(newTask))
+                        val newTask = TaskInfo(dp.projectName, ti.taskName)
+                        // Insert the project at the top of the list since we haven't added its dependents yet
+                        result.add(0, newTask)
                         if (! seen.contains(newTask)) {
                             newToProcess.add(newTask)
                             seen.add(newTask)
