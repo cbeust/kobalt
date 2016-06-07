@@ -80,7 +80,7 @@ class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
             }
         }
 
-        val graph = taskManager.createGraph2("", tasks, dependencies,
+        val graph = taskManager.createGraph2("", tasks.map { TaskManager.TaskInfo(it) }, dependencies,
                 dependsOn, reverseDependsOn, runBefore, runAfter, alwaysRunAfter,
                 { it }, { t -> true })
         val result = DryRunGraphExecutor(graph).run()

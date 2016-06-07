@@ -19,15 +19,15 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 
-data class TaskInfo(val taskName: String, var inputChecksum: String? = null, var outputChecksum: String? = null)
-
-class BuildInfo(var tasks: List<TaskInfo>)
-
 /**
  * Manage the file .kobalt/buildInfo.json, which keeps track of input and output checksums to manage
  * incremental builds.
  */
 class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileName : String) {
+
+    private data class TaskInfo(val taskName: String, var inputChecksum: String? = null, var outputChecksum: String? = null)
+
+    private class BuildInfo(var tasks: List<TaskInfo>)
 
     interface IFactory {
         fun create(@Assisted fileName: String = IncrementalManager.BUILD_INFO_FILE) : IncrementalManager

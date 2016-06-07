@@ -81,11 +81,44 @@ class TaskManager @Inject constructor(val args: Args,
         }
     }
 
-    fun runTargets(passedTaskNames: List<String>, projects: List<Project>): RunTargetResult {
+    fun runTargets(passedTaskNames: List<String>, allProjects: List<Project>): RunTargetResult {
+        val taskInfos = calculateDependentTaskNames(passedTaskNames, allProjects)
+        val projectsToRun = findProjectsToRun(passedTaskNames, allProjects)
+        return runProjects(taskInfos, projectsToRun)
+    }
+
+    /**
+     * Determine which projects to run based on the request tasks. Also make sure that all the requested projects
+     * exist.
+     */
+    private fun findProjectsToRun(passedTaskNames: List<String>, projects: List<Project>) : List<Project> {
+
+        // Validate projects
+        val result = arrayListOf<Project>()
+        val projectMap = HashMap<String, Project>().apply {
+            projects.forEach { put(it.name, it)}
+        }
+
+        // Extract all the projects we need to run from the tasks
+        val taskInfos = calculateDependentTaskNames(passedTaskNames, projects)
+        taskInfos.forEach {
+            val p = it.project
+            if (p != null) {
+                if (! projectMap.containsKey(p)) {
+                    throw KobaltException("Unknown project: ${it.project}")
+                }
+                result.add(projectMap[it.project]!!)
+            }
+        }
+
+        // If at least one task didn't specify a project, run them all
+        return if (result.any()) result else projects
+    }
+
+    private fun runProjects(taskInfos: List<TaskInfo>, projects: List<Project>) : RunTargetResult {
         var result = 0
         val failedProjects = hashSetOf<String>()
         val messages = Collections.synchronizedList(arrayListOf<String>())
-        val taskNames = calculateDependentTaskNames(passedTaskNames, projects)
         projects.forEach { project ->
             AsciiArt.logBox("Building ${project.name}")
 
@@ -112,7 +145,7 @@ class TaskManager @Inject constructor(val args: Args,
                     log(3, "  $it: " + tasksByNames.get(it))
                 }
 
-                val graph = createGraph2(project.name, taskNames, tasksByNames,
+                val graph = createGraph2(project.name, taskInfos, tasksByNames,
                         dependsOn, reverseDependsOn, runBefore, runAfter, alwaysRunAfter,
                         { task: ITask -> task.name },
                         { task: ITask -> task.plugin.accept(project) })
@@ -138,6 +171,7 @@ class TaskManager @Inject constructor(val args: Args,
                 }
             }
         }
+
         return RunTargetResult(result, messages)
     }
 
@@ -146,11 +180,11 @@ class TaskManager @Inject constructor(val args: Args,
      * see if that project depends on others and if it does, invoke these tasks on all of them. This
      * function returns all these task names (including dependent).
      */
-    private fun calculateDependentTaskNames(taskNames: List<String>, projects: List<Project>): List<String> {
+    private fun calculateDependentTaskNames(taskNames: List<String>, projects: List<Project>): List<TaskInfo> {
         val projectMap = hashMapOf<String, Project>().apply {
             projects.forEach { put(it.name, it)}
         }
-        val result = ArrayList(taskNames)
+        val result = ArrayList(taskNames.map { TaskInfo(it) })
         val toProcess = ArrayList(taskNames)
         val newToProcess = arrayListOf<String>()
         val seen = hashSetOf<String>()
@@ -161,7 +195,7 @@ class TaskManager @Inject constructor(val args: Args,
                 projectMap[ti.project]?.let { project ->
                     project.projectExtra.dependsOn.forEach { dp ->
                         val newTask = TaskInfo(dp.projectName, ti.taskName).id
-                        result.add(newTask)
+                        result.add(TaskInfo(newTask))
                         if (! seen.contains(newTask)) {
                             newToProcess.add(newTask)
                             seen.add(newTask)
@@ -188,7 +222,8 @@ class TaskManager @Inject constructor(val args: Args,
      * we'll be adding to the graph while @toName extracts the name of a node.
      */
     @VisibleForTesting
-    fun <T> createGraph2(projectName: String, taskNames: List<String>, nodeMap: Multimap<String, T>,
+    fun <T> createGraph2(projectName: String, passedTasks: List<TaskInfo>,
+            nodeMap: Multimap<String, T>,
             dependsOn: Multimap<String, String>,
             reverseDependsOn: Multimap<String, String>,
             runBefore: Multimap<String, String>,
@@ -214,9 +249,9 @@ class TaskManager @Inject constructor(val args: Args,
         }
 
         //
-        // Turn the task names into the more useful TaskInfo and do some sanity checking on the way
+        // Keep only the tasks we need to run.
         //
-        val taskInfos = taskNames.map { TaskInfo(it) }.filter {
+        val taskInfos = passedTasks.filter {
             if (!nodeMap.keys().contains(it.taskName)) {
                 throw KobaltException("Unknown task: $it")
             }
@@ -300,14 +335,16 @@ class TaskManager @Inject constructor(val args: Args,
                 // runBefore and runAfter (task ordering) are only considered for explicit tasks (tasks that were
                 // explicitly requested by the user)
                 //
-                runBefore[taskName].forEach { from ->
-                    if (taskNames.contains(from)) {
-                        addEdge(result, from, taskName, newToProcess, "runBefore")
+                passedTasks.map { it.id }.let { taskNames ->
+                    runBefore[taskName].forEach { from ->
+                        if (taskNames.contains(from)) {
+                            addEdge(result, from, taskName, newToProcess, "runBefore")
+                        }
                     }
-                }
-                runAfter[taskName].forEach { to ->
-                    if (taskNames.contains(to)) {
-                        addEdge(result, taskName, to, newToProcess, "runAfter")
+                    runAfter[taskName].forEach { to ->
+                        if (taskNames.contains(to)) {
+                            addEdge(result, taskName, to, newToProcess, "runAfter")
+                        }
                     }
                 }
                 seen.add(taskName)
