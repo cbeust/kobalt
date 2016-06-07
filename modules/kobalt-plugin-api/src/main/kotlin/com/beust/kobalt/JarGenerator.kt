@@ -107,7 +107,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
                 if (! seen.contains(file.path)) {
                     seen.add(file.path)
                     if (! KFiles.Companion.isExcluded(file, jar.excludes)) {
-                        result.add(IncludedFile(specs = arrayListOf(IFileSpec.FileSpec(file.path)),
+                        result.add(IncludedFile(specs = arrayListOf(IFileSpec.FileSpec(file.absolutePath)),
                                 expandJarFiles = true))
                     }
                 }
