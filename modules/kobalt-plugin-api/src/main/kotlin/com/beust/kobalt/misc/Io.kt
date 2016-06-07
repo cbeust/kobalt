@@ -73,7 +73,7 @@ class Io(val dryRun: Boolean = false) {
     }
 
     fun mkdir(dir: File) {
-        log("rm -rf $dir")
+        log("mkdir $dir")
         if (! dryRun) {
             dir.mkdirs()
         }

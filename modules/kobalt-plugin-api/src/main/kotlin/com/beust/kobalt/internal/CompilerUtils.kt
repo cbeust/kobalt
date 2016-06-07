@@ -76,7 +76,7 @@ class CompilerUtils @Inject constructor(val files: KFiles,
 
         val buildDirectory = if (isTest) File(project.buildDirectory, KFiles.TEST_CLASSES_DIR)
         else File(project.classesDir(context))
-        buildDirectory.mkdirs()
+        File(project.directory, buildDirectory.path).mkdirs()
 
         val initialSourceDirectories = ArrayList<File>(sourceDirectories)
         // Source directories from the contributors
