@@ -91,7 +91,7 @@ class TaskManager @Inject constructor(val args: Args,
      * Determine which projects to run based on the request tasks. Also make sure that all the requested projects
      * exist.
      */
-    private fun findProjectsToRun(taskInfos: List<TaskInfo>, projects: List<Project>) : List<Project> {
+    fun findProjectsToRun(taskInfos: List<TaskInfo>, projects: List<Project>) : List<Project> {
 
         // Validate projects
         val result = arrayListOf<Project>()
@@ -180,7 +180,7 @@ class TaskManager @Inject constructor(val args: Args,
      * see if that project depends on others and if it does, invoke these tasks on all of them. This
      * function returns all these task names (including dependent).
      */
-    private fun calculateDependentTaskNames(taskNames: List<String>, projects: List<Project>): List<TaskInfo> {
+    fun calculateDependentTaskNames(taskNames: List<String>, projects: List<Project>): List<TaskInfo> {
         val projectMap = hashMapOf<String, Project>().apply {
             projects.forEach { put(it.name, it)}
         }
