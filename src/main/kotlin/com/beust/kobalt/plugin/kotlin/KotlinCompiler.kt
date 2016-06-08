@@ -90,17 +90,17 @@ class KotlinCompiler @Inject constructor(
             log(2, "Calling kotlinc " + allArgs.joinToString(" "))
             val result : TaskResult =
                     if (true) {
-                        val compilerJar = listOf(kotlinJarFiles.compiler.toURI().toURL())
-
-                        val classLoader = ParentLastClassLoader(compilerJar)
-                        val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
-                        val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
-
                         //
                         // In order to capture the error stream, I need to invoke CLICompiler.exec(), which
                         // is the first method that accepts a PrintStream for the errors in parameter
                         //
                         ByteArrayOutputStream().use { baos ->
+                            val compilerJar = listOf(kotlinJarFiles.compiler.toURI().toURL())
+
+                            val classLoader = ParentLastClassLoader(compilerJar)
+                            val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
+                            val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
+
                             PrintStream(baos).use { ps ->
                                 val execMethod = compiler.declaredMethods.filter {
                                     it.name == "exec" && it.parameterTypes.size == 2
