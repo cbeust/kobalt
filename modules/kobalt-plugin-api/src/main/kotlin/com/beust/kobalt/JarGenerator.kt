@@ -91,7 +91,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         // If fatJar is true, add all the transitive dependencies as well: compile, runtime and dependent projects
         //
         if (jar.fatJar) {
-            log(2, "Creating fat jar")
+            log(2, "Finding included files for far jar")
 
             val seen = hashSetOf<String>()
             @Suppress("UNCHECKED_CAST")

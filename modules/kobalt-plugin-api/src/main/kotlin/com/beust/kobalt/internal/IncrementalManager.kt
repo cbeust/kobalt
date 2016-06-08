@@ -126,7 +126,8 @@ class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileN
                             if (outputChecksum == taskOutputChecksum) {
                                 upToDate = true
                             } else {
-                                logIncremental(LEVEL, "Incremental task $taskName output is out of date, running it")
+                                logIncremental(LEVEL, "Incremental task $taskName output is out of date" +
+                                        " (different output checksums), running it")
                             }
                         }
                     } else {
@@ -134,7 +135,7 @@ class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileN
                             logIncremental(LEVEL, "Project ${project.name} depends on dirty project, running $taskName")
                         } else {
                             logIncremental(LEVEL, "Incremental task $taskName input is out of date, running it"
-                                    + " old: $inputChecksum new: ${iti.inputChecksum()}")
+                                    + " (different input checksums old: $inputChecksum new: ${iti.inputChecksum()})")
                         }
                         project.projectExtra.isDirty = true
                     }
