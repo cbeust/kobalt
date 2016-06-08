@@ -67,17 +67,20 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
      * skipped.
      */
     override fun assemble(project: Project, context: KobaltContext) : IncrementalTaskInfo {
-        return IncrementalTaskInfo({ null }, { null }, { project ->
-            try {
-                packages.filter { it.project.name == project.name }.forEach { pkg ->
-                    pkg.jars.forEach { jarGenerator.generateJar(pkg.project, context, it) }
-                    pkg.wars.forEach { warGenerator.generateWar(pkg.project, context, it) }
-                    pkg.zips.forEach { zipGenerator.generateZip(pkg.project, context, it) }
-                    if (pkg.generatePom) {
-                        pomFactory.create(project).generate()
-                    }
-                }
-                TaskResult()
+        return IncrementalTaskInfo(
+                { null },
+                { null },
+                { project ->
+                    try {
+                        packages.filter { it.project.name == project.name }.forEach { packageConfig ->
+                            packageConfig.jars.forEach { jarGenerator.generateJar(packageConfig.project, context, it) }
+                            packageConfig.wars.forEach { warGenerator.generateWar(packageConfig.project, context, it) }
+                            packageConfig.zips.forEach { zipGenerator.generateZip(packageConfig.project, context, it) }
+                            if (packageConfig.generatePom) {
+                                pomFactory.create(project).generate()
+                            }
+                        }
+                        TaskResult()
             } catch(ex: Exception) {
                 throw KobaltException(ex)
             }}, context)
