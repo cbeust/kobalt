@@ -94,27 +94,26 @@ class KotlinCompiler @Inject constructor(
 
                         val classLoader = ParentLastClassLoader(compilerJar)
                         val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
-                        val compilerMain = compiler.declaredMethods.filter {
-                            it.name == "doMainNoExit" && it.parameterTypes.size == 2
-                        }[0]
                         val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
 
                         //
                         // In order to capture the error stream, I need to invoke CLICompiler.exec(), which
                         // is the first method that accepts a PrintStream for the errors in parameter
                         //
-                        val baos = ByteArrayOutputStream()
-                        val ps = PrintStream(baos)
-                        val execMethod = compiler.declaredMethods.filter {
-                            it.name == "exec" && it.parameterTypes.size == 2
-                        }[0]
-                        val exitCode = execMethod.invoke(kCompiler.newInstance(), ps, allArgs.toTypedArray())
-                        val errorString = baos.toString(Charset.defaultCharset().toString())
+                        ByteArrayOutputStream().use { baos ->
+                            PrintStream(baos).use { ps ->
+                                val execMethod = compiler.declaredMethods.filter {
+                                    it.name == "exec" && it.parameterTypes.size == 2
+                                }[0]
+                                val exitCode = execMethod.invoke(kCompiler.newInstance(), ps, allArgs.toTypedArray())
+                                val errorString = baos.toString(Charset.defaultCharset().toString())
 
-                        // The return value is an enum
-                        val nameMethod = exitCode.javaClass.getMethod("name")
-                        val success = "OK" == nameMethod.invoke(exitCode).toString()
-                        TaskResult(success, errorString)
+                                // The return value is an enum
+                                val nameMethod = exitCode.javaClass.getMethod("name")
+                                val success = "OK" == nameMethod.invoke(exitCode).toString()
+                                TaskResult(success, errorString)
+                            }
+                        }
                     } else {
                         val exitCode = CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs.toTypedArray())
                         TaskResult(exitCode == ExitCode.OK)
