@@ -25,7 +25,8 @@ import java.util.*
  */
 class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileName : String) {
 
-    private data class TaskInfo(val taskName: String, var inputChecksum: String? = null, var outputChecksum: String? = null)
+    private data class TaskInfo(val taskName: String, var inputChecksum: String? = null,
+            var outputChecksum: String? = null)
 
     private class BuildInfo(var tasks: List<TaskInfo>)
 
