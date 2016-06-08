@@ -10,4 +10,4 @@ jdk:
 
 install: true
 
-script: ./build-travis.sh assemble test --log 2
+script: ./build-travis.sh assemble test --log 1
