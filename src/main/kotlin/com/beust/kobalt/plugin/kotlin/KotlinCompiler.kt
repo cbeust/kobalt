@@ -5,6 +5,7 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.KobaltSettings
+import com.beust.kobalt.internal.KotlinJarFiles
 import com.beust.kobalt.kotlin.ParentLastClassLoader
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
@@ -34,7 +35,8 @@ class KotlinCompiler @Inject constructor(
         val dependencyManager: DependencyManager,
         val executors: KobaltExecutors,
         val settings: KobaltSettings,
-        val jvmCompiler: JvmCompiler) {
+        val jvmCompiler: JvmCompiler,
+        val kotlinJarFiles: KotlinJarFiles) {
 
     val compilerAction = object: ICompilerAction {
         override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
@@ -88,7 +90,9 @@ class KotlinCompiler @Inject constructor(
             log(2, "Calling kotlinc " + allArgs.joinToString(" "))
             val result : TaskResult =
                     if (true) {
-                        val classLoader = ParentLastClassLoader(cp.map { it.toURI().toURL() })
+                        val compilerJar = listOf(kotlinJarFiles.compiler.toURI().toURL())
+
+                        val classLoader = ParentLastClassLoader(compilerJar)
                         val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
                         val compilerMain = compiler.declaredMethods.filter {
                             it.name == "doMainNoExit" && it.parameterTypes.size == 2
