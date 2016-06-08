@@ -19,17 +19,17 @@ public class Md5 {
 //        }
 
         /**
-         * Calculate a checksum for all the files under the passed directories. The conversion from File to
+         * Calculate a checksum for all the files/directories. The conversion from File to
          * bytes can be customized by the @param{toBytes} parameter. The default implementation calculates
          * a checksum of the last modified timestamp.
          */
-        fun toMd5Directories(directories: List<File>,
+        fun toMd5Directories(filesOrDirectories: List<File>,
                 toBytes: (File) -> ByteArray = { it.lastModified().toString().toByteArray() } ): String? {
-            val ds = directories.filter { it.exists() }
+            val ds = filesOrDirectories.filter { it.exists() }
             if (ds.size > 0) {
                 MessageDigest.getInstance("MD5").let { md5 ->
                     var fileCount = 0
-                    directories.filter { it.exists() }.forEach { file ->
+                    filesOrDirectories.filter { it.exists() }.forEach { file ->
                         if (file.isFile) {
                             val bytes = file.readBytes()
                             md5.update(bytes, 0, bytes.size)
