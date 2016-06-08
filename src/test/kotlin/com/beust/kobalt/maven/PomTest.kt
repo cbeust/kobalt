@@ -13,7 +13,11 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
 
-class PomTest @Inject constructor() : KobaltTest() {
+/**
+ * If a user calls --init on a project with a pom.xml in it, make sure that pom.xml is correctly reflected in the
+ * generated Build.kt.
+ */
+class PomImportTest @Inject constructor() : KobaltTest() {
     @Test
     fun importPom() {
         resourceToFile("PomTest/pom.xml").let { pomSrc ->
@@ -27,7 +31,6 @@ class PomTest @Inject constructor() : KobaltTest() {
 
                 validateGeneratedFile(this, pomSrc)
             }
-
         }
     }
 
