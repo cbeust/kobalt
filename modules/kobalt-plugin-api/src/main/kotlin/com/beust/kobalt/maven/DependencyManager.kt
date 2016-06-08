@@ -111,9 +111,9 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      */
     fun transitiveClosure(dependencies : List<IClasspathDependency>, indent : String = "  "):
             List<IClasspathDependency> {
-        var executor = executors.newExecutor("JvmCompiler}", 10)
+        val executor = executors.newExecutor("JvmCompiler}", 10)
 
-        var result = hashSetOf<IClasspathDependency>()
+        val result = hashSetOf<IClasspathDependency>()
 
         dependencies.forEach { projectDependency ->
             log(ConsoleRepositoryListener.LOG_LEVEL, "$indent Resolving $projectDependency")
