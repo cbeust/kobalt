@@ -1,13 +1,16 @@
 package com.beust.kobalt.archive
 
 import com.beust.kobalt.Features
+import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
+import com.beust.kobalt.misc.From
 import com.beust.kobalt.misc.IncludedFile
 import com.beust.kobalt.misc.JarUtils
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.To
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -62,13 +65,21 @@ class Archives {
             includedFiles.forEach { root ->
                 val allFiles = root.allFromFiles(directory)
                 allFiles.forEach { relFile ->
-                    val file = File(KFiles.joinDir(directory, root.from, relFile.path))
+                    val file = if (relFile.isAbsolute)
+                        relFile // e.g. jar file or classes folder (of another project) when building a fat jar
+                    else
+                        File(KFiles.joinDir(directory, root.from, relFile.path))
                     if (file.isFile) {
                         if (file.lastModified() > lastModified) {
                             log(3, "    TS - Outdated $file and $output "
                                     + Date(file.lastModified()) + " " + Date(output.lastModified()))
                             return true
                         }
+                    } else if (file.isDirectory) {
+                        // e.g. classes folder (of another project) when building a fat jar
+                        val includedFile = IncludedFile(From(""), To(""), listOf(IFileSpec.GlobSpec("**")))
+                        if (isOutdated(file.absolutePath, listOf(includedFile), output))
+                            return true
                     }
                 }
             }
