@@ -67,8 +67,7 @@ val kobaltPluginApi = project {
             developerConnection = "git@github.com:cbeust/kobalt.git")
 
     dependencies {
-        compile("org.jetbrains.kotlinx:kotlinx.dom:0.0.10",
-
+        compile(
                 "com.google.inject:guice:4.0",
                 "com.google.inject.extensions:guice-assistedinject:4.0",
                 "javax.inject:javax.inject:1",
