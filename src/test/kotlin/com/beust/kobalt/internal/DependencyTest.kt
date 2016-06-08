@@ -16,8 +16,9 @@ import javax.inject.Inject
  * Test ITestJvmFlagContributor and ITestJvmFlagInterceptor.
  */
 class DependencyTest @Inject constructor() {
-    private val A_JAR = "/tmp/a.jar"
-    private val B_JAR = "/tmp/b.jar"
+    private fun isWindows() = System.getProperty("os.name").toLowerCase().contains("ndows")
+    private val A_JAR = if (isWindows()) "c:\\tmp\\a.jar" else "/tmp/a.jar"
+    private val B_JAR = if (isWindows()) "c:\\tmp\\b.jar" else "/tmp/b.jar"
 
     private val project : Project get() = project { name = "dummy" }
     private val classpath = listOf(FileDependency(A_JAR))
