@@ -80,6 +80,7 @@ class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileN
 
     fun outputChecksumFor(taskName: String) : String? =
             taskInfoFor(taskInfos(), taskName).outputChecksum
+
     /**
      * @param method is assumed to return an IncrementalTaskInfo.
      * @return a closure that invokes that method and decide whether to run the task or not based
