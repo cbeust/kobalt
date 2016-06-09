@@ -3,6 +3,7 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.inject.Inject
@@ -69,14 +70,17 @@ class CompilerUtils @Inject constructor(val files: KFiles,
         val fullClasspath = if (isTest) dependencyManager.testDependencies(project, context)
             else dependencyManager.dependencies(project, context)
 
-        // Remove all the excluded dependencies from the classpath
-        val classpath = fullClasspath.filter {
-            ! isDependencyExcluded(it, project.excludedDependencies)
-        }
-
+        // The directory where the classes get compiled
         val buildDirectory = if (isTest) File(project.buildDirectory, KFiles.TEST_CLASSES_DIR)
-        else File(project.classesDir(context))
+            else File(project.classesDir(context))
         File(project.directory, buildDirectory.path).mkdirs()
+
+        // The classpath needs to contain $buildDirectory/classes as well so that projects that contain
+        // multiple languages can use classes compiled by the compiler run before them.
+        // We also need to remove all the excluded dependencies from the classpath
+        val classpath = fullClasspath.filter {
+                ! isDependencyExcluded(it, project.excludedDependencies)
+            } + FileDependency(buildDirectory.path)
 
         val initialSourceDirectories = ArrayList<File>(sourceDirectories)
         // Source directories from the contributors
@@ -137,7 +141,10 @@ class CompilerUtils @Inject constructor(val files: KFiles,
             }
         }
 
-        val allSources = (sourceFiles + extraSourceFiles).distinct().filter { File(it).exists() }
+        val allSources = (sourceFiles + extraSourceFiles)
+                .map { File(it).canonicalPath }
+                .distinct()
+                .filter { File(it).exists() }
 
         // Finally, alter the info with the compiler interceptors before returning it
         val initialActionInfo = CompilerActionInfo(projectDirectory.path, classpath, allSources,
