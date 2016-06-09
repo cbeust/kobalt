@@ -152,7 +152,7 @@ class CompilerUtils @Inject constructor(val files: KFiles,
      * Copy the resources from a source directory to the build one
      */
     private fun copyResources(project: Project, context: KobaltContext, sourceSet: SourceSet) {
-        var outputDir = sourceSet.outputDir
+        val outputDir = sourceSet.outputDir
 
         val variantSourceDirs = context.variant.resourceDirectories(project, sourceSet)
         if (variantSourceDirs.size > 0) {

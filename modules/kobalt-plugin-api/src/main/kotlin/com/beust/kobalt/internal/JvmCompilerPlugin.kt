@@ -180,7 +180,7 @@ open class JvmCompilerPlugin @Inject constructor(
 
             // If this project has a kapt{} directive, we want to run the Java compiler first
             val hasKapt = project.projectProperties.get("kaptConfig") != null
-            var finalAllCompilers = if (hasKapt) swapJavaAndKotlin(allCompilers) else allCompilers
+            val finalAllCompilers = if (hasKapt) swapJavaAndKotlin(allCompilers) else allCompilers
             finalAllCompilers.forEach { compiler ->
                 val compilerResults = compilerUtils.invokeCompiler(project, context, compiler,
                         sourceDirectories(project, context), isTest)
