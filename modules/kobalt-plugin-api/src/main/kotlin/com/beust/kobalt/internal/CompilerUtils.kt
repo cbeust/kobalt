@@ -75,12 +75,16 @@ class CompilerUtils @Inject constructor(val files: KFiles,
             else File(project.classesDir(context))
         File(project.directory, buildDirectory.path).mkdirs()
 
+        // Remove all the excluded dependencies from the classpath
+        var classpath = fullClasspath.filter {
+                ! isDependencyExcluded(it, project.excludedDependencies)
+            }
+
         // The classpath needs to contain $buildDirectory/classes as well so that projects that contain
         // multiple languages can use classes compiled by the compiler run before them.
-        // We also need to remove all the excluded dependencies from the classpath
-        val classpath = fullClasspath.filter {
-                ! isDependencyExcluded(it, project.excludedDependencies)
-            } + FileDependency(buildDirectory.path)
+        if (buildDirectory.exists()) {
+            classpath += FileDependency(buildDirectory.path)
+        }
 
         val initialSourceDirectories = ArrayList<File>(sourceDirectories)
         // Source directories from the contributors
