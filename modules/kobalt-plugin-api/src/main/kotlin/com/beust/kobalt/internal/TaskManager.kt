@@ -419,11 +419,9 @@ class TaskManager @Inject constructor(val args: Args,
 
     private fun installDynamicTasks(projects: List<Project>) {
         dynamicTasks.forEach { task ->
-            projects.filter { task.plugin.accept(it) }.forEach { project ->
-                addTask(task.plugin, project, task.name, task.doc, task.group,
-                        task.dependsOn, task.reverseDependsOn, task.runBefore, task.runAfter, task.alwaysRunAfter,
-                        task.closure)
-            }
+            addTask(task.plugin, task.project, task.name, task.doc, task.group,
+                    task.dependsOn, task.reverseDependsOn, task.runBefore, task.runAfter, task.alwaysRunAfter,
+                    task.closure)
         }
     }
 
