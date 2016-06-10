@@ -414,10 +414,10 @@ class TaskManager @Inject constructor(val args: Args,
      */
     fun computePluginTasks(projects: List<Project>) {
         installAnnotationTasks(projects)
-        installDynamicTasks(projects)
+        installDynamicTasks()
     }
 
-    private fun installDynamicTasks(projects: List<Project>) {
+    private fun installDynamicTasks() {
         dynamicTasks.forEach { task ->
             addTask(task.plugin, task.project, task.name, task.doc, task.group,
                     task.dependsOn, task.reverseDependsOn, task.runBefore, task.runAfter, task.alwaysRunAfter,
