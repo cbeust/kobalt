@@ -125,8 +125,10 @@ class DynamicGraphTest {
             addEdge("b2", "a2")
             addEdge("c1", "b1")
             addEdge("c1", "b2")
-            val sorted = sort(arrayListOf("a1", "a2", "b1", "b2", "c1", "x", "y"))
-            Assert.assertEquals(sorted, arrayListOf("a1", "a2", "x", "y", "b1", "b2", "c1"))
+            addNode("x")
+            addNode("y")
+            val sorted = sort()
+            Assert.assertEquals(sorted, arrayListOf("a1", "a2", "x", "y", "b2", "b1", "c1"))
         }
     }
 

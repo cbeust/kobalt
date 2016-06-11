@@ -20,7 +20,6 @@ import java.io.InputStream
 import java.lang.reflect.Modifier
 import java.net.URL
 import java.net.URLClassLoader
-import java.util.*
 import java.util.jar.JarInputStream
 
 class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFiles,
@@ -113,14 +112,14 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
             context.pluginInfo.projectContributors.forEach { contributor ->
                 val descriptions = contributor.projects()
                 descriptions.forEach { pd ->
-                    all.add(pd.project)
+                    topologicalProjects.addNode(pd.project)
                     pd.dependsOn.forEach { dependsOn ->
                         topologicalProjects.addEdge(pd.project, dependsOn)
                         all.add(dependsOn)
                     }
                 }
             }
-            val result = topologicalProjects.sort(ArrayList(all))
+            val result = topologicalProjects.sort()
 
             return result
         }

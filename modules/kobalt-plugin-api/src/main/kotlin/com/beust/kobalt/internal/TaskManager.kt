@@ -4,10 +4,7 @@ import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.misc.Strings
-import com.beust.kobalt.misc.benchmarkMillis
-import com.beust.kobalt.misc.kobaltError
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.*
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
@@ -182,34 +179,40 @@ class TaskManager @Inject constructor(val args: Args,
      */
     fun calculateDependentTaskNames(taskNames: List<String>, projects: List<Project>): List<TaskInfo> {
         val projectMap = hashMapOf<String, Project>().apply {
-            projects.forEach { put(it.name, it)}
-        }
-        val result = ArrayList(taskNames.map { TaskInfo(it) })
-        val toProcess = ArrayList(result)
-        val newToProcess = arrayListOf<TaskInfo>()
-        val seen = hashSetOf<TaskInfo>()
-        var stop = false
-        while (! stop) {
-            toProcess.forEach { ti ->
-                projectMap[ti.project]?.let { project ->
-                    project.projectExtra.dependsOn.forEach { dp ->
-                        val newTask = TaskInfo(dp.projectName, ti.taskName)
-                        // Insert the project at the top of the list since we haven't added its dependents yet
-                        result.add(0, newTask)
-                        if (! seen.contains(newTask)) {
-                            newToProcess.add(newTask)
-                            seen.add(newTask)
-                        }
-                    }
-                }
-            }
-            stop = newToProcess.isEmpty()
-            toProcess.clear()
-            toProcess.addAll(newToProcess)
-            newToProcess.clear()
+            projects.forEach { project -> put(project.name, project)}
         }
 
-        return result
+        val allTaskInfos = HashSet(taskNames.map { TaskInfo(it) })
+        with(Topological<TaskInfo>()) {
+            val toProcess = ArrayList(allTaskInfos)
+            val seen = HashSet(allTaskInfos)
+            val newTasks = hashSetOf<TaskInfo>()
+            while (toProcess.any()) {
+                toProcess.forEach { ti ->
+                    val project = projectMap[ti.project]
+                    val dependents = project!!.projectExtra.dependsOn
+                    if (dependents.any()) {
+                        dependents.forEach { depProject ->
+                            val tiDep = TaskInfo(depProject.name, ti.taskName)
+                            allTaskInfos.add(tiDep)
+                            addEdge(ti, tiDep)
+                            if (! seen.contains(tiDep)) {
+                                newTasks.add(tiDep)
+                                seen.add(tiDep)
+                            }
+                        }
+                    } else {
+                        allTaskInfos.add(ti)
+                        addNode(ti)
+                    }
+                }
+                toProcess.clear()
+                toProcess.addAll(newTasks)
+                newTasks.clear()
+            }
+            val result = sort()
+            return result
+        }
     }
 
     val LOG_LEVEL = 3
