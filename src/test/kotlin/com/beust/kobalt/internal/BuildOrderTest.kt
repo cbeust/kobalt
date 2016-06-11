@@ -20,6 +20,7 @@ class BuildOrderTest @Inject constructor(val taskManager: TaskManager) {
     @DataProvider
     fun tasks(): Array<Array<out Any>> {
         return arrayOf(
+            arrayOf(listOf("assemble"), listOf("p1:assemble", "p2:assemble", "p3:assemble")),
             arrayOf(listOf("p1:assemble"), listOf("p1:assemble")),
             arrayOf(listOf("p2:assemble"), listOf("p1:assemble", "p2:assemble")),
             arrayOf(listOf("p3:assemble"), listOf("p1:assemble", "p2:assemble", "p3:assemble"))

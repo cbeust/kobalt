@@ -187,6 +187,14 @@ class TaskManager @Inject constructor(val args: Args,
             val toProcess = ArrayList(allTaskInfos)
             val seen = HashSet(allTaskInfos)
             val newTasks = hashSetOf<TaskInfo>()
+
+            fun maybeAdd(taskInfo: TaskInfo) {
+                if (!seen.contains(taskInfo)) {
+                    newTasks.add(taskInfo)
+                    seen.add(taskInfo)
+                }
+            }
+
             while (toProcess.any()) {
                 toProcess.forEach { ti ->
                     val project = projectMap[ti.project]
@@ -197,14 +205,16 @@ class TaskManager @Inject constructor(val args: Args,
                                 val tiDep = TaskInfo(depProject.name, ti.taskName)
                                 allTaskInfos.add(tiDep)
                                 addEdge(ti, tiDep)
-                                if (!seen.contains(tiDep)) {
-                                    newTasks.add(tiDep)
-                                    seen.add(tiDep)
-                                }
+                                maybeAdd(tiDep)
                             }
                         } else {
                             allTaskInfos.add(ti)
                             addNode(ti)
+                        }
+                    } else {
+                        // No project specified for this task, run that task in all the projects
+                        projects.forEach {
+                            maybeAdd(TaskInfo(it.name, ti.taskName))
                         }
                     }
                 }
