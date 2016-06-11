@@ -190,20 +190,22 @@ class TaskManager @Inject constructor(val args: Args,
             while (toProcess.any()) {
                 toProcess.forEach { ti ->
                     val project = projectMap[ti.project]
-                    val dependents = project!!.projectExtra.dependsOn
-                    if (dependents.any()) {
-                        dependents.forEach { depProject ->
-                            val tiDep = TaskInfo(depProject.name, ti.taskName)
-                            allTaskInfos.add(tiDep)
-                            addEdge(ti, tiDep)
-                            if (! seen.contains(tiDep)) {
-                                newTasks.add(tiDep)
-                                seen.add(tiDep)
+                    if (project != null) {
+                        val dependents = project.projectExtra.dependsOn
+                        if (dependents.any()) {
+                            dependents.forEach { depProject ->
+                                val tiDep = TaskInfo(depProject.name, ti.taskName)
+                                allTaskInfos.add(tiDep)
+                                addEdge(ti, tiDep)
+                                if (!seen.contains(tiDep)) {
+                                    newTasks.add(tiDep)
+                                    seen.add(tiDep)
+                                }
                             }
+                        } else {
+                            allTaskInfos.add(ti)
+                            addNode(ti)
                         }
-                    } else {
-                        allTaskInfos.add(ti)
-                        addNode(ti)
                     }
                 }
                 toProcess.clear()
