@@ -17,13 +17,16 @@ class BuildOrderTest @Inject constructor(val taskManager: TaskManager) {
         Kobalt.init(TestModule())
     }
 
+    private fun toExpectedList(vararg projectNames: Int) = projectNames.map { "p$it:assemble"}.toList()
+
     @DataProvider
     fun tasks(): Array<Array<out Any>> {
+
         return arrayOf(
-            arrayOf(listOf("assemble"), listOf("p1:assemble", "p2:assemble", "p3:assemble")),
-            arrayOf(listOf("p1:assemble"), listOf("p1:assemble")),
-            arrayOf(listOf("p2:assemble"), listOf("p1:assemble", "p2:assemble")),
-            arrayOf(listOf("p3:assemble"), listOf("p1:assemble", "p2:assemble", "p3:assemble"))
+            arrayOf(listOf("assemble"), toExpectedList(1, 2, 3)),
+            arrayOf(listOf("p1:assemble"), toExpectedList(1)),
+            arrayOf(listOf("p2:assemble"), toExpectedList(1, 2)),
+            arrayOf(listOf("p3:assemble"), toExpectedList(1, 2, 3))
         )
     }
 
@@ -43,8 +46,7 @@ class BuildOrderTest @Inject constructor(val taskManager: TaskManager) {
     @DataProvider
     fun tasks2(): Array<Array<out Any>> {
         return arrayOf(
-                arrayOf(listOf("p14:assemble"),
-                        listOf(1, 2, 3, 4, 5, 8, 11, 6, 7, 9, 10, 12, 13, 14).map { "p$it:assemble"})
+                arrayOf(listOf("p14:assemble"), toExpectedList(1, 2, 3, 4, 5, 8, 11, 6, 7, 9, 10, 12, 13, 14))
         )
     }
 
