@@ -20,15 +20,11 @@ class BuildOrderTest @Inject constructor(val taskManager: TaskManager) {
     private fun toExpectedList(vararg projectNames: Int) = projectNames.map { "p$it:assemble"}.toList()
 
     @DataProvider
-    fun tasks(): Array<Array<out Any>> {
-
-        return arrayOf(
-            arrayOf(listOf("assemble"), toExpectedList(1, 2, 3)),
-            arrayOf(listOf("p1:assemble"), toExpectedList(1)),
-            arrayOf(listOf("p2:assemble"), toExpectedList(1, 2)),
-            arrayOf(listOf("p3:assemble"), toExpectedList(1, 2, 3))
-        )
-    }
+    fun tasks() = arrayOf(
+        arrayOf(listOf("assemble"), toExpectedList(1, 2, 3)),
+        arrayOf(listOf("p1:assemble"), toExpectedList(1)),
+        arrayOf(listOf("p2:assemble"), toExpectedList(1, 2)),
+        arrayOf(listOf("p3:assemble"), toExpectedList(1, 2, 3)))
 
     @Test(dataProvider = "tasks")
     fun shouldBuildInRightOrder(tasks: List<String>, expectedTasks: List<String>) {
@@ -67,16 +63,16 @@ class BuildOrderTest @Inject constructor(val taskManager: TaskManager) {
         val p13 = project(p4, p8, p9, p12) { name ="p13" }
         val p14 = project(p12, p13) { name ="p14" }
 
-        fun appearsBefore(taskInfos: List<TaskManager.TaskInfo>, first: String, second: String) {
+        fun Collection<TaskManager.TaskInfo>.appearsBefore(first: String, second: String) {
             var sawFirst = false
             var sawSecond = false
-            taskInfos.forEach { ti ->
+            forEach { ti ->
                 if (ti.project == first) {
                     sawFirst = true
                 }
                 if (ti.project == second) {
                     assertThat(sawFirst)
-                            .`as`("Expected to see $first before $second in ${taskInfos.map {it.project}}")
+                            .`as`("Expected to see $first before $second in ${map {it.project}}")
                             .isTrue()
                     sawSecond = true
                 }
@@ -85,23 +81,23 @@ class BuildOrderTest @Inject constructor(val taskManager: TaskManager) {
             assertThat(sawSecond).`as`("Didn't see $second").isTrue()
         }
 
-        fun appearsBefore(taskInfos: List<TaskManager.TaskInfo>, firsts: List<String>, second: String) {
+        fun Collection<TaskManager.TaskInfo>.appearsBefore(firsts: List<String>, second: String) {
             firsts.forEach { first ->
-                appearsBefore(taskInfos, first, second)
+                appearsBefore(first, second)
             }
         }
 
-        // 1, 2, 3, 4, 5, 8, 11, 6, 7, 9, 10, 12, 13, 14
         val allProjects = listOf(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14)
         with(taskManager) {
-            val taskInfos = calculateDependentTaskNames(tasks, allProjects)
-            assertThat(taskInfos.size).isEqualTo(expectedTasks.size)
-            appearsBefore(taskInfos, "p5", "p6")
-            appearsBefore(taskInfos, "p5", "p7")
-            appearsBefore(taskInfos, "p9", "p10")
-            appearsBefore(taskInfos, listOf("p1", "p7", "p9", "p10", "p11"), "p12")
-            appearsBefore(taskInfos, listOf("p4", "p8", "p9", "p12"), "p13")
-            appearsBefore(taskInfos, listOf("p12", "p13"), "p14")
+            with(calculateDependentTaskNames(tasks, allProjects)) {
+                assertThat(size).isEqualTo(expectedTasks.size)
+                appearsBefore("p5", "p6")
+                appearsBefore("p5", "p7")
+                appearsBefore("p9", "p10")
+                appearsBefore(listOf("p1", "p7", "p9", "p10", "p11"), "p12")
+                appearsBefore(listOf("p4", "p8", "p9", "p12"), "p13")
+                appearsBefore(listOf("p12", "p13"), "p14")
+            }
         }
     }
 
