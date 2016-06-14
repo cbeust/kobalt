@@ -59,7 +59,7 @@ class GithubApi2 @Inject constructor(
     // Read only Api
     //
     private val service = Retrofit.Builder()
-            .client(OkHttpClient.Builder().proxy(settings.proxyConfig?.toProxy()).build())
+            .client(OkHttpClient.Builder().proxy(settings.proxyConfigs?.firstOrNull()?.toProxy()).build())
             .baseUrl("https://api.github.com")
             .addConverterFactory(GsonConverterFactory.create())
             .build()

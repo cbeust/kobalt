@@ -23,14 +23,19 @@ class KobaltSettingsXml {
     @XmlElement(name = "default-repos") @JvmField
     var defaultRepos: DefaultReposXml? = null
 
-    @XmlElement(name = "proxy") @JvmField
-    var proxy: ProxyXml? = null
+    @XmlElement(name = "proxies") @JvmField
+    var proxies: ProxiesXml? = null
 
     @XmlElement(name = "kobalt-compiler-version") @JvmField
     var kobaltCompilerVersion: String = "1.0.0"
 
     @XmlElement(name = "kobalt-compiler-repo") @JvmField
     var kobaltCompilerRepo: String? = null
+}
+
+class ProxiesXml {
+    @XmlElement @JvmField
+    var proxy: List<ProxyXml> = arrayListOf()
 }
 
 class ProxyXml {
@@ -42,12 +47,17 @@ class ProxyXml {
 
     @XmlElement @JvmField
     var type: String = ""
+
+    @XmlElement @JvmField
+    var nonProxyHosts: String = ""
 }
 
 class DefaultReposXml {
     @XmlElement @JvmField
     var repo: List<String> = arrayListOf()
 }
+
+fun List<ProxyConfig>.getProxy(protocol:String) = find { it.type==protocol }
 
 /**
  * The object Kobalt refers to for settings.
@@ -61,7 +71,7 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
 
     val defaultRepos = xmlFile.defaultRepos?.repo
 
-    val proxyConfig = with(xmlFile.proxy) {
+    val proxyConfigs = with(xmlFile.proxies?.proxy) {
         fun toIntOr(s: String, defaultValue: Int) = try {   //TODO can be extracted to some global Utils
             s.toInt()
         } catch(e: NumberFormatException) {
@@ -69,7 +79,9 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
         }
 
         if (this != null) {
-            ProxyConfig(host, toIntOr(port, 0), type)
+            map {proxyXml->
+                ProxyConfig(proxyXml.host, toIntOr(proxyXml.port, 0), proxyXml.type, proxyXml.nonProxyHosts)
+            }
         } else null
     }
 

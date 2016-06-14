@@ -1,5 +1,6 @@
 package com.beust.kobalt.maven.aether
 
+import com.beust.kobalt.internal.KobaltSettings
 import org.apache.maven.repository.internal.*
 import org.eclipse.aether.DefaultRepositorySystemSession
 import org.eclipse.aether.artifact.DefaultArtifactType
@@ -12,6 +13,7 @@ import org.eclipse.aether.util.graph.selector.OptionalDependencySelector
 import org.eclipse.aether.util.graph.selector.ScopeDependencySelector
 import org.eclipse.aether.util.graph.transformer.*
 import org.eclipse.aether.util.graph.traverser.FatArtifactTraverser
+import org.eclipse.aether.util.repository.DefaultProxySelector
 import org.eclipse.aether.util.repository.SimpleArtifactDescriptorPolicy
 
 object MavenRepositorySystemUtils {
@@ -26,7 +28,7 @@ object MavenRepositorySystemUtils {
         return locator
     }
 
-    fun newSession(): DefaultRepositorySystemSession {
+    fun newSession(settings: KobaltSettings): DefaultRepositorySystemSession {
         val session = DefaultRepositorySystemSession()
         val depTraverser = FatArtifactTraverser()
         session.dependencyTraverser = depTraverser
@@ -55,6 +57,13 @@ object MavenRepositorySystemUtils {
         val sysProps = System.getProperties()
         session.setSystemProperties(sysProps)
         session.setConfigProperties(sysProps)
+        settings.proxyConfigs?.let { proxyConfigs->
+            session.proxySelector = DefaultProxySelector().apply {
+                proxyConfigs.forEach {config->
+                    add(config.toAetherProxy(), config.nonProxyHosts)
+                }
+            }
+        }
         return session
     }
 }

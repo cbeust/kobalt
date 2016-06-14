@@ -21,7 +21,7 @@ class Http @Inject constructor(val settings:KobaltSettings) {
     }
 
     fun get(user: String?, password: String?, url: String) : Response {
-        val client = OkHttpClient.Builder().proxy(settings.proxyConfig?.toProxy()).build()
+        val client = OkHttpClient.Builder().proxy(settings.proxyConfigs?.firstOrNull()?.toProxy()).build()
         val request = Request.Builder().url(url)
         if (user != null) {
             request.header("Authorization", Credentials.basic(user, password))
@@ -75,7 +75,7 @@ class Http @Inject constructor(val settings:KobaltSettings) {
             .build()
 
         log(2, "Uploading $file to $url")
-        val response = OkHttpClient.Builder().proxy(settings.proxyConfig?.toProxy()).build().newCall(request).execute()
+        val response = OkHttpClient.Builder().proxy(settings.proxyConfigs?.firstOrNull()?.toProxy()).build().newCall(request).execute()
         if (! response.isSuccessful) {
             error(response)
         } else {
