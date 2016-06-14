@@ -5,6 +5,7 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.KobaltSettings
+import com.beust.kobalt.internal.KotlinJarFiles
 import com.beust.kobalt.kotlin.ParentLastClassLoader
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
@@ -34,7 +35,8 @@ class KotlinCompiler @Inject constructor(
         val dependencyManager: DependencyManager,
         val executors: KobaltExecutors,
         val settings: KobaltSettings,
-        val jvmCompiler: JvmCompiler) {
+        val jvmCompiler: JvmCompiler,
+        val kotlinJarFiles: KotlinJarFiles) {
 
     val compilerAction = object: ICompilerAction {
         override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
@@ -88,29 +90,30 @@ class KotlinCompiler @Inject constructor(
             log(2, "Calling kotlinc " + allArgs.joinToString(" "))
             val result : TaskResult =
                     if (true) {
-                        val classLoader = ParentLastClassLoader(cp.map { it.toURI().toURL() })
-                        val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
-                        val compilerMain = compiler.declaredMethods.filter {
-                            it.name == "doMainNoExit" && it.parameterTypes.size == 2
-                        }[0]
-                        val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
-
                         //
                         // In order to capture the error stream, I need to invoke CLICompiler.exec(), which
                         // is the first method that accepts a PrintStream for the errors in parameter
                         //
-                        val baos = ByteArrayOutputStream()
-                        val ps = PrintStream(baos)
-                        val execMethod = compiler.declaredMethods.filter {
-                            it.name == "exec" && it.parameterTypes.size == 2
-                        }[0]
-                        val exitCode = execMethod.invoke(kCompiler.newInstance(), ps, allArgs.toTypedArray())
-                        val errorString = baos.toString(Charset.defaultCharset().toString())
+                        ByteArrayOutputStream().use { baos ->
+                            val compilerJar = listOf(kotlinJarFiles.compiler.toURI().toURL())
 
-                        // The return value is an enum
-                        val nameMethod = exitCode.javaClass.getMethod("name")
-                        val success = "OK" == nameMethod.invoke(exitCode).toString()
-                        TaskResult(success, errorString)
+                            val classLoader = ParentLastClassLoader(compilerJar)
+                            val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
+                            val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
+
+                            PrintStream(baos).use { ps ->
+                                val execMethod = compiler.declaredMethods.filter {
+                                    it.name == "exec" && it.parameterTypes.size == 2
+                                }[0]
+                                val exitCode = execMethod.invoke(kCompiler.newInstance(), ps, allArgs.toTypedArray())
+                                val errorString = baos.toString(Charset.defaultCharset().toString())
+
+                                // The return value is an enum
+                                val nameMethod = exitCode.javaClass.getMethod("name")
+                                val success = "OK" == nameMethod.invoke(exitCode).toString()
+                                TaskResult(success, errorString)
+                            }
+                        }
                     } else {
                         val exitCode = CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs.toTypedArray())
                         TaskResult(exitCode == ExitCode.OK)
@@ -161,7 +164,7 @@ class KotlinCompiler @Inject constructor(
 }
 
 class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
-    val classpath = arrayListOf<String>()
+    private val classpath = arrayListOf<String>()
     val dependencies = arrayListOf<IClasspathDependency>()
     var source = arrayListOf<String>()
     var output: File by Delegates.notNull()

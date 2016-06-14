@@ -53,6 +53,7 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
             runTask: (Project) -> IncrementalTaskInfo) {
         Variant.allVariants(project).forEach { variant ->
             val variantTaskName = variant.toTask(taskName)
+            context.variant = variant
             dynamicTasks.add(DynamicTask(plugin, variantTaskName, variantTaskName, group, project,
                     dependsOn = dependsOn.map { variant.toTask(it) },
                     reverseDependsOn = reverseDependsOn.map { variant.toTask(it) },
@@ -62,5 +63,5 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
         }
     }
 
-    override fun tasksFor(context: KobaltContext) : List<DynamicTask> = dynamicTasks
+    override fun tasksFor(project: Project, context: KobaltContext) : List<DynamicTask> = dynamicTasks
 }

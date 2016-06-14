@@ -3,11 +3,9 @@ package com.beust.kobalt.maven
 import com.beust.kobalt.misc.toString
 import com.beust.kobalt.misc.warn
 import com.google.inject.assistedinject.Assisted
-import kotlinx.dom.childElements
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
-import org.xml.sax.InputSource
-import java.io.FileReader
+import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPathConstants
 
 class Pom @javax.inject.Inject constructor(@Assisted val id: String,
@@ -66,8 +64,8 @@ class Pom @javax.inject.Inject constructor(@Assisted val id: String,
 
     init {
         val DEPENDENCIES = XPATH.compile("/project/dependencies/dependency")
+        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(documentFile)
 
-        val document = kotlinx.dom.parseXml(InputSource(FileReader(documentFile)))
         groupId = XPATH.compile("/project/groupId").evaluate(document)
         artifactId = XPATH.compile("/project/artifactId").evaluate(document)
         version = XPATH.compile("/project/version").evaluate(document)
@@ -75,11 +73,12 @@ class Pom @javax.inject.Inject constructor(@Assisted val id: String,
         var repositoriesList = XPATH.compile("/project/repositories").evaluate(document, XPathConstants.NODESET)
                 as NodeList
         var repoElem = repositoriesList.item(0) as Element?
-        repositories = repoElem.childElements().map({ it.getElementsByTagName("url").item(0).textContent })
+        repositories = childElements(repoElem).map({ it.getElementsByTagName("url").item(0)
+                .textContent })
 
         val propertiesList = XPATH.compile("/project/properties").evaluate(document, XPathConstants.NODESET) as NodeList
         var propsElem = propertiesList.item(0) as Element?
-        propsElem.childElements().forEach {
+        childElements(propsElem).forEach {
             properties.put(it.nodeName, it.textContent)
         }
 
@@ -109,6 +108,19 @@ class Pom @javax.inject.Inject constructor(@Assisted val id: String,
             val tmpDependency = Dependency(groupId!!, artifactId!!, packaging, version, optional!!, scope)
             dependencies.add(tmpDependency)
         }
+    }
+
+    private fun childElements(repoElem: Element?): List<Element> {
+        val result = arrayListOf<Element>()
+        if (repoElem != null) {
+            for (i in 0..repoElem.childNodes.length - 1) {
+                val elem = repoElem.childNodes.item(i)
+                if (elem is Element) {
+                    result.add(elem)
+                }
+            }
+        }
+        return result
     }
 
     override fun toString() = toString("Pom", "id", id)

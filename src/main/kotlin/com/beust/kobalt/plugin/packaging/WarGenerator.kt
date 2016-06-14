@@ -1,13 +1,12 @@
 package com.beust.kobalt.plugin.packaging
 
-import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.JarGenerator
-import com.beust.kobalt.archive.War
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.ProjectDescription
+import com.beust.kobalt.archive.Archives
+import com.beust.kobalt.archive.War
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.From
 import com.beust.kobalt.misc.IncludedFile
@@ -40,9 +39,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         // The transitive closure of libraries goes into WEB-INF/libs.
         // Copy them all in kobaltBuild/war/WEB-INF/libs and create one IncludedFile out of that directory
         //
-        val dependentProjects = listOf(ProjectDescription(project, project.projectExtra.dependsOn))
-        val allDependencies = dependencyManager.calculateDependencies(project, context, dependentProjects,
-                project.compileDependencies)
+        val allDependencies = dependencyManager.calculateDependencies(project, context, project.compileDependencies)
 
         val outDir = project.buildDirectory + "/war"
         val fullDir = outDir + "/" + LIB

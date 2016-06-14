@@ -6,25 +6,34 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.Gpg
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.Md5
+import com.beust.kobalt.misc.CountingFileRequestBody
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.error
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
+import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import com.google.gson.JsonParser
+import com.google.gson.TypeAdapter
+import com.google.gson.reflect.TypeToken
 import com.google.inject.assistedinject.Assisted
-import okhttp3.*
+import okhttp3.Credentials
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Call
+import retrofit2.Converter
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.*
-import retrofit2.http.Headers
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 import java.io.File
+import java.lang.reflect.Type
 import javax.annotation.Nullable
 import javax.inject.Inject
-
-class BintrayResponse()
 
 class BintrayApi @Inject constructor(val http: Http,
                                      @Nullable @Assisted("username") val username: String?,
@@ -34,7 +43,6 @@ class BintrayApi @Inject constructor(val http: Http,
 
     companion object {
         const val BINTRAY_URL_API = "https://api.bintray.com"
-        const val BINTRAY_URL_API_CONTENT = BINTRAY_URL_API + "/content"
     }
 
     interface IFactory {
@@ -52,28 +60,15 @@ class BintrayApi @Inject constructor(val http: Http,
         fun createPackage(@Path("owner") owner: String,
                           @Body content: JsonObject): Call<BintrayResponse>
 
-        @Multipart
-        @Headers("Content-Type: application/xml")
-        @PUT("/content/{owner}/maven/{repo}/{version}/{group}/{artifact}/{version}/{name}")
-        fun uploadPom(@Path("owner") owner: String,
-                      @Path("repo") repo: String,
-                      @Path("group", encoded = true) group: String,
-                      @Path("artifact") artifact: String,
-                      @Path("version") version: String,
-                      @Path("name") name: String,
-                      @Part file: MultipartBody.Part): Call<BintrayResponse>
-
-        @Multipart
-        @PUT("/content/{owner}/maven/{repo}/{version}/{group}/{artifact}/{version}/{name}")
+        @PUT("/content/{owner}/maven/{repo}/{version}/{group}/{artifact}/{version}/{name};publish={publish}")
         fun uploadArtifact(@Path("owner") owner: String,
                            @Path("repo") repo: String,
                            @Path("group", encoded = true) group: String,
                            @Path("artifact") artifact: String,
                            @Path("version") version: String,
                            @Path("name") name: String,
-                           @Part file: MultipartBody.Part): Call<BintrayResponse>
-
-
+                           @Path("publish") publish: Int,
+                           @Body file: File): Call<BintrayResponse>
     }
 
     private val service: Api
@@ -84,7 +79,7 @@ class BintrayApi @Inject constructor(val http: Http,
 //                    level = HttpLoggingInterceptor.Level.BASIC
 //                })
         builder.interceptors().add(Interceptor { chain ->
-            var original = chain.request();
+            val original = chain.request();
 
             chain.proceed(original.newBuilder()
                     .header("Authorization", Credentials.basic(username, password))
@@ -96,7 +91,7 @@ class BintrayApi @Inject constructor(val http: Http,
         service = Retrofit.Builder()
                 .client(okHttpClient)
                 .baseUrl(BintrayApi.BINTRAY_URL_API)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(ConverterFactory())
                 .build()
                 .create(Api::class.java)
     }
@@ -128,18 +123,18 @@ class BintrayApi @Inject constructor(val http: Http,
         return jsonObject
     }
 
-    fun uploadMaven(project: Project, files: List<File>, config: BintrayConfig?): TaskResult {
+    fun uploadMaven(project: Project, files: List<File>, config: BintrayConfig): TaskResult {
         validatePackage(project)
         return upload(project, files, config, generateMd5 = true)
     }
 
-    fun uploadFile(project: Project, file: File, config: BintrayConfig?, generateMd5: Boolean = false) =
+    fun uploadFile(project: Project, file: File, config: BintrayConfig, generateMd5: Boolean = false) =
             upload(project, arrayListOf(file), config, generateMd5)
 
-    private fun upload(project: Project, files: List<File>, config: BintrayConfig?, generateMd5: Boolean = false): TaskResult {
+    private fun upload(project: Project, files: List<File>, config: BintrayConfig, generateMd5: Boolean): TaskResult {
         val filesToUpload = arrayListOf<File>()
 
-        if (config != null && config.sign) {
+        if (config.sign) {
             // Create the .asc files
             filesToUpload.addAll(gpg.runGpg(files))
         }
@@ -156,17 +151,6 @@ class BintrayApi @Inject constructor(val http: Http,
             }
         }
 
-        //
-        // If any configuration was given, apply them so the URL reflects them, e.g. ?publish=1
-        //
-        val options = arrayListOf<String>()
-        if (config?.publish == true) options.add("publish=1")
-
-        val optionPath = StringBuffer()
-        if (options.size > 0) {
-            optionPath.append("?" + options.joinToString("&"))
-        }
-
         val fileCount = filesToUpload.size
         if (fileCount > 0) {
             log(1, "  Found $fileCount artifacts to upload")
@@ -180,33 +164,21 @@ class BintrayApi @Inject constructor(val http: Http,
 
             val results = arrayListOf<Boolean>()
             filesToUpload.forEachIndexed { i, file ->
-                val type = MediaType.parse("multipart/form-data")
+                val owner = org ?: username!!
+                val repo = project.name
+                val group = project.group!!.replace('.', '/')
+                val artifact = project.artifactId!!
+                val version = project.version!!
 
-                val body = MultipartBody.Part.createFormData("artifact", file.name, RequestBody.create(type, file));
-
-                if (file.extension != "pom") {
-                    val upload = service.uploadArtifact(org ?: username!!, project.name,
-                            project.group!!.replace('.', '/'), project.artifactId!!, project.version!!, file.name, body)
-                    val result = upload.execute()
-                    val error = result.errorBody()?.string()
-                    if (result.errorBody() != null) {
-                        errorMessages.add(error!!)
-                        results.add(false)
-                    } else {
-                        results.add(true)
-                    }
+                val result = service.uploadArtifact(owner, repo, group, artifact, version, file.name,
+                        if (config.publish) 1 else 0, file)
+                        .execute()
+                val error = result.errorBody()?.string()
+                if (result.errorBody() != null) {
+                    errorMessages.add(error!!)
+                    results.add(false)
                 } else {
-                    http.uploadFile(username, password, fileToPath(project, file) + optionPath,
-                            Http.TypedFile(com.google.common.net.MediaType.ANY_APPLICATION_TYPE.toString(), file),
-                            post = false, // Bintray requires PUT
-                            success = { r: Response -> results.add(true) },
-                            error = { r: Response ->
-                                results.add(false)
-                                val jcResponse = parseResponse(r)
-                                errorMessages.add(jcResponse.errorMessage!!)
-                            })
-//                    service.uploadPom(org ?: username!!, project.name, project.group!!.replace('.', '/'),
-//                            project.artifactId!!, project.version!!, file.name, body)
+                    results.add(true)
                 }
 
                 log(1, "    Uploading ${i + 1} / $fileCount " + dots(fileCount, results, file), false)
@@ -228,36 +200,7 @@ class BintrayApi @Inject constructor(val http: Http,
         }
     }
 
-    fun fileToPath(project: Project, f: File) : String {
-        return listOf(
-                BINTRAY_URL_API_CONTENT,
-                org ?: username!!,
-                "maven",
-                project.name,
-                project.version!!,
-                project.group!!.replace(".", "/"),
-                project.artifactId!!,
-                project.version!!,
-                f.name)
-                .joinToString("/")
-    }
-
     class BintrayResponse(val jo: JsonObject?, val errorMessage: String?)
-
-    fun parseResponse(r: Response): BintrayResponse {
-        val networkResponse = r.networkResponse()
-        if (networkResponse.code() != 200) {
-            val message = networkResponse.message()
-            try {
-                val errorObject = JsonParser().parse(r.body().string()).asJsonObject
-                return BintrayResponse(null, message + ": " + errorObject.get("message").asString)
-            } catch(ex: Exception) {
-                return BintrayResponse(null, message)
-            }
-        } else {
-            return BintrayResponse(JsonParser().parse(r.body().string()).asJsonObject, null)
-        }
-    }
 
     fun JsonObject.addNonNull(name: String, value: String?) {
         if (value != null) {
@@ -265,4 +208,32 @@ class BintrayApi @Inject constructor(val http: Http,
         }
     }
 
+}
+
+class ConverterFactory : Converter.Factory() {
+    override fun responseBodyConverter(type: Type, annotations: Array<out Annotation>, retrofit: Retrofit): Converter<ResponseBody, *>? {
+        return GsonResponseBodyConverter(Gson(), Gson().getAdapter(TypeToken.get(type)))
+    }
+
+    override fun requestBodyConverter(type: Type, parameterAnnotations: Array<out Annotation>, methodAnnotations: Array<out Annotation>,
+                                      retrofit: Retrofit?): Converter<*, RequestBody>? {
+        return RequestBodyConverter()
+    }
+}
+
+class GsonResponseBodyConverter(private val gson: Gson, private val adapter: TypeAdapter<out Any>) : Converter<ResponseBody, Any> {
+    override fun convert(value: ResponseBody): Any {
+        val jsonReader = gson.newJsonReader(value.charStream())
+        try {
+            return adapter.read(jsonReader)
+        } finally {
+            value.close()
+        }
+    }
+}
+
+class RequestBodyConverter : Converter<File, RequestBody> {
+    override fun convert(value: File): RequestBody {
+        return CountingFileRequestBody(value, "application/*", {  })
+    }
 }

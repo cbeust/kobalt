@@ -12,6 +12,7 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.google.inject.Provider
+import java.io.File
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.net.URLClassLoader
@@ -78,7 +79,9 @@ class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManage
 
         // Collect all the tasks from the task contributors
         context.pluginInfo.taskContributors.forEach {
-            taskManager.dynamicTasks.addAll(it.tasksFor(context))
+            projects.forEach { project ->
+                taskManager.dynamicTasks.addAll(it.tasksFor(project, context))
+            }
         }
 
         // Now that we have collected all static and dynamic tasks, turn them all into plug-in tasks
@@ -160,9 +163,17 @@ class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManage
             //
             // Open the jar, parse its kobalt-plugin.xml and add the resulting PluginInfo to pluginInfo
             //
-            val pluginXml = JarUtils.extractTextFile(JarFile(it.jarFile.get()), PluginInfo.PLUGIN_XML)
+            val file = it.jarFile.get()
+            val pluginXml = if (file.isDirectory) {
+                // The plug-in can point to a directory (e.g. plugin("classes")), in which case we just
+                // read kobalt-plugin.xml directly
+                File(file, PluginInfo.PLUGIN_XML).readText()
+            } else {
+                // The plug-in is pointing to a jar file, read kobalt-plugin.xml from it
+                JarUtils.extractTextFile(JarFile(file), PluginInfo.PLUGIN_XML)
+            }
             if (pluginXml != null) {
-                val pluginClassLoader = URLClassLoader(arrayOf(it.jarFile.get().toURI().toURL()))
+                val pluginClassLoader = URLClassLoader(arrayOf(file.toURI().toURL()))
                 val thisPluginInfo = PluginInfo.readPluginXml(pluginXml, pluginClassLoader, scriptClassLoader)
                 pluginInfo.addPluginInfo(thisPluginInfo)
                 thisPluginInfo.plugins.forEach {

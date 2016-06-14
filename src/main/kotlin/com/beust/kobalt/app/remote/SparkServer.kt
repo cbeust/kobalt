@@ -36,7 +36,7 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
 
     override fun run(port: Int) {
         Spark.port(port)
-        Spark.get("/ping", { req, res -> KobaltServer.OK })
+        Spark.get("/ping", { req, res -> """ { "result" : "ok" } """ })
         Spark.get("/quit", { req, res ->
             Executors.newFixedThreadPool(1).let { executor ->
                 executor.submit {
@@ -58,13 +58,13 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
 
                         dependencyData.dependenciesDataFor(buildFile, args)
                     } catch(ex: Exception) {
-                        DependencyData.GetDependenciesData(emptyList<DependencyData.ProjectData>(), ex.message)
+                        DependencyData.GetDependenciesData(errorMessage = ex.message)
                     } finally {
                         cleanUpCallback()
                     }
                 } else {
-                    DependencyData.GetDependenciesData(emptyList<DependencyData.ProjectData>(),
-                            "buildFile wasn't passed in the query parameter")
+                    DependencyData.GetDependenciesData(
+                            errorMessage = "buildFile wasn't passed in the query parameter")
                 }
             cleanUpCallback()
             result

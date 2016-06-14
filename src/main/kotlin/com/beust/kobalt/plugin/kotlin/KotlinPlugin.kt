@@ -7,6 +7,7 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.BaseJvmPlugin
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.KobaltSettings
+import com.beust.kobalt.internal.KotlinJarFiles
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
@@ -19,7 +20,8 @@ import javax.inject.Singleton
 
 @Singleton
 class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val dependencyManager: DependencyManager,
-        val settings: KobaltSettings, override val configActor: ConfigActor<KotlinConfig>)
+        val settings: KobaltSettings, override val configActor: ConfigActor<KotlinConfig>,
+        val kotlinJarFiles: KotlinJarFiles)
     : BaseJvmPlugin<KotlinConfig>(configActor), IDocContributor, IClasspathContributor, ICompilerContributor, IBuildConfigContributor {
 
     companion object {
@@ -105,8 +107,8 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
     override fun classpathEntriesFor(project: Project?, context: KobaltContext): List<IClasspathDependency> =
         if (project == null || accept(project)) {
             // All Kotlin projects automatically get the Kotlin runtime added to their class path
-            listOf(getKotlinCompilerJar("kotlin-stdlib"), getKotlinCompilerJar("kotlin-runtime"))
-                    .map { FileDependency(it) }
+            listOf(kotlinJarFiles.stdlib, kotlinJarFiles.runtime)
+                    .map { FileDependency(it.absolutePath) }
         } else {
             emptyList()
         }

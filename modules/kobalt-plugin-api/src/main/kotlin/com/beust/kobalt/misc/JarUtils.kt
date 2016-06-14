@@ -9,7 +9,6 @@ import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarInputStream
 import java.util.zip.ZipEntry
-import java.util.zip.ZipException
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
@@ -48,27 +47,14 @@ public class JarUtils {
                 }
 
                 if (foundFile.isDirectory) {
-                    log(2, "Writing contents of directory $foundFile")
+                    log(2, "  Writing contents of directory $foundFile")
 
                     // Directory
-                    var name = foundFile.name
-                    if (!name.isEmpty()) {
-                        if (!name.endsWith("/")) name += "/"
-                        val entry = JarEntry(name)
-                        entry.time = foundFile.lastModified()
-                        try {
-                            outputStream.putNextEntry(entry)
-                        } catch(ex: ZipException) {
-                            log(2, "Can't add $name: ${ex.message}")
-                        } finally {
-                            outputStream.closeEntry()
-                        }
-                    }
-                    val includedFile = IncludedFile(From(foundFile.path), To(""), listOf(IFileSpec.GlobSpec("**")))
-                    addSingleFile(".", includedFile, outputStream, expandJarFiles)
+                    val includedFile = IncludedFile(From(""), To(""), listOf(IFileSpec.GlobSpec("**")))
+                    addSingleFile(localFile.path, includedFile, outputStream, expandJarFiles)
                 } else {
                     if (file.expandJarFiles && foundFile.name.endsWith(".jar") && ! file.from.contains("resources")) {
-                        log(2, "Writing contents of jar file $foundFile")
+                        log(2, "  Writing contents of jar file $foundFile")
                         val stream = JarInputStream(FileInputStream(localFile))
                         var entry = stream.nextEntry
                         while (entry != null) {
@@ -81,7 +67,7 @@ public class JarUtils {
                     } else {
                         val entryFileName = file.to(foundFile.path).path.replace("\\", "/")
                         val entry = JarEntry(entryFileName)
-                        entry.time = foundFile.lastModified()
+                        entry.time = localFile.lastModified()
                         addEntry(FileInputStream(localFile), entry, outputStream, onError)
                     }
                 }

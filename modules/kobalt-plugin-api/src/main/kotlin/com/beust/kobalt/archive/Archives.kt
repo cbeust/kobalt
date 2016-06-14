@@ -33,12 +33,19 @@ class Archives {
             val result = File(archiveDir.path, fullArchiveName)
             log(3, "Creating $result")
             if (! Features.USE_TIMESTAMPS || isOutdated(project.directory, includedFiles, result)) {
-                val outStream = outputStreamFactory(FileOutputStream(result))
-                JarUtils.addFiles(project.directory, includedFiles, outStream, expandJarFiles)
-                log(2, text = "Added ${includedFiles.size} files to $result")
-                outStream.flush()
-                outStream.close()
-                log(1, "  Created $result")
+                try {
+                    outputStreamFactory(FileOutputStream(result)).use {
+                        JarUtils.addFiles(project.directory, includedFiles, it, expandJarFiles)
+                        log(2, text = "Added ${includedFiles.size} files to $result")
+                        log(1, "  Created $result")
+                    }
+                } catch (e: Throwable) {
+                    // make sure that incomplete archive is deleted
+                    // otherwise incremental build does not work on next run
+                    result.delete()
+                    throw e
+                }
+
             } else {
                 log(3, "  $result is up to date")
             }

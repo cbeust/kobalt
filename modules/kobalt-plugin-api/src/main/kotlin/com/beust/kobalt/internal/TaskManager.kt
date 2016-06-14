@@ -4,10 +4,7 @@ import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.misc.Strings
-import com.beust.kobalt.misc.benchmarkMillis
-import com.beust.kobalt.misc.kobaltError
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.*
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
@@ -81,7 +78,41 @@ class TaskManager @Inject constructor(val args: Args,
         }
     }
 
-    fun runTargets(taskNames: List<String>, projects: List<Project>): RunTargetResult {
+    fun runTargets(passedTaskNames: List<String>, allProjects: List<Project>): RunTargetResult {
+        val taskInfos = calculateDependentTaskNames(passedTaskNames, allProjects)
+        val projectsToRun = findProjectsToRun(taskInfos, allProjects)
+        return runProjects(taskInfos, projectsToRun)
+    }
+
+    /**
+     * Determine which projects to run based on the request tasks. Also make sure that all the requested projects
+     * exist.
+     */
+    fun findProjectsToRun(taskInfos: List<TaskInfo>, projects: List<Project>) : List<Project> {
+
+        // Validate projects
+        val result = arrayListOf<Project>()
+        val projectMap = HashMap<String, Project>().apply {
+            projects.forEach { put(it.name, it)}
+        }
+
+        // Extract all the projects we need to run from the tasks
+//        val orderedTaskInfos = calculateDependentTaskNames(taskInfos.map { it.id }, projects)
+        taskInfos.forEach {
+            val p = it.project
+            if (p != null) {
+                if (! projectMap.containsKey(p)) {
+                    throw KobaltException("Unknown project: ${it.project}")
+                }
+                result.add(projectMap[it.project]!!)
+            }
+        }
+
+        // If at least one task didn't specify a project, run them all
+        return if (result.any()) result else projects
+    }
+
+    private fun runProjects(taskInfos: List<TaskInfo>, projects: List<Project>) : RunTargetResult {
         var result = 0
         val failedProjects = hashSetOf<String>()
         val messages = Collections.synchronizedList(arrayListOf<String>())
@@ -111,7 +142,7 @@ class TaskManager @Inject constructor(val args: Args,
                     log(3, "  $it: " + tasksByNames.get(it))
                 }
 
-                val graph = createGraph2(project.name, taskNames, tasksByNames,
+                val graph = createGraph2(project.name, taskInfos, tasksByNames,
                         dependsOn, reverseDependsOn, runBefore, runAfter, alwaysRunAfter,
                         { task: ITask -> task.name },
                         { task: ITask -> task.plugin.accept(project) })
@@ -137,7 +168,63 @@ class TaskManager @Inject constructor(val args: Args,
                 }
             }
         }
+
         return RunTargetResult(result, messages)
+    }
+
+    /**
+     * If the user wants to run a single task on a single project (e.g. "kobalt:assemble"), we need to
+     * see if that project depends on others and if it does, invoke these tasks on all of them. This
+     * function returns all these task names (including dependent).
+     */
+    fun calculateDependentTaskNames(taskNames: List<String>, projects: List<Project>): List<TaskInfo> {
+        val projectMap = hashMapOf<String, Project>().apply {
+            projects.forEach { project -> put(project.name, project)}
+        }
+
+        val allTaskInfos = HashSet(taskNames.map { TaskInfo(it) })
+        with(Topological<TaskInfo>()) {
+            val toProcess = ArrayList(allTaskInfos)
+            val seen = HashSet(allTaskInfos)
+            val newTasks = hashSetOf<TaskInfo>()
+
+            fun maybeAdd(taskInfo: TaskInfo) {
+                if (!seen.contains(taskInfo)) {
+                    newTasks.add(taskInfo)
+                    seen.add(taskInfo)
+                }
+            }
+
+            while (toProcess.any()) {
+                toProcess.forEach { ti ->
+                    val project = projectMap[ti.project]
+                    if (project != null) {
+                        val dependents = project.projectExtra.dependsOn
+                        if (dependents.any()) {
+                            dependents.forEach { depProject ->
+                                val tiDep = TaskInfo(depProject.name, ti.taskName)
+                                allTaskInfos.add(tiDep)
+                                addEdge(ti, tiDep)
+                                maybeAdd(tiDep)
+                            }
+                        } else {
+                            allTaskInfos.add(ti)
+                            addNode(ti)
+                        }
+                    } else {
+                        // No project specified for this task, run that task in all the projects
+                        projects.forEach {
+                            maybeAdd(TaskInfo(it.name, ti.taskName))
+                        }
+                    }
+                }
+                toProcess.clear()
+                toProcess.addAll(newTasks)
+                newTasks.clear()
+            }
+            val result = sort()
+            return result
+        }
     }
 
     val LOG_LEVEL = 3
@@ -150,7 +237,8 @@ class TaskManager @Inject constructor(val args: Args,
      * we'll be adding to the graph while @toName extracts the name of a node.
      */
     @VisibleForTesting
-    fun <T> createGraph2(projectName: String, taskNames: List<String>, nodeMap: Multimap<String, T>,
+    fun <T> createGraph2(projectName: String, passedTasks: List<TaskInfo>,
+            nodeMap: Multimap<String, T>,
             dependsOn: Multimap<String, String>,
             reverseDependsOn: Multimap<String, String>,
             runBefore: Multimap<String, String>,
@@ -176,9 +264,9 @@ class TaskManager @Inject constructor(val args: Args,
         }
 
         //
-        // Turn the task names into the more useful TaskInfo and do some sanity checking on the way
+        // Keep only the tasks we need to run.
         //
-        val taskInfos = taskNames.map { TaskInfo(it) }.filter {
+        val taskInfos = passedTasks.filter {
             if (!nodeMap.keys().contains(it.taskName)) {
                 throw KobaltException("Unknown task: $it")
             }
@@ -262,14 +350,16 @@ class TaskManager @Inject constructor(val args: Args,
                 // runBefore and runAfter (task ordering) are only considered for explicit tasks (tasks that were
                 // explicitly requested by the user)
                 //
-                runBefore[taskName].forEach { from ->
-                    if (taskNames.contains(from)) {
-                        addEdge(result, from, taskName, newToProcess, "runBefore")
+                passedTasks.map { it.id }.let { taskNames ->
+                    runBefore[taskName].forEach { from ->
+                        if (taskNames.contains(from)) {
+                            addEdge(result, from, taskName, newToProcess, "runBefore")
+                        }
                     }
-                }
-                runAfter[taskName].forEach { to ->
-                    if (taskNames.contains(to)) {
-                        addEdge(result, taskName, to, newToProcess, "runAfter")
+                    runAfter[taskName].forEach { to ->
+                        if (taskNames.contains(to)) {
+                            addEdge(result, taskName, to, newToProcess, "runAfter")
+                        }
                     }
                 }
                 seen.add(taskName)
@@ -339,16 +429,14 @@ class TaskManager @Inject constructor(val args: Args,
      */
     fun computePluginTasks(projects: List<Project>) {
         installAnnotationTasks(projects)
-        installDynamicTasks(projects)
+        installDynamicTasks()
     }
 
-    private fun installDynamicTasks(projects: List<Project>) {
+    private fun installDynamicTasks() {
         dynamicTasks.forEach { task ->
-            projects.filter { task.plugin.accept(it) }.forEach { project ->
-                addTask(task.plugin, project, task.name, task.doc, task.group,
-                        task.dependsOn, task.reverseDependsOn, task.runBefore, task.runAfter, task.alwaysRunAfter,
-                        task.closure)
-            }
+            addTask(task.plugin, task.project, task.name, task.doc, task.group,
+                    task.dependsOn, task.reverseDependsOn, task.runBefore, task.runAfter, task.alwaysRunAfter,
+                    task.closure)
         }
     }
 

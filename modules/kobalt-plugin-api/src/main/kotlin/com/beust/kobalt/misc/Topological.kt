@@ -10,22 +10,25 @@ import java.util.*
  */
 class Topological<T> {
     private val dependingOn = ArrayListMultimap.create<T, T>()
+    private val nodes = hashSetOf<T>()
+
+    fun addNode(t: T) = nodes.add(t)
 
     fun addEdge(t: T, other: T) {
+        addNode(t)
+        addNode(other)
         dependingOn.put(t, other)
-    }
-
-    fun addEdge(t: T, others: Array<out T>) {
-        dependingOn.putAll(t, others.toMutableList())
     }
 
     /**
      * @return the Ts sorted topologically.
      */
-    fun sort(all: ArrayList<T>) : List<T> {
+    fun sort() : List<T> {
+        val all = ArrayList<T>(nodes)
         val result = arrayListOf<T>()
         var dependMap = HashMultimap.create<T, T>()
         dependingOn.keySet().forEach { dependMap.putAll(it, dependingOn.get(it))}
+        nodes.forEach { dependMap.putAll(it, emptyList())}
         while (all.size > 0) {
             val freeNodes = all.filter {
                 dependMap.get(it).isEmpty()

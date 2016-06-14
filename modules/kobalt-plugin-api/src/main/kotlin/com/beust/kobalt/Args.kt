@@ -45,6 +45,10 @@ class Args {
     @Parameter(names = arrayOf("--log"), description = "Define the log level (1-3)")
     var log: Int = 1
 
+    @Parameter(names = arrayOf("--forceIncremental"),
+            description = "Force the build to be incremental even if the build file was modified")
+    var forceIncremental: Boolean = false
+
     @Parameter(names = arrayOf("--noIncremental"), description = "Turn off incremental builds")
     var noIncremental: Boolean = false
 

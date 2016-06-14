@@ -3,7 +3,6 @@ package com.beust.kobalt.app
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.ITemplate
 import com.beust.kobalt.api.ITemplateContributor
-import com.beust.kobalt.app.Mustache
 import com.beust.kobalt.maven.Pom
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
@@ -85,7 +84,7 @@ abstract class LanguageTemplateGenerator : ITemplate {
 
     private fun importPom(pomFile: File, mainDeps: ArrayList<Pom.Dependency>, testDeps: ArrayList<Pom.Dependency>,
             map: HashMap<String, Any?>) {
-        var pom = Pom("imported", pomFile.absoluteFile)
+        val pom = Pom("imported", pomFile.absoluteFile)
         with(map) {
             put("group", pom.groupId ?: PACKAGE_NAME)
             put("artifactId", pom.artifactId ?: PACKAGE_NAME)

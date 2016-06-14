@@ -21,13 +21,11 @@ import java.nio.file.StandardCopyOption
 object Versions {
     val okhttp = "3.2.0"
     val okio = "1.6.0"
-    val retrofit = "2.0.0"
+    val retrofit = "2.0.2"
     val gson = "2.6.2"
     val aether = "1.1.0"
     val sonatypeAether = "1.13.1"
     val maven = "3.3.9"
-    val jersey = "2.22.2"
-    val jetty = "8.1.19.v20160209" // "9.3.9.M1"
 }
 
 val wrapper = project {
@@ -69,16 +67,16 @@ val kobaltPluginApi = project {
             developerConnection = "git@github.com:cbeust/kobalt.git")
 
     dependencies {
-        compile("org.jetbrains.kotlinx:kotlinx.dom:0.0.10",
-
+        compile(
                 "com.google.inject:guice:4.0",
                 "com.google.inject.extensions:guice-assistedinject:4.0",
                 "javax.inject:javax.inject:1",
-                "com.google.guava:guava:19.0-rc2",
+                "com.google.guava:guava:19.0",
                 "org.apache.maven:maven-model:${Versions.maven}",
-                "io.reactivex:rxjava:1.0.16",
-                "com.google.code.gson:gson:${Versions.gson}",
+                "io.reactivex:rxjava:1.1.5",
                 "com.squareup.okio:okio:${Versions.okio}",
+                "com.google.code.gson:gson:${Versions.gson}",
+                "com.squareup.okhttp3:okhttp:${Versions.okhttp}",
                 "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "com.beust:jcommander:1.48",
@@ -126,7 +124,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
     dependencies {
         // Used by the plugins
-        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.0")
+        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.2")
 
         // Used by the main app
         compile("com.github.spullara.mustache.java:compiler:0.9.1",
@@ -137,7 +135,6 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "org.apache.maven:maven-model:${Versions.maven}",
                 "com.google.code.findbugs:jsr305:3.0.1",
                 "com.google.code.gson:gson:${Versions.gson}",
-                "com.squareup.okhttp3:okhttp:${Versions.okhttp}",
                 "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "org.codehaus.plexus:plexus-utils:3.0.22",
@@ -159,7 +156,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
     }
 
     dependenciesTest {
-        compile("org.testng:testng:6.9.10",
+        compile("org.testng:testng:6.9.11",
                 "org.assertj:assertj-core:3.4.1")
     }
 

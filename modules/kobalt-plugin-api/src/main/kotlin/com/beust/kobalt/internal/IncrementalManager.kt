@@ -19,15 +19,16 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 
-data class TaskInfo(val taskName: String, var inputChecksum: String? = null, var outputChecksum: String? = null)
-
-class BuildInfo(var tasks: List<TaskInfo>)
-
 /**
  * Manage the file .kobalt/buildInfo.json, which keeps track of input and output checksums to manage
  * incremental builds.
  */
 class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileName : String) {
+
+    private data class TaskInfo(val taskName: String, var inputChecksum: String? = null,
+            var outputChecksum: String? = null)
+
+    private class BuildInfo(var tasks: List<TaskInfo>)
 
     interface IFactory {
         fun create(@Assisted fileName: String = IncrementalManager.BUILD_INFO_FILE) : IncrementalManager
@@ -79,6 +80,7 @@ class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileN
 
     fun outputChecksumFor(taskName: String) : String? =
             taskInfoFor(taskInfos(), taskName).outputChecksum
+
     /**
      * @param method is assumed to return an IncrementalTaskInfo.
      * @return a closure that invokes that method and decide whether to run the task or not based
@@ -93,7 +95,8 @@ class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileN
             var upToDate = false
             var taskOutputChecksum : String? = null
 
-            if (args.noIncremental || (Kobalt.context?.internalContext?.buildFileOutOfDate as Boolean)) {
+            if (! args.forceIncremental &&
+                    (args.noIncremental || (Kobalt.context?.internalContext?.buildFileOutOfDate as Boolean))) {
                 //
                 // If the user turned off incremental builds or if the build file was modified, always run this task
                 //
@@ -124,7 +127,8 @@ class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileN
                             if (outputChecksum == taskOutputChecksum) {
                                 upToDate = true
                             } else {
-                                logIncremental(LEVEL, "Incremental task $taskName output is out of date, running it")
+                                logIncremental(LEVEL, "Incremental task $taskName output is out of date" +
+                                        " (different output checksums), running it")
                             }
                         }
                     } else {
@@ -132,7 +136,7 @@ class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileN
                             logIncremental(LEVEL, "Project ${project.name} depends on dirty project, running $taskName")
                         } else {
                             logIncremental(LEVEL, "Incremental task $taskName input is out of date, running it"
-                                    + " old: $inputChecksum new: ${iti.inputChecksum()}")
+                                    + " (different input checksums old: $inputChecksum new: ${iti.inputChecksum()})")
                         }
                         project.projectExtra.isDirty = true
                     }

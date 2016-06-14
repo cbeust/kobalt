@@ -2,10 +2,8 @@ package com.beust.kobalt
 
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.ProjectDescription
 import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.archive.Jar
-import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.*
 import com.google.inject.Inject
@@ -93,26 +91,23 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         // If fatJar is true, add all the transitive dependencies as well: compile, runtime and dependent projects
         //
         if (jar.fatJar) {
-            log(2, "Creating fat jar")
+            log(2, "Finding included files for fat jar")
 
             val seen = hashSetOf<String>()
             @Suppress("UNCHECKED_CAST")
-            val dependentProjects = project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
-                    as List<ProjectDescription>
             val allDependencies = project.compileDependencies + project.compileRuntimeDependencies +
                 context.variant.buildType.compileDependencies +
                 context.variant.buildType.compileRuntimeDependencies +
                 context.variant.productFlavor.compileDependencies +
                 context.variant.productFlavor.compileRuntimeDependencies
-            val transitiveDependencies = dependencyManager.calculateDependencies(project, context, dependentProjects,
-                    allDependencies)
+            val transitiveDependencies = dependencyManager.calculateDependencies(project, context, allDependencies)
             transitiveDependencies.map {
                 it.jarFile.get()
             }.forEach { file : File ->
                 if (! seen.contains(file.path)) {
                     seen.add(file.path)
                     if (! KFiles.Companion.isExcluded(file, jar.excludes)) {
-                        result.add(IncludedFile(specs = arrayListOf(IFileSpec.FileSpec(file.path)),
+                        result.add(IncludedFile(specs = arrayListOf(IFileSpec.FileSpec(file.absolutePath)),
                                 expandJarFiles = true))
                     }
                 }

@@ -10,42 +10,60 @@ import com.google.inject.Inject
 import org.testng.Assert
 import org.testng.annotations.Test
 import java.io.File
+import java.io.FileOutputStream
+import java.nio.file.Files
 
-class PomTest @Inject constructor() : KobaltTest() {
+/**
+ * If a user calls --init on a project with a pom.xml in it, make sure that pom.xml is correctly reflected in the
+ * generated Build.kt.
+ */
+class PomImportTest @Inject constructor() : KobaltTest() {
     @Test
     fun importPom() {
-        val pomSrc = File("src/test/resources/pom.xml")
-        val pom = Pom("testing", pomSrc);
+        resourceToFile("PomTest/pom.xml").let { pomSrc ->
+            with(Pom("testing", pomSrc)) {
+                Assert.assertEquals(groupId, "com.foo.bob")
+                Assert.assertEquals(artifactId, "rawr")
+                Assert.assertEquals(name, "rawr")
+                Assert.assertEquals(version, "1.2.3")
+                Assert.assertEquals(properties["commons.version"], "2.1.1")
+                Assert.assertEquals(properties["guice.version"], "4.0")
 
-        Assert.assertEquals(pom.groupId, "com.foo.bob")
-        Assert.assertEquals(pom.artifactId, "rawr")
-        Assert.assertEquals(pom.name, "rawr")
-        Assert.assertEquals(pom.version, "1.2.3")
-        Assert.assertEquals(pom.properties.get("commons.version"), "2.1.1")
-        Assert.assertEquals(pom.properties.get("guice.version"), "4.0")
-
-        validateGeneratedFile(pom, pomSrc)
+                validateGeneratedFile(this, pomSrc)
+            }
+        }
     }
 
     @Test
     fun importBasicPom() {
-            val pomSrc = File("src/test/resources/pom-norepositories-properties.xml")
-            val pom = Pom("testing", pomSrc);
+        resourceToFile("PomTest/pom-norepositories-properties.xml").let { pomSrc ->
+            with(Pom("testing", pomSrc)) {
+                Assert.assertEquals(groupId, "com.foo.bob")
+                Assert.assertEquals(artifactId, "rawr")
+                Assert.assertEquals(name, "rawr")
+                Assert.assertEquals(version, "1.2.3")
+                Assert.assertTrue(properties.isEmpty())
+                Assert.assertTrue(repositories.isEmpty())
 
-            Assert.assertEquals(pom.groupId, "com.foo.bob")
-            Assert.assertEquals(pom.artifactId, "rawr")
-            Assert.assertEquals(pom.name, "rawr")
-            Assert.assertEquals(pom.version, "1.2.3")
-            Assert.assertTrue(pom.properties.isEmpty())
-            Assert.assertTrue(pom.repositories.isEmpty())
+                validateGeneratedFile(this, pomSrc)
+            }
+        }
+    }
 
-        validateGeneratedFile(pom, pomSrc)
+    private fun resourceToFile(fileName: String) : File {
+        val ins = javaClass.classLoader.getResourceAsStream(fileName)
+        val result = Files.createTempFile("kobaltTest", "").toFile()
+        FileOutputStream(result).use {
+            ins.copyTo(it)
+        }
+        return result
     }
 
     private fun validateGeneratedFile(pom: Pom, pomSrc: File) {
         val temp = File(System.getProperty("java.io.tmpdir"))
         val original = System.getProperty("user.dir")
         System.setProperty("user.dir", temp.absolutePath)
+
         val pomFile = File(temp, "pom.xml")
         pomFile.deleteOnExit()
         pomSrc.copyTo(pomFile, true)
@@ -60,7 +78,7 @@ class PomTest @Inject constructor() : KobaltTest() {
 
             ProjectGenerator(Kobalt.INJECTOR.getInstance(PluginInfo::class.java)).run(args, javaClass.classLoader)
 
-            var contents = file.readText()
+            val contents = file.readText()
             Assert.assertTrue(contents.contains("group = \"${pom.groupId}\""), "Should find the group defined")
             Assert.assertTrue(contents.contains("name = \"${pom.name}\""), "Should find the name defined")
             Assert.assertTrue(contents.contains("version = \"${pom.version}\""), "Should find the version defined")
