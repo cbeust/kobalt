@@ -293,6 +293,7 @@ private class Main @Inject constructor(
             runClasspathInterceptors(it, it.compileRuntimeDependencies)
             runClasspathInterceptors(it, it.testProvidedDependencies)
             runClasspathInterceptors(it, it.testDependencies)
+            runClasspathInterceptors(it, it.nativeDependencies)
         }
     }
 
