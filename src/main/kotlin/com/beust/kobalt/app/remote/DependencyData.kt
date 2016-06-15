@@ -17,6 +17,9 @@ import java.io.File
 import java.nio.file.Paths
 
 interface IProgressListener {
+    /**
+     * progress is an integer between 0 and 100 that represents the percentage.
+     */
     fun onProgress(progress: Int? = null, message: String? = null)
 }
 
