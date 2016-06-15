@@ -25,6 +25,7 @@ import org.eclipse.aether.graph.DependencyNode
 import org.eclipse.aether.metadata.DefaultMetadata
 import org.eclipse.aether.repository.RemoteRepository
 import org.eclipse.aether.resolution.*
+import org.eclipse.aether.transfer.ArtifactNotFoundException
 import org.eclipse.aether.util.artifact.JavaScopes
 import org.eclipse.aether.util.filter.AndDependencyFilter
 import org.eclipse.aether.util.filter.DependencyFilterUtils
@@ -139,19 +140,24 @@ class Aether(val localRepo: File, val settings: KobaltSettings) {
         return result
     }
 
-    fun resolve(artifact: Artifact): List<ArtifactResult>? {
-        try {
-            val dependencyRequest = DependencyRequest(collectRequest(artifact), classpathFilter)
-
-            val result = system.resolveDependencies(session, dependencyRequest).artifactResults
-            return result
-        } catch(ex: DependencyResolutionException) {
+    fun resolve(artifact: Artifact): List<ArtifactResult> {
+        fun manageException(ex: Exception, artifact: Artifact) : List<ArtifactResult> {
             if (artifact.extension == "pom") {
                 // Only display a warning for .pom files. Not resolving a .jar or other artifact
                 // is not necessarily an error as long as there is a pom file.
                 warn("Couldn't resolve $artifact")
             }
             return emptyList()
+        }
+
+        try {
+            val dependencyRequest = DependencyRequest(collectRequest(artifact), classpathFilter)
+            val result = system.resolveDependencies(session, dependencyRequest).artifactResults
+            return result
+        } catch(ex: ArtifactNotFoundException) {
+            return manageException(ex, artifact)
+        } catch(ex: DependencyResolutionException) {
+            return manageException(ex, artifact)
         }
     }
 
