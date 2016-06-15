@@ -91,7 +91,7 @@ class TaskManager @Inject constructor(val args: Args,
     fun findProjectsToRun(taskInfos: List<TaskInfo>, projects: List<Project>) : List<Project> {
 
         // Validate projects
-        val result = arrayListOf<Project>()
+        val result = LinkedHashSet<Project>()
         val projectMap = HashMap<String, Project>().apply {
             projects.forEach { put(it.name, it)}
         }
@@ -109,7 +109,7 @@ class TaskManager @Inject constructor(val args: Args,
         }
 
         // If at least one task didn't specify a project, run them all
-        return if (result.any()) result else projects
+        return if (result.any()) result.toList() else projects
     }
 
     private fun runProjects(taskInfos: List<TaskInfo>, projects: List<Project>) : RunTargetResult {
