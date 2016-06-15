@@ -36,7 +36,7 @@ fun Project.application(init: ApplicationConfig.() -> Unit) {
 
 @Singleton
 class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<ApplicationConfig>,
-                                            val executors: KobaltExecutors,
+        val executors: KobaltExecutors, val nativeManager: NativeManager,
         val dependencyManager: DependencyManager, val taskContributor : TaskContributor)
             : BasePlugin(), IRunnerContributor, ITaskContributor, IConfigActor<ApplicationConfig> by configActor {
 
@@ -84,6 +84,9 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
 
     override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>): TaskResult {
         var result = TaskResult()
+        if (project.nativeDependencies.any()) {
+            nativeManager.installLibraries(project)
+        }
         configurationFor(project)?.let { config ->
             if (config.mainClass != null) {
                 result = runJarFile(project, context, config)
@@ -113,7 +116,11 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
             allDeps.addAll(allTheDependencies)
         }
         val allDepsJoined = allDeps.joinToString(File.pathSeparator)
-        val args = listOf("-classpath", allDepsJoined) + config.jvmArgs + config.mainClass!!
+        val initialArgs = listOf("-classpath", allDepsJoined) + config.jvmArgs + config.mainClass!!
+        val contributorFlags = context.pluginInfo.jvmFlagContributors.flatMap {
+            it.jvmFlagsFor(project, context, initialArgs)
+        }
+        val args = contributorFlags + initialArgs
         val exitCode = RunCommand(java.absolutePath).run(args,
                 successCallback = { output: List<String> ->
                     println(output.joinToString("\n"))

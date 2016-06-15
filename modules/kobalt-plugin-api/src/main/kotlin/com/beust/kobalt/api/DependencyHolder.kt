@@ -14,6 +14,7 @@ interface IDependencyHolder {
     val compileProvidedDependencies : ArrayList<IClasspathDependency>
     val compileRuntimeDependencies : ArrayList<IClasspathDependency>
     val excludedDependencies : ArrayList<IClasspathDependency>
+    val nativeDependencies : ArrayList<IClasspathDependency>
 
     @Directive
     var dependencies: Dependencies?
@@ -28,12 +29,13 @@ open class DependencyHolder : IDependencyHolder {
     override val compileProvidedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
     override val compileRuntimeDependencies : ArrayList<IClasspathDependency> = arrayListOf()
     override val excludedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
+    override val nativeDependencies : ArrayList<IClasspathDependency> = arrayListOf()
 
     override var dependencies : Dependencies? = null
 
     override fun dependencies(init: Dependencies.() -> Unit) : Dependencies {
         dependencies = Dependencies(project, compileDependencies, compileProvidedDependencies,
-                compileRuntimeDependencies, excludedDependencies)
+                compileRuntimeDependencies, excludedDependencies, nativeDependencies)
         dependencies!!.init()
         return dependencies!!
     }

@@ -90,7 +90,7 @@ open class Project(
     @Directive
     fun dependenciesTest(init: Dependencies.() -> Unit) : Dependencies {
         dependencies = Dependencies(this, testDependencies, testProvidedDependencies, compileRuntimeDependencies,
-                excludedDependencies)
+                excludedDependencies, nativeDependencies)
         dependencies!!.init()
         return dependencies!!
     }
@@ -138,7 +138,8 @@ class Dependencies(val project: Project,
         val dependencies: ArrayList<IClasspathDependency>,
         val providedDependencies: ArrayList<IClasspathDependency>,
         val runtimeDependencies: ArrayList<IClasspathDependency>,
-        val excludedDependencies: ArrayList<IClasspathDependency>) {
+        val excludedDependencies: ArrayList<IClasspathDependency>,
+        val nativeDependencies: ArrayList<IClasspathDependency>) {
 
     /**
      * Add the dependencies to the given ArrayList and return a list of future jar files corresponding to
@@ -164,6 +165,9 @@ class Dependencies(val project: Project,
 
     @Directive
     fun exclude(vararg dep: String) = addToDependencies(project, excludedDependencies, dep)
+
+    @Directive
+    fun native(vararg dep: String) = addToDependencies(project, nativeDependencies, dep)
 }
 
 class Scm(val connection: String, val developerConnection: String, val url: String)

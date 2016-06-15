@@ -93,6 +93,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
     // Not documented yet
     val buildConfigContributors = arrayListOf<IBuildConfigContributor>()
     val mavenIdInterceptors = arrayListOf<IMavenIdInterceptor>()
+    val jvmFlagContributors = arrayListOf<IJvmFlagContributor>()
 
     // Note: intentionally repeating them here even though they are defined by our base class so
     // that this class always contains the full list of contributors and interceptors
@@ -206,6 +207,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
                 // Not documented yet
                 if (this is ITestJvmFlagContributor) testJvmFlagContributors.add(this)
                 if (this is ITestJvmFlagInterceptor) testJvmFlagInterceptors.add(this)
+                if (this is IJvmFlagContributor) jvmFlagContributors.add(this)
             }
         }
     }
@@ -218,7 +220,8 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
                 compilerContributors, docContributors, sourceDirContributors,
                 testSourceDirContributors, buildConfigFieldContributors,
                 taskContributors, assemblyContributors,
-                incrementalAssemblyContributors, testJvmFlagInterceptors
+                incrementalAssemblyContributors, testJvmFlagInterceptors,
+                jvmFlagContributors
             ).forEach {
                 it.forEach {
                     it.cleanUpActors()
@@ -256,6 +259,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
         incrementalAssemblyContributors.addAll(pluginInfo.incrementalAssemblyContributors)
         testJvmFlagContributors.addAll(pluginInfo.testJvmFlagContributors)
         testJvmFlagInterceptors.addAll(pluginInfo.testJvmFlagInterceptors)
+        jvmFlagContributors.addAll(pluginInfo.jvmFlagContributors)
     }
 }
 
