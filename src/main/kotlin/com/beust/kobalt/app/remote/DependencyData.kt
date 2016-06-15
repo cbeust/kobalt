@@ -16,10 +16,15 @@ import com.google.inject.Inject
 import java.io.File
 import java.nio.file.Paths
 
+interface IProgressListener {
+    fun onProgress(progress: Int? = null, message: String? = null)
+}
+
 class DependencyData @Inject constructor(val executors: KobaltExecutors, val dependencyManager: DependencyManager,
         val buildFileCompilerFactory: BuildFileCompiler.IFactory, val pluginInfo: PluginInfo,
         val taskManager: TaskManager) {
-    fun dependenciesDataFor(buildFilePath: String, args: Args) : GetDependenciesData {
+    fun dependenciesDataFor(buildFilePath: String, args: Args, progressListener: IProgressListener? = null)
+            : GetDependenciesData {
         val projectDatas = arrayListOf<ProjectData>()
 
         fun toDependencyData(d: IClasspathDependency, scope: String): DependencyData {
@@ -38,7 +43,10 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
         }
 
         val allTasks = hashSetOf<TaskData>()
-        projectResult.projects.forEach { project ->
+        projectResult.projects.withIndex().forEach { wi ->
+            val project = wi.value
+            progressListener?.onProgress(message = "Synchronizing project ${project.name} "
+                    + (wi.index + 1) + "/" + projectResult.projects.size)
             val compileDependencies = pluginDependencies.map { toDependencyData(it, "compile") } +
                     allDeps(project.compileDependencies).map { toDependencyData(it, "compile") } +
                     allDeps(project.compileProvidedDependencies).map { toDependencyData(it, "compile") }
@@ -88,5 +96,9 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
 
     class GetDependenciesData(val projects: List<ProjectData> = emptyList(),
             val allTasks: Collection<TaskData> = emptySet(),
-            val errorMessage: String?)
+            val errorMessage: String?) {
+        companion object {
+            val NAME = "GetDependencies"
+        }
+    }
 }

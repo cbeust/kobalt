@@ -1,8 +1,7 @@
 
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.License
-import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.Scm
+import com.beust.kobalt.*
+import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.plugin.application.application
@@ -137,6 +136,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "com.google.code.gson:gson:${Versions.gson}",
                 "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
+                "com.squareup.okhttp3:okhttp-ws:${Versions.okhttp}",
                 "org.codehaus.plexus:plexus-utils:3.0.22",
                 "biz.aQute.bnd:bndlib:2.4.0",
 
