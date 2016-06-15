@@ -6,6 +6,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.KobaltSettingsXml
+import com.beust.kobalt.internal.getProxy
 import com.beust.kobalt.maven.CompletedFuture
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.misc.KobaltLogger
@@ -73,17 +74,21 @@ class ExcludeOptionalDependencyFilter: DependencyFilter {
 @Singleton
 class Aether(val localRepo: File, val settings: KobaltSettings) {
     private val system = Booter.newRepositorySystem()
-    private val session = Booter.newRepositorySystemSession(system, localRepo)
+    private val session = Booter.newRepositorySystemSession(system, localRepo, settings)
     private val classpathFilter = AndDependencyFilter(
             ExcludeOptionalDependencyFilter(),
             DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE))
     private val kobaltRepositories : List<RemoteRepository>
-            get() = Kobalt.repos.map {
-                RemoteRepository.Builder("maven", "default", it.url)
-                        .setProxy(settings.proxyConfig?.toAetherProxy())
+        get() = Kobalt.repos.map {
+            RemoteRepository.Builder("maven", "default", it.url)
 //                    .setSnapshotPolicy(RepositoryPolicy(false, null, null))
-                    .build()
+                    .build().let { repository ->
+                val proxyConfigs = settings.proxyConfigs ?: return@map repository
+                RemoteRepository.Builder(repository).apply {
+                    setProxy(proxyConfigs.getProxy(repository.protocol)?.toAetherProxy())
+                }.build()
             }
+        }
 
     private fun collectRequest(artifact: Artifact) : CollectRequest {
         with(CollectRequest()) {

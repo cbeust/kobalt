@@ -32,7 +32,7 @@ fun plugins(vararg dependencies : String) {
     }
 }
 
-data class ProxyConfig(var host: String = "", var port: Int = 0, val type: String = "") {
+data class ProxyConfig(val host: String = "", val port: Int = 0, val type: String = "", val nonProxyHosts: String = "") {
     fun toProxy() = java.net.Proxy(java.net.Proxy.Type.HTTP, InetSocketAddress(host, port))
 
     fun toAetherProxy() = Proxy(type, host, port) // TODO make support for proxy auth
