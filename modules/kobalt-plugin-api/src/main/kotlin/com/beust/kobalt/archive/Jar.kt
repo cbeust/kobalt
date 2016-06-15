@@ -1,11 +1,14 @@
 package com.beust.kobalt.archive
 
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 
 /**
  * A jar is exactly like a zip with the addition of a manifest and an optional fatJar boolean.
  */
-open class Jar(override var name: String? = null, var fatJar: Boolean = false) : Zip(name), AttributeHolder {
+open class Jar(override val project: Project,
+        override var name : String = Archives.defaultArchiveName(project) + ".jar",
+        var fatJar: Boolean = false) : Zip(project, name), AttributeHolder {
     @Directive
     fun manifest(init: Manifest.(p: Manifest) -> Unit) : Manifest {
         val m = Manifest(this)

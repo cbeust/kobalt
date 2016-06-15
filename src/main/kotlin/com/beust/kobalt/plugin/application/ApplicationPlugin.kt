@@ -5,7 +5,6 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.archive.Archives
-import com.beust.kobalt.archive.Jar
 import com.beust.kobalt.internal.ActorUtils
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
@@ -66,14 +65,8 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
     }
 
     private fun isFatJar(packages: List<PackageConfig>, jarName: String): Boolean {
-        packages.forEach { pc ->
-            (pc.jars as List<Jar>).forEach { jar ->
-                if ((jar.name == null || jar.name == jarName) && jar.fatJar) {
-                    return true
-                }
-            }
-        }
-        return false
+        val foundJar = packages.flatMap { it.jars }.filter { jarName.endsWith(it.name) }
+        return foundJar.size == 1 && foundJar[0].fatJar
     }
 
     // IRunContributor

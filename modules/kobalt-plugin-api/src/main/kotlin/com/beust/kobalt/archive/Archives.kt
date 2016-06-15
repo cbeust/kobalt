@@ -21,6 +21,8 @@ class Archives {
 
         private val DEFAULT_STREAM_FACTORY = { os : OutputStream -> ZipOutputStream(os) }
 
+        fun defaultArchiveName(project: Project) = project.name + "-" + project.version
+
         fun generateArchive(project: Project,
                 context: KobaltContext,
                 archiveName: String?,

@@ -2,12 +2,13 @@ package com.beust.kobalt.archive
 
 import com.beust.kobalt.Glob
 import com.beust.kobalt.IFileSpec
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.misc.From
 import com.beust.kobalt.misc.IncludedFile
 import com.beust.kobalt.misc.To
 
-open class Zip(open var name: String? = null) {
+open class Zip(open val project: Project, open var name: String = Archives.defaultArchiveName(project) + ".zip") {
     val excludes = arrayListOf<Glob>()
 
     @Directive
