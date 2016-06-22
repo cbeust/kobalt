@@ -53,7 +53,7 @@ class KobaltWebSocketClient : Runnable {
         val client = OkHttpClient()
         val request = Request.Builder()
 //            .url("ws://echo.websocket.org")
-            .url("ws://localhost:1234/v1/getDependencies?buildFile=/Users/beust/kotlin/kobalt/kobalt/src/Build.kt")
+            .url("ws://localhost:1238/v1/getDependencies?buildFile=/Users/beust/kotlin/kobalt/kobalt/src/Build.kt")
             .build()
         var webSocket: WebSocket? = null
         val ws = WebSocketCall.create(client, request).enqueue(object: WebSocketListener {
@@ -82,7 +82,8 @@ class KobaltWebSocketClient : Runnable {
                 } else {
                     if (wsCommand.commandName == DependencyData.GetDependenciesData.NAME) {
                         val dd = Gson().fromJson(wsCommand.payload, DependencyData.GetDependenciesData::class.java)
-                        println("Received dependency data: " + dd.projects.size + " projects")
+                        println("Received dependency data: " + dd.projects.size + " projects"
+                                + " error: " + dd.errorMessage)
                     } else if (wsCommand.commandName == ProgressCommand.NAME) {
                         val progress = Gson().fromJson(wsCommand.payload, ProgressCommand::class.java)
                         println(progress.message + (progress.progress ?: ""))
