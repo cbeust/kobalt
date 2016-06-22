@@ -1,6 +1,7 @@
 package com.beust.kobalt.maven.aether
 
 import com.beust.kobalt.internal.KobaltSettings
+import com.google.common.eventbus.EventBus
 import org.eclipse.aether.DefaultRepositorySystemSession
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.repository.LocalRepository
@@ -15,14 +16,15 @@ object Booter {
         // return org.eclipse.aether.examples.plexus.PlexusRepositorySystemFactory.newRepositorySystem();
     }
 
-    fun newRepositorySystemSession(system: RepositorySystem, repo: File, settings: KobaltSettings): DefaultRepositorySystemSession {
+    fun newRepositorySystemSession(system: RepositorySystem, repo: File, settings: KobaltSettings,
+            eventBus: EventBus): DefaultRepositorySystemSession {
         val session = MavenRepositorySystemUtils.newSession(settings)
 
         val localRepo = LocalRepository(repo.absolutePath)
         session.localRepositoryManager = system.newLocalRepositoryManager(session, localRepo)
 
         session.transferListener = ConsoleTransferListener()
-        session.repositoryListener = ConsoleRepositoryListener()
+        session.repositoryListener = ConsoleRepositoryListener(eventBus = eventBus)
 
         // uncomment to generate dirty trees
         // session.setDependencyGraphTransformer( null );

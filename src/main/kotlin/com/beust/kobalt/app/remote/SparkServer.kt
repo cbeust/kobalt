@@ -6,7 +6,10 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.Templates
 import com.beust.kobalt.internal.PluginInfo
+import com.beust.kobalt.internal.eventbus.ArtifactDownloadedEvent
 import com.google.common.collect.ListMultimap
+import com.google.common.eventbus.EventBus
+import com.google.common.eventbus.Subscribe
 import com.google.gson.Gson
 import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
@@ -105,10 +108,26 @@ class GetDependenciesChatHandler : WebSocketListener {
         if (buildFileParams != null) {
             val buildFile = buildFileParams[0]
 
+            fun <T> getInstance(cls: Class<T>) : T = Kobalt.INJECTOR.getInstance(cls)
+
             val result = if (buildFile != null) {
+                // Track all the downloads that this dependency call might trigger and
+                // send them as a progress message to the web socket
+                val eventBus = getInstance(EventBus::class.java)
+                val busListener = object {
+                    @Subscribe
+                    fun onArtifactDownloaded(event: ArtifactDownloadedEvent) {
+                        sendWebsocketCommand(s.remote, ProgressCommand.NAME,
+                                ProgressCommand(null, "Downloaded " + event.artifactId))
+                    }
+                }
+                eventBus.register(busListener)
+
+                // Get the dependencies for the requested build file and send progress to the web
+                // socket for each project
                 try {
-                    val dependencyData = Kobalt.INJECTOR.getInstance(DependencyData::class.java)
-                    val args = Kobalt.INJECTOR.getInstance(Args::class.java)
+                    val dependencyData = getInstance(DependencyData::class.java)
+                    val args = getInstance(Args::class.java)
 
                     dependencyData.dependenciesDataFor(buildFile, args, object : IProgressListener {
                         override fun onProgress(progress: Int?, message: String?) {
@@ -116,15 +135,16 @@ class GetDependenciesChatHandler : WebSocketListener {
                         }
                     })
                 } catch(ex: Exception) {
+                    ex.printStackTrace()
                     DependencyData.GetDependenciesData(errorMessage = ex.message)
                 } finally {
                     SparkServer.cleanUpCallback()
+                    eventBus.unregister(busListener)
                 }
             } else {
                 DependencyData.GetDependenciesData(
                         errorMessage = "buildFile wasn't passed in the query parameter")
             }
-            println("GOT DEPENDENCY DATA: $result")
             sendWebsocketCommand(s.remote, DependencyData.GetDependenciesData.NAME, result)
             s.close()
         }

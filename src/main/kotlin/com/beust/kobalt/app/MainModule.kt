@@ -12,6 +12,7 @@ import com.beust.kobalt.maven.aether.Aether
 import com.beust.kobalt.misc.DependencyExecutor
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.plugin.publish.BintrayApi
+import com.google.common.eventbus.EventBus
 import com.google.inject.AbstractModule
 import com.google.inject.Provider
 import com.google.inject.Singleton
@@ -49,13 +50,16 @@ public open class MainModule(val args: Args, val settings: KobaltSettings) : Abs
         bind(Args::class.java).toProvider(Provider<Args> {
             args
         })
+        EventBus().let { eventBus ->
+            bind(EventBus::class.java).toInstance(eventBus)
+            bind(Aether::class.java).toInstance(Aether(settings.localRepo, settings, eventBus))
+        }
         bind(PluginInfo::class.java).toProvider(Provider<PluginInfo> {
             PluginInfo.readKobaltPluginXml()
         }).`in`(Singleton::class.java)
         bind(KobaltSettings::class.java).toProvider(Provider<KobaltSettings> {
             settings
         }).`in`(Singleton::class.java)
-        bind(Aether::class.java).toInstance(Aether(settings.localRepo,settings))
 
 //        bindListener(Matchers.any(), object: TypeListener {
 //            override fun <I> hear(typeLiteral: TypeLiteral<I>?, typeEncounter: TypeEncounter<I>?) {

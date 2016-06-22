@@ -1,6 +1,8 @@
 package com.beust.kobalt.maven.aether
 
+import com.beust.kobalt.internal.eventbus.ArtifactDownloadedEvent
 import com.beust.kobalt.misc.log
+import com.google.common.eventbus.EventBus
 import org.eclipse.aether.AbstractRepositoryListener
 import org.eclipse.aether.RepositoryEvent
 import java.io.PrintStream
@@ -8,7 +10,8 @@ import java.io.PrintStream
 /**
  * A simplistic repository listener that logs events to the console.
  */
-class ConsoleRepositoryListener @JvmOverloads constructor(out: PrintStream? = null) : AbstractRepositoryListener() {
+class ConsoleRepositoryListener @JvmOverloads constructor(out: PrintStream? = null, val eventBus: EventBus)
+        : AbstractRepositoryListener() {
     companion object {
         val LOG_LEVEL = 4
     }
@@ -53,8 +56,10 @@ class ConsoleRepositoryListener @JvmOverloads constructor(out: PrintStream? = nu
     }
 
     override fun artifactDownloaded(event: RepositoryEvent?) {
-        if (event?.file != null) {
-            log(1, "Downloaded artifact " + event!!.artifact + " from " + event.repository)
+        if (event?.file != null && event?.artifact != null) {
+            val artifact = event!!.artifact
+            log(1, "Downloaded artifact " + artifact + " from " + event.repository)
+            eventBus.post(ArtifactDownloadedEvent(artifact.toString(), event.repository))
         }
     }
 

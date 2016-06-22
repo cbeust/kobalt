@@ -13,6 +13,7 @@ import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.Versions
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
+import com.google.common.eventbus.EventBus
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import org.eclipse.aether.artifact.Artifact
@@ -73,9 +74,9 @@ class ExcludeOptionalDependencyFilter: DependencyFilter {
 }
 
 @Singleton
-class Aether(val localRepo: File, val settings: KobaltSettings) {
+class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: EventBus) {
     private val system = Booter.newRepositorySystem()
-    private val session = Booter.newRepositorySystemSession(system, localRepo, settings)
+    private val session = Booter.newRepositorySystemSession(system, localRepo, settings, eventBus)
     private val classpathFilter = AndDependencyFilter(
             ExcludeOptionalDependencyFilter(),
             DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE))
@@ -245,7 +246,8 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
 fun main(argv: Array<String>) {
     KobaltLogger.LOG_LEVEL = 1
     val id = "org.testng:testng:6.9.11"
-    val aether = KobaltAether(KobaltSettings(KobaltSettingsXml()), Aether(File(homeDir(".aether")),KobaltSettings(KobaltSettingsXml())))
+    val aether = KobaltAether(KobaltSettings(KobaltSettingsXml()), Aether(File(homeDir(".aether")),
+            KobaltSettings(KobaltSettingsXml()), EventBus()))
     val r = aether.resolve(id)
     val r2 = aether.resolve(id)
     val d = org.eclipse.aether.artifact.DefaultArtifact("org.testng:testng:6.9")
