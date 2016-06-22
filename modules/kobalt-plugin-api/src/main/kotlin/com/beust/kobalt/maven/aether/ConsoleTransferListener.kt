@@ -101,7 +101,7 @@ class ConsoleTransferListener @JvmOverloads constructor(out: PrintStream? = null
         transferCompleted(event)
 
         if (event.exception !is MetadataNotFoundException) {
-            if (KobaltLogger.LOG_LEVEL > 1) {
+            if (KobaltLogger.LOG_LEVEL > 2) {
                 event.exception.printStackTrace(out)
             }
         }
