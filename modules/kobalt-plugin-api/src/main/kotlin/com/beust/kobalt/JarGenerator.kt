@@ -8,9 +8,11 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.*
 import com.google.inject.Inject
 import java.io.File
+import java.io.FileInputStream
 import java.io.OutputStream
 import java.nio.file.Paths
 import java.util.jar.JarOutputStream
+import java.util.jar.Manifest
 
 class JarGenerator @Inject constructor(val dependencyManager: DependencyManager) {
     companion object {
@@ -118,18 +120,42 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
     }
 
     fun generateJar(project: Project, context: KobaltContext, jar: Jar) : File {
-        val allFiles = findIncludedFiles(project, context, jar)
+        val includedFiles = findIncludedFiles(project, context, jar)
 
         //
         // Generate the manifest
+        // If manifest attributes were specified in the build file, use those to generate the manifest. Otherwise,
+        // try to find a META-INF/MANIFEST.MF and use that one if we find any. Otherwise, use the default manifest.
         //
-        val manifest = java.util.jar.Manifest()//FileInputStream(mf))
-        jar.attributes.forEach { attribute ->
-            manifest.mainAttributes.putValue(attribute.first, attribute.second)
-        }
+        val manifest =
+            if (jar.attributes.size > 1) {
+                log(2, "Creating MANIFEST.MF from " + jar.attributes.size + " attributes")
+                Manifest().apply {
+                    jar.attributes.forEach { attribute ->
+                        mainAttributes.putValue(attribute.first, attribute.second)
+                    }
+                }
+            } else {
+                fun findManifestFile(project: Project, includedFiles: List<IncludedFile>): File? {
+                    val allFiles = includedFiles.flatMap { file ->
+                        file.allFromFiles(project.directory).map { file.from(it.path) }
+                    }
+                    val manifestFiles = allFiles.filter { it.path.contains("META-INF/MANIFEST.MF") }
+                    return if (manifestFiles.any()) manifestFiles[0] else null
+                }
+
+                val manifestFile = findManifestFile(project, includedFiles)
+                if (manifestFile != null) {
+                        log(2, "Including MANIFEST.MF file $manifestFile")
+                        Manifest(FileInputStream(manifestFile))
+                    } else {
+                        Manifest()
+                    }
+            }
+
         val jarFactory = { os: OutputStream -> JarOutputStream(os, manifest) }
 
-        return Archives.generateArchive(project, context, jar.name, ".jar", allFiles,
+        return Archives.generateArchive(project, context, jar.name, ".jar", includedFiles,
                 true /* expandJarFiles */, jarFactory)
     }
 
