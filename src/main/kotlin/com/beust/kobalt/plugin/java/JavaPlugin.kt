@@ -6,7 +6,6 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.BaseJvmPlugin
 import com.beust.kobalt.internal.JvmCompilerPlugin
-import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.warn
 import java.io.File
 import javax.inject.Inject
@@ -16,20 +15,12 @@ import javax.inject.Singleton
 class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override val configActor: ConfigActor<JavaConfig>)
         : BaseJvmPlugin<JavaConfig>(configActor), IDocContributor, ICompilerContributor,
             ITestSourceDirectoryContributor, IBuildConfigContributor {
+
     companion object {
         const val PLUGIN_NAME = "Java"
     }
 
     override val name = PLUGIN_NAME
-
-    override fun accept(project: Project) = hasSourceFiles(project)
-
-    // IBuildConfigContributor
-
-    private fun hasSourceFiles(project: Project)
-            = KFiles.findSourceFiles(project.directory, project.sourceDirectories, listOf("java")).size > 0
-
-    override fun affinity(project: Project) = if (hasSourceFiles(project)) 1 else 0
 
     // IDocContributor
     override fun affinity(project: Project, context: KobaltContext) =

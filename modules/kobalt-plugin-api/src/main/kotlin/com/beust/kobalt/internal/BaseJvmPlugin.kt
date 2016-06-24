@@ -1,9 +1,7 @@
 package com.beust.kobalt.internal
 
-import com.beust.kobalt.api.BasePlugin
-import com.beust.kobalt.api.ConfigActor
-import com.beust.kobalt.api.ICompilerFlagContributor
-import com.beust.kobalt.api.IConfigActor
+import com.beust.kobalt.api.*
+import com.beust.kobalt.misc.KFiles
 
 /**
  * Base class for JVM language plug-ins.
@@ -23,4 +21,12 @@ abstract class BaseJvmPlugin<T>(open val configActor: ConfigActor<T>) :
 
     override val flagPriority = FLAG_CONTRIBUTOR_PRIORITY
 
+    override fun accept(project: Project) = hasSourceFiles(project)
+
+    // IBuildConfigContributor
+
+    private fun hasSourceFiles(project: Project)
+            = KFiles.findSourceFiles(project.directory, project.sourceDirectories, listOf("java")).size > 0
+
+    fun affinity(project: Project) = if (hasSourceFiles(project)) 1 else 0
 }

@@ -10,7 +10,6 @@ import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.KotlinJarFiles
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
-import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
@@ -21,22 +20,14 @@ import javax.inject.Singleton
 class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val dependencyManager: DependencyManager,
         val settings: KobaltSettings, override val configActor: ConfigActor<KotlinConfig>,
         val kotlinJarFiles: KotlinJarFiles)
-    : BaseJvmPlugin<KotlinConfig>(configActor), IDocContributor, IClasspathContributor, ICompilerContributor, IBuildConfigContributor {
+    : BaseJvmPlugin<KotlinConfig>(configActor), IDocContributor, IClasspathContributor, ICompilerContributor,
+        IBuildConfigContributor {
 
     companion object {
         const val PLUGIN_NAME = "Kotlin"
     }
 
     override val name = PLUGIN_NAME
-
-    override fun accept(project: Project) = hasSourceFiles(project)
-
-    // IBuildConfigContributor
-
-    private fun hasSourceFiles(project: Project)
-            = KFiles.findSourceFiles(project.directory, project.sourceDirectories, listOf("kt")).size > 0
-
-    override fun affinity(project: Project) = if (hasSourceFiles(project)) 1 else 0
 
     // IDocContributor
     override fun affinity(project: Project, context: KobaltContext) =
