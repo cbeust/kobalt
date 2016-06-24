@@ -4,6 +4,7 @@ import com.beust.kobalt.JavaInfo
 import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.CompilerActionInfo
+import com.beust.kobalt.api.ICompiler
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.ICompilerAction
@@ -12,7 +13,6 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Strings
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
-import com.beust.kobalt.plugin.ICompiler
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File

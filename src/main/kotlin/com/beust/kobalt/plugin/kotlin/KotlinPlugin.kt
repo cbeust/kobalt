@@ -14,8 +14,6 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
-import com.beust.kobalt.plugin.CompilerDescription
-import com.beust.kobalt.plugin.ICompiler
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -1,16 +1,11 @@
 package com.beust.kobalt.plugin.groovy
 
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.CompilerActionInfo
-import com.beust.kobalt.api.ICompilerContributor
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Strings
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.plugin.CompilerDescription
-import com.beust.kobalt.plugin.ICompiler
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File

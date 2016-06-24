@@ -8,7 +8,6 @@ import com.beust.kobalt.internal.BaseJvmPlugin
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.warn
-import com.beust.kobalt.plugin.CompilerDescription
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
