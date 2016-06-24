@@ -207,7 +207,7 @@ private class Main @Inject constructor(
                         //
                         val runTargetResult = taskManager.runTargets(args.targets, allProjects)
                         if (result == 0) {
-                            result = runTargetResult.exitCode
+                            result = if (runTargetResult.taskResult.success) 0 else 1
                         }
 
                         // Shutdown all plug-ins
