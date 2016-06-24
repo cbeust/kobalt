@@ -12,6 +12,7 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Strings
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
+import com.beust.kobalt.plugin.ICompiler
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
@@ -21,7 +22,7 @@ import javax.tools.JavaFileObject
 import javax.tools.ToolProvider
 
 @Singleton
-class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
+class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) : ICompiler {
     fun compilerAction(executable: File) = object : ICompilerAction {
         override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
             if (info.sourceFiles.isEmpty()) {
@@ -106,8 +107,8 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) {
         return jvmCompiler.doCompile(project, context, compilerAction(executable), cai)
     }
 
-    fun compile(project: Project?, context: KobaltContext?, cai: CompilerActionInfo) : TaskResult
-        = run(project, context, cai, JavaInfo.create(File(SystemProperties.javaBase)).javacExecutable!!)
+    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult
+        = run(project, context, info, JavaInfo.create(File(SystemProperties.javaBase)).javacExecutable!!)
 
     fun javadoc(project: Project?, context: KobaltContext?, cai: CompilerActionInfo) : TaskResult
         = run(project, context, cai, JavaInfo.create(File(SystemProperties.javaBase)).javadocExecutable!!)

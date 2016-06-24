@@ -163,7 +163,7 @@ open class JvmCompilerPlugin @Inject constructor(
             /**
              * Swap the Java and Kotlin compilers from the list.
              */
-            fun swapJavaAndKotlin(allCompilers: List<ICompiler>): List<ICompiler> {
+            fun swapJavaAndKotlin(allCompilers: List<ICompilerDescription>): List<ICompilerDescription> {
                 val result = ArrayList(allCompilers)
                 var ik = -1
                 var ij = -1

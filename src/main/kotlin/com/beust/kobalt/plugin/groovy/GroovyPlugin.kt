@@ -1,13 +1,16 @@
 package com.beust.kobalt.plugin.groovy
 
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.*
-import com.beust.kobalt.homeDir
+import com.beust.kobalt.api.CompilerActionInfo
+import com.beust.kobalt.api.ICompilerContributor
+import com.beust.kobalt.api.KobaltContext
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Strings
 import com.beust.kobalt.misc.log
-import com.beust.kobalt.misc.warn
+import com.beust.kobalt.plugin.CompilerDescription
+import com.beust.kobalt.plugin.ICompiler
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
@@ -19,24 +22,7 @@ class GroovyPlugin @Inject constructor(val groovyCompiler: GroovyCompiler) : ICo
             if (hasSourceFiles(project)) 1 else 0
 
     // ICompilerContributor
-    val compiler = object: ICompiler {
-        override val sourceSuffixes = GroovyCompiler.SUFFIXES
-
-        override val sourceDirectory = "groovy"
-
-        override val priority = 1
-
-        override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
-            val result =
-                if (info.sourceFiles.size > 0) {
-                    groovyCompiler.compile(project, context, info)
-                } else {
-                    warn("Couldn't find any source files to compile")
-                    TaskResult()
-                }
-            return result
-        }
-    }
+    val compiler = CompilerDescription(GroovyCompiler.SUFFIXES, "groovy", groovyCompiler)
 
     override fun compilersFor(project: Project, context: KobaltContext) = listOf(compiler)
 
@@ -44,11 +30,9 @@ class GroovyPlugin @Inject constructor(val groovyCompiler: GroovyCompiler) : ICo
         = KFiles.findSourceFiles(project.directory, project.sourceDirectories, GroovyCompiler.SUFFIXES).size > 0
 }
 
-class GroovyCompiler @Inject constructor(dependencyManager: DependencyManager){
+class GroovyCompiler @Inject constructor(dependencyManager: DependencyManager) : ICompiler {
     companion object {
         val SUFFIXES = listOf("groovy")
-        val GROOVY_HOME = homeDir("java/groovy-2.4.7")
-        val GROOVYC = KFiles.joinDir(GROOVY_HOME, "bin/groovyc")
     }
 
     private val groovyCompilerClass: Class<*> by lazy {
@@ -70,7 +54,7 @@ class GroovyCompiler @Inject constructor(dependencyManager: DependencyManager){
         }
     }
 
-    fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
+    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
         val size = info.sourceFiles.size
         log(1, "Groovy compiling " + size + " " + Strings.pluralize(size, "file"))
         val result = invokeGroovyCompiler(info)

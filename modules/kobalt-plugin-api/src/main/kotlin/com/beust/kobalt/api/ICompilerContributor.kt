@@ -2,7 +2,7 @@ package com.beust.kobalt.api
 
 import com.beust.kobalt.TaskResult
 
-interface ICompiler : Comparable<ICompiler> {
+interface ICompilerDescription : Comparable<ICompilerDescription> {
     /**
      * The suffixes handled by this compiler (without the dot, e.g. "java" or "kt").
      */
@@ -27,7 +27,7 @@ interface ICompiler : Comparable<ICompiler> {
      */
     val priority: Int get() = DEFAULT_PRIORITY
 
-    override fun compareTo(other: ICompiler) = priority.compareTo(other.priority)
+    override fun compareTo(other: ICompilerDescription) = priority.compareTo(other.priority)
 
     /**
      * Can this compiler be passed directories or does it need individual source files?
@@ -36,5 +36,5 @@ interface ICompiler : Comparable<ICompiler> {
 }
 
 interface ICompilerContributor : IProjectAffinity, IContributor {
-    fun compilersFor(project: Project, context: KobaltContext): List<ICompiler>
+    fun compilersFor(project: Project, context: KobaltContext): List<ICompilerDescription>
 }

@@ -14,7 +14,8 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
-import java.io.File
+import com.beust.kobalt.plugin.CompilerDescription
+import com.beust.kobalt.plugin.ICompiler
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -85,14 +86,16 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
 //        return TaskResult(success)
 //    }
 
-    private fun compilePrivate(project: Project, cpList: List<IClasspathDependency>, sources: List<String>,
-            outputDirectory: File, compilerArgs: List<String>): TaskResult {
-        return kotlinCompilePrivate {
-            classpath(cpList.map { it.jarFile.get().absolutePath })
-            sourceFiles(sources)
-            compilerArgs(compilerArgs)
-            output = outputDirectory
-        }.compile(project, context)
+    class KotlinCompiler : ICompiler {
+        override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
+            return kotlinCompilePrivate {
+                classpath(info.dependencies.map { it.jarFile.get().absolutePath })
+                sourceFiles(info.sourceFiles)
+                compilerArgs(info.compilerArgs)
+                output = info.outputDir
+            }.compile(project, context)
+        }
+
     }
 
     private fun getKotlinCompilerJar(name: String): String {
@@ -115,33 +118,9 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
 
     // ICompilerContributor
 
-    val compiler = object: ICompiler {
-        override val sourceSuffixes = listOf("kt")
-
-        /** The Kotlin compiler should run before the Java one */
-        override val priority: Int get() = ICompiler.DEFAULT_PRIORITY - 5
-
-        override val sourceDirectory = "kotlin"
-
-        /** kotlinc can be passed directories */
-        override val canCompileDirectories = true
-
-        override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
-            val result =
-                    if (info.sourceFiles.size > 0) {
-                        compilePrivate(project, info.dependencies, info.sourceFiles, info.outputDir, info.compilerArgs)
-                    } else {
-                        warn("Couldn't find any source files")
-                        TaskResult()
-                    }
-
-            lp(project, "Compilation " + if (result.success) "succeeded" else "failed")
-            if (! result.success && result.errorMessage != null) {
-                error(result.errorMessage!!)
-            }
-            return result
-        }
-    }
+    /** The Kotlin compiler should run before the Java one, hence priority - 5 */
+    val compiler = CompilerDescription(listOf("kt"), "kotlin", KotlinCompiler(),
+        ICompilerDescription.DEFAULT_PRIORITY - 5)
 
     override fun compilersFor(project: Project, context: KobaltContext) = arrayListOf(compiler)
 

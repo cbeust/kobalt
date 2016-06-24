@@ -18,7 +18,7 @@ class CompilerUtils @Inject constructor(val files: KFiles,
 
     class CompilerResult(val successResults: List<TaskResult>, val failedResult: TaskResult?)
 
-    fun invokeCompiler(project: Project, context: KobaltContext, compiler: ICompiler,
+    fun invokeCompiler(project: Project, context: KobaltContext, compiler: ICompilerDescription,
             sourceDirectories: List<File>, isTest: Boolean): CompilerResult {
         val results = arrayListOf<TaskResult>()
         var failedResult: TaskResult? = null
@@ -47,7 +47,7 @@ class CompilerUtils @Inject constructor(val files: KFiles,
         return CompilerResult(results, failedResult)
     }
 
-    fun invokeCompiler(project: Project, context: KobaltContext, compiler: ICompiler, info: CompilerActionInfo)
+    fun invokeCompiler(project: Project, context: KobaltContext, compiler: ICompilerDescription, info: CompilerActionInfo)
             : CompilerResult {
         val results = arrayListOf<TaskResult>()
         var failedResult: TaskResult? = null
@@ -63,7 +63,7 @@ class CompilerUtils @Inject constructor(val files: KFiles,
      * Create a CompilerActionInfo (all the information that a compiler needs to know) for the given parameters.
      * Runs all the contributors and interceptors relevant to that task.
      */
-    fun createCompilerActionInfo(project: Project, context: KobaltContext, compiler: ICompiler,
+    fun createCompilerActionInfo(project: Project, context: KobaltContext, compiler: ICompilerDescription,
             isTest: Boolean, sourceDirectories: List<File>, sourceSuffixes: List<String>): CompilerActionInfo {
         copyResources(project, context, SourceSet.of(isTest))
 

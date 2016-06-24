@@ -8,6 +8,7 @@ import com.beust.kobalt.internal.BaseJvmPlugin
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.warn
+import com.beust.kobalt.plugin.CompilerDescription
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -53,24 +54,9 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override va
                         configurationFor(project)?.compilerArgs ?: listOf<String>())
 
     // ICompilerContributor
-    val compiler = object: ICompiler {
-        override val sourceSuffixes = listOf("java")
+    val compiler = CompilerDescription(listOf("java"), "java", javaCompiler)
 
-        override val sourceDirectory = "java"
-
-        override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
-            val result =
-                    if (info.sourceFiles.size > 0) {
-                        javaCompiler.compile(project, context, info)
-                    } else {
-                        warn("Couldn't find any source files to compile")
-                        TaskResult()
-                    }
-            return result
-        }
-    }
-
-    override fun compilersFor(project: Project, context: KobaltContext) = arrayListOf(compiler)
+    override fun compilersFor(project: Project, context: KobaltContext) = listOf(compiler)
 
     // ITestSourceDirectoryContributor
     override fun testSourceDirectoriesFor(project: Project, context: KobaltContext)
