@@ -54,11 +54,12 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
         fun create(groupId: String, artifactId: String, packaging: String?, classifier: String?, version: String?) =
                create(toId(groupId, artifactId, packaging, classifier, version))
 
-        fun toId(groupId: String, artifactId: String, packaging: String? = null, classifier: String? = null, version: String?) =
-                "$groupId:$artifactId" +
-                    (if (packaging != null && packaging != "") ":$packaging" else "") +
-                    (if (classifier != null && classifier != "") ":$classifier" else "") +
-                    ":$version"
+        fun toId(groupId: String, artifactId: String, packaging: String? = null, classifier: String? = null,
+                version: String?) =
+            "$groupId:$artifactId" +
+                (if (packaging != null && packaging != "") ":$packaging" else "") +
+                (if (classifier != null && classifier != "") ":$classifier" else "") +
+                ":$version"
     }
 
 
