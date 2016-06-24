@@ -121,9 +121,11 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
             log(2, "  Need to recompile ${buildFile.name}")
 
             buildScriptJarFile.delete()
+            val buildFileClasspath = Kobalt.buildFileClasspath.map { it.jarFile.get() }.map { it.absolutePath }
             val result = kotlinCompilePrivate {
                 classpath(files.kobaltJar)
                 classpath(pluginUrls.map { it.file })
+                classpath(buildFileClasspath)
                 sourceFiles(listOf(buildFile.realPath.toFile().absolutePath))
                 output = buildScriptJarFile
             }.compile(context = context)

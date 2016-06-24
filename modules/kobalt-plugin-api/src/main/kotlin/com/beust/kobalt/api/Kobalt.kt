@@ -4,6 +4,7 @@ import com.beust.kobalt.Constants
 import com.beust.kobalt.HostConfig
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.internal.PluginInfo
+import com.beust.kobalt.maven.DependencyManager
 import com.google.inject.Guice
 import com.google.inject.Injector
 import com.google.inject.Module
@@ -64,6 +65,13 @@ class Kobalt {
         fun addRepo(repo: HostConfig) = reposFromBuildFiles.add(
                 if (repo.url.endsWith("/")) repo
                 else repo.copy(url = (repo.url + "/")))
+
+        val buildFileClasspath = arrayListOf<IClasspathDependency>()
+
+        fun addBuildFileClasspath(dep: String) {
+            val dependencyManager = Kobalt.INJECTOR.getInstance(DependencyManager::class.java)
+            buildFileClasspath.add(dependencyManager.create(dep))
+        }
 
         private val KOBALT_PROPERTIES = "kobalt.properties"
         private val PROPERTY_KOBALT_VERSION = "kobalt.version"

@@ -58,6 +58,11 @@ fun repos(vararg repos : String) {
 }
 
 @Directive
+fun buildFileClasspath(vararg deps: String) {
+    deps.forEach { Kobalt.addBuildFileClasspath(it) }
+}
+
+@Directive
 fun authRepos(vararg repos : HostConfig) {
     repos.forEach { Kobalt.addRepo(it) }
 }

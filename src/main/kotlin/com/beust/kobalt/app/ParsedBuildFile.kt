@@ -22,6 +22,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         val dependencyManager: DependencyManager, val files: KFiles) {
     val pluginList = arrayListOf<String>()
     val repos = arrayListOf<String>()
+    val buildFileClasspath = arrayListOf<String>()
     val profileLines = arrayListOf<String>()
     val pluginUrls = arrayListOf<URL>()
     val projects = arrayListOf<Project>()
@@ -51,6 +52,11 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
                     index = line.indexOf("repos(")
                     if (index >= 0) {
                         current = repos
+                    } else {
+                        index = line.indexOf("buildFileClasspath(")
+                        if (index >= 0) {
+                            current = buildFileClasspath
+                        }
                     }
                 }
             }
@@ -91,6 +97,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
 
         repos.forEach { preBuildScript.add(it) }
         pluginList.forEach { preBuildScript.add(it) }
+        buildFileClasspath.forEach { preBuildScript.add(it) }
     }
 
     private fun initPluginUrls() {
