@@ -60,7 +60,7 @@ class TaskManager @Inject constructor(val args: Args,
         fun matches(projectName: String) = project == null || project == projectName
     }
 
-    class RunTargetResult(val exitCode: Int, val messages: List<String>)
+    class RunTargetResult(val taskResult: TaskResult, val messages: List<String>)
 
     /**
      * @return the list of tasks available for the given project.
@@ -113,7 +113,7 @@ class TaskManager @Inject constructor(val args: Args,
     }
 
     private fun runProjects(taskInfos: List<TaskInfo>, projects: List<Project>) : RunTargetResult {
-        var result = 0
+        var result = TaskResult()
         val failedProjects = hashSetOf<String>()
         val messages = Collections.synchronizedList(arrayListOf<String>())
         projects.forEach { project ->
@@ -159,11 +159,11 @@ class TaskManager @Inject constructor(val args: Args,
 
                 val executor = DynamicGraphExecutor(graph, factory)
                 val thisResult = executor.run()
-                if (thisResult != 0) {
+                if (! thisResult.success) {
                     log(2, "Marking project ${project.name} as failed")
                     failedProjects.add(project.name)
                 }
-                if (result == 0) {
+                if (result.success) {
                     result = thisResult
                 }
             }

@@ -11,10 +11,7 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.Md5
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.log
-import com.beust.kobalt.misc.warn
+import com.beust.kobalt.misc.*
 import java.io.File
 import java.util.*
 import javax.inject.Inject
@@ -180,12 +177,19 @@ open class JvmCompilerPlugin @Inject constructor(
 
             // If this project has a kapt{} directive, we want to run the Java compiler first
             val hasKapt = project.projectProperties.get("kaptConfig") != null
-            val finalAllCompilers = if (hasKapt) swapJavaAndKotlin(allCompilers) else allCompilers
-            finalAllCompilers.forEach { compiler ->
+            val allCompilersSorted = if (hasKapt) swapJavaAndKotlin(allCompilers) else allCompilers
+            var done = false
+            allCompilersSorted.doWhile({ ! done }) { compiler ->
                 val compilerResults = compilerUtils.invokeCompiler(project, context, compiler,
                         sourceDirectories(project, context), isTest)
                 results.addAll(compilerResults.successResults)
                 if (failedResult == null) failedResult = compilerResults.failedResult
+                compilerResults.failedResult?.let { failedResult ->
+                    done = true
+                    failedResult.errorMessage?.let { errorMessage ->
+                        error(text = errorMessage)
+                    }
+                }
             }
 
             return if (failedResult != null) failedResult!!

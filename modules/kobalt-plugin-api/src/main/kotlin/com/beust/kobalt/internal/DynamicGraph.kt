@@ -129,7 +129,7 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
     val executor = Executors.newFixedThreadPool(5, NamedThreadFactory("DynamicGraphExecutor"))
     val completion = ExecutorCompletionService<TaskResult2<T>>(executor)
 
-    fun run() : Int {
+    fun run() : TaskResult {
         try {
             return run2()
         } finally {
@@ -137,12 +137,12 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
         }
     }
 
-    private fun run2() : Int {
+    private fun run2() : TaskResult {
         var running = 0
-        var gotError = false
         val nodesRun = hashSetOf<T>()
-        var newFreeNodes = HashSet<T>(graph.freeNodes)
-        while (! gotError && (running > 0 || newFreeNodes.size > 0)) {
+        var failedResult: TaskResult? = null
+        val newFreeNodes = HashSet<T>(graph.freeNodes)
+        while (failedResult == null && (running > 0 || newFreeNodes.size > 0)) {
             nodesRun.addAll(newFreeNodes)
             val callables : List<IWorker<T>> = factory.createWorkers(newFreeNodes)
             callables.forEach { completion.submit(it) }
@@ -161,7 +161,9 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
                 } else {
                     log(2, "Task failed: $taskResult")
                     newFreeNodes.clear()
-                    gotError = true
+                    if (failedResult == null) {
+                        failedResult = taskResult
+                    }
                 }
             } catch(ex: TimeoutException) {
                 log(2, "Time out")
@@ -172,15 +174,15 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
                         throw (ex.cause as InvocationTargetException).targetException
                     } else {
                         error("Error: ${ite.cause?.message}", ite.cause)
-                        gotError = true
+                        failedResult = TaskResult(success = false, errorMessage = ite.cause?.message)
                     }
                 } else {
                     error("Error: ${ex.message}", ex)
-                    gotError = true
+                    failedResult = TaskResult(success = false, errorMessage = ex.message)
                 }
             }
         }
-        return if (gotError) 1 else 0
+        return if (failedResult != null) failedResult else TaskResult()
     }
 }
 

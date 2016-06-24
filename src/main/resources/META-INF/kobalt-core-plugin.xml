@@ -13,6 +13,7 @@
         <class-name>com.beust.kobalt.plugin.publish.PublishPlugin</class-name>
         <class-name>com.beust.kobalt.plugin.apt.AptPlugin</class-name>
         <class-name>com.beust.kobalt.internal.JvmCompilerPlugin</class-name>
+        <class-name>com.beust.kobalt.plugin.groovy.GroovyPlugin</class-name>
 
         <!-- These classes manage -init for Java and Kotlin -->
         <class-name>com.beust.kobalt.app.Templates</class-name>
