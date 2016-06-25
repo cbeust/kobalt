@@ -3,6 +3,7 @@ package com.beust.kobalt.app
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.api.IPlugin
+import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.IncrementalTask
@@ -40,8 +41,9 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
         // - all the plug-ins found in the build file
         // - kobalt's own jar file
         val allUrls = (urls + arrayOf(buildScriptJarFile.toURI().toURL())
-                + files.kobaltJar.map {File(it).toURI().toURL() })
-                .toTypedArray()
+                + files.kobaltJar.map {File(it).toURI().toURL() }
+                + Kobalt.buildFileClasspath.map { it.jarFile.get().toURI().toURL()})
+            .toTypedArray()
         val classLoader = URLClassLoader(allUrls)
 
         //
