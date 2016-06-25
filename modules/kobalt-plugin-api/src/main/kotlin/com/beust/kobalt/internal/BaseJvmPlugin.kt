@@ -26,7 +26,9 @@ abstract class BaseJvmPlugin<T>(open val configActor: ConfigActor<T>) :
     // IBuildConfigContributor
 
     private fun hasSourceFiles(project: Project)
-            = KFiles.findSourceFiles(project.directory, project.sourceDirectories, listOf("java")).size > 0
+            = KFiles.findSourceFiles(project.directory, project.sourceDirectories, sourceSuffixes()).size > 0
 
     fun affinity(project: Project) = if (hasSourceFiles(project)) 1 else 0
+
+    abstract fun sourceSuffixes() : List<String>
 }

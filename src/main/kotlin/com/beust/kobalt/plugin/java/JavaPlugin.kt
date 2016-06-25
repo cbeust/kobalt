@@ -17,7 +17,8 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override va
             ITestSourceDirectoryContributor, IBuildConfigContributor {
 
     companion object {
-        const val PLUGIN_NAME = "Java"
+        val PLUGIN_NAME = "Java"
+        val SOURCE_SUFFIXES = listOf("java")
     }
 
     override val name = PLUGIN_NAME
@@ -25,6 +26,8 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override va
     // IDocContributor
     override fun affinity(project: Project, context: KobaltContext) =
             if (accept(project)) 1 else 0
+
+    override fun sourceSuffixes() = SOURCE_SUFFIXES
 
     override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val result =
@@ -44,7 +47,7 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override va
                         configurationFor(project)?.compilerArgs ?: listOf<String>())
 
     // ICompilerContributor
-    val compiler = CompilerDescription(listOf("java"), "java", javaCompiler)
+    val compiler = CompilerDescription(SOURCE_SUFFIXES, "java", javaCompiler)
 
     override fun compilersFor(project: Project, context: KobaltContext) = listOf(compiler)
 

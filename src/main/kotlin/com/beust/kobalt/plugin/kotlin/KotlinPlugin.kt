@@ -24,10 +24,13 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
         IBuildConfigContributor {
 
     companion object {
-        const val PLUGIN_NAME = "Kotlin"
+        val PLUGIN_NAME = "Kotlin"
+        val SOURCE_SUFFIXES = listOf("kt")
     }
 
     override val name = PLUGIN_NAME
+
+    override fun sourceSuffixes() = SOURCE_SUFFIXES
 
     // IDocContributor
     override fun affinity(project: Project, context: KobaltContext) =
@@ -108,7 +111,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
     // ICompilerContributor
 
     /** The Kotlin compiler should run before the Java one, hence priority - 5 */
-    val compiler = CompilerDescription(listOf("kt"), "kotlin", KotlinCompiler(),
+    val compiler = CompilerDescription(SOURCE_SUFFIXES, "kotlin", KotlinCompiler(),
         ICompilerDescription.DEFAULT_PRIORITY - 5)
 
     override fun compilersFor(project: Project, context: KobaltContext) = arrayListOf(compiler)
