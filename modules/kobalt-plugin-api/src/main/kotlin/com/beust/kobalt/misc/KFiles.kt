@@ -32,10 +32,14 @@ class KFiles {
                 if (jarFile.exists()) {
                     return listOf(jarFile.absolutePath)
                 } else {
-                    // Will only happen when building kobalt itself: the jar file might not be in the dist/ directory
-                    // yet since we're currently building it. Instead, use the classes directly
-                    val result = listOf("kobalt", "kobalt-plugin-api", "kobalt-wrapper").map {
-                        File(homeDir(KFiles.joinDir("kotlin", "kobalt", "out", "production", it))).absolutePath
+                    // In development mode, keep your kobalt.properties version one above kobalt-wrapper.properties:
+                    // kobalt.properties:  kobalt.version=0.828
+                    // kobalt-wrapper.properties: kobalt.version=0.827
+                    // When Kobalt can't find the newest jar file, it will instead use the classes produced by IDEA
+                    // in the directories specified here:
+                    val result = listOf("", "modules/kobalt-plugin-api", "modules/wrapper").map {
+                        File(homeDir(KFiles.joinDir("kotlin", "kobalt", it, "kobaltBuild", "classes")))
+                            .absolutePath
                     }
                     debug("Couldn't find ${jarFile.absolutePath}, using\n  " + result.joinToString(" "))
                     return result
