@@ -342,15 +342,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Kobalt: org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:1.0.2">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.0.2/kotlin-compiler-embeddable-1.0.2.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
       <library name="Kobalt: com.google.guava:guava:jar:16.0.1">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/repository/com/google/guava/guava/16.0.1/guava-16.0.1.jar!/" />
@@ -399,6 +390,15 @@
       <library name="Kobalt: org.beanshell:bsh:jar:2.0b4">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/repository/org/beanshell/bsh/2.0b4/bsh-2.0b4.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:1.0.2-1">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/repository/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.0.2-1/kotlin-compiler-embeddable-1.0.2-1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

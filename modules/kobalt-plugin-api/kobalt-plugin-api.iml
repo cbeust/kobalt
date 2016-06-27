@@ -20,7 +20,9 @@
           <root url="jar://$USER_HOME$/.kobalt/repository/org/eclipse/aether/aether-api/1.1.0/aether-api-1.1.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$USER_HOME$/.ideaLibSources/aether-api-1.1.0-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
