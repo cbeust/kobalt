@@ -23,7 +23,6 @@ import org.eclipse.aether.collection.CollectResult
 import org.eclipse.aether.graph.Dependency
 import org.eclipse.aether.graph.DependencyFilter
 import org.eclipse.aether.graph.DependencyNode
-import org.eclipse.aether.metadata.DefaultMetadata
 import org.eclipse.aether.repository.RemoteRepository
 import org.eclipse.aether.resolution.*
 import org.eclipse.aether.transfer.ArtifactNotFoundException
@@ -119,26 +118,33 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
     }
 
     fun resolveVersion(artifact: Artifact): VersionRangeResult? {
-        val metadata = DefaultMetadata(artifact.groupId, artifact.artifactId, "maven-metadata.xml",
-                org.eclipse.aether.metadata.Metadata.Nature.RELEASE)
+        val request = VersionRangeRequest(artifact, kobaltRepositories, null)
+        val result = system.resolveVersionRange(session, request)
+        return result
+    }
 
-        val r = system.resolveMetadata(session, kobaltRepositories.map {
-            MetadataRequest(metadata, it, null).apply {
-                isFavorLocalRepository = false
-            }
-        })
+    private fun oldResolveVErsion() {
+//        val artifact = DefaultArtifact(a.groupId, a.artifactId, null, "[0,)")
+//        val r = system.resolveMetadata(session, kobaltRepositories.map {
+//            MetadataRequest(metadata, it, null).apply {
+//                isFavorLocalRepository = false
+//            }
+//        })
 
-
+//        val metadata = DefaultMetadata(artifact.groupId, artifact.artifactId, "maven-metadata.xml",
+//                org.eclipse.aether.metadata.Metadata.Nature.RELEASE)
+//
 //        kobaltRepositories.forEach {
 //            val request = MetadataRequest(metadata, it, null).apply {
 //                isFavorLocalRepository = false
 //            }
-//            val r = system.resolveMetadata(session, listOf(request))
-//            println("Repo: $it " + r)
+//            val md = system.resolveMetadata(session, listOf(request))
+//            if (artifact.groupId.contains("org.testng")) {
+//                println("DONOTCOMMIT")
+//            }
+//            println("Repo: $it " + md)
 //        }
-        val request = VersionRangeRequest(artifact, kobaltRepositories, null)
-        val result = system.resolveVersionRange(session, request)
-        return result
+
     }
 
     fun resolve(artifact: Artifact): List<ArtifactResult> {
