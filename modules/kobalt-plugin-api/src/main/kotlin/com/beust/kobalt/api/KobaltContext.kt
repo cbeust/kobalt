@@ -21,6 +21,8 @@ class KobaltContext(val args: Args) {
 
     fun findPlugin(name: String) = Plugins.findPlugin(name)
 
+    val allProjects = arrayListOf<Project>()
+
     /** For internal use only */
     val internalContext = InternalContext()
 

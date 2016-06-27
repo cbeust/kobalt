@@ -235,6 +235,7 @@ private class Main @Inject constructor(
         }
 
         val allProjects = findProjectResult.projects
+        findProjectResult.context.allProjects.addAll(allProjects)
 
         //
         // Now that we have projects, add all the repos from repo contributors that need a Project
