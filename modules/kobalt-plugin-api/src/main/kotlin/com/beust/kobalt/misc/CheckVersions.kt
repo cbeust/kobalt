@@ -11,7 +11,7 @@ import javax.inject.Inject
 /**
  * Find out if any newer versions of the dependencies are available.
  */
-public class CheckVersions @Inject constructor(val depManager: DependencyManager,
+class CheckVersions @Inject constructor(val depManager: DependencyManager,
         val executors : KobaltExecutors, val aether: Aether) {
 
     fun run(projects: List<Project>) = projects.forEach { run(it) }
