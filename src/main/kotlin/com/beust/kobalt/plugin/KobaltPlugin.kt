@@ -24,7 +24,7 @@ class KobaltPlugin @Inject constructor(val checkVersions: CheckVersions, val upd
 
     @Task(name = "checkVersions", description = "Display all the outdated dependencies")
     fun taskCheckVersions(project: Project) : TaskResult {
-        checkVersions.run(context.allProjects)
+        checkVersions.run(project)
         return TaskResult()
     }
 
