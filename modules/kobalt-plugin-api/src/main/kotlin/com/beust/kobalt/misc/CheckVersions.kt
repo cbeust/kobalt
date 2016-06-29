@@ -27,9 +27,14 @@ class CheckVersions @Inject constructor(val depManager: DependencyManager,
                         val latestDep = depManager.create(dep.shortId, project.directory)
                         val artifact = (latestDep as AetherDependency).artifact
                         val versions = aether.resolveVersion(artifact)
-                        val highest = versions?.highestVersion?.toString()
-                        if (highest != null && highest != dep.id
-                               && Versions.toLongVersion(highest) > Versions.toLongVersion(dep.version)) {
+                        val releases = versions?.versions?.filter { !it.toString().contains("SNAP")}
+                        val highest = if (releases != null && releases.any()) {
+                                releases.last().toString()
+                            } else {
+                                versions?.highestVersion.toString()
+                            }
+                        if (highest != dep.id
+                                && Versions.toLongVersion(highest) > Versions.toLongVersion(dep.version)) {
                             newVersions.add(artifact.groupId + ":" + artifact.artifactId + ":" + highest)
                         }
                     } catch(e: KobaltException) {
