@@ -4,8 +4,10 @@ import com.beust.kobalt.Args
 import com.beust.kobalt.api.ITemplate
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.app.ProjectFinder
 import com.beust.kobalt.app.Templates
 import com.beust.kobalt.internal.PluginInfo
+import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.internal.eventbus.ArtifactDownloadedEvent
 import com.google.common.collect.ListMultimap
 import com.google.common.eventbus.EventBus
@@ -17,6 +19,7 @@ import org.eclipse.jetty.websocket.api.WebSocketListener
 import spark.ResponseTransformer
 import spark.Route
 import spark.Spark
+import java.nio.file.Paths
 import java.util.concurrent.Executors
 
 class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallback: () -> Unit,
@@ -87,6 +90,10 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
 }
 
 class GetDependenciesChatHandler : WebSocketListener {
+    // The SparkJava project refused to merge https://github.com/perwendel/spark/pull/383
+    // so I have to do dependency injections manually :-(
+    val projectFinder = Kobalt.INJECTOR.getInstance(ProjectFinder::class.java)
+
     var session: Session? = null
 
     override fun onWebSocketClose(code: Int, reason: String?) {
@@ -128,6 +135,9 @@ class GetDependenciesChatHandler : WebSocketListener {
                 try {
                     val dependencyData = getInstance(DependencyData::class.java)
                     val args = getInstance(Args::class.java)
+
+                    val allProjects = projectFinder.initForBuildFile(BuildFile(Paths.get(buildFile), buildFile),
+                            args)
 
                     dependencyData.dependenciesDataFor(buildFile, args, object : IProgressListener {
                         override fun onProgress(progress: Int?, message: String?) {

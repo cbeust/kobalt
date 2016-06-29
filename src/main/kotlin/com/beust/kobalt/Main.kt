@@ -4,9 +4,7 @@ import com.beust.jcommander.JCommander
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.PluginTask
-import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.*
-import com.beust.kobalt.app.remote.DependencyData
 import com.beust.kobalt.app.remote.KobaltClient
 import com.beust.kobalt.app.remote.KobaltServer
 import com.beust.kobalt.internal.Gc
@@ -22,7 +20,6 @@ import com.google.common.collect.HashMultimap
 import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Paths
-import java.util.*
 import javax.inject.Inject
 
 fun main(argv: Array<String>) {
@@ -53,7 +50,6 @@ fun mainNoExit(argv: Array<String>): Int {
 }
 
 private class Main @Inject constructor(
-        val buildFileCompilerFactory: BuildFileCompiler.IFactory,
         val plugins: Plugins,
         val taskManager: TaskManager,
         val http: Http,
@@ -65,9 +61,9 @@ private class Main @Inject constructor(
         val updateKobalt: UpdateKobalt,
         val client: KobaltClient,
         val pluginInfo: PluginInfo,
-        val dependencyData: DependencyData,
         val projectGenerator: ProjectGenerator,
         val serverFactory: KobaltServer.IFactory,
+        val projectFinder: ProjectFinder,
         val resolveDependency: ResolveDependency) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
@@ -160,7 +156,7 @@ private class Main @Inject constructor(
         } else if (args.serverMode) {
             // --server
             val port = serverFactory.create(args.force, args.port,
-                    { buildFile -> initForBuildFile(BuildFile(Paths.get(buildFile), buildFile), args)},
+                    { buildFile -> projectFinder.initForBuildFile(BuildFile(Paths.get(buildFile), buildFile), args)},
                     { cleanUp() })
                 .call()
         } else {
@@ -178,7 +174,7 @@ private class Main @Inject constructor(
                     error(buildFile.path.toFile().path + " does not exist")
                 } else {
 
-                    val allProjects = initForBuildFile(buildFile, args)
+                    val allProjects = projectFinder.initForBuildFile(buildFile, args)
 
                     // DONOTCOMMIT
 //                    val data = dependencyData.dependenciesDataFor(homeDir("kotlin/klaxon/kobalt/src/Build.kt"), Args())
@@ -221,46 +217,22 @@ private class Main @Inject constructor(
         return result
     }
 
+    private fun findBuildFile() : File {
+        val deprecatedLocation = File(Constants.BUILD_FILE_NAME)
+        val result: File =
+                if (deprecatedLocation.exists()) {
+                    warn(Constants.BUILD_FILE_NAME + " is in a deprecated location, please move it to "
+                            + Constants.BUILD_FILE_DIRECTORY)
+                    deprecatedLocation
+                } else {
+                    File(KFiles.joinDir(Constants.BUILD_FILE_DIRECTORY, Constants.BUILD_FILE_NAME))
+                }
+        return result
+    }
+
     private fun cleanUp() {
         pluginInfo.cleanUp()
         taskManager.cleanUp()
-    }
-
-    private fun initForBuildFile(buildFile: BuildFile, args: Args): List<Project> {
-        val findProjectResult = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
-                .compileBuildFiles(args)
-        if (! findProjectResult.taskResult.success) {
-            throw KobaltException("Couldn't compile build file: "
-                    + findProjectResult.taskResult.errorMessage)
-        }
-
-        val allProjects = findProjectResult.projects
-        findProjectResult.context.allProjects.addAll(allProjects)
-
-        //
-        // Now that we have projects, add all the repos from repo contributors that need a Project
-        //
-        allProjects.forEach { project ->
-            pluginInfo.repoContributors.forEach {
-                it.reposFor(project).forEach {
-                    Kobalt.addRepo(it)
-                }
-            }
-        }
-
-        //
-        // Run all the dependencies through the IDependencyInterceptors
-        //
-        runClasspathInterceptors(allProjects)
-
-        log(2, "Final list of repos:\n  " + Kobalt.repos.joinToString("\n  "))
-
-        //
-        // Call apply() on all plug-ins now that the repos are set up
-        //
-        plugins.applyPlugins(Kobalt.context!!, allProjects)
-
-        return allProjects
     }
 
     private fun displayTasks() {
@@ -285,49 +257,5 @@ private class Main @Inject constructor(
         }
 
         println(sb.toString())
-    }
-
-    private fun runClasspathInterceptors(allProjects: List<Project>) {
-        allProjects.forEach {
-            runClasspathInterceptors(it, it.compileDependencies)
-            runClasspathInterceptors(it, it.compileProvidedDependencies)
-            runClasspathInterceptors(it, it.compileRuntimeDependencies)
-            runClasspathInterceptors(it, it.testProvidedDependencies)
-            runClasspathInterceptors(it, it.testDependencies)
-            runClasspathInterceptors(it, it.nativeDependencies)
-        }
-    }
-
-    private fun runClasspathInterceptors(project: Project, dependencies: ArrayList<IClasspathDependency>)
-            = with(dependencies) {
-                if (pluginInfo.classpathInterceptors.size > 0) {
-                    val deps = interceptDependencies(project, pluginInfo, this)
-                    clear()
-                    addAll(deps)
-                } else {
-                    this
-                }
-            }
-
-    private fun interceptDependencies(project: Project, pluginInfo: PluginInfo,
-            dependencies: ArrayList<IClasspathDependency>) : ArrayList<IClasspathDependency> {
-        val result = arrayListOf<IClasspathDependency>()
-        pluginInfo.classpathInterceptors.forEach {
-            result.addAll(it.intercept(project, dependencies))
-        }
-        return result
-    }
-
-    private fun findBuildFile() : File {
-        val deprecatedLocation = File(Constants.BUILD_FILE_NAME)
-        val result: File =
-            if (deprecatedLocation.exists()) {
-                warn(Constants.BUILD_FILE_NAME + " is in a deprecated location, please move it to "
-                        + Constants.BUILD_FILE_DIRECTORY)
-                deprecatedLocation
-            } else {
-                File(KFiles.joinDir(Constants.BUILD_FILE_DIRECTORY, Constants.BUILD_FILE_NAME))
-            }
-        return result
     }
 }
