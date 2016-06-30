@@ -11,7 +11,6 @@ import com.beust.kobalt.internal.KotlinJarFiles
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -111,7 +110,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
     // ICompilerContributor
 
     /** The Kotlin compiler should run before the Java one, hence priority - 5 */
-    val compiler = CompilerDescription(SOURCE_SUFFIXES, "kotlin", KotlinCompiler(),
+    val compiler = CompilerDescription(PLUGIN_NAME, "kotlin", SOURCE_SUFFIXES, KotlinCompiler(),
         ICompilerDescription.DEFAULT_PRIORITY - 5)
 
     override fun compilersFor(project: Project, context: KobaltContext) = arrayListOf(compiler)
@@ -122,10 +121,6 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
 //        dokkaConfigurations.put(project.name, dokkaConfig)
 //    }
 
-    protected fun lp(project: Project, s: String) {
-        log(2, "${project.name}: $s")
-    }
-
     override val buildConfigSuffix = "kt"
 
     override fun generateBuildConfig(project: Project, context: KobaltContext, packageName: String,
@@ -135,7 +130,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
 }
 
 /**
- * @param project: the list of projects that need to be built before this one.
+ * @param projects: the list of projects that need to be built before this one.
  */
 @Directive
 fun kotlinProject(vararg projects: Project, init: Project.() -> Unit): Project {

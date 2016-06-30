@@ -47,7 +47,7 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override va
                         configurationFor(project)?.compilerArgs ?: listOf<String>())
 
     // ICompilerContributor
-    val compiler = CompilerDescription(SOURCE_SUFFIXES, "java", javaCompiler)
+    val compiler = CompilerDescription(PLUGIN_NAME, "java", SOURCE_SUFFIXES, javaCompiler)
 
     override fun compilersFor(project: Project, context: KobaltContext) = listOf(compiler)
 

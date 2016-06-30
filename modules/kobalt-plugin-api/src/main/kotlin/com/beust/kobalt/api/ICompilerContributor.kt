@@ -5,6 +5,11 @@ import com.beust.kobalt.misc.warn
 
 interface ICompilerDescription : Comparable<ICompilerDescription> {
     /**
+     * The name of the language compiled by this compiler.
+     */
+    val name: String
+
+    /**
      * The suffixes handled by this compiler (without the dot, e.g. "java" or "kt").
      */
     val sourceSuffixes: List<String>
@@ -44,17 +49,17 @@ interface ICompiler {
     fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult
 }
 
-class CompilerDescription(override val sourceSuffixes: List<String>, override val sourceDirectory: String,
-        val compiler: ICompiler, override val priority: Int = ICompilerDescription.DEFAULT_PRIORITY)
-: ICompilerDescription {
+class CompilerDescription(override val name: String,  override val sourceDirectory: String,
+        override val sourceSuffixes: List<String>, val compiler: ICompiler,
+        override val priority: Int = ICompilerDescription.DEFAULT_PRIORITY) : ICompilerDescription {
     override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
         val result =
-                if (info.sourceFiles.size > 0) {
-                    compiler.compile(project, context, info)
-                } else {
-                    warn("Couldn't find any source files to compile")
-                    TaskResult()
-                }
+            if (info.sourceFiles.size > 0) {
+                compiler.compile(project, context, info)
+            } else {
+                warn("Couldn't find any source files to compile")
+                TaskResult()
+            }
         return result
     }
 }

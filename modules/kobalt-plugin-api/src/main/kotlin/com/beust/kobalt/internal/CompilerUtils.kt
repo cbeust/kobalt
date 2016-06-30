@@ -41,7 +41,7 @@ class CompilerUtils @Inject constructor(val files: KFiles,
                 failedResult = thisResult.failedResult
             }
         } else {
-            log(2, "Compiler $compiler not running on ${project.name} since no source files were found")
+            log(2, "${compiler.name} compiler not running on ${project.name} since no source files were found")
         }
 
         return CompilerResult(results, failedResult)
