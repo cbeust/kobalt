@@ -8,6 +8,8 @@ open class JUnitRunner() : GenericTestRunner() {
 
     override val mainClass = "org.junit.runner.JUnitCore"
 
+    override val annotationPackage = "org.junit"
+
     override val dependencyName = "junit"
 
     override fun args(project: Project, classpath: List<IClasspathDependency>, testConfig: TestConfig)

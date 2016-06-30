@@ -2,10 +2,12 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.*
 import com.beust.kobalt.api.*
+import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.common.annotations.VisibleForTesting
 import java.io.File
+import java.net.URLClassLoader
 import java.util.*
 
 /**
@@ -15,6 +17,7 @@ import java.util.*
 abstract class GenericTestRunner: ITestRunnerContributor {
     abstract val dependencyName : String
     abstract val mainClass: String
+    abstract val annotationPackage: String
     abstract fun args(project: Project, classpath: List<IClasspathDependency>, testConfig: TestConfig) : List<String>
 
     override fun run(project: Project, context: KobaltContext, configName: String,
@@ -26,19 +29,60 @@ abstract class GenericTestRunner: ITestRunnerContributor {
             else 0
 
     protected fun findTestClasses(project: Project, testConfig: TestConfig): List<String> {
-        val path = KFiles.joinDir(project.buildDirectory, KFiles.TEST_CLASSES_DIR).apply {
+        val testClassDir = KFiles.joinDir(project.buildDirectory, KFiles.TEST_CLASSES_DIR)
+        val path = testClassDir.apply {
             File(this).mkdirs()
         }
 
+        val dependencyManager = Kobalt.INJECTOR.getInstance(DependencyManager::class.java)
+        val allDeps = arrayListOf<IClasspathDependency>().apply {
+            addAll(project.testDependencies)
+            project.dependencies?.let {
+                addAll(it.dependencies)
+            }
+        }
+        val testClasspath = dependencyManager.transitiveClosure(allDeps)
         val result = IFileSpec.GlobSpec(toClassPaths(testConfig.testIncludes))
-            .toFiles(project.directory, path, testConfig.testExcludes.map {
+                .toFiles(project.directory, path, testConfig.testExcludes.map {
                     Glob(it)
-                }).map {
-                    it.toString().replace("/", ".").replace("\\", ".").replace(".class", "")
-                }
+                })
+                .map {
+                    Pair(it, it.toString().replace("/", ".").replace("\\", ".").replace(".class", ""))
+                }.filter {
+            acceptClass(it.first, it.second, testClasspath, File(testClassDir))
+        }
 
         log(2, "Found ${result.size} test classes")
-        return result
+        return result.map { it.second }
+    }
+
+    /**
+     * Accept the given class if it contains an annotation of the current test runner's package. Annotations
+     * are looked up on both the classes and methods.
+     */
+    private fun acceptClass(cf: File, className: String, testClasspath: List<IClasspathDependency>,
+            testClassDir: File): Boolean {
+        val cp = (testClasspath.map { it.jarFile.get() } + listOf(testClassDir)).map { it.toURI().toURL() }
+        try {
+            val cls = URLClassLoader(cp.toTypedArray()).loadClass(className)
+            val ann = cls.annotations.filter {
+                val qn = it.annotationClass.qualifiedName
+                qn != null && qn.contains(annotationPackage)
+            }
+            if (ann.any()) {
+                return true
+            } else {
+                val ann2 = cls.declaredMethods.flatMap { it.declaredAnnotations.toList() }.filter { it.toString()
+                        .contains(annotationPackage)}
+                if (ann2.any()) {
+                    val a0 = ann2[0]
+                    return true
+                }
+            }
+        } catch(ex: Throwable) {
+            return false
+        }
+        return false
     }
 
     private fun toClassPaths(paths: List<String>): ArrayList<String> =
