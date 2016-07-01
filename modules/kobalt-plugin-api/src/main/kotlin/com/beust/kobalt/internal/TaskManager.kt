@@ -58,6 +58,8 @@ class TaskManager @Inject constructor(val args: Args,
             get() = if (id.contains(":")) id.split(":")[1] else id
 
         fun matches(projectName: String) = project == null || project == projectName
+
+        override fun toString() = taskName
     }
 
     class RunTargetResult(val taskResult: TaskResult, val messages: List<String>)
