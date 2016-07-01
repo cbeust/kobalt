@@ -59,7 +59,7 @@ class TaskManager @Inject constructor(val args: Args,
 
         fun matches(projectName: String) = project == null || project == projectName
 
-        override fun toString() = taskName
+        override fun toString() = id
     }
 
     class RunTargetResult(val taskResult: TaskResult, val messages: List<String>)
