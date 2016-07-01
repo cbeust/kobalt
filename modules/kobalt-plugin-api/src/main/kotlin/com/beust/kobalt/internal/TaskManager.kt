@@ -79,7 +79,17 @@ class TaskManager @Inject constructor(val args: Args,
     }
 
     fun runTargets(passedTaskNames: List<String>, allProjects: List<Project>): RunTargetResult {
-        val taskInfos = calculateDependentTaskNames(passedTaskNames, allProjects)
+        // Check whether tasks passed at command line exist
+        passedTaskNames.forEach {
+            if (!hasTask(TaskInfo(it)))
+                throw KobaltException("Unknown task: $it")
+        }
+
+        var taskInfos = calculateDependentTaskNames(passedTaskNames, allProjects)
+
+       // Remove not existing tasks (e.g. dynamic task defined for a single project)
+        taskInfos = taskInfos.filter { hasTask(it) }
+
         val projectsToRun = findProjectsToRun(taskInfos, allProjects)
         return runProjects(taskInfos, projectsToRun)
     }
@@ -481,6 +491,12 @@ class TaskManager @Inject constructor(val args: Args,
         runBefore.forEach { runBefore(it, name) }
         runAfter.forEach { runAfter(it, name) }
         alwaysRunAfter.forEach { alwaysRunAfter(it, name) }
+    }
+
+    fun hasTask(ti: TaskInfo): Boolean {
+        val taskName = ti.taskName
+        val project = ti.project
+        return annotationTasks.any { taskName == it.name && (project == null || project == it.project.name) }
     }
 
     /**
