@@ -43,14 +43,13 @@ abstract class GenericTestRunner: ITestRunnerContributor {
         }
         val testClasspath = dependencyManager.transitiveClosure(allDeps)
         val result = IFileSpec.GlobSpec(toClassPaths(testConfig.testIncludes))
-                .toFiles(project.directory, path, testConfig.testExcludes.map {
-                    Glob(it)
-                })
-                .map {
-                    Pair(it, it.toString().replace("/", ".").replace("\\", ".").replace(".class", ""))
-                }.filter {
-            acceptClass(it.first, it.second, testClasspath, File(testClassDir))
-        }
+            .toFiles(project.directory, path, testConfig.testExcludes.map {
+                Glob(it)
+            }).map {
+                Pair(it, it.toString().replace("/", ".").replace("\\", ".").replace(".class", ""))
+            }.filter {
+                acceptClass(it.first, it.second, testClasspath, File(testClassDir))
+            }
 
         log(2, "Found ${result.size} test classes")
         return result.map { it.second }
