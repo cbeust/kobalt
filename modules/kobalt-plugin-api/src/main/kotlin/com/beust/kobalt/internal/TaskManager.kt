@@ -87,7 +87,7 @@ class TaskManager @Inject constructor(val args: Args,
 
         var taskInfos = calculateDependentTaskNames(passedTaskNames, allProjects)
 
-       // Remove not existing tasks (e.g. dynamic task defined for a single project)
+        // Remove not existing tasks (e.g. dynamic task defined for a single project)
         taskInfos = taskInfos.filter { hasTask(it) }
 
         val projectsToRun = findProjectsToRun(taskInfos, allProjects)
@@ -277,9 +277,6 @@ class TaskManager @Inject constructor(val args: Args,
         // Keep only the tasks we need to run.
         //
         val taskInfos = passedTasks.filter {
-            if (!nodeMap.keys().contains(it.taskName)) {
-                throw KobaltException("Unknown task: $it")
-            }
             it.matches(projectName)
         }
 
