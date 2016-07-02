@@ -144,9 +144,10 @@ class GetDependenciesChatHandler : WebSocketListener {
                             sendWebsocketCommand(s.remote, ProgressCommand.NAME, ProgressCommand(progress, message))
                         }
                     })
-                } catch(ex: Exception) {
+                } catch(ex: Throwable) {
                     ex.printStackTrace()
-                    DependencyData.GetDependenciesData(errorMessage = ex.message)
+                    val errorMessage = ex.stackTrace.map { it.toString() }.joinToString("\n<p>")
+                    DependencyData.GetDependenciesData(errorMessage = errorMessage)
                 } finally {
                     SparkServer.cleanUpCallback()
                     eventBus.unregister(busListener)
