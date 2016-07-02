@@ -129,16 +129,15 @@ class CompilerUtils @Inject constructor(val files: KFiles,
 
         fun containsJavaFiles(dir: File) : Boolean {
             if (dir.isDirectory) {
-                var hasJava = false
                 val directories = arrayListOf<File>()
                 dir.listFiles().forEach {
-                    hasJava = it.isFile && it.name.endsWith("java")
+                    if (it.isFile && it.name.endsWith("java")) return true
                     if (it.isDirectory) directories.add(it)
                 }
-                if (hasJava) return true
-                else return directories.any { containsJavaFiles(it) }
+                return directories.any { containsJavaFiles(it) }
+            } else {
+                return false
             }
-            return false
         }
 
         if (sourceSuffixes.any { it.contains("kt")}) {
