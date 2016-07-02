@@ -126,21 +126,32 @@ class CompilerUtils @Inject constructor(val files: KFiles,
         // Note: this should actually be queried on the compiler object so that this method, which
         // is compiler agnostic, doesn't hardcode Kotlin specific stuff
         val extraSourceFiles = arrayListOf<String>()
+
+        fun containsJavaFiles(dir: File) : Boolean {
+            if (dir.isDirectory) {
+                var hasJava = false
+                val directories = arrayListOf<File>()
+                dir.listFiles().forEach {
+                    hasJava = it.isFile && it.name.endsWith("java")
+                    if (it.isDirectory) directories.add(it)
+                }
+                if (hasJava) return true
+                else return directories.any { containsJavaFiles(it) }
+            }
+            return false
+        }
+
         if (sourceSuffixes.any { it.contains("kt")}) {
             project.sourceDirectories.forEach {
-                val javaDir = KFiles.joinDir(project.directory, it)
-                if (File(javaDir).exists()) {
-                    if (it.contains("java")) {
-                        extraSourceFiles.add(javaDir)
-                        // Add all the source directories contributed as potential Java directories too
-                        // (except our own)
-                        context.pluginInfo.sourceDirContributors
-//                                .filter { it != this }
-                                .forEach {
-                                    extraSourceFiles.addAll(it.sourceDirectoriesFor(project, context).map { it.path })
-                                }
-
-                    }
+                val javaDir = File(KFiles.joinDir(project.directory, it))
+                if (javaDir.exists() && containsJavaFiles(javaDir)) {
+                    extraSourceFiles.add(javaDir.path)
+                    // Add all the source directories contributed as potential Java directories too
+                    // (except our own)
+                    context.pluginInfo.sourceDirContributors
+                        .forEach {
+                            extraSourceFiles.addAll(it.sourceDirectoriesFor(project, context).map { it.path })
+                        }
                 }
             }
         }
