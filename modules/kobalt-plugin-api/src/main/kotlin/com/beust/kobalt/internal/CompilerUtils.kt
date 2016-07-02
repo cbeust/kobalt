@@ -89,26 +89,26 @@ class CompilerUtils @Inject constructor(val files: KFiles,
         val initialSourceDirectories = ArrayList<File>(sourceDirectories)
         // Source directories from the contributors
         val contributedSourceDirs =
-                if (isTest) {
-                    context.pluginInfo.testSourceDirContributors.flatMap { it.testSourceDirectoriesFor(project, context) }
-                } else {
-                    context.pluginInfo.sourceDirContributors.flatMap { it.sourceDirectoriesFor(project, context) }
-                }
+            if (isTest) {
+                context.pluginInfo.testSourceDirContributors.flatMap { it.testSourceDirectoriesFor(project, context) }
+            } else {
+                context.pluginInfo.sourceDirContributors.flatMap { it.sourceDirectoriesFor(project, context) }
+            }
 
         initialSourceDirectories.addAll(contributedSourceDirs)
 
         // Transform them with the interceptors, if any
         val allSourceDirectories =
-                if (isTest) {
-                    initialSourceDirectories
-                } else {
-                    context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories.toList(),
-                            { sd, interceptor -> interceptor.intercept(project, context, sd) })
-                }.filter {
-                    File(project.directory, it.path).exists()
-                }.filter {
-                    ! KFiles.isResource(it.path)
-                }.distinct()
+            if (isTest) {
+                initialSourceDirectories
+            } else {
+                context.pluginInfo.sourceDirectoriesInterceptors.fold(initialSourceDirectories.toList(),
+                        { sd, interceptor -> interceptor.intercept(project, context, sd) })
+            }.filter {
+                File(project.directory, it.path).exists()
+            }.filter {
+                ! KFiles.isResource(it.path)
+            }.distinct()
 
         // Now that we have all the source directories, find all the source files in them
         val projectDirectory = File(project.directory)
