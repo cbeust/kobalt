@@ -121,6 +121,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
             VersionFile.generateVersionFile(buildScriptJarFile.parentFile)
             Kobalt.context!!.internalContext.buildFileOutOfDate = true
         }
+        pluginSourceFile.delete()
 
         //
         // Run preBuildScript.jar to initialize plugins and repos

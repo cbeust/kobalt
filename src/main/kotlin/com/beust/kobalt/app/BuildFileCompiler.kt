@@ -95,6 +95,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
             val taskResult = maybeCompileBuildFile(context, BuildFile(Paths.get(modifiedBuildFile.path),
                     "Modified ${Constants.BUILD_FILE_NAME}", buildFile.realPath),
                     buildScriptJarFile, pluginUrls)
+            modifiedBuildFile.delete()
             if (taskResult.success) {
                 projects.addAll(buildScriptUtil.runBuildScriptJarFile(buildScriptJarFile, pluginUrls, context))
             } else {
