@@ -2,6 +2,7 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.IClasspathDependency
+import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.warn
@@ -17,8 +18,8 @@ class TestNgRunner : GenericTestRunner() {
 
     fun defaultOutput(project: Project) = KFiles.joinDir(project.buildDirectory, "test-output")
 
-    override fun args(project: Project, classpath: List<IClasspathDependency>, testConfig: TestConfig)
-            = arrayListOf<String>().apply {
+    override fun args(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
+            testConfig: TestConfig) = arrayListOf<String>().apply {
         var addOutput = true
         testConfig.testArgs.forEach { arg ->
             if (arg == "-d") addOutput = false
@@ -30,7 +31,7 @@ class TestNgRunner : GenericTestRunner() {
             if (testngXml.exists()) {
                 add(testngXml.absolutePath)
             } else {
-                val testClasses = findTestClasses(project, testConfig)
+                val testClasses = findTestClasses(project, context, testConfig)
                 if (testClasses.size > 0) {
                     if (addOutput) {
                         add("-d")

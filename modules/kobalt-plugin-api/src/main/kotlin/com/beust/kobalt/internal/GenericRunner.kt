@@ -2,12 +2,10 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.*
 import com.beust.kobalt.api.*
-import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.common.annotations.VisibleForTesting
 import java.io.File
-import java.net.URLClassLoader
 import java.util.*
 
 /**
@@ -18,7 +16,8 @@ abstract class GenericTestRunner: ITestRunnerContributor {
     abstract val dependencyName : String
     abstract val mainClass: String
     abstract val annotationPackage: String
-    abstract fun args(project: Project, classpath: List<IClasspathDependency>, testConfig: TestConfig) : List<String>
+    abstract fun args(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
+            testConfig: TestConfig) : List<String>
 
     override fun run(project: Project, context: KobaltContext, configName: String,
             classpath: List<IClasspathDependency>)
@@ -28,28 +27,28 @@ abstract class GenericTestRunner: ITestRunnerContributor {
             if (project.testDependencies.any { it.id.contains(dependencyName)}) IAffinity.DEFAULT_POSITIVE_AFFINITY
             else 0
 
-    protected fun findTestClasses(project: Project, testConfig: TestConfig): List<String> {
+    protected fun findTestClasses(project: Project, context: KobaltContext, testConfig: TestConfig): List<String> {
         val testClassDir = KFiles.joinDir(project.buildDirectory, KFiles.TEST_CLASSES_DIR)
         val path = testClassDir.apply {
             File(this).mkdirs()
         }
 
-        val dependencyManager = Kobalt.INJECTOR.getInstance(DependencyManager::class.java)
-        val allDeps = arrayListOf<IClasspathDependency>().apply {
-            addAll(project.testDependencies)
-            project.dependencies?.let {
-                addAll(it.dependencies)
-            }
-        }
-        val testClasspath = dependencyManager.transitiveClosure(allDeps)
-        val result = IFileSpec.GlobSpec(toClassPaths(testConfig.testIncludes))
+        val testClasses = IFileSpec.GlobSpec(toClassPaths(testConfig.testIncludes))
             .toFiles(project.directory, path, testConfig.testExcludes.map {
                 Glob(it)
             }).map {
-                Pair(it, it.toString().replace("/", ".").replace("\\", ".").replace(".class", ""))
-            }.filter {
-                acceptClass(it.first, it.second, testClasspath, File(testClassDir))
+                File(KFiles.joinDir(project.directory, testClassDir, it.path))
             }
+        val result = testClasses.map {
+            val prefix = KFiles.joinDir(project.directory, testClassDir)
+            val className = it.toString().substring(prefix.length + 1)
+                    .replace("/", ".").replace("\\", ".").replace(".class", "")
+            Pair(it, className)
+        }
+//            .filter {
+//                val result = acceptClass(it.first, it.second, testClasspath, File(testClassDir))
+//                result
+//            }
 
         log(2, "Found ${result.size} test classes")
         return result.map { it.second }
@@ -59,30 +58,31 @@ abstract class GenericTestRunner: ITestRunnerContributor {
      * Accept the given class if it contains an annotation of the current test runner's package. Annotations
      * are looked up on both the classes and methods.
      */
-    private fun acceptClass(cf: File, className: String, testClasspath: List<IClasspathDependency>,
-            testClassDir: File): Boolean {
-        val cp = (testClasspath.map { it.jarFile.get() } + listOf(testClassDir)).map { it.toURI().toURL() }
-        try {
-            val cls = URLClassLoader(cp.toTypedArray()).loadClass(className)
-            val ann = cls.annotations.filter {
-                val qn = it.annotationClass.qualifiedName
-                qn != null && qn.contains(annotationPackage)
-            }
-            if (ann.any()) {
-                return true
-            } else {
-                val ann2 = cls.declaredMethods.flatMap { it.declaredAnnotations.toList() }.filter { it.toString()
-                        .contains(annotationPackage)}
-                if (ann2.any()) {
-                    val a0 = ann2[0]
-                    return true
-                }
-            }
-        } catch(ex: Throwable) {
-            return false
-        }
-        return false
-    }
+//    private fun acceptClass(cf: File, className: String, testClasspath: List<IClasspathDependency>,
+//            testClassDir: File): Boolean {
+//        val cp = (testClasspath.map { it.jarFile.get() } + listOf(testClassDir)).map { it.toURI().toURL() }
+//        try {
+//            val cls = URLClassLoader(cp.toTypedArray()).loadClass(className)
+//            val ann = cls.annotations.filter {
+//                val qn = it.annotationClass.qualifiedName
+//                qn != null && qn.contains(annotationPackage)
+//            }
+//            if (ann.any()) {
+//                return true
+//            } else {
+//                val ann2 = cls.declaredMethods.flatMap { it.declaredAnnotations.toList() }.filter { it.toString()
+//                        .contains(annotationPackage)}
+//                if (ann2.any()) {
+//                    val a0 = ann2[0]
+//                    return true
+//                }
+//            }
+//        } catch(ex: Throwable) {
+//            println("Exception: " + ex.message)
+//            return false
+//        }
+//        return false
+//    }
 
     private fun toClassPaths(paths: List<String>): ArrayList<String> =
             paths.map { if (it.endsWith("class")) it else it + "class" }.toCollection(ArrayList())
@@ -97,7 +97,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
         val testConfig = project.testConfigs.firstOrNull { it.name == configName }
 
         if (testConfig != null) {
-            val args = args(project, classpath, testConfig)
+            val args = args(project, context, classpath, testConfig)
             if (args.size > 0) {
 
                 val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable

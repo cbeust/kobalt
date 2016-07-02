@@ -92,8 +92,8 @@ open class JvmCompilerPlugin @Inject constructor(
         val runContributor = ActorUtils.selectAffinityActor(project, context,
                 context.pluginInfo.testRunnerContributors)
         if (runContributor != null && runContributor.affinity(project, context) > 0) {
-            return runContributor.run(project, context, configName, dependencyManager.testDependencies(project,
-                    context))
+            return runContributor.run(project, context, configName,
+                    dependencyManager.testDependencies(project, context))
         } else {
             log(1, "Couldn't find a test runner for project ${project.name}, did you specify a dependenciesTest{}?")
             return TaskResult()
@@ -125,8 +125,8 @@ open class JvmCompilerPlugin @Inject constructor(
         )
     }
 
-    private fun sourceDirectories(project: Project, context: KobaltContext)
-        = context.variant.sourceDirectories(project, context, SourceSet.of(isTest = false))
+    private fun sourceDirectories(project: Project, context: KobaltContext, isTest: Boolean)
+        = context.variant.sourceDirectories(project, context, SourceSet.of(isTest))
 
     @IncrementalTask(name = JvmCompilerPlugin.TASK_COMPILE, description = "Compile the project", group = GROUP_BUILD,
             runAfter = arrayOf(TASK_CLEAN))
@@ -181,7 +181,7 @@ open class JvmCompilerPlugin @Inject constructor(
             var done = false
             allCompilersSorted.doWhile({ ! done }) { compiler ->
                 val compilerResults = compilerUtils.invokeCompiler(project, context, compiler,
-                        sourceDirectories(project, context), isTest)
+                        sourceDirectories(project, context, isTest), isTest)
                 results.addAll(compilerResults.successResults)
                 if (failedResult == null) failedResult = compilerResults.failedResult
                 compilerResults.failedResult?.let { failedResult ->
@@ -227,7 +227,7 @@ open class JvmCompilerPlugin @Inject constructor(
                 it.compilersFor(project, context).forEach { compiler ->
                     result = docGenerator.generateDoc(project, context,
                             compilerUtils.createCompilerActionInfo(project, context, compiler,
-                                    isTest = false, sourceDirectories = sourceDirectories(project, context),
+                                    isTest = false, sourceDirectories = sourceDirectories(project, context, false),
                             sourceSuffixes = compiler.sourceSuffixes))
                 }
             }
@@ -241,7 +241,7 @@ open class JvmCompilerPlugin @Inject constructor(
     // ISourceDirectoryContributor
     override fun sourceDirectoriesFor(project: Project, context: KobaltContext)
         = if (accept(project)) {
-                sourceDirectories(project, context)
+                sourceDirectories(project, context, isTest = false)
             } else {
                 arrayListOf()
             }
