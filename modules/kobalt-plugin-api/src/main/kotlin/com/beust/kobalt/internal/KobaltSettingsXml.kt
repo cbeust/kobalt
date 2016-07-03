@@ -79,10 +79,12 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
         }
 
         if (this != null) {
-            map {proxyXml->
+            map { proxyXml->
                 ProxyConfig(proxyXml.host, toIntOr(proxyXml.port, 0), proxyXml.type, proxyXml.nonProxyHosts)
             }
-        } else null
+        } else {
+            null
+        }
     }
 
     var kobaltCompilerVersion = xmlFile.kobaltCompilerVersion
