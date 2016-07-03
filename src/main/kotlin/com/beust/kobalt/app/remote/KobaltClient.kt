@@ -44,6 +44,7 @@ interface Api {
     @GET("/ping")
     fun ping() : Call<String>
 
+    @Deprecated(message = "Replaced with /v1/getDependencies")
     @POST("/v0/getDependencies")
     fun getDependencies(@Query("buildFile") buildFile: String) : Call<List<DependencyData.GetDependenciesData>>
 }

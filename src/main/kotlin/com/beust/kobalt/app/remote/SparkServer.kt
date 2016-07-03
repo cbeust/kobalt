@@ -48,7 +48,7 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
     override fun run(port: Int) {
         log.debug("RUNNING")
         Spark.port(port)
-        Spark.webSocket("/v1/getDependencies", GetDependenciesChatHandler::class.java)
+        Spark.webSocket("/v1/getDependencies", GetDependenciesHandler::class.java)
         Spark.get("/ping", { req, res -> """ { "result" : "ok" } """ })
         Spark.get("/quit", { req, res ->
             Executors.newFixedThreadPool(1).let { executor ->
@@ -60,6 +60,10 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
                 KobaltServer.OK
             }
         })
+
+        //
+        // The /v0 endpoints are deprecated and will eventually be removed
+        // (replaced by /v1 which uses WebSockets
         jsonRoute("/v0/getDependencies", Route { request, response ->
             val buildFile = request.queryParams("buildFile")
             initCallback(buildFile)
@@ -89,7 +93,10 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
     }
 }
 
-class GetDependenciesChatHandler : WebSocketListener {
+/**
+ * Manage the websocket endpoint "/v1/getDependencies".
+ */
+class GetDependenciesHandler : WebSocketListener {
     // The SparkJava project refused to merge https://github.com/perwendel/spark/pull/383
     // so I have to do dependency injections manually :-(
     val projectFinder = Kobalt.INJECTOR.getInstance(ProjectFinder::class.java)
