@@ -1,7 +1,8 @@
 
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.*
-import com.beust.kobalt.api.*
+import com.beust.kobalt.api.License
+import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.Scm
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.plugin.application.application
@@ -123,7 +124,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
     dependencies {
         // Used by the plugins
-        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.2-1")
+        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.3")
 
         // Used by the main app
         compile("com.github.spullara.mustache.java:compiler:0.9.1",
