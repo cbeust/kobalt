@@ -3,6 +3,7 @@ package com.beust.kobalt.api
 import com.beust.kobalt.Args
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.Variant
+import com.beust.kobalt.internal.IncrementalManager
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.maven.DependencyManager
@@ -35,6 +36,7 @@ class KobaltContext(val args: Args) {
     lateinit var dependencyManager: DependencyManager
     lateinit var executors: KobaltExecutors
     lateinit var settings: KobaltSettings
+    lateinit var incrementalManager: IncrementalManager
 }
 
 class InternalContext {

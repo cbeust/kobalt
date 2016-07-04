@@ -3,6 +3,7 @@ package com.beust.kobalt
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.internal.IncrementalManager
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.maven.DependencyManager
@@ -28,6 +29,7 @@ class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManage
         val localRepo: LocalRepo,
         val executors: KobaltExecutors,
         val pluginInfo: PluginInfo,
+        val incrementalManagerFactory: IncrementalManager.IFactory,
         val taskManager: TaskManager) {
 
     companion object {
@@ -81,6 +83,23 @@ class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManage
         context.pluginInfo.taskContributors.forEach {
             projects.forEach { project ->
                 taskManager.dynamicTasks.addAll(it.tasksFor(project, context))
+            }
+        }
+
+        // ... and from the incremental task contributors
+        val incrementalManager = incrementalManagerFactory.create()
+        context.pluginInfo.incrementalTaskContributors.forEach {
+            projects.forEach { project ->
+                it.incrementalTasksFor(project, context).forEach {
+                    // Convert the closure (Project) -> IncrementalTaskInfo to (Project) -> TaskResult
+                    // and create a DynamicTask out of it
+                    val closure =
+                            incrementalManager.toIncrementalTaskClosure(it.name, it.incrementalClosure, Variant())
+                    val task = DynamicTask(it.plugin, it.name, it.doc, it.group, it.project, it.dependsOn,
+                            it.reverseDependsOn, it.runBefore, it.runAfter, it.alwaysRunAfter,
+                            closure)
+                    taskManager.dynamicTasks.add(task)
+                }
             }
         }
 

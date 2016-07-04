@@ -94,6 +94,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
     val buildConfigContributors = arrayListOf<IBuildConfigContributor>()
     val mavenIdInterceptors = arrayListOf<IMavenIdInterceptor>()
     val jvmFlagContributors = arrayListOf<IJvmFlagContributor>()
+    val incrementalTaskContributors = arrayListOf<IIncrementalTaskContributor>()
 
     // Note: intentionally repeating them here even though they are defined by our base class so
     // that this class always contains the full list of contributors and interceptors
@@ -208,6 +209,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
                 if (this is ITestJvmFlagContributor) testJvmFlagContributors.add(this)
                 if (this is ITestJvmFlagInterceptor) testJvmFlagInterceptors.add(this)
                 if (this is IJvmFlagContributor) jvmFlagContributors.add(this)
+                if (this is IIncrementalTaskContributor) incrementalTaskContributors.add(this)
             }
         }
     }
@@ -219,7 +221,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
                 runnerContributors, testRunnerContributors, classpathInterceptors,
                 compilerContributors, docContributors, sourceDirContributors,
                 testSourceDirContributors, buildConfigFieldContributors,
-                taskContributors, assemblyContributors,
+                taskContributors, incrementalTaskContributors, assemblyContributors,
                 incrementalAssemblyContributors, testJvmFlagInterceptors,
                 jvmFlagContributors
             ).forEach {
@@ -252,6 +254,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
         sourceDirContributors.addAll(pluginInfo.sourceDirContributors)
         buildConfigFieldContributors.addAll(pluginInfo.buildConfigFieldContributors)
         taskContributors.addAll(pluginInfo.taskContributors)
+        incrementalTaskContributors.addAll(pluginInfo.incrementalTaskContributors)
         testSourceDirContributors.addAll(pluginInfo.testSourceDirContributors)
         mavenIdInterceptors.addAll(pluginInfo.mavenIdInterceptors)
         buildConfigContributors.addAll(pluginInfo.buildConfigContributors)
