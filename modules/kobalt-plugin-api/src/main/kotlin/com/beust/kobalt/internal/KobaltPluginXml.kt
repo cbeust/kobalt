@@ -89,12 +89,12 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
     val taskContributors = arrayListOf<ITaskContributor>()
     val assemblyContributors = arrayListOf<IAssemblyContributor>()
     val incrementalAssemblyContributors = arrayListOf<IIncrementalAssemblyContributor>()
+    val incrementalTaskContributors = arrayListOf<IIncrementalTaskContributor>()
 
     // Not documented yet
     val buildConfigContributors = arrayListOf<IBuildConfigContributor>()
     val mavenIdInterceptors = arrayListOf<IMavenIdInterceptor>()
     val jvmFlagContributors = arrayListOf<IJvmFlagContributor>()
-    val incrementalTaskContributors = arrayListOf<IIncrementalTaskContributor>()
 
     // Note: intentionally repeating them here even though they are defined by our base class so
     // that this class always contains the full list of contributors and interceptors
@@ -204,12 +204,12 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
                 if (this is IBuildConfigContributor) buildConfigContributors.add(this)
                 if (this is IAssemblyContributor) assemblyContributors.add(this)
                 if (this is IIncrementalAssemblyContributor) incrementalAssemblyContributors.add(this)
+                if (this is IIncrementalTaskContributor) incrementalTaskContributors.add(this)
 
                 // Not documented yet
                 if (this is ITestJvmFlagContributor) testJvmFlagContributors.add(this)
                 if (this is ITestJvmFlagInterceptor) testJvmFlagInterceptors.add(this)
                 if (this is IJvmFlagContributor) jvmFlagContributors.add(this)
-                if (this is IIncrementalTaskContributor) incrementalTaskContributors.add(this)
             }
         }
     }
