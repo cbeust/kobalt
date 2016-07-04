@@ -90,12 +90,11 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
 
             // Write the modified Build.kt (e.g. maybe profiles were applied) to a temporary file,
             // compile it, jar it in buildScript.jar and run it
-            val modifiedBuildFile = KFiles.createTempFile(".kt")
+            val modifiedBuildFile = KFiles.createTempFile(".kt", deleteOnExit = true)
             KFiles.saveFile(modifiedBuildFile, parsedBuildFile.buildScriptCode)
             val taskResult = maybeCompileBuildFile(context, BuildFile(Paths.get(modifiedBuildFile.path),
                     "Modified ${Constants.BUILD_FILE_NAME}", buildFile.realPath),
                     buildScriptJarFile, pluginUrls)
-            modifiedBuildFile.delete()
             if (taskResult.success) {
                 projects.addAll(buildScriptUtil.runBuildScriptJarFile(buildScriptJarFile, pluginUrls, context))
             } else {
