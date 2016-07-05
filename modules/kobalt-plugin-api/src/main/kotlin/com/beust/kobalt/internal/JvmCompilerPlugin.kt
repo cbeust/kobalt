@@ -34,9 +34,6 @@ open class JvmCompilerPlugin @Inject constructor(
     companion object {
         val PLUGIN_NAME = "JvmCompiler"
 
-        @ExportedProjectProperty(doc = "Projects this project depends on", type = "List<ProjectDescription>")
-        const val DEPENDENT_PROJECTS = "dependentProjects"
-
         @ExportedProjectProperty(doc = "Compiler args", type = "List<String>")
         const val COMPILER_ARGS = "compilerArgs"
 
@@ -208,12 +205,10 @@ open class JvmCompilerPlugin @Inject constructor(
     }
 
     fun addDependentProjects(project: Project, dependents: List<Project>) {
-        project.projectExtra.dependsOn.addAll(dependents)
+        project.dependsOn.addAll(dependents)
         with(ProjectDescription(project, dependents)) {
             allProjects.add(this)
         }
-
-        project.projectProperties.put(DEPENDENT_PROJECTS, allProjects)
     }
 
     @Task(name = "doc", description = "Generate the documentation for the project", group = GROUP_DOCUMENTATION)

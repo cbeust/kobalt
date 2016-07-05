@@ -132,7 +132,7 @@ class TaskManager @Inject constructor(val args: Args,
             AsciiArt.logBox("Building ${project.name}")
 
             // Does the current project depend on any failed projects?
-            val fp = project.projectExtra.dependsOn.filter {
+            val fp = project.dependsOn.filter {
                 failedProjects.contains(it.name)
             }.map {
                 it.name
@@ -211,7 +211,7 @@ class TaskManager @Inject constructor(val args: Args,
                 toProcess.forEach { ti ->
                     val project = projectMap[ti.project]
                     if (project != null) {
-                        val dependents = project.projectExtra.dependsOn
+                        val dependents = project.dependsOn
                         if (dependents.any()) {
                             dependents.forEach { depProject ->
                                 val tiDep = TaskInfo(depProject.name, ti.taskName)

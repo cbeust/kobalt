@@ -2,7 +2,6 @@ package com.beust.kobalt.api
 
 import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import java.io.File
@@ -22,6 +21,7 @@ open class Project(
         @Directive open var scm : Scm? = null,
         @Directive open var url: String? = null,
         @Directive open var licenses: List<License> = arrayListOf<License>(),
+        @Directive open var dependsOn: ArrayList<Project> = arrayListOf<Project>(),
         @Directive open var packageName: String? = group)
     : IBuildConfig, IDependencyHolder by DependencyHolder() {
 
@@ -30,14 +30,12 @@ open class Project(
     }
 
     class ProjectExtra(project: Project) {
-        val dependsOn = arrayListOf<Project>()
-
         var isDirty = false
 
         /**
          * @return true if any of the projects we depend on is dirty.
          */
-        fun dependsOnDirtyProjects(project: Project) = project.projectExtra.dependsOn.any { it.projectExtra.isDirty }
+        fun dependsOnDirtyProjects(project: Project) = project.dependsOn.any { it.projectExtra.isDirty }
     }
 
     /**
@@ -55,10 +53,6 @@ open class Project(
 
     override fun equals(other: Any?) = name == (other as Project).name
     override fun hashCode() = name.hashCode()
-
-    /** Can be used by plug-ins */
-    val dependentProjects : List<ProjectDescription>
-            get() = projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS) as List<ProjectDescription>
 
     companion object {
         val DEFAULT_SOURCE_DIRECTORIES = setOf("src/main/java", "src/main/kotlin", "src/main/resources")

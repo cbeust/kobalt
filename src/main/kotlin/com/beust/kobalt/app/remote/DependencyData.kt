@@ -2,9 +2,7 @@ package com.beust.kobalt.app.remote
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.IClasspathDependency
-import com.beust.kobalt.api.ProjectDescription
 import com.beust.kobalt.app.BuildFileCompiler
-import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
@@ -55,15 +53,7 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
                     allDeps(project.compileProvidedDependencies).map { toDependencyData(it, "compile") }
             val testDependencies = allDeps(project.testDependencies).map { toDependencyData(it, "testCompile") }
 
-            val pd = project.projectProperties.get(JvmCompilerPlugin.DEPENDENT_PROJECTS)
-            val dependentProjects = if (pd != null) {
-                    @Suppress("UNCHECKED_CAST")
-                    (pd as List<ProjectDescription>).filter { it.project.name == project.name }.flatMap {
-                        it.dependsOn.map { it.name }
-                    }
-                } else {
-                    emptyList()
-                }
+            val dependentProjects = project.dependsOn.map { it.name }
 
             // Separate resource from source directories
             val sources = project.sourceDirectories.partition { KFiles.isResource(it) }

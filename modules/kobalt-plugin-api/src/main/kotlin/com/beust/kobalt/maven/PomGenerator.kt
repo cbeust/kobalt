@@ -56,7 +56,7 @@ public class PomGenerator @Inject constructor(@Assisted val project: Project) {
         }
 
         // 2. Project dependencies
-        project.dependentProjects.filter { it.project.name == project.name }.first().dependsOn.forEach {
+        project.dependsOn.forEach {
             m.dependencies.add(org.apache.maven.model.Dependency().apply {
                 version = it.version
                 groupId = it.group
