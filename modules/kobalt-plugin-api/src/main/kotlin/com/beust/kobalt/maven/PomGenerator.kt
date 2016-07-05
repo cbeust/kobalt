@@ -45,10 +45,23 @@ public class PomGenerator @Inject constructor(@Assisted val project: Project) {
             m.addDeveloper(this)
         }
 
-        val dependencies = arrayListOf<org.apache.maven.model.Dependency>()
-        m.dependencies = dependencies
+        //
+        // Dependencies
+        //
+        m.dependencies = arrayListOf<org.apache.maven.model.Dependency>()
+
+        // 1. Compile dependencies
         project.compileDependencies.forEach { dep ->
-            dependencies.add(dep.toMavenDependencies())
+            m.dependencies.add(dep.toMavenDependencies())
+        }
+
+        // 2. Project dependencies
+        project.dependentProjects.filter { it.project.name == project.name }.first().dependsOn.forEach {
+            m.dependencies.add(org.apache.maven.model.Dependency().apply {
+                version = it.version
+                groupId = it.group
+                artifactId = it.artifactId
+            })
         }
 
         val s = StringWriter()
