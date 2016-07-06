@@ -110,7 +110,9 @@ class CompilerUtils @Inject constructor(val files: KFiles,
                 ! KFiles.isResource(it.path)
             }.distinct()
 
-        // Now that we have all the source directories, find all the source files in them
+        // Now that we have all the source directories, find all the source files in them. Note that
+        // depending on the compiler's ability, sourceFiles can actually contain a list of directories
+        // instead of individual source files.
         val projectDirectory = File(project.directory)
         val sourceFiles = if (compiler.canCompileDirectories) {
                 allSourceDirectories.map { File(projectDirectory, it.path).path }
