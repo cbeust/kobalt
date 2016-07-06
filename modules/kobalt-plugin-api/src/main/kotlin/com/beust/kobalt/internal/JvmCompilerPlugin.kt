@@ -71,7 +71,7 @@ open class JvmCompilerPlugin @Inject constructor(
         // users don't have to specify a test{}
         //
         if (project.testConfigs.isEmpty()) {
-            project.testConfigs.add(TestConfig(project))
+            project.testConfigs.add(TestConfig(project, isDefault = true))
         }
         project.testConfigs.forEach { config ->
             val taskName = if (config.name.isEmpty()) TASK_TEST else TASK_TEST + config.name

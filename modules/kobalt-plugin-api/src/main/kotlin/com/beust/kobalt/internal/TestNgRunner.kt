@@ -42,7 +42,9 @@ class TestNgRunner : GenericTestRunner() {
                     add("-testclass")
                     add(testClasses.joinToString(","))
                 } else {
-                    warn("Couldn't find any test classes for ${project.name}")
+                    if (! testConfig.isDefault) warn("Couldn't find any test classes for ${project.name}")
+                    // else do nothing: since the user didn't specify an explicit test{} directive, not finding
+                    // any test sources is not a problem
                 }
             }
         } else {
