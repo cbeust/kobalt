@@ -51,7 +51,8 @@ interface ICompiler {
 
 class CompilerDescription(override val name: String,  override val sourceDirectory: String,
         override val sourceSuffixes: List<String>, val compiler: ICompiler,
-        override val priority: Int = ICompilerDescription.DEFAULT_PRIORITY) : ICompilerDescription {
+        override val priority: Int = ICompilerDescription.DEFAULT_PRIORITY,
+        override val canCompileDirectories: Boolean = false) : ICompilerDescription {
     override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
         val result =
             if (info.sourceFiles.size > 0) {
