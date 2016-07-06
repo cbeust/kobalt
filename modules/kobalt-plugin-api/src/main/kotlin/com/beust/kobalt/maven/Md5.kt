@@ -25,13 +25,13 @@ public class Md5 {
          */
         fun toMd5Directories(filesOrDirectories: List<File>,
                 toBytes: (File) -> ByteArray = { it.lastModified().toString().toByteArray() } ): String? {
-            val ds = filesOrDirectories.filter { it.exists() }
-            if (ds.size > 0) {
+            if (filesOrDirectories.any { it.exists() }) {
                 MessageDigest.getInstance("MD5").let { md5 ->
                     var fileCount = 0
                     filesOrDirectories.filter { it.exists() }.forEach { file ->
                         if (file.isFile) {
-                            val bytes = file.readBytes()
+                            log(2, "      Calculating checksum of $file")
+                            val bytes = toBytes(file)
                             md5.update(bytes, 0, bytes.size)
                             fileCount++
                         } else {
