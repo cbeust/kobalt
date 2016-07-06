@@ -30,6 +30,7 @@ public class Md5 {
                     var fileCount = 0
                     filesOrDirectories.filter { it.exists() }.forEach { file ->
                         if (file.isFile) {
+                            log(2, "      Calculating checksum of $file")
                             val bytes = toBytes(file)
                             md5.update(bytes, 0, bytes.size)
                             fileCount++
