@@ -3,7 +3,17 @@ package com.beust.kobalt
 import com.beust.kobalt.misc.log
 import java.util.*
 
-
+/**
+ * Make Kobalt's output awesome and unique.
+ *
+ * I spend so much time staring at build outputs I decided I might as well make them pretty.
+ * Note that I also experimented with colors but it's hard to come up with a color scheme that
+ * will work with all the various backgrounds developers use, so I decided to be conservative
+ * and stick to simple red/yellow for errors and warnings.
+ *
+ * @author Cedric Beust <cedric@beust.com>
+ * @since 10/1/2015
+ */
 class AsciiArt {
     companion object {
         private val BANNERS = arrayOf(
