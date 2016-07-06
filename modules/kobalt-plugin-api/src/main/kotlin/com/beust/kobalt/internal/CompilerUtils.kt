@@ -113,12 +113,12 @@ class CompilerUtils @Inject constructor(val files: KFiles,
         // Now that we have all the source directories, find all the source files in them
         val projectDirectory = File(project.directory)
         val sourceFiles = if (compiler.canCompileDirectories) {
-            allSourceDirectories.map { File(projectDirectory, it.path).path }
-        } else {
-            files.findRecursively(projectDirectory, allSourceDirectories,
-                    { file -> sourceSuffixes.any { file.endsWith(it) } })
-                    .map { File(projectDirectory, it).path }
-        }
+                allSourceDirectories.map { File(projectDirectory, it.path).path }
+            } else {
+                files.findRecursively(projectDirectory, allSourceDirectories,
+                        { file -> sourceSuffixes.any { file.endsWith(it) } })
+                        .map { File(projectDirectory, it).path }
+            }
 
         // Special treatment if we are compiling Kotlin files and the project also has a java source
         // directory. In this case, also pass that java source directory to the Kotlin compiler as is
