@@ -5,11 +5,10 @@ import java.util.concurrent.*
 class NamedThreadFactory(val n: String) : ThreadFactory {
     private val PREFIX = "K-"
 
-    public val name: String
+    val name: String
         get() = PREFIX + n
 
-    override
-    public fun newThread(r: Runnable) : Thread {
+    override fun newThread(r: Runnable) : Thread {
         val result = Thread(r)
         result.name = name + "-" + result.id
         return result
@@ -20,7 +19,7 @@ class KobaltExecutor(name: String, threadCount: Int)
         : ThreadPoolExecutor(threadCount, threadCount, 5L, TimeUnit.SECONDS,
                 LinkedBlockingQueue<Runnable>(), NamedThreadFactory(name)) {
 
-    override protected fun afterExecute(r: Runnable, t: Throwable?) {
+    override fun afterExecute(r: Runnable, t: Throwable?) {
         super.afterExecute(r, t)
         var ex : Throwable? = null
         if (t == null && r is Future<*>) {
@@ -40,8 +39,8 @@ class KobaltExecutor(name: String, threadCount: Int)
     }
 }
 
-public class KobaltExecutors {
-    public fun newExecutor(name: String, threadCount: Int) : ExecutorService
+class KobaltExecutors {
+    fun newExecutor(name: String, threadCount: Int) : ExecutorService
             = KobaltExecutor(name, threadCount)
 
     val dependencyExecutor = newExecutor("Dependency", 5)
