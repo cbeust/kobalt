@@ -86,10 +86,10 @@ open class JvmCompilerPlugin @Inject constructor(
     private fun taskTest(project: Project, configName: String): TaskResult {
         lp(project, "Running tests: $configName")
 
-        val runContributor = ActorUtils.selectAffinityActor(project, context,
+        val testContributor = ActorUtils.selectAffinityActor(project, context,
                 context.pluginInfo.testRunnerContributors)
-        if (runContributor != null && runContributor.affinity(project, context) > 0) {
-            return runContributor.run(project, context, configName,
+        if (testContributor != null && testContributor.affinity(project, context) > 0) {
+            return testContributor.run(project, context, configName,
                     dependencyManager.testDependencies(project, context))
         } else {
             log(1, "Couldn't find a test runner for project ${project.name}, did you specify a dependenciesTest{}?")
