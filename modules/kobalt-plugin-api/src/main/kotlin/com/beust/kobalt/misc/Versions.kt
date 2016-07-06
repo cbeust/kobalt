@@ -25,7 +25,7 @@ public class Versions {
             }
 
             return normalizedVersion
-                    .split(".")
+                    .split('.')
                     .take(3)
                     .map {
                         val s = CharMatcher.inRange('0', '9').or(CharMatcher.`is`('.')).retainFrom(it)
@@ -107,7 +107,7 @@ class Version(val version: String, val snapshotTimestamp: String? = null): Compa
         var lowerExclusive = version.startsWith("(")
         var upperExclusive = version.endsWith(")")
 
-        val split = version.drop(1).dropLast(1).split(",")
+        val split = version.drop(1).dropLast(1).split(',')
 
         val lower = Version.of(split[0].substring(1))
         val upper = if(split.size > 1) {

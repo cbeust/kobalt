@@ -15,7 +15,7 @@ class KobaltContext(val args: Args) {
     val profiles = arrayListOf<String>()
 
     init {
-        args.profiles?.split(",")?.filterNotNull()?.forEach {
+        args.profiles?.split(',')?.filterNotNull()?.forEach {
             profiles.add(it)
         }
     }

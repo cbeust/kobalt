@@ -73,7 +73,7 @@ class KobaltServer @Inject constructor(@Assisted val force: Boolean, @Assisted @
             return false
         } else {
             val processName = ManagementFactory.getRuntimeMXBean().name
-            val pid = processName.split("@")[0]
+            val pid = processName.split('@')[0]
             Properties().apply {
                 put(KEY_PORT, port.toString())
                 put(KEY_PID, pid)

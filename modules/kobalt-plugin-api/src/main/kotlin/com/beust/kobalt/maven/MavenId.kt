@@ -17,7 +17,7 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
         val classifier: String?, val version: String?) {
 
     companion object {
-        fun isMavenId(id: String) = with(id.split(":")) {
+        fun isMavenId(id: String) = with(id.split(':')) {
             size >= 3 && size <= 5
         }
 

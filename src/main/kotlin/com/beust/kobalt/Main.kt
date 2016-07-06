@@ -73,10 +73,10 @@ private class Main @Inject constructor(
         val dependencies = arrayListOf<IClasspathDependency>()
         args.pluginIds?.let {
             // We want this call to go to the network if no version was specified, so set localFirst to false
-            dependencies.addAll(it.split(",").map { dependencyManager.create(it) })
+            dependencies.addAll(it.split(',').map { dependencyManager.create(it) })
         }
         args.pluginJarFiles?.let {
-            dependencies.addAll(it.split(",").map { FileDependency(it) })
+            dependencies.addAll(it.split(',').map { FileDependency(it) })
         }
         if (dependencies.size > 0) {
             val urls = dependencies.map { it.jarFile.get().toURI().toURL() }
@@ -187,7 +187,7 @@ private class Main @Inject constructor(
                         }
                     } else if (args.dependencies != null) {
                         // --resolve
-                        resolveDependency.run(args.dependencies!!.split(",").toList())
+                        resolveDependency.run(args.dependencies!!.split(',').toList())
                     } else if (args.tasks) {
                         // --tasks
                         displayTasks()

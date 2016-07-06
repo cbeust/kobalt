@@ -21,7 +21,7 @@ class ProjectGenerator @Inject constructor(val pluginInfo: PluginInfo){
             }
         }
 
-        args.templates?.split(",")?.forEach { templateName ->
+        args.templates?.split(',')?.forEach { templateName ->
             val template = map[templateName]
             if (template != null) {
                 log(2, "Running template $templateName")

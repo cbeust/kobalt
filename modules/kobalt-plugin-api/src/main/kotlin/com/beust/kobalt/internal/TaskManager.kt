@@ -53,9 +53,9 @@ class TaskManager @Inject constructor(val args: Args,
         constructor(project: String, task: String) : this(project + ":" + task)
 
         val project: String?
-            get() = if (id.contains(":")) id.split(":")[0] else null
+            get() = if (id.contains(':')) id.split(':')[0] else null
         val taskName: String
-            get() = if (id.contains(":")) id.split(":")[1] else id
+            get() = if (id.contains(':')) id.split(':')[1] else id
 
         fun matches(projectName: String) = project == null || project == projectName
 
