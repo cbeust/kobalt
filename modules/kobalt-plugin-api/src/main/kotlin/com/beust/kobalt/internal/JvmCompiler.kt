@@ -50,7 +50,7 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
     private fun validateClasspath(cp: List<String>) {
         cp.forEach {
             if (! File(it).exists()) {
-                throw KobaltException("Couldn't find $it")
+                throw KobaltException("Invalid classpath: couldn't find $it")
             }
         }
     }
