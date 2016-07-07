@@ -175,7 +175,13 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
         } else {
             val result = arrayListOf<IClasspathDependency>()
             project.dependsOn.forEach { p ->
-                result.add(FileDependency(KFiles.joinDir(p.directory, p.classesDir(context))))
+                KFiles.joinDir(p.directory, p.classesDir(context)).let { classDir ->
+                    // A project is allowed not to have any kobaltBuild/classes directory if it doesn't have
+                    // any sources
+                    if (File(classDir).exists()) {
+                        result.add(FileDependency(KFiles.joinDir(p.directory, p.classesDir(context))))
+                    }
+                }
                 val otherDependencies = calculateDependencies(p, context, p.compileDependencies)
                 result.addAll(otherDependencies)
 
