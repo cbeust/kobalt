@@ -194,18 +194,20 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
             : List<IClasspathDependency> {
         val transitive = hashSetOf<IClasspathDependency>()
         with(project) {
-            val deps = arrayListOf(compileDependencies, compileProvidedDependencies,
-                    context.variant.buildType.compileDependencies,
-                    context.variant.buildType.compileProvidedDependencies,
-                    context.variant.productFlavor.compileDependencies,
-                    context.variant.productFlavor.compileProvidedDependencies
-            )
-            if (isTest) {
-                deps.add(testDependencies)
-                deps.add(testProvidedDependencies)
-            }
-            deps.filter { it.any() }.forEach {
-                transitive.addAll(calculateDependencies(project, context, it))
+            context.variant.let { variant ->
+                val deps = arrayListOf(compileDependencies, compileProvidedDependencies,
+                        variant.buildType.compileDependencies,
+                        variant.buildType.compileProvidedDependencies,
+                        variant.productFlavor.compileDependencies,
+                        variant.productFlavor.compileProvidedDependencies
+                )
+                if (isTest) {
+                    deps.add(testDependencies)
+                    deps.add(testProvidedDependencies)
+                }
+                deps.filter { it.any() }.forEach {
+                    transitive.addAll(calculateDependencies(project, context, it))
+                }
             }
         }
 
