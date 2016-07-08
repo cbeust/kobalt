@@ -79,12 +79,12 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
             }
         }
 
-        log(2, "Deploying to local maven " + settings.localMavenRepo)
+        log(1, "Deploying " + allFiles.size + " files to local maven " + settings.localMavenRepo)
         val groupDir = project.group!!.replace('.', File.separatorChar)
         val targetDir = KFiles.makeDir(KFiles.joinDir(settings.localMavenRepo.path, groupDir,
                 project.artifactId!!, project.version!!))
         allFiles.forEach { file ->
-            log(1, "    $file")
+            log(2, "    $file")
             KFiles.copy(Paths.get(file.absolutePath), Paths.get(targetDir.path, file.name),
                     StandardCopyOption.REPLACE_EXISTING)
         }
