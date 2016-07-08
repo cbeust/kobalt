@@ -79,7 +79,7 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
             }.forEach { cls ->
                 cls.methods.forEach { method ->
                     // Invoke vals and see if they return a Project
-                    if (method.name.startsWith("get") && Modifier.isStatic(method.modifiers)) {
+                    if (method.name.startsWith("get") && Modifier.isStatic(method.modifiers) && method.parameterCount == 0) {
                         try {
                             val r = method.invoke(null)
                             if (r is Project) {
