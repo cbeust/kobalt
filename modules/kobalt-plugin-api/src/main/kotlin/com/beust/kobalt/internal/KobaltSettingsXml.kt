@@ -20,6 +20,9 @@ class KobaltSettingsXml {
     @XmlElement(name = "local-repo") @JvmField
     var localRepo: String = homeDir(KFiles.KOBALT_DOT_DIR, "repository")
 
+    @XmlElement(name = "local-maven-repo") @JvmField
+    var localMavenRepo: String = homeDir(KFiles.KOBALT_DOT_DIR, "localMavenRepo")
+
     @XmlElement(name = "default-repos") @JvmField
     var defaultRepos: DefaultReposXml? = null
 
@@ -65,9 +68,14 @@ fun List<ProxyConfig>.getProxy(protocol:String) = find { it.type==protocol }
 @Singleton
 class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
     /**
-     * Location of the local repo.
+     * Location of the cache repository.
      */
     var localRepo = KFiles.makeDir(xmlFile.localRepo) // var for testing
+
+    /**
+     * Location of the local Maven repo for the task deployToLocalMaven
+     */
+    val localMavenRepo = KFiles.makeDir(xmlFile.localMavenRepo)
 
     val defaultRepos = xmlFile.defaultRepos?.repo
 

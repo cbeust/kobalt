@@ -7,17 +7,21 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.DocUrl
+import com.beust.kobalt.internal.KobaltSettings
+import com.beust.kobalt.maven.Md5
 import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.misc.*
 import java.io.File
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
 @Singleton
 public class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGenerator.IFactory,
-            val bintrayFactory: BintrayApi.IFactory, val github: GithubApi2, val localProperties: LocalProperties)
-        : BasePlugin() {
+        val bintrayFactory: BintrayApi.IFactory, val github: GithubApi2, val localProperties: LocalProperties,
+        val settings: KobaltSettings) : BasePlugin() {
 
     override val name = PLUGIN_NAME
 
@@ -46,13 +50,45 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         requireNotNull(project.artifactId, { "Project $project should have a artifactId" })
     }
 
-    private val VALID = arrayListOf(".jar", ".pom")
+    private val VALID = listOf(".jar", ".pom")
 
     private fun findArtifactFiles(project: Project) : List<File> {
         val result = files.findRecursively(File(project.directory, project.buildDirectory)) { file ->
                 VALID.any { file.endsWith(it)} and file.contains(project.version!!)
             }.map { it -> File(it) }
         return result
+    }
+
+    @Task(name = "deployToMavenLocal", description = "Deploy the artifact to Maven local",
+            dependsOn = arrayOf(TASK_GENERATE_POM, "assemble"))
+    fun taskDeployToMavenLocal(project: Project): TaskResult {
+        validateProject(project)
+        return deployToMavenLocal(project)
+    }
+
+    private fun deployToMavenLocal(project: Project) : TaskResult {
+        val files = findArtifactFiles(project)
+        val allFiles = arrayListOf<File>()
+        // Calculate an MD5 checksum for each file
+        files.forEach {
+            allFiles.add(it)
+            Md5.toMd5(it).let { md5 ->
+                val md5File = File(it.path + ".md5")
+                md5File.writeText(md5)
+                allFiles.add(md5File)
+            }
+        }
+
+        log(2, "Deploying to local maven " + settings.localMavenRepo)
+        val groupDir = project.group!!.replace('.', File.separatorChar)
+        val targetDir = KFiles.makeDir(KFiles.joinDir(settings.localMavenRepo.path, groupDir,
+                project.artifactId!!, project.version!!))
+        allFiles.forEach { file ->
+            log(1, "    $file")
+            KFiles.copy(Paths.get(file.absolutePath), Paths.get(targetDir.path, file.name),
+                    StandardCopyOption.REPLACE_EXISTING)
+        }
+        return TaskResult()
     }
 
     @Task(name = TASK_UPLOAD_BINTRAY, description = "Upload files to Bintray",

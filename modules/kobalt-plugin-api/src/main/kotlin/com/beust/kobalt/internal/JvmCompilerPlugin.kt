@@ -92,7 +92,7 @@ open class JvmCompilerPlugin @Inject constructor(
             return testContributor.run(project, context, configName,
                     dependencyManager.testDependencies(project, context))
         } else {
-            log(1, "Couldn't find a test runner for project ${project.name}, did you specify a dependenciesTest{}?")
+            log(2, "Couldn't find a test runner for project ${project.name}, did you specify dependenciesTest{}?")
             return TaskResult()
         }
     }
