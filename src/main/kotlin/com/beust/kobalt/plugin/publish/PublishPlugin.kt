@@ -59,14 +59,14 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         return result
     }
 
-    @Task(name = "deployToMavenLocal", description = "Deploy the artifact to Maven local",
+    @Task(name = "publishToMavenLocal", description = "Deploy the artifact to Maven local",
             dependsOn = arrayOf(TASK_GENERATE_POM, "assemble"))
     fun taskDeployToMavenLocal(project: Project): TaskResult {
         validateProject(project)
-        return deployToMavenLocal(project)
+        return publishToMavenLocal(project)
     }
 
-    private fun deployToMavenLocal(project: Project) : TaskResult {
+    private fun publishToMavenLocal(project: Project) : TaskResult {
         val files = findArtifactFiles(project)
         val allFiles = arrayListOf<File>()
         // Calculate an MD5 checksum for each file
