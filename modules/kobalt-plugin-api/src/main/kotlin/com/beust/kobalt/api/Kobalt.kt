@@ -31,9 +31,7 @@ class Kobalt {
         var context: KobaltContext? = null
 
         /**
-         * @return the repos calculated from the following places:
-         * - Either repos specified in settings.xml or from Constants.DEFAULT_REPOS
-         * - Repos from the build file
+         * @return the repos calculated from various places where repos can be specified.
          */
         val repos : Set<HostConfig>
             get() {
