@@ -156,7 +156,7 @@ class CompilerUtils @Inject constructor(val files: KFiles,
         }
 
         val allSources = (sourceFiles + extraSourceFiles)
-                .map { File(it).canonicalPath }
+                .map { File(it).path }
                 .distinct()
                 .filter { File(it).exists() }
 
