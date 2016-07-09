@@ -82,7 +82,13 @@ class CompilerUtils @Inject constructor(val files: KFiles,
 
         // The classpath needs to contain $buildDirectory/classes as well so that projects that contain
         // multiple languages can use classes compiled by the compiler run before them.
-        if (buildDirectory.exists()) {
+        fun containsClassFiles(dir: File) =
+                KFiles.containsCertainFile(dir) {
+                    it.isFile && it.name.endsWith("class")
+                }
+
+//        if (buildDirectory.exists()) {
+        if (containsClassFiles(buildDirectory)) {
             classpath += FileDependency(buildDirectory.path)
         }
 
@@ -129,18 +135,10 @@ class CompilerUtils @Inject constructor(val files: KFiles,
         // is compiler agnostic, doesn't hardcode Kotlin specific stuff
         val extraSourceFiles = arrayListOf<String>()
 
-        fun containsJavaFiles(dir: File) : Boolean {
-            if (dir.isDirectory) {
-                val directories = arrayListOf<File>()
-                dir.listFiles().forEach {
-                    if (it.isFile && it.name.endsWith("java")) return true
-                    if (it.isDirectory) directories.add(it)
-                }
-                return directories.any { containsJavaFiles(it) }
-            } else {
-                return false
+        fun containsJavaFiles(dir: File) =
+            KFiles.containsCertainFile(dir) {
+                it.isFile && it.name.endsWith("java")
             }
-        }
 
         if (sourceSuffixes.any { it.contains("kt")}) {
             val directories = if (isTest) project.sourceDirectoriesTest else project.sourceDirectories

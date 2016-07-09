@@ -330,6 +330,22 @@ class KFiles {
         }
 
         fun isResource(name: String) = name.contains("res") || name.contains("resources")
+
+        /**
+         * @return true as soon as a file meeting the condition is found.
+         */
+        fun containsCertainFile(dir: File, condition: (File) -> Boolean) : Boolean {
+            if (dir.isDirectory) {
+                val directories = arrayListOf<File>()
+                dir.listFiles().forEach {
+                    if (condition(it)) return true
+                    if (it.isDirectory) directories.add(it)
+                }
+                return directories.any { containsCertainFile(it, condition) }
+            } else {
+                return false
+            }
+        }
     }
 
     fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {
