@@ -35,10 +35,11 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
                     // the first one that produces an actual file
                     val result = listOf(File(projectDirectory), Kobalt.context?.internalContext?.absoluteDir).map {
                         File(it, idPath)
-                    }.first {
+                    }.firstOrNull {
                         it.exists()
                     }
-                    result
+                    result ?: throw KobaltException("Couldn't find $id")
+
                 } else {
                     File(idPath)
                 }
