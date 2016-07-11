@@ -204,7 +204,7 @@ class TaskManager @Inject constructor(val args: Args,
             // previous one, e.g. for "task1 task2 task3", add the edges "task2 -> task1" and "task3 -> task2"
             if (taskNames.size >= 2) {
                 projects.forEach { project ->
-                    taskNames.zip(taskNames.subList(1, taskNames.size)).forEach { pair ->
+                    taskNames.zip(taskNames.drop(1)).forEach { pair ->
                         addEdge(TaskInfo(project.name, pair.second), TaskInfo(project.name, pair.first))
                     }
                 }
