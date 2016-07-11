@@ -43,8 +43,7 @@ class KotlinCompiler @Inject constructor(
             val version = settings.kobaltCompilerVersion
             if (! info.outputDir.path.endsWith("ript.jar")) {
                 // Don't display the message if compiling Build.kt
-                log(1, "  Kotlin $version compiling "
-                        + Strings.pluralizeAll(info.sourceFiles.size, "file"))
+                log(1, "  Kotlin $version compiling " + Strings.pluralizeAll(info.sourceFiles.size, "file"))
             }
             val cp = compilerFirst(info.dependencies.map {it.jarFile.get()})
             val infoDir = info.directory
