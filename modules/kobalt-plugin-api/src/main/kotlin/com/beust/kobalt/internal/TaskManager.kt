@@ -200,6 +200,16 @@ class TaskManager @Inject constructor(val args: Args,
             val seen = HashSet(allTaskInfos)
             val newTasks = hashSetOf<TaskInfo>()
 
+            // If at least two tasks were given, preserve the ordering by making each task depend on the
+            // previous one, e.g. for "task1 task2 task3", add the edges "task2 -> task1" and "task3 -> task2"
+            if (taskNames.size >= 2) {
+                projects.forEach { project ->
+                    taskNames.zip(taskNames.subList(1, taskNames.size)).forEach { pair ->
+                        addEdge(TaskInfo(project.name, pair.second), TaskInfo(project.name, pair.first))
+                    }
+                }
+            }
+
             fun maybeAdd(taskInfo: TaskInfo) {
                 if (!seen.contains(taskInfo)) {
                     newTasks.add(taskInfo)

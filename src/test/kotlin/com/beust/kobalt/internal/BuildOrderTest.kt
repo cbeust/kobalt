@@ -101,4 +101,14 @@ class BuildOrderTest @Inject constructor(val taskManager: TaskManager) {
         }
     }
 
+    @Test
+    fun shouldBuildInRightOrder3() {
+        val p1 = project { name = "p1" }
+        val expectedTasks = listOf("p1:run", "p1:exec")
+        with(taskManager) {
+            with(calculateDependentTaskNames(listOf("run", "exec"), listOf(p1))) {
+                assertThat(this.map { it.id }).isEqualTo(expectedTasks)
+            }
+        }
+    }
 }
