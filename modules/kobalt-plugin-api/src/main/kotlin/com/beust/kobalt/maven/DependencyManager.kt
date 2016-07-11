@@ -1,5 +1,6 @@
 package com.beust.kobalt.maven
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.*
 import com.beust.kobalt.maven.aether.ConsoleRepositoryListener
 import com.beust.kobalt.maven.aether.KobaltAether
