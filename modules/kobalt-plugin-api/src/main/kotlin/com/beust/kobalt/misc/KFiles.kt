@@ -37,7 +37,7 @@ class KFiles {
                     // kobalt-wrapper.properties: kobalt.version=0.827
                     // When Kobalt can't find the newest jar file, it will instead use the classes produced by IDEA
                     // in the directories specified here:
-                    val previousVersion = ((Kobalt.version.toFloat()* 1000 - 1) / 1000).toString()
+                    val previousVersion = "0." + (Kobalt.version.split(".")[1].toInt() - 1).toString()
                     val previousJar = joinDir(distributionsDir, "kobalt-" + previousVersion,
                             "kobalt/wrapper/kobalt-" + previousVersion + ".jar")
                     val result = listOf("", "modules/kobalt-plugin-api", "modules/wrapper").map {
