@@ -21,9 +21,6 @@ class PomProject {
     var description: String? = null
     var url: String? = null
     var packaging: String? = null
-    var licenses : Licenses? = null
-    var developers: Developers? = null
-    var scm: Scm? = null
     var properties: Properties? = null
     var parent: Parent? = null
     @XmlElement(name = "dependencies") @JvmField
@@ -45,12 +42,6 @@ class PomProject {
         return propertyMap[s]
     }
 }
-
-//fun main(argv: Array<String>) {
-//    val p = Pom2(File("/Users/beust/t/pom.xml"))
-//    val pom = p.pom
-//    println("Dependencies: " + pom.dependencies[0])
-//}
 
 class Either<E, V>(val exception: E?, val value: V?)
 
@@ -163,12 +154,6 @@ class Dependency {
             return s
         }
     }
-}
-
-class Scm {
-    var connection: String? = null
-    var developerConnection: String? = null
-    var url: String? = null
 }
 
 class Parent {

@@ -4,6 +4,7 @@ import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
+import org.apache.maven.model.Model
 import java.io.File
 import java.util.*
 import java.util.concurrent.Future
@@ -18,9 +19,8 @@ open class Project(
         @Directive open var artifactId: String? = null,
         @Directive open var packaging: String? = null,
         @Directive open var description : String = "",
-        @Directive open var scm : Scm? = null,
         @Directive open var url: String? = null,
-        @Directive open var licenses: List<License> = arrayListOf<License>(),
+        @Directive open var pom: Model? = null,
         @Directive open var dependsOn: ArrayList<Project> = arrayListOf<Project>(),
         @Directive open var packageName: String? = group)
     : IBuildConfig, IDependencyHolder by DependencyHolder() {
@@ -162,18 +162,6 @@ class Dependencies(val project: Project,
 
     @Directive
     fun native(vararg dep: String) = addToDependencies(project, nativeDependencies, dep)
-}
-
-class Scm(val connection: String, val developerConnection: String, val url: String)
-
-class License(val name: String, val url: String) {
-    fun toMavenLicense() : org.apache.maven.model.License {
-        val result = org.apache.maven.model.License()
-        result.name = name
-        result.url = url
-        return result
-    }
-
 }
 
 class BuildConfig {

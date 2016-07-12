@@ -6,30 +6,18 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.Gpg
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.Md5
-import com.beust.kobalt.misc.CountingFileRequestBody
-import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.error
-import com.beust.kobalt.misc.log
-import com.beust.kobalt.misc.warn
+import com.beust.kobalt.misc.*
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.TypeAdapter
 import com.google.gson.reflect.TypeToken
 import com.google.inject.assistedinject.Assisted
-import okhttp3.Credentials
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
-import okhttp3.RequestBody
-import okhttp3.ResponseBody
+import okhttp3.*
 import retrofit2.Call
 import retrofit2.Converter
 import retrofit2.Retrofit
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.PUT
-import retrofit2.http.Path
+import retrofit2.http.*
 import java.io.File
 import java.lang.reflect.Type
 import javax.annotation.Nullable
@@ -113,10 +101,10 @@ class BintrayApi @Inject constructor(val http: Http,
         val jsonObject = JsonObject()
         jsonObject.addNonNull("name", project.name)
         jsonObject.addNonNull("desc", project.description)
-        jsonObject.addNonNull("vcs_url", project.scm?.url)
+        jsonObject.addNonNull("vcs_url", project.pom?.scm?.url)
         jsonObject.addNonNull("website_url", project.url)
         val licenses = JsonArray()
-        project.licenses.forEach {
+        project.pom?.licenses?.forEach {
             licenses.add(it.name)
         }
         jsonObject.add("licenses", licenses)
