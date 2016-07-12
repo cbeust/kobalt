@@ -23,24 +23,20 @@ class PomGenerator @Inject constructor(@Assisted val project: Project) {
         requireNotNull(project.group, { "group mandatory on project ${project.name}" })
         requireNotNull(project.artifactId, { "artifactId mandatory on project ${project.name}" })
 
-        val pom =
-            if (project.pom == null) {
-                // No pom specified, create one with default values
-                Model().apply {
-                    name = project.name
-                    artifactId = project.artifactId
-                    groupId = project.group
-                    version = project.version
-                    description = project.description
-                    url = project.url
-                    developers = listOf(Developer().apply {
-                        name = SystemProperties.username
-                    })
-                }
-            } else {
-                // Use the pom specified on the project
-                project.pom!!
+        val pom = (project.pom ?: Model()).apply {
+            // Make sure the pom has reasonable default values
+            if (name == null) name = project.name
+            if (artifactId == null) artifactId = project.artifactId
+            if (groupId == null) groupId = project.group
+            if (version == null) version = project.version
+            if (description == null) description = project.description
+            if (url == null) url = project.url
+            if (developers == null) {
+                developers = listOf(Developer().apply {
+                    name = SystemProperties.username
+                })
             }
+        }
 
         //
         // Dependencies
