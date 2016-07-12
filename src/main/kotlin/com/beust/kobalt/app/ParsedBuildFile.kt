@@ -83,7 +83,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
              */
             fun correctProfileLine(line: String) : String {
                 (context.profiles as List<String>).forEach {
-                    if (line.matches(Regex("[ \\t]*val[ \\t]+$it[ \\t]+=.*"))) {
+                    if (line.matches(Regex("[ \\t]*val[ \\t]+$it[ \\t]*=.*"))) {
                         with("val $it = true") {
                             log(2, "Activating profile $it in build file")
                             activeProfiles.add(it)
