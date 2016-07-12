@@ -35,7 +35,7 @@ class DynamicGraph<T> {
     }
 
     fun removeNode(t: T) = synchronized(nodes) {
-        log(VERBOSE, "  Removing $t")
+        log(VERBOSE, "  Removing node $t")
         Node(t).let { node ->
             nodes.remove(node)
             dependingOn.removeAll(node)
@@ -75,6 +75,7 @@ class DynamicGraph<T> {
                     }
                 }
                 val result = nodes.map { it.value }.filter { !nonFree.contains(it) }.toHashSet()
+                log(VERBOSE, "  Free nodes: $result")
                 return result
             }
         }
