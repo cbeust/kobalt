@@ -1,18 +1,17 @@
-
-import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.License
-import com.beust.kobalt.api.Project
-import com.beust.kobalt.api.Scm
-import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.homeDir
 import com.beust.kobalt.plugin.application.application
 import com.beust.kobalt.plugin.java.javaCompiler
-import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.packaging.assemble
+import com.beust.kobalt.project
+
+import com.beust.kobalt.TaskResult
+import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.homeDir
+import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.publish.bintray
 import com.beust.kobalt.plugin.publish.github
-import com.beust.kobalt.project
 import com.beust.kobalt.test
+import org.apache.maven.model.*
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -61,10 +60,23 @@ val kobaltPluginApi = project {
     directory = "modules/kobalt-plugin-api"
     description = "A build system in Kotlin"
     url = "http://beust.com/kobalt"
-    licenses = listOf(License("Apache 2.0", "http://www.apache.org/licenses/LICENSE-2.0"))
-    scm = Scm(url = "http://github.com/cbeust/kobalt",
-            connection = "https://github.com/cbeust/kobalt.git",
-            developerConnection = "git@github.com:cbeust/kobalt.git")
+
+    pom = Model().apply {
+        name = project.name
+        licenses = listOf(License().apply {
+            name = "Apache 2.0"
+            url = "http://www.apache .org/licenses/LICENSE-2.0"
+        })
+        scm = Scm().apply {
+            url = "http://github.com/cbeust/kobalt"
+            connection = "https://github.com/cbeust/kobalt.git"
+            developerConnection = "git@github.com:cbeust/kobalt.git"
+        }
+        developers = listOf(Developer().apply {
+            name = "Cedric Beust"
+            email = "cedric@beust.com"
+        })
+    }
 
     dependencies {
         compile(
