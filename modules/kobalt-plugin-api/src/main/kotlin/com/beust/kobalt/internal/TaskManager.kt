@@ -317,7 +317,6 @@ class TaskManager @Inject constructor(val args: Args,
                 val froms = nodeMap[from]
                 froms.forEach { f: T ->
                     nodeMap[to].forEach { t: T ->
-                        val tn = toName(t)
                         log(LOG_LEVEL, "                                  Adding edge ($text) $f -> $t")
                         result.addEdge(f, t)
                         newToProcess.add(t)
