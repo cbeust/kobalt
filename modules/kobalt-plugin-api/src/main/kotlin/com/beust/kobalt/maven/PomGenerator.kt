@@ -23,7 +23,7 @@ class PomGenerator @Inject constructor(@Assisted val project: Project) {
         requireNotNull(project.group, { "group mandatory on project ${project.name}" })
         requireNotNull(project.artifactId, { "artifactId mandatory on project ${project.name}" })
 
-        val m =
+        val pom =
             if (project.pom == null) {
                 // No pom specified, create one with default values
                 Model().apply {
@@ -45,16 +45,16 @@ class PomGenerator @Inject constructor(@Assisted val project: Project) {
         //
         // Dependencies
         //
-        m.dependencies = arrayListOf<org.apache.maven.model.Dependency>()
+        pom.dependencies = arrayListOf<org.apache.maven.model.Dependency>()
 
         // 1. Compile dependencies
         project.compileDependencies.forEach { dep ->
-            m.dependencies.add(dep.toMavenDependencies())
+            pom.dependencies.add(dep.toMavenDependencies())
         }
 
         // 2. Project dependencies
         project.dependsOn.forEach {
-            m.dependencies.add(org.apache.maven.model.Dependency().apply {
+            pom.dependencies.add(org.apache.maven.model.Dependency().apply {
                 version = it.version
                 groupId = it.group
                 artifactId = it.artifactId
@@ -62,12 +62,13 @@ class PomGenerator @Inject constructor(@Assisted val project: Project) {
         }
 
         val s = StringWriter()
-        MavenXpp3Writer().write(s, m)
+        MavenXpp3Writer().write(s, pom)
 
         val buildDir = KFiles.makeDir(project.directory, project.buildDirectory)
         val outputDir = KFiles.makeDir(buildDir.path, "libs")
         val NO_CLASSIFIER = null
-        val mavenId = MavenId.create(project.group!!, project.artifactId!!, project.packaging, NO_CLASSIFIER, project.version!!)
+        val mavenId = MavenId.create(project.group!!, project.artifactId!!, project.packaging, NO_CLASSIFIER,
+                project.version!!)
         val pomFile = SimpleDep(mavenId).toPomFileName()
         val outputFile = File(outputDir, pomFile)
         outputFile.writeText(s.toString(), Charset.defaultCharset())
