@@ -101,12 +101,19 @@ class BuildOrderTest @Inject constructor(val taskManager: TaskManager) {
         }
     }
 
-    @Test
-    fun shouldBuildInRightOrder3() {
+    @DataProvider
+    fun tasks3(): Array<Array<out Any>> {
+        return arrayOf(
+                arrayOf(listOf("exec", "run"), listOf("p1:exec", "p1:run")),
+                arrayOf(listOf("run", "exec"), listOf("p1:run", "p1:exec"))
+        )
+    }
+
+    @Test(dataProvider = "tasks3")
+    fun shouldBuildInRightOrder3(tasks: List<String>, expectedTasks: List<String>) {
         val p1 = project { name = "p1" }
-        val expectedTasks = listOf("p1:run", "p1:exec")
         with(taskManager) {
-            with(calculateDependentTaskNames(listOf("run", "exec"), listOf(p1))) {
+            with(calculateDependentTaskNames(tasks, listOf(p1))) {
                 assertThat(this.map { it.id }).isEqualTo(expectedTasks)
             }
         }

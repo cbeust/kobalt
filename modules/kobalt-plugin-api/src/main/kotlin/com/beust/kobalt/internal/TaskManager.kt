@@ -274,6 +274,17 @@ class TaskManager @Inject constructor(val args: Args,
         val newToProcess = arrayListOf<T>()
         val seen = hashSetOf<String>()
 
+
+        // Make each task depend on the previous one, so that command line tasks are executed in the
+        // order the user specified them
+        passedTasks.zip(passedTasks.drop(1)).forEach { pair ->
+            nodeMap[pair.first.taskName].forEach { first ->
+                nodeMap[pair.second.taskName].forEach { second ->
+                    result.addEdge(second, first)
+                }
+            }
+        }
+
         //
         // Reverse the always map so that tasks can be looked up.
         //
