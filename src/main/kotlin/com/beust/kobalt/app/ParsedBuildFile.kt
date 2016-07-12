@@ -26,6 +26,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
     val profileLines = arrayListOf<String>()
     val pluginUrls = arrayListOf<URL>()
     val projects = arrayListOf<Project>()
+    val activeProfiles = arrayListOf<String>()
 
     private val preBuildScript = arrayListOf(
             "import com.beust.kobalt.*",
@@ -85,6 +86,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
                     if (line.matches(Regex("[ \\t]*val[ \\t]+$it[ \\t]+=.*"))) {
                         with("val $it = true") {
                             log(2, "Activating profile $it in build file")
+                            activeProfiles.add(it)
                             profileLines.add(this)
                             return this
                         }
@@ -138,13 +140,18 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
 
     private fun generateJarFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File,
             originalFile: BuildFile) {
+
+        //
+        // Compile the jar file
+        //
         val kotlintDeps = dependencyManager.calculateDependencies(null, context)
         val deps: List<String> = kotlintDeps.map { it.jarFile.get().absolutePath }
+        val outputJar = File(buildScriptJarFile.absolutePath)
         val result = kotlinCompilePrivate {
             classpath(files.kobaltJar)
             classpath(deps)
             sourceFiles(buildFile.path.toFile().absolutePath)
-            output = File(buildScriptJarFile.absolutePath)
+            output = outputJar
         }.compile(context = context)
         if (! result.success) {
             throw KobaltException("Couldn't compile ${originalFile.realPath}:\n"

@@ -125,7 +125,9 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         // in this case, we won't recompile the build file. A potential solution for this would be
         // to have a side file that describes which profiles the current buildScript.jar was
         // compiled with.
-        if (args.profiles.isNullOrEmpty() && buildScriptUtil.isUpToDate(buildFile, buildScriptJarFile)) {
+        val bs = BuildScriptJarFile(buildScriptJarFile)
+        val same = bs.sameProfiles(args.profiles)
+        if (same && buildScriptUtil.isUpToDate(buildFile, buildScriptJarFile)) {
             log(2, "  Build file is up to date")
             return TaskResult()
         } else {
@@ -140,6 +142,12 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
                 sourceFiles(listOf(buildFile.path.toFile().absolutePath))
                 output = buildScriptJarFile
             }.compile(context = context)
+
+
+            //
+            // Generate the file that contains the list of active profiles for this build file
+            //
+            BuildScriptJarFile(buildScriptJarFile).saveProfiles(args.profiles)
 
             return result
         }
