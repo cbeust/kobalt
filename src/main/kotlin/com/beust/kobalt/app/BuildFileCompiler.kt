@@ -33,7 +33,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         @Assisted val pluginInfo: PluginInfo, val files: KFiles, val plugins: Plugins,
         val dependencyManager: DependencyManager, val pluginProperties: PluginProperties,
         val executors: KobaltExecutors, val buildScriptUtil: BuildScriptUtil, val settings: KobaltSettings,
-        val incrementalManagerFactory: IncrementalManager.IFactory) {
+        val incrementalManagerFactory: IncrementalManager.IFactory, val args: Args) {
 
     interface IFactory {
         fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>, pluginInfo: PluginInfo) : BuildFileCompiler
@@ -119,7 +119,13 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
             pluginUrls: List<URL>) : TaskResult {
         log(2, "Running build file ${buildFile.name} jar: $buildScriptJarFile")
 
-        if (buildScriptUtil.isUpToDate(buildFile, buildScriptJarFile)) {
+        // If the user specifed --profiles, always recompile the build file since we don't know if
+        // the current buildScript.jar we have contains the correct value for these profiles
+        // There is still a potential bug if the user builds with a profile and then without any:
+        // in this case, we won't recompile the build file. A potential solution for this would be
+        // to have a side file that describes which profiles the current buildScript.jar was
+        // compiled with.
+        if (args.profiles.isNullOrEmpty() && buildScriptUtil.isUpToDate(buildFile, buildScriptJarFile)) {
             log(2, "  Build file is up to date")
             return TaskResult()
         } else {
