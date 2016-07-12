@@ -131,7 +131,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
                 classpath(files.kobaltJar)
                 classpath(pluginUrls.map { it.file })
                 classpath(buildFileClasspath)
-                sourceFiles(listOf(buildFile.realPath.toFile().absolutePath))
+                sourceFiles(listOf(buildFile.path.toFile().absolutePath))
                 output = buildScriptJarFile
             }.compile(context = context)
 
