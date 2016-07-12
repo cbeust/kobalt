@@ -84,6 +84,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
                 (context.profiles as List<String>).forEach {
                     if (line.matches(Regex("[ \\t]*val[ \\t]+$it[ \\t]+=.*"))) {
                         with("val $it = true") {
+                            log(2, "Activating profile $it in build file")
                             profileLines.add(this)
                             return this
                         }
