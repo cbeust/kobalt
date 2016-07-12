@@ -78,7 +78,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
             }
 
             /**
-             * If the current line matches one of the profile, turns the declaration into
+             * If the current line matches one of the profiles, turn the declaration into
              * val profile = true, otherwise return the same line
              */
             fun correctProfileLine(line: String) : String {
