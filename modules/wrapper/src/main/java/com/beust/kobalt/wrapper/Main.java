@@ -268,8 +268,7 @@ public class Main {
 
     private void generateKobaltW(Path filePath) throws IOException {
         //
-        // For kobaltw: try to generate it with the correct env shebang. If this fails,
-        // we'll generate it without the env shebang
+        // For kobaltw: try to generate it with the correct env shebang.
         //
         File envFile = new File("/bin/env");
         if (!envFile.exists()) {
@@ -278,10 +277,9 @@ public class Main {
 
         String content = "";
 
-        if (envFile.exists()) {
-            content = "#!" + envFile.getAbsolutePath() + " bash\n";
-        }
-        log(2, "  Generating " + KOBALTW + (envFile.exists() ? " with shebang" : "") + ".");
+        content = "#!" + envFile.getAbsolutePath() + " bash\n";
+        
+        log(2, "  Generating " + KOBALTW + " with shebang.");
 
         content += "java -jar $(dirname $0)/kobalt/wrapper/kobalt-wrapper.jar $*\n";
 
