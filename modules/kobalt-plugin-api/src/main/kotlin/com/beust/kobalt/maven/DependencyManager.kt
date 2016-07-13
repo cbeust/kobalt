@@ -90,7 +90,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
             vararg allDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         allDependencies.forEach { dependencies ->
-            result.addAll(transitiveClosure(dependencies))
+            result.addAll(transitiveClosure(dependencies, project?.name))
         }
         result.addAll(runClasspathContributors(project, context))
         result.addAll(dependentProjectDependencies(project, context))
@@ -111,7 +111,8 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      * Return the transitive closure of the dependencies *without* running the classpath contributors.
      * TODO: This should be private, everyone should be calling calculateDependencies().
      */
-    fun transitiveClosure(dependencies : List<IClasspathDependency>, indent : String = "  "):
+    fun transitiveClosure(dependencies : List<IClasspathDependency>, requiredBy: String? = null,
+            indent : String = "  "):
             List<IClasspathDependency> {
         val executor = executors.newExecutor("JvmCompiler}", 10)
 
@@ -122,7 +123,8 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
             result.add(projectDependency)
             projectDependency.id.let {
                 result.add(create(it))
-                val downloaded = transitiveClosure(projectDependency.directDependencies(), indent + "  ")
+                val downloaded = transitiveClosure(projectDependency.directDependencies(), projectDependency.id,
+                        indent + "  ")
 
                 result.addAll(downloaded)
             }
@@ -132,7 +134,8 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
 
         val nonexistent = reordered.filter{ ! it.jarFile.get().exists() }
         if (nonexistent.any()) {
-            log(2, "[Warning] Nonexistent dependencies: $nonexistent")
+            throw KobaltException("Couldn't resolve dependency $nonexistent"
+                    + (if (requiredBy != null) " required by $requiredBy" else ""))
         }
 
         val result2 = reordered.filter {

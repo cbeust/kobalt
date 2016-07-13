@@ -33,7 +33,7 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
             return DependencyData(d.id, scope, dep.jarFile.get().absolutePath)
         }
 
-        fun allDeps(l: List<IClasspathDependency>) = dependencyManager.transitiveClosure(l)
+        fun allDeps(l: List<IClasspathDependency>, name: String) = dependencyManager.transitiveClosure(l, name)
 
         val buildFile = BuildFile(Paths.get(buildFilePath), "GetDependenciesCommand")
         val buildFileCompiler = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
@@ -46,12 +46,13 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
         val allTasks = hashSetOf<TaskData>()
         projectResult.projects.withIndex().forEach { wi ->
             val project = wi.value
+            val name = project.name
             progressListener?.onProgress(message = "Synchronizing project ${project.name} "
                     + (wi.index + 1) + "/" + projectResult.projects.size)
             val compileDependencies = pluginDependencies.map { toDependencyData(it, "compile") } +
-                    allDeps(project.compileDependencies).map { toDependencyData(it, "compile") } +
-                    allDeps(project.compileProvidedDependencies).map { toDependencyData(it, "compile") }
-            val testDependencies = allDeps(project.testDependencies).map { toDependencyData(it, "testCompile") }
+                    allDeps(project.compileDependencies, name).map { toDependencyData(it, "compile") } +
+                    allDeps(project.compileProvidedDependencies, name).map { toDependencyData(it, "compile") }
+            val testDependencies = allDeps(project.testDependencies, name).map { toDependencyData(it, "testCompile") }
 
             val dependentProjects = project.dependsOn.map { it.name }
 
