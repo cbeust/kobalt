@@ -144,7 +144,7 @@ class CompilerUtils @Inject constructor(val files: KFiles,
             val directories = if (isTest) project.sourceDirectoriesTest else project.sourceDirectories
             directories.forEach {
                 val javaDir = File(KFiles.joinDir(project.directory, it))
-                if (javaDir.exists() && containsJavaFiles(javaDir)) {
+                if (javaDir.exists() && containsJavaFiles(javaDir) && ! KFiles.isResource(javaDir.path)) {
                     extraSourceFiles.add(javaDir.path)
                     // Add all the source directories contributed as potential Java directories too
                     // (except our own)
