@@ -34,9 +34,9 @@ abstract class GenericTestRunner: ITestRunnerContributor {
         }
 
         val testClasses = IFileSpec.GlobSpec(toClassPaths(testConfig.testIncludes))
-            .toFiles(project.directory, path, testConfig.testExcludes.map {
-                Glob(it)
-            }).map {
+            .toFiles(project.directory, path, testConfig.testExcludes.map { Glob(it) })
+            .filter { ! it.path.contains('$') }
+            .map {
                 File(KFiles.joinDir(project.directory, testClassDir, it.path))
             }
         val result = testClasses.map {
