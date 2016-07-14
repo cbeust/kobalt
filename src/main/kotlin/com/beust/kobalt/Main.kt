@@ -33,7 +33,11 @@ private fun parseArgs(argv: Array<String>): Main.RunInfo {
     val args = Args()
     val result = JCommander(args)
     result.parse(*argv)
-    KobaltLogger.LOG_LEVEL = args.log
+    KobaltLogger.LOG_LEVEL = if (args.log < 0) {
+        Constants.LOG_DEFAULT_LEVEL
+    } else if (args.log > Constants.LOG_MAX_LEVEL) {
+        Constants.LOG_MAX_LEVEL
+    } else args.log
     return Main.RunInfo(result, args)
 }
 
@@ -68,7 +72,7 @@ private class Main @Inject constructor(
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
-    private fun installCommandLinePlugins(args: Args) : ClassLoader {
+    private fun installCommandLinePlugins(args: Args): ClassLoader {
         var pluginClassLoader = javaClass.classLoader
         val dependencies = arrayListOf<IClasspathDependency>()
         args.pluginIds?.let {
@@ -117,7 +121,7 @@ private class Main @Inject constructor(
             }
         }
 
-        if (! args.update) {
+        if (!args.update) {
             log(1, if (result != 0) "BUILD FAILED: $result" else "BUILD SUCCESSFUL ($seconds seconds)")
 
             updateKobalt.checkForNewVersion(latestVersionFuture)
@@ -156,9 +160,9 @@ private class Main @Inject constructor(
         } else if (args.serverMode) {
             // --server
             val port = serverFactory.create(args.force, args.port,
-                    { buildFile -> projectFinder.initForBuildFile(BuildFile(Paths.get(buildFile), buildFile), args)},
+                    { buildFile -> projectFinder.initForBuildFile(BuildFile(Paths.get(buildFile), buildFile), args) },
                     { cleanUp() })
-                .call()
+                    .call()
         } else {
             // Options that don't need Build.kt to be parsed first
             if (args.gc) {
@@ -183,7 +187,7 @@ private class Main @Inject constructor(
                     if (args.projectInfo) {
                         // --projectInfo
                         allProjects.forEach {
-                            resolveDependency.run(it.compileDependencies.map {it.id})
+                            resolveDependency.run(it.compileDependencies.map { it.id })
                         }
                     } else if (args.dependencies != null) {
                         // --resolve
@@ -217,7 +221,7 @@ private class Main @Inject constructor(
         return result
     }
 
-    private fun findBuildFile() : File {
+    private fun findBuildFile(): File {
         val deprecatedLocation = File(Constants.BUILD_FILE_NAME)
         val result: File =
                 if (deprecatedLocation.exists()) {

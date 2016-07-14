@@ -42,8 +42,9 @@ class Args {
     @Parameter(names = arrayOf("--listTemplates"), description = "List the available templates")
     var listTemplates: Boolean = false
 
-    @Parameter(names = arrayOf("--log"), description = "Define the log level (1-3)")
-    var log: Int = 1
+    @Parameter(names = arrayOf("--log"), description = "Define the log level " +
+            "(${Constants.LOG_DEFAULT_LEVEL}-${Constants.LOG_MAX_LEVEL})")
+    var log: Int = Constants.LOG_DEFAULT_LEVEL
 
     @Parameter(names = arrayOf("--forceIncremental"),
             description = "Force the build to be incremental even if the build file was modified")
