@@ -34,10 +34,10 @@ private fun parseArgs(argv: Array<String>): Main.RunInfo {
     val result = JCommander(args)
     result.parse(*argv)
     KobaltLogger.LOG_LEVEL = if (args.log < 0) {
-        Constants.LOG_DEFAULT_LEVEL
-    } else if (args.log > Constants.LOG_MAX_LEVEL) {
-        Constants.LOG_MAX_LEVEL
-    } else args.log
+            Constants.LOG_DEFAULT_LEVEL
+        } else if (args.log > Constants.LOG_MAX_LEVEL) {
+            Constants.LOG_MAX_LEVEL
+        } else args.log
     return Main.RunInfo(result, args)
 }
 
