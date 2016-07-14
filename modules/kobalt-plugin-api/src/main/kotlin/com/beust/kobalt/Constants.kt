@@ -3,12 +3,14 @@ package com.beust.kobalt
 import com.beust.kobalt.misc.KFiles
 
 object Constants {
+    const val LOG_DEFAULT_LEVEL = 1
+    const val LOG_MAX_LEVEL = 3
     val BUILD_FILE_NAME = "Build.kt"
     val BUILD_FILE_DIRECTORY = "kobalt/src"
     val BUILD_FILE_PATH = KFiles.joinDir(BUILD_FILE_DIRECTORY, BUILD_FILE_NAME)
 
     internal val DEFAULT_REPOS = listOf<String>(
-//            "https://maven-central.storage.googleapis.com/",
+            //            "https://maven-central.storage.googleapis.com/",
             "http://repo1.maven.org/maven2/",
             "https://jcenter.bintray.com/",
             "http://repository.jetbrains.com/all/"
