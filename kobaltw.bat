@@ -1,2 +1,4 @@
 @echo off
-java -jar "%~dp0/kobalt/wrapper/kobalt-wrapper.jar" %*
+set DIRNAME=%~dp0
+if "%DIRNAME%" == "" set DIRNAME=.
+java -jar "%DIRNAME%/kobalt/wrapper/kobalt-wrapper.jar" %*
