@@ -8,6 +8,7 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import java.io.File
+import java.nio.file.Paths
 import java.util.*
 
 /**
@@ -114,7 +115,9 @@ class CompilerUtils @Inject constructor(val files: KFiles,
                 File(project.directory, it.path).exists()
             }.filter {
                 ! KFiles.isResource(it.path)
-            }.distinct()
+            }.distinctBy {
+                Paths.get(it.path)
+            }
 
         // Now that we have all the source directories, find all the source files in them. Note that
         // depending on the compiler's ability, sourceFiles can actually contain a list of directories
@@ -149,13 +152,18 @@ class CompilerUtils @Inject constructor(val files: KFiles,
                     // Add all the source directories contributed as potential Java directories too
                     // (except our own)
                     context.pluginInfo.sourceDirContributors.forEach {
-                        extraSourceFiles.addAll(it.sourceDirectoriesFor(project, context).map { it.path })
+                        val sd = it.sourceDirectoriesFor(project, context).map { it.path }
+                            .filter { ! it.contains("kotlin") }
+                        if (! sd.contains("kotlin")) {
+                            extraSourceFiles.addAll(sd)
+                        }
                     }
                 }
             }
         }
 
-        val allSources = (sourceFiles + extraSourceFiles)
+        val distinctSources = (sourceFiles + extraSourceFiles).distinctBy { File(it).toURI().normalize().path }
+        val allSources = distinctSources
                 .map { File(it).path }
                 .distinct()
                 .filter { File(it).exists() }
