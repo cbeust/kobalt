@@ -20,7 +20,7 @@ import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import java.util.concurrent.ExecutorService
 
-public open class MainModule(val args: Args, val settings: KobaltSettings) : AbstractModule() {
+open class MainModule(val args: Args, val settings: KobaltSettings) : AbstractModule() {
     val executors = KobaltExecutors()
 
     open fun configureTest() {
