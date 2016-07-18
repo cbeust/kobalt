@@ -196,7 +196,7 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
                 CompletedFuture(td!!.root.artifact.file)
             } else {
                 val resolved = aether.resolve(artifact)
-                if (resolved != null && resolved.size > 0) {
+                if (resolved.size > 0) {
                     CompletedFuture(resolved[0].artifact.file)
                 } else {
                     CompletedFuture(File("DONOTEXIST")) // will be filtered out
