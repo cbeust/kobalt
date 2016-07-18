@@ -19,14 +19,14 @@ class TestConfig(val project: Project, val isDefault : Boolean = false) {
         jvmArgs.addAll(arg)
     }
 
-    fun includes(vararg arg: String) {
+    fun include(vararg arg: String) {
         testIncludes.apply {
             clear()
             addAll(arg)
         }
     }
 
-    fun excludes(vararg arg: String) {
+    fun exclude(vararg arg: String) {
         testExcludes.apply {
             clear()
             addAll(arg)
