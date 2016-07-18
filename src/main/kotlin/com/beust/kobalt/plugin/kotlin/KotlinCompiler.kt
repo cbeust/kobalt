@@ -101,13 +101,16 @@ class KotlinCompiler @Inject constructor(
                     throw UnsupportedOperationException("not implemented")
                 }
 
+                fun CompilerMessageLocation.dump(s: String) = "$path:$line:$column $s"
+
                 override fun report(severity: CompilerMessageSeverity,
                         message: String, location: CompilerMessageLocation) {
                     if (severity.isError) {
-                        System.err.println(location.path + ":" + location.line + ":" + location.column
-                                + " " + message)
-                    } else {
-                        println(severity.name + ": $message")
+                        System.err.println(location.dump(message))
+                    } else if (severity == CompilerMessageSeverity.WARNING) {
+                        warn(location.dump(message))
+                    } else if (severity == CompilerMessageSeverity.INFO && KobaltLogger.LOG_LEVEL >= 2) {
+                        log(2, location.dump(message))
                     }
                 }
             }
