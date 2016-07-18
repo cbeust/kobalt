@@ -220,8 +220,8 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
         // so that older versions of that project on the classpath don't shadow them
         val result = arrayListOf<IClasspathDependency>().apply {
             if (isTest) {
-                add(FileDependency(KFiles.makeOutputDir(project).absolutePath))
-                add(FileDependency(KFiles.makeOutputTestDir(project).absolutePath))
+                add(FileDependency(KFiles.makeOutputDir(project).path))
+                add(FileDependency(KFiles.makeOutputTestDir(project).path))
             }
             addAll(reorderDependencies(transitive))
         }
