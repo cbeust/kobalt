@@ -24,7 +24,8 @@ public class Md5 {
          * a checksum of the last modified timestamp.
          */
         fun toMd5Directories(filesOrDirectories: List<File>,
-                toBytes: (File) -> ByteArray = { "${it.path} ${it.lastModified()} ${it.length()}".toByteArray() } ): String? {
+                toBytes: (File) -> ByteArray = { "${it.path} ${it.lastModified()} ${it.length()}".toByteArray() } )
+                        : String? {
             if (filesOrDirectories.any { it.exists() }) {
                 MessageDigest.getInstance("MD5").let { md5 ->
                     var fileCount = 0
