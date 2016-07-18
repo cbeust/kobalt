@@ -13,9 +13,13 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.Strings
 import com.beust.kobalt.misc.log
-import org.jetbrains.kotlin.cli.common.CLICompiler
 import org.jetbrains.kotlin.cli.common.ExitCode
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
+import org.jetbrains.kotlin.config.Services
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
@@ -59,9 +63,10 @@ class KotlinCompiler @Inject constructor(
             } else {
                 File(outputDir).parentFile.mkdirs()
             }
+            val classpath = cp.joinToString(File.pathSeparator)
             val allArgs = arrayListOf(
                     "-d", outputDir,
-                    "-classpath", cp.joinToString(File.pathSeparator),
+                    "-classpath", classpath,
                     *(info.compilerArgs.toTypedArray()),
                     *(info.sourceFiles.toTypedArray())
             )
@@ -71,7 +76,44 @@ class KotlinCompiler @Inject constructor(
                 allArgs.add("-no-stdlib")
             }
 
-            return invokeCompiler(projectName ?: "kobalt-" + Random().nextInt(), cp, allArgs)
+//            return invokeCompilerWithCompilerArgs(projectName ?: "kobalt-" + Random().nextInt(), outputDir, classpath,
+//                    info.sourceFiles)
+            return invokeCompilerWithStringArgs(projectName ?: "kobalt-" + Random().nextInt(), cp, allArgs)
+        }
+
+        private fun invokeCompilerWithCompilerArgs(projectName: String, outputDir: String?, classpathString: String,
+                sourceFiles: List<String>): TaskResult {
+            val args = K2JVMCompilerArguments().apply {
+                moduleName = projectName
+                destination = outputDir
+                classpath = classpathString
+                freeArgs = sourceFiles
+                friendPaths = arrayOf("kobaltBuild\\classes")
+            }
+            log(1, "Invoking K2JVMCompiler with arguments:"
+                    + " -moduleName " + args.moduleName
+                    + " -d " + args.destination
+                    + " -friendPaths " + args.friendPaths.joinToString(";")
+                    + " -classpath " + args.classpath
+                    + " " + sourceFiles.joinToString(" "))
+            val collector = object : MessageCollector {
+                override fun hasErrors(): Boolean {
+                    throw UnsupportedOperationException("not implemented")
+                }
+
+                override fun report(severity: CompilerMessageSeverity,
+                        message: String, location: CompilerMessageLocation) {
+                    if (severity.isError) {
+                        System.err.println(location.path + ":" + location.line + ":" + location.column
+                                + " " + message)
+                    } else {
+                        println(severity.name + ": $message")
+                    }
+                }
+            }
+            val exitCode = K2JVMCompiler().exec(collector, Services.Builder().build(), args)
+            val result = TaskResult(exitCode == ExitCode.OK)
+            return result
         }
 
         /**
@@ -84,39 +126,36 @@ class KotlinCompiler @Inject constructor(
          * There are plenty of ways in which this method can break but this will be immediately
          * apparent if it happens.
          */
-        private fun invokeCompiler(projectName: String, cp: List<File>, args: List<String>): TaskResult {
+        private fun invokeCompilerWithStringArgs(projectName: String, cp: List<File>, args: List<String>): TaskResult {
             val allArgs = listOf("-module-name", "project-" + projectName) + args
             log(2, "Calling kotlinc " + allArgs.joinToString(" "))
-            val result : TaskResult =
-                    if (true) {
-                        //
-                        // In order to capture the error stream, I need to invoke CLICompiler.exec(), which
-                        // is the first method that accepts a PrintStream for the errors in parameter
-                        //
-                        ByteArrayOutputStream().use { baos ->
-                            val compilerJar = listOf(kotlinJarFiles.compiler.toURI().toURL())
 
-                            val classLoader = ParentLastClassLoader(compilerJar)
-                            val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
-                            val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
+            //
+            // In order to capture the error stream, I need to invoke CLICompiler.exec(), which
+            // is the first method that accepts a PrintStream for the errors in parameter
+            //
+            val result =
+                ByteArrayOutputStream().use { baos ->
+                    val compilerJar = listOf(kotlinJarFiles.compiler.toURI().toURL())
 
-                            PrintStream(baos).use { ps ->
-                                val execMethod = compiler.declaredMethods.filter {
-                                    it.name == "exec" && it.parameterTypes.size == 2
-                                }[0]
-                                val exitCode = execMethod.invoke(kCompiler.newInstance(), ps, allArgs.toTypedArray())
-                                val errorString = baos.toString(Charset.defaultCharset().toString())
+                    val classLoader = ParentLastClassLoader(compilerJar)
+                    val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
+                    val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
 
-                                // The return value is an enum
-                                val nameMethod = exitCode.javaClass.getMethod("name")
-                                val success = "OK" == nameMethod.invoke(exitCode).toString()
-                                TaskResult(success, errorString)
-                            }
-                        }
-                    } else {
-                        val exitCode = CLICompiler.doMainNoExit(K2JVMCompiler(), allArgs.toTypedArray())
-                        TaskResult(exitCode == ExitCode.OK)
+                    PrintStream(baos).use { ps ->
+                        val execMethod = compiler.declaredMethods.filter {
+                            it.name == "exec" && it.parameterTypes.size == 2
+                        }[0]
+                        val exitCode = execMethod.invoke(kCompiler.newInstance(), ps, allArgs.toTypedArray())
+                        val errorString = baos.toString(Charset.defaultCharset().toString())
+
+                        // The return value is an enum
+                        val nameMethod = exitCode.javaClass.getMethod("name")
+                        val success = "OK" == nameMethod.invoke(exitCode).toString()
+                        TaskResult(success, errorString)
                     }
+                }
+
             return result
         }
 
