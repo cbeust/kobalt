@@ -9,10 +9,7 @@ import com.beust.kobalt.internal.KotlinJarFiles
 import com.beust.kobalt.kotlin.ParentLastClassLoader
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.Strings
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.*
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
@@ -49,7 +46,7 @@ class KotlinCompiler @Inject constructor(
                 // Don't display the message if compiling Build.kt
                 log(1, "  Kotlin $version compiling " + Strings.pluralizeAll(info.sourceFiles.size, "file"))
             }
-            val cp = compilerFirst(info.dependencies.map {it.jarFile.get()})
+            val cp = compilerFirst(info.dependencies.map { it.jarFile.get() })
             val infoDir = info.directory
             val outputDir = if (infoDir != null) {
                 KFiles.joinDir(infoDir, info.outputDir.path)
@@ -76,19 +73,19 @@ class KotlinCompiler @Inject constructor(
                 allArgs.add("-no-stdlib")
             }
 
-//            return invokeCompilerWithCompilerArgs(projectName ?: "kobalt-" + Random().nextInt(), outputDir, classpath,
-//                    info.sourceFiles)
-            return invokeCompilerWithStringArgs(projectName ?: "kobalt-" + Random().nextInt(), cp, allArgs)
+            return invokeCompilerWithCompilerArgs(projectName ?: "kobalt-" + Random().nextInt(), outputDir, classpath,
+                    info.sourceFiles, info.friendPaths.toTypedArray())
+//            return invokeCompilerWithStringArgs(projectName ?: "kobalt-" + Random().nextInt(), cp, allArgs)
         }
 
         private fun invokeCompilerWithCompilerArgs(projectName: String, outputDir: String?, classpathString: String,
-                sourceFiles: List<String>): TaskResult {
+                sourceFiles: List<String>, friends: Array<String>): TaskResult {
             val args = K2JVMCompilerArguments().apply {
                 moduleName = projectName
                 destination = outputDir
                 classpath = classpathString
                 freeArgs = sourceFiles
-                friendPaths = arrayOf("kobaltBuild\\classes")
+                friendPaths = friends
             }
             log(1, "Invoking K2JVMCompiler with arguments:"
                     + " -moduleName " + args.moduleName
@@ -199,14 +196,26 @@ class KotlinCompiler @Inject constructor(
         //            .map { FileDependency(it) }
 
         val dependencies = compileDependencies + otherClasspath.map { FileDependency(it) }
-        val info = CompilerActionInfo(project?.directory, dependencies, sourceFiles, listOf("kt"), outputDir, args)
+
+        // The friendPaths is a private setting for the Kotlin compiler that enables a compilation unit
+        // to see internal symbols from another compilation unit. By default, set it to kobaltBuild/classes
+        // so that tests can see internal from the main code
+        val friendPaths =
+            if (project != null) {
+                listOf(KFiles.joinDir(project.directory, project.buildDirectory, KFiles.CLASSES_DIR))
+            } else {
+                emptyList<String>()
+            }
+        val info = CompilerActionInfo(project?.directory, dependencies, sourceFiles, listOf("kt"), outputDir, args,
+                friendPaths)
+
         return jvmCompiler.doCompile(project, context, compilerAction, info)
     }
 }
 
 class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
     private val classpath = arrayListOf<String>()
-    val dependencies = arrayListOf<IClasspathDependency>()
+    var dependencies = arrayListOf<IClasspathDependency>()
     var source = arrayListOf<String>()
     var output: File by Delegates.notNull()
     val args = arrayListOf<String>()

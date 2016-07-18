@@ -170,10 +170,17 @@ class CompilerUtils @Inject constructor(val files: KFiles,
 
         // Finally, alter the info with the compiler interceptors before returning it
         val initialActionInfo = CompilerActionInfo(projectDirectory.path, classpath, allSources,
-                sourceSuffixes, buildDirectory, emptyList() /* the flags will be provided by flag contributors */)
+                sourceSuffixes, buildDirectory, emptyList() /* the flags will be provided by flag contributors */,
+                emptyList())
         val result = context.pluginInfo.compilerInterceptors.fold(initialActionInfo, { ai, interceptor ->
             interceptor.intercept(project, context, ai)
         })
+
+        //
+        // friendPaths
+        //
+        val friendPaths = KFiles.joinDir(project.buildDirectory, KFiles.CLASSES_DIR)
+
         return result
     }
 
