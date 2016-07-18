@@ -80,7 +80,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
     class KotlinCompiler : ICompiler {
         override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
             return kotlinCompilePrivate {
-                classpath(info.dependencies.map { it.jarFile.get().absolutePath })
+                classpath(info.dependencies.map { it.jarFile.get().path })
                 sourceFiles(info.sourceFiles)
                 compilerArgs(info.compilerArgs)
                 output = info.outputDir
