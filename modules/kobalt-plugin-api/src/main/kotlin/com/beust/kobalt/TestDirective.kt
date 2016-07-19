@@ -6,7 +6,7 @@ import com.beust.kobalt.api.annotation.Directive
 class TestConfig(val project: Project, val isDefault : Boolean = false) {
     val testArgs = arrayListOf<String>()
     val jvmArgs = arrayListOf<String>()
-    val testIncludes = arrayListOf("**/*.class")
+    val testIncludes = arrayListOf("**/*Test.class")
     val testExcludes = arrayListOf<String>()
 
     var name: String = ""
