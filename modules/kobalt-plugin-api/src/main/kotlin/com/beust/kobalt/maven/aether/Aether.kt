@@ -8,6 +8,8 @@ import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.KobaltSettingsXml
 import com.beust.kobalt.internal.getProxy
 import com.beust.kobalt.maven.CompletedFuture
+import com.beust.kobalt.maven.LocalDep
+import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.Versions
@@ -196,13 +198,15 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
         get() = if (artifact.file != null) {
             CompletedFuture(artifact.file)
         } else {
-            val td = aether.transitiveDependencies(artifact)
-            if (td?.root?.artifact?.file != null) {
-                CompletedFuture(td!!.root.artifact.file)
+            val localRepo = Kobalt.INJECTOR.getInstance(LocalRepo::class.java)
+            val file = File(LocalDep(MavenId.create(id), localRepo).toAbsoluteJarFilePath(version))
+            if (file.exists()) {
+                CompletedFuture(file)
             } else {
-                val resolved = aether.resolve(artifact)
-                if (resolved.size > 0) {
-                    CompletedFuture(resolved[0].artifact.file)
+                val td = aether.resolve(artifact)
+                val newFile = td[0].artifact.file
+                if (newFile != null) {
+                    CompletedFuture(newFile)
                 } else {
                     CompletedFuture(File("DONOTEXIST")) // will be filtered out
                 }
