@@ -2,12 +2,10 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.*
-import com.beust.kobalt.maven.aether.ConsoleRepositoryListener
 import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
 import java.io.File
 import java.util.*
@@ -111,42 +109,18 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      * Return the transitive closure of the dependencies *without* running the classpath contributors.
      * TODO: This should be private, everyone should be calling calculateDependencies().
      */
-    fun transitiveClosure(dependencies : List<IClasspathDependency>, requiredBy: String? = null,
-            indent : String = "  "):
+    fun transitiveClosure(dependencies : List<IClasspathDependency>, requiredBy: String? = null):
             List<IClasspathDependency> {
-        val executor = executors.newExecutor("JvmCompiler}", 10)
-
-        val result = hashSetOf<IClasspathDependency>()
-
-        dependencies.forEach { projectDependency ->
-            log(ConsoleRepositoryListener.LOG_LEVEL, "$indent Resolving $projectDependency")
-            result.add(projectDependency)
-            projectDependency.id.let {
-                result.add(create(it))
-                val downloaded = transitiveClosure(projectDependency.directDependencies(), projectDependency.id,
-                        indent + "  ")
-
-                result.addAll(downloaded)
+        val result = arrayListOf<IClasspathDependency>()
+        dependencies.forEach {
+            result.add(it)
+            if (it.isMaven) {
+                val resolved = aether.resolveAll(it.id).map { it.toString() }
+                result.addAll(resolved.map { create(it) })
             }
         }
-
         val reordered = reorderDependencies(result)
-
-        val nonexistent = reordered.filter{ ! it.jarFile.get().exists() }
-        if (nonexistent.any()) {
-            throw KobaltException("Couldn't resolve dependency $nonexistent"
-                    + (if (requiredBy != null) " required by $requiredBy" else ""))
-        }
-
-        val result2 = reordered.filter {
-            // Only keep existent files (nonexistent files are probably optional dependencies or parent poms
-            // that point to other poms but don't have a jar file themselves)
-            it.jarFile.get().exists()
-        }
-
-        executor.shutdown()
-
-        return result2
+        return reordered
     }
 
     /**

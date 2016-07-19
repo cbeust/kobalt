@@ -50,10 +50,15 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
             DependencyResult(AetherDependency(it.artifact), it.repository.toString())
         }
 
+    fun resolveAll(id: String): List<String> {
+        val results = aether.resolve(DefaultArtifact(id))
+        return results.map { it.artifact.toString() }
+    }
+
     fun resolve(id: String): DependencyResult {
         log(ConsoleRepositoryListener.LOG_LEVEL, "Resolving $id")
         val results = aether.resolve(DefaultArtifact(MavenId.toKobaltId(id)))
-        if (results != null && results.size > 0) {
+        if (results.size > 0) {
             return DependencyResult(AetherDependency(results[0].artifact), results[0].repository.toString())
         } else {
             throw KobaltException("Couldn't resolve $id")
