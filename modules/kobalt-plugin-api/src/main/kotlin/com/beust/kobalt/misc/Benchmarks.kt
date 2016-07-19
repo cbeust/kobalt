@@ -1,12 +1,15 @@
 package com.beust.kobalt.misc
 
-fun benchmarkMillis(run: () -> Unit) : Long {
+fun <T> benchmarkMillis(run: () -> T) : Pair<Long, T> {
     val start = System.currentTimeMillis()
-    run()
-    return System.currentTimeMillis() - start
+    val result = run()
+    return Pair(System.currentTimeMillis() - start, result)
 }
 
-fun benchmarkSeconds(run: () -> Unit) = benchmarkMillis(run) / 1000
+fun <T> benchmarkSeconds(run: () -> T) : Pair<Long, T> {
+    val result = benchmarkMillis(run)
+    return Pair(result.first / 1000, result.second)
+}
 
 
 
