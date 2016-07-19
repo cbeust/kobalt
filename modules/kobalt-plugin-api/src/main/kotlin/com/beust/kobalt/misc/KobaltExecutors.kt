@@ -66,7 +66,7 @@ class KobaltExecutors {
             progress(r)
             result.add(r)
             remainingMs -= (System.currentTimeMillis() - start)
-            log(2, "Received $r, remaining: $remainingMs ms")
+            log(3, "Received $r, remaining: $remainingMs ms")
             i++
         }
 
