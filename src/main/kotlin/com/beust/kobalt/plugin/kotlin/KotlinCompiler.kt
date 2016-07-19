@@ -87,7 +87,7 @@ class KotlinCompiler @Inject constructor(
                 freeArgs = sourceFiles
                 friendPaths = friends
             }
-            log(1, "Invoking K2JVMCompiler with arguments:"
+            log(2, "Invoking K2JVMCompiler with arguments:"
                     + " -moduleName " + args.moduleName
                     + " -d " + args.destination
                     + " -friendPaths " + args.friendPaths.joinToString(";")
