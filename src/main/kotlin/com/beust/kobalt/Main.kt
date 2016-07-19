@@ -122,7 +122,7 @@ private class Main @Inject constructor(
         }
 
         if (!args.update) {
-            log(1, if (result != 0) "BUILD FAILED: $result" else "BUILD SUCCESSFUL ($seconds seconds)")
+            log(1, if (result != 0) "BUILD FAILED: $result" else "BUILD SUCCESSFUL (${seconds.first} seconds)")
 
             updateKobalt.checkForNewVersion(latestVersionFuture)
         }
