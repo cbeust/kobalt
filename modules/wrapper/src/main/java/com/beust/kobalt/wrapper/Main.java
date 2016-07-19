@@ -271,13 +271,13 @@ public class Main {
         // For kobaltw: try to generate it with the correct env shebang.
         //
         File envFile = new File("/bin/env");
-        if (!envFile.exists()) {
+        if (!envFile.canExecute()) {
             envFile = new File("/usr/bin/env");
         }
 
         String content = "";
 
-        content = "#!" + envFile.getAbsolutePath() + " bash\n";
+        content = "#!" + envFile.getPath() + " bash\n";
         
         log(2, "  Generating " + KOBALTW + " with shebang.");
 
