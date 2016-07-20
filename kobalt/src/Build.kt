@@ -63,6 +63,8 @@ val kobaltPluginApi = project {
 
     pom = Model().apply {
         name = project.name
+        description = "A build system in Kotlin"
+        url = "http://beust.com/kobalt"
         licenses = listOf(License().apply {
             name = "Apache 2.0"
             url = "http://www.apache .org/licenses/LICENSE-2.0"
