@@ -4,6 +4,7 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.KobaltSettings
+import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
 import org.eclipse.aether.repository.Proxy
@@ -71,5 +72,15 @@ fun authRepo(init: HostConfig.() -> Unit) = HostConfig().apply { init() }
 @Directive
 fun glob(g: String) : IFileSpec.GlobSpec = IFileSpec.GlobSpec(g)
 
+/**
+ * The location of the local Maven repository.
+ */
 @Directive
-fun localMaven() = file(Kobalt.INJECTOR.getInstance(KobaltSettings::class.java).localMavenRepo.path)
+fun localMaven() : String {
+    var result = file(Kobalt.INJECTOR.getInstance(KobaltSettings::class.java).localMavenRepo.path)
+    val pluginInfo = Kobalt.INJECTOR.getInstance(PluginInfo::class.java)
+    pluginInfo.localMavenRepoPathInterceptors.forEach {
+        result = it.repoPath(result)
+    }
+    return result
+}
