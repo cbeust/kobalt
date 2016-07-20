@@ -93,7 +93,11 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
         result.addAll(runClasspathContributors(project, context))
         result.addAll(dependentProjectDependencies(project, context))
 
-        return result
+        // Dependencies get reordered by transitiveClosure() but since we just added a bunch of new ones,
+        // we need to reorder them again in case we're adding dependencies that are already present
+        // but with a different version
+        val reordered = reorderDependencies(result)
+        return reordered
     }
 
     private fun runClasspathContributors(project: Project?, context: KobaltContext) :
