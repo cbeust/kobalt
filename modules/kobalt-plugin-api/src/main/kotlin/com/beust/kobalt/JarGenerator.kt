@@ -146,11 +146,11 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
 
                 val manifestFile = findManifestFile(project, includedFiles)
                 if (manifestFile != null) {
-                        log(2, "Including MANIFEST.MF file $manifestFile")
-                        Manifest(FileInputStream(manifestFile))
-                    } else {
-                        Manifest()
-                    }
+                    log(2, "Including MANIFEST.MF file $manifestFile")
+                    Manifest(FileInputStream(manifestFile))
+                } else {
+                    Manifest()
+                }
             }
 
         val jarFactory = { os: OutputStream -> JarOutputStream(os, manifest) }
