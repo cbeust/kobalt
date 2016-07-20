@@ -24,6 +24,7 @@ public class Main {
 
     private static final String KOBALT_PROPERTIES = "kobalt.properties";
     private static final String KOBALTW = "kobaltw";
+    private static final String KOBALTW_BAT = "kobaltw.bat";
     private static final String KOBALT_WRAPPER_PROPERTIES = "kobalt-wrapper.properties";
     private static final String PROPERTY_VERSION = "kobalt.version";
     private static final String PROPERTY_DOWNLOAD_URL = "kobalt.downloadUrl";
@@ -145,7 +146,7 @@ public class Main {
         return System.getProperty("os.name").contains("Windows");
     }
 
-    private static final String[] FILES = new String[] { KOBALTW, "kobalt/wrapper/" + FILE_NAME + "-wrapper.jar" };
+    private static final String[] FILES = new String[] { KOBALTW, KOBALTW_BAT, "kobalt/wrapper/" + FILE_NAME + "-wrapper.jar" };
 
     private Path installDistribution() throws IOException {
         String wrapperVersion;
@@ -233,6 +234,8 @@ public class Main {
 
             if (file.endsWith(KOBALTW)) {
                 generateKobaltW(Paths.get(KOBALTW));
+            } else if (file.endsWith(KOBALTW_BAT)) {
+                generateKobaltWBat(Paths.get(KOBALTW_BAT));
             } else {
                 Path from = Paths.get(fromZipOutputDir, file);
                 try {
@@ -270,18 +273,21 @@ public class Main {
         //
         // For kobaltw: try to generate it with the correct env shebang.
         //
-        File envFile = new File("/bin/env");
-        if (!envFile.canExecute()) {
-            envFile = new File("/usr/bin/env");
+        String envPath;
+        if (isWindows()) {
+            envPath = "/usr/bin/env";
+        } else {
+            File envFile = new File("/bin/env");
+            if (!envFile.canExecute()) {
+                envFile = new File("/usr/bin/env");
+            }
+            envPath = envFile.getAbsolutePath();
         }
 
-        String content = "";
+        String content = "#!" + envPath + " sh\n"
+                + "java -jar $(dirname $0)/kobalt/wrapper/kobalt-wrapper.jar $*\n";
 
-        content = "#!" + envFile.getPath() + " bash\n";
-        
         log(2, "  Generating " + KOBALTW + " with shebang.");
-
-        content += "java -jar $(dirname $0)/kobalt/wrapper/kobalt-wrapper.jar $*\n";
 
         Files.write(filePath, content.getBytes());
 
@@ -289,6 +295,21 @@ public class Main {
             if (!isWindows()) {
                 log(1, "Couldn't make " + KOBALTW + " executable");
             }
+        }
+    }
+
+    private void generateKobaltWBat(Path filePath) throws IOException {
+        if (isWindows() && filePath.toFile().exists()) {
+            log(2, "  Windows detected, not overwriting " + filePath);
+        } else {
+            String content = "@echo off\r\n"
+                    + "set DIRNAME=%~dp0\r\n"
+                    + "if \"%DIRNAME%\" == \"\" set DIRNAME=.\r\n"
+                    + "java -jar \"%DIRNAME%/kobalt/wrapper/kobalt-wrapper.jar\" %*\r\n";
+
+            log(2, "  Generating " + KOBALTW_BAT + " for Windows.");
+
+            Files.write(filePath, content.getBytes());
         }
     }
 
