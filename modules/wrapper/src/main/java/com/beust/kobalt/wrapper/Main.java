@@ -285,7 +285,7 @@ public class Main {
         }
 
         String content = "#!" + envPath + " sh\n"
-                + "java -jar $(dirname $0)/kobalt/wrapper/kobalt-wrapper.jar $*\n";
+                + "java -jar \"`dirname \"$0\"`/kobalt/wrapper/kobalt-wrapper.jar\" $*\n";
 
         log(2, "  Generating " + KOBALTW + " with shebang.");
 
