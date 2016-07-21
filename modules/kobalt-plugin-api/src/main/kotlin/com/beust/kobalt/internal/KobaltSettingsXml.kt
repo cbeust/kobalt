@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.XmlRootElement
 @XmlRootElement(name = "kobaltSettings")
 class KobaltSettingsXml {
     @XmlElement(name = "localCache") @JvmField
-    var localCache: String = homeDir(KFiles.KOBALT_DOT_DIR, "repository")
+    var localCache: String = homeDir(KFiles.KOBALT_DOT_DIR, "cache")
 
     @XmlElement(name = "localMavenRepo") @JvmField
     var localMavenRepo: String = homeDir(KFiles.KOBALT_DOT_DIR, "localMavenRepo")
