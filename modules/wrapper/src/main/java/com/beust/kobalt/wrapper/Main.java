@@ -78,7 +78,7 @@ public class Main {
         if (! exit) {
             Path kobaltJarFile = installDistribution();
             if (!noLaunch) {
-                result = launchMain(kobaltJarFile, kobaltArgv.toArray(new String[kobaltArgv.size()]));
+                result = launchMain(kobaltJarFile, kobaltArgv);
             }
         }
         return result;
@@ -477,13 +477,22 @@ public class Main {
         System.out.println("[Wrapper error] *** " + s);
     }
 
-    private int launchMain(Path kobaltJarFile, String[] argv) throws IOException, InterruptedException {
+    private int launchMain(Path kobaltJarFile, List<String> argv) throws IOException, InterruptedException {
         List<String> args = new ArrayList<>();
         args.add("java");
         args.add("-Dfile.encoding=" + Charset.defaultCharset().name());
+        // jvm parameters must go before -jar
+        Iterator<String> i = argv.iterator();
+        while (i.hasNext()) {
+            String arg = i.next();
+            if (arg.matches("-D(.+?)=(.*)")) {
+                args.add(arg);
+                i.remove();
+            }
+        }
         args.add("-jar");
         args.add(kobaltJarFile.toFile().getAbsolutePath());
-        Collections.addAll(args, argv);
+        Collections.addAll(args, argv.toArray(new String[argv.size()]));
 
         ProcessBuilder pb = new ProcessBuilder(args);
         pb.inheritIO();
