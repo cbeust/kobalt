@@ -52,7 +52,7 @@ open class MainModule(val args: Args, val settings: KobaltSettings) : AbstractMo
         })
         EventBus().let { eventBus ->
             bind(EventBus::class.java).toInstance(eventBus)
-            bind(Aether::class.java).toInstance(Aether(settings.localRepo, settings, eventBus))
+            bind(Aether::class.java).toInstance(Aether(settings.localCache, settings, eventBus))
         }
         bind(PluginInfo::class.java).toProvider(Provider<PluginInfo> {
             PluginInfo.readKobaltPluginXml()

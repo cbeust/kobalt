@@ -8,7 +8,7 @@ import com.google.inject.Scopes
 import java.io.File
 
 val TEST_KOBALT_SETTINGS = KobaltSettings(KobaltSettingsXml()).apply {
-    localRepo = File(SystemProperties.homeDir + File.separatorChar + ".kobalt-test")
+    localCache = File(SystemProperties.homeDir + File.separatorChar + ".kobalt-test")
 }
 
 class TestLocalRepo: LocalRepo(TEST_KOBALT_SETTINGS)

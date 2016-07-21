@@ -15,24 +15,24 @@ import javax.xml.bind.annotation.XmlRootElement
 /**
  * The root element of kobalt-settings.xml
  */
-@XmlRootElement(name = "kobalt-settings")
+@XmlRootElement(name = "kobaltSettings")
 class KobaltSettingsXml {
-    @XmlElement(name = "local-repo") @JvmField
-    var localRepo: String = homeDir(KFiles.KOBALT_DOT_DIR, "repository")
+    @XmlElement(name = "localCache") @JvmField
+    var localCache: String = homeDir(KFiles.KOBALT_DOT_DIR, "repository")
 
-    @XmlElement(name = "local-maven-repo") @JvmField
+    @XmlElement(name = "localMavenRepo") @JvmField
     var localMavenRepo: String = homeDir(KFiles.KOBALT_DOT_DIR, "localMavenRepo")
 
-    @XmlElement(name = "default-repos") @JvmField
+    @XmlElement(name = "defaulRepos") @JvmField
     var defaultRepos: DefaultReposXml? = null
 
     @XmlElement(name = "proxies") @JvmField
     var proxies: ProxiesXml? = null
 
-    @XmlElement(name = "kobalt-compiler-version") @JvmField
+    @XmlElement(name = "kobaltCompilerVersion") @JvmField
     var kobaltCompilerVersion: String = "1.0.3"
 
-    @XmlElement(name = "kobalt-compiler-repo") @JvmField
+    @XmlElement(name = "kobaltCompilerRepo") @JvmField
     var kobaltCompilerRepo: String? = null
 }
 
@@ -70,10 +70,10 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
     /**
      * Location of the cache repository.
      */
-    var localRepo = KFiles.makeDir(xmlFile.localRepo) // var for testing
+    var localCache = KFiles.makeDir(xmlFile.localCache) // var for testing
 
     /**
-     * Location of the local Maven repo for the task deployToLocalMaven
+     * Location of the local Maven repo for the task "publishToLocalMaven".
      */
     val localMavenRepo = KFiles.makeDir(xmlFile.localMavenRepo)
 

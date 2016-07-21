@@ -37,7 +37,7 @@ import java.util.concurrent.Future
 class DependencyResult(val dependency: IClasspathDependency, val repoUrl: String)
 
 class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether: Aether) {
-    val localRepo: File get() = settings.localRepo
+    val localRepo: File get() = settings.localCache
 
     /**
      * Create an IClasspathDependency from a Kobalt id.

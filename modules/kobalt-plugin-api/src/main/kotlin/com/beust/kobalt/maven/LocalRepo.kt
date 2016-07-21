@@ -11,7 +11,7 @@ import javax.inject.Singleton
 @Singleton
 open class LocalRepo @Inject constructor(val kobaltSettings: KobaltSettings) {
     val localRepo: File
-        get() = kobaltSettings.localRepo
+        get() = kobaltSettings.localCache
 
     fun existsPom(d: LocalDep, v: String) : Boolean {
         return File(d.toAbsolutePomFile(v)).exists()
