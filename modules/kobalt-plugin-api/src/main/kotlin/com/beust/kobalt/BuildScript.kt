@@ -77,10 +77,10 @@ fun glob(g: String) : IFileSpec.GlobSpec = IFileSpec.GlobSpec(g)
  */
 @Directive
 fun localMaven() : String {
-    var result = Kobalt.INJECTOR.getInstance(KobaltSettings::class.java).localMavenRepo
     val pluginInfo = Kobalt.INJECTOR.getInstance(PluginInfo::class.java)
-    pluginInfo.localMavenRepoPathInterceptors.forEach {
-        result = File(it.repoPath(result.absolutePath))
+    val initial = Kobalt.INJECTOR.getInstance(KobaltSettings::class.java).localMavenRepo
+    val result = pluginInfo.localMavenRepoPathInterceptors.fold(initial) { current, interceptor ->
+        File(interceptor.repoPath(current.absolutePath))
     }
     return result.toURI().toString()
 }
