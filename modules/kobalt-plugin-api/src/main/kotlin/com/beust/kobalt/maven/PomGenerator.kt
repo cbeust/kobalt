@@ -28,6 +28,7 @@ class PomGenerator @Inject constructor(@Assisted val project: Project) {
             if (name == null) name = project.name
             if (artifactId == null) artifactId = project.artifactId
             if (groupId == null) groupId = project.group
+            if (modelVersion == null) modelVersion = "4.0.0"
             if (version == null) version = project.version
             if (description == null) description = project.description
             if (url == null) url = project.url
