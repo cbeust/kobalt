@@ -84,11 +84,11 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      * @return the classpath for this project, including the IClasspathContributors.
      * allDependencies is typically either compileDependencies or testDependencies
      */
-    override fun calculateDependencies(project: Project?, context: KobaltContext,
+    override fun calculateDependencies(project: Project?, context: KobaltContext, isTest: Boolean,
             vararg allDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         allDependencies.forEach { dependencies ->
-            result.addAll(transitiveClosure(dependencies, project?.name))
+            result.addAll(transitiveClosure(dependencies, isTest, project?.name))
         }
         result.addAll(runClasspathContributors(project, context))
         result.addAll(dependentProjectDependencies(project, context))
@@ -113,13 +113,13 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      * Return the transitive closure of the dependencies *without* running the classpath contributors.
      * TODO: This should be private, everyone should be calling calculateDependencies().
      */
-    fun transitiveClosure(dependencies : List<IClasspathDependency>, requiredBy: String? = null):
-            List<IClasspathDependency> {
+    fun transitiveClosure(dependencies : List<IClasspathDependency>, isTest: Boolean = false,
+            requiredBy: String? = null): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         dependencies.forEach {
             result.add(it)
             if (it.isMaven) {
-                val resolved = aether.resolveAll(it.id).map { it.toString() }
+                val resolved = aether.resolveAll(it.id, isTest).map { it.toString() }
                 result.addAll(resolved.map { create(it) })
             }
         }
@@ -165,7 +165,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
                         result.add(FileDependency(KFiles.joinDir(p.directory, p.classesDir(context))))
                     }
                 }
-                val otherDependencies = calculateDependencies(p, context, p.compileDependencies)
+                val otherDependencies = calculateDependencies(p, context, false, p.compileDependencies)
                 result.addAll(otherDependencies)
 
             }
@@ -189,7 +189,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
                     deps.add(testProvidedDependencies)
                 }
                 deps.filter { it.any() }.forEach {
-                    transitive.addAll(calculateDependencies(project, context, it))
+                    transitive.addAll(calculateDependencies(project, context, isTest, it))
                 }
             }
         }

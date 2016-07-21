@@ -160,7 +160,7 @@ class DownloadTest @Inject constructor(
     @Test
     fun variablesShouldBeExpanded() {
         val dep = dependencyManager.createMaven("org.mapdb:mapdb:3.0.0-M3")
-        val closure = dependencyManager.transitiveClosure(listOf(dep), "<testProject>")
+        val closure = dependencyManager.transitiveClosure(listOf(dep), false, "<testProject>")
         val d = closure.filter { it.id.contains("eclipse-collections-api")}
         Assert.assertEquals(d.size, 1)
     }

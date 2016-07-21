@@ -102,7 +102,8 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
                 context.variant.buildType.compileRuntimeDependencies +
                 context.variant.productFlavor.compileDependencies +
                 context.variant.productFlavor.compileRuntimeDependencies
-            val transitiveDependencies = dependencyManager.calculateDependencies(project, context, allDependencies)
+            val transitiveDependencies = dependencyManager.calculateDependencies(project, context, false,
+                    allDependencies)
             transitiveDependencies.map {
                 it.jarFile.get()
             }.forEach { file : File ->

@@ -3,7 +3,6 @@ package com.beust.kobalt.maven.aether
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.KobaltSettingsXml
 import com.beust.kobalt.internal.getProxy
@@ -11,7 +10,6 @@ import com.beust.kobalt.maven.CompletedFuture
 import com.beust.kobalt.maven.LocalDep
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.MavenId
-import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.Versions
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
@@ -52,14 +50,14 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
             DependencyResult(AetherDependency(it.artifact), it.repository.toString())
         }
 
-    fun resolveAll(id: String): List<String> {
-        val results = aether.resolve(DefaultArtifact(id))
+    fun resolveAll(id: String, isTest: Boolean): List<String> {
+        val results = aether.resolve(DefaultArtifact(id), isTest)
         return results.map { it.artifact.toString() }
     }
 
-    fun resolve(id: String): DependencyResult {
+    fun resolve(id: String, isTest: Boolean = false): DependencyResult {
         log(ConsoleRepositoryListener.LOG_LEVEL, "Resolving $id")
-        val results = aether.resolve(DefaultArtifact(MavenId.toKobaltId(id)))
+        val results = aether.resolve(DefaultArtifact(MavenId.toKobaltId(id)), isTest)
         if (results.size > 0) {
             return DependencyResult(AetherDependency(results[0].artifact), results[0].repository.toString())
         } else {
@@ -85,7 +83,13 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
     private val session = Booter.newRepositorySystemSession(system, localRepo, settings, eventBus)
     private val classpathFilter = AndDependencyFilter(
             ExcludeOptionalDependencyFilter(),
-            DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE))
+            DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE),
+            DependencyFilterUtils.classpathFilter(JavaScopes.TEST))
+
+    private val testClasspathFilter = AndDependencyFilter(
+            ExcludeOptionalDependencyFilter(),
+            DependencyFilterUtils.classpathFilter(JavaScopes.TEST))
+
     private val kobaltRepositories : List<RemoteRepository>
         get() = Kobalt.repos.map {
             RemoteRepository.Builder("maven", "default", it.url)
@@ -98,9 +102,9 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
             }
         }
 
-    private fun collectRequest(artifact: Artifact) : CollectRequest {
+    private fun collectRequest(artifact: Artifact, isTest: Boolean) : CollectRequest {
         with(CollectRequest()) {
-            root = Dependency(artifact, JavaScopes.COMPILE)
+            root = Dependency(artifact, if (isTest) JavaScopes.TEST else JavaScopes.COMPILE)
             repositories = kobaltRepositories
 
             return this
@@ -154,7 +158,7 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
 
     }
 
-    fun resolve(artifact: Artifact): List<ArtifactResult> {
+    fun resolve(artifact: Artifact, isTest: Boolean = false): List<ArtifactResult> {
         fun manageException(ex: Exception, artifact: Artifact) : List<ArtifactResult> {
             if (artifact.extension == "pom") {
                 // Only display a warning for .pom files. Not resolving a .jar or other artifact
@@ -165,7 +169,8 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
         }
 
         try {
-            val dependencyRequest = DependencyRequest(collectRequest(artifact), classpathFilter)
+            val dependencyRequest = DependencyRequest(collectRequest(artifact, isTest),
+                    if (isTest) testClasspathFilter else classpathFilter)
             val result = system.resolveDependencies(session, dependencyRequest).artifactResults
             return result
         } catch(ex: ArtifactNotFoundException) {
@@ -177,8 +182,8 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
 
     fun transitiveDependencies(artifact: Artifact) = directDependencies(artifact)
 
-    fun directDependencies(artifact: Artifact): CollectResult?
-            = system.collectDependencies(session, collectRequest(artifact))
+    fun directDependencies(artifact: Artifact, isTest: Boolean = false): CollectResult?
+            = system.collectDependencies(session, collectRequest(artifact, isTest))
 }
 
 class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable<AetherDependency> {
@@ -259,13 +264,29 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
 }
 
 fun main(argv: Array<String>) {
-    KobaltLogger.LOG_LEVEL = 1
-    val id = "org.testng:testng:6.9.11"
-    val aether = KobaltAether(KobaltSettings(KobaltSettingsXml()), Aether(File(homeDir(".aether")),
-            KobaltSettings(KobaltSettingsXml()), EventBus()))
-    val r = aether.resolve(id)
-    val r2 = aether.resolve(id)
-    val d = org.eclipse.aether.artifact.DefaultArtifact("org.testng:testng:6.9")
+    val request = CollectRequest().apply {
+        root = Dependency(DefaultArtifact("org.testng:testng:6.9.11"), JavaScopes.COMPILE)
+        repositories = listOf(
+                RemoteRepository.Builder("Maven", "default", "http://repo1.maven.org/maven2/").build(),
+                RemoteRepository.Builder("JCenter", "default", "https://jcenter.bintray.com").build())
+    }
+    val dependencyRequest = DependencyRequest().apply {
+        collectRequest = request
+    }
+    val system = Booter.newRepositorySystem()
+    val session = Booter.newRepositorySystemSession(system, File("/tmp"), KobaltSettings(KobaltSettingsXml()),
+            EventBus())
+//    val session = MavenRepositorySystemUtils.newSession(KobaltSettings(KobaltSettingsXml()))
+    val result = system.resolveDependencies(session, dependencyRequest).artifactResults
+    println("RESULT: " + result)
 
-    println("Artifact: " + d)
+//    KobaltLogger.LOG_LEVEL = 1
+//    val id = "org.testng:testng:6.9.11"
+//    val aether = KobaltAether(KobaltSettings(KobaltSettingsXml()), Aether(File(homeDir(".aether")),
+//            KobaltSettings(KobaltSettingsXml()), EventBus()))
+//    val r = aether.resolve(id)
+//    val r2 = aether.resolve(id)
+//    val d = org.eclipse.aether.artifact.DefaultArtifact("org.testng:testng:6.9")
+//
+//    println("Artifact: " + d)
 }

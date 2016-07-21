@@ -33,7 +33,8 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
             return DependencyData(d.id, scope, dep.jarFile.get().absolutePath)
         }
 
-        fun allDeps(l: List<IClasspathDependency>, name: String) = dependencyManager.transitiveClosure(l, name)
+        fun allDeps(l: List<IClasspathDependency>, name: String) = dependencyManager.transitiveClosure(l,
+                requiredBy = name)
 
         val buildFile = BuildFile(Paths.get(buildFilePath), "GetDependenciesCommand")
         val buildFileCompiler = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)

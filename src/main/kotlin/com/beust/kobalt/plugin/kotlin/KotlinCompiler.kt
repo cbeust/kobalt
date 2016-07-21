@@ -183,7 +183,7 @@ class KotlinCompiler @Inject constructor(
         val executor = executors.newExecutor("KotlinCompiler", 10)
         val compilerVersion = settings.kobaltCompilerVersion
         val compilerDep = dependencyManager.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$compilerVersion")
-        val deps = dependencyManager.transitiveClosure(listOf(compilerDep), project?.name ?: "")
+        val deps = dependencyManager.transitiveClosure(listOf(compilerDep), requiredBy = project?.name ?: "")
 
         // Force a download of the compiler dependencies
         deps.forEach { it.jarFile.get() }
