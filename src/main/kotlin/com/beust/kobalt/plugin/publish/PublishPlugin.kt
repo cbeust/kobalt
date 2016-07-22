@@ -13,6 +13,7 @@ import com.beust.kobalt.maven.Md5
 import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.misc.*
 import java.io.File
+import java.net.URL
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import javax.inject.Inject
@@ -80,7 +81,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
             }
         }
 
-        val outputDir = localMaven()
+        val outputDir = URL(localMaven()).file
         log(1, "Deploying " + allFiles.size + " files to local maven " + outputDir)
         val groupDir = project.group!!.replace('.', File.separatorChar)
         val targetDir = KFiles.makeDir(KFiles.joinDir(outputDir, groupDir,
