@@ -103,7 +103,7 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
             stream?.close()
         }
 
-        validateProjects(projects)
+        validateProjectNames(projects)
 
         //
         // Now that the build file has run, fetch all the project contributors, grab the projects from them and sort
@@ -134,7 +134,7 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
     /**
      * Make sure all the projects have a unique name.
      */
-    private fun validateProjects(projects: List<Project>) {
+    private fun validateProjectNames(projects: List<Project>) {
         val seen = hashSetOf<String>()
         projects.forEach {
             if (seen.contains(it.name)) {
