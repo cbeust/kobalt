@@ -8,6 +8,7 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.DocUrl
 import com.beust.kobalt.internal.KobaltSettings
+import com.beust.kobalt.localMaven
 import com.beust.kobalt.maven.Md5
 import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.misc.*
@@ -79,9 +80,10 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
             }
         }
 
-        log(1, "Deploying " + allFiles.size + " files to local maven " + settings.localMavenRepo)
+        val outputDir = localMaven()
+        log(1, "Deploying " + allFiles.size + " files to local maven " + outputDir)
         val groupDir = project.group!!.replace('.', File.separatorChar)
-        val targetDir = KFiles.makeDir(KFiles.joinDir(settings.localMavenRepo.path, groupDir,
+        val targetDir = KFiles.makeDir(KFiles.joinDir(outputDir, groupDir,
                 project.artifactId!!, project.version!!))
         allFiles.forEach { file ->
             log(2, "    $file")
