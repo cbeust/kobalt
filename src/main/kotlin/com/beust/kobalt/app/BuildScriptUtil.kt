@@ -63,7 +63,7 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
                 val name = entry.name;
                 if (name.endsWith(".class")) {
                     val className = name.substring(0, name.length - 6).replace("/", ".")
-                    var cl : Class<*>? = classLoader.loadClass(className)
+                    val cl : Class<*>? = classLoader.loadClass(className)
                     if (cl != null) {
                         classes.add(cl)
                     } else {
