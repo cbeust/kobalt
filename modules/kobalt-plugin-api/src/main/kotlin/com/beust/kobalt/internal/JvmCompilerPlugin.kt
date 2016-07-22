@@ -195,7 +195,7 @@ open class JvmCompilerPlugin @Inject constructor(
         }
     }
 
-    val allProjects = arrayListOf<ProjectDescription>()
+    private val allProjects = arrayListOf<ProjectDescription>()
 
     // IProjectContributor
     override fun projects() = allProjects
