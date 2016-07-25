@@ -199,7 +199,7 @@ private class Main @Inject constructor(
                         // --checkVersions
                         checkVersions.run(allProjects)
                     } else if (args.download) {
-                        // -- download
+                        // --download
                         updateKobalt.downloadKobalt()
                     } else {
                         //
@@ -213,11 +213,13 @@ private class Main @Inject constructor(
                         // Shutdown all plug-ins
                         plugins.shutdownPlugins()
 
+                        // Display timings if requested
                         if (args.profiling) {
                             log(1, "\nTIMINGS (SECONDS)")
-                            log(1, "================\n")
+                            log(1, "=================\n")
                             runTargetResult.timings.sortedByDescending { it.durationMillis }.forEach {
-                                log(1, String.format("%.2f", it.durationMillis.toDouble() / 1000) + " " + it.taskName)
+                                log(1, String.format("%-6.2f", it.durationMillis.toDouble() / 1000)
+                                        + " " + it.taskName)
                             }
                             log(1, "\n")
                         }
