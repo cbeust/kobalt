@@ -199,7 +199,7 @@ private class Main @Inject constructor(
                         // --checkVersions
                         checkVersions.run(allProjects)
                     } else if (args.download) {
-                        // -- download
+                        // --download
                         updateKobalt.downloadKobalt()
                     } else {
                         //
@@ -213,6 +213,7 @@ private class Main @Inject constructor(
                         // Shutdown all plug-ins
                         plugins.shutdownPlugins()
 
+                        // Display timings if requested
                         if (args.profiling) {
                             log(1, "\n" + AsciiArt.horizontalSingleLine + " Timings (in seconds)")
                             runTargetResult.timings.sortedByDescending { it.durationMillis }.forEach {
