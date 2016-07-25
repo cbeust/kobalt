@@ -103,9 +103,10 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
             @Suppress("UNCHECKED_CAST")
             // If the jar file is not fat, we need to add the transitive closure of all dependencies
             // on the classpath
+            val allDependencies = project.compileDependencies + project.compileRuntimeDependencies
             val allTheDependencies =
-                    dependencyManager.calculateDependencies(project, context,
-                            allDependencies = project.compileDependencies).map { it.jarFile.get().path }
+                    dependencyManager.calculateDependencies(project, context, allDependencies = allDependencies)
+                            .map { it.jarFile.get().path }
             allDeps.addAll(allTheDependencies)
         }
         val allDepsJoined = allDeps.joinToString(File.pathSeparator)
