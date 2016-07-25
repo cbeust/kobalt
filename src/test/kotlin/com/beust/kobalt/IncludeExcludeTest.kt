@@ -41,7 +41,6 @@ class IncludeExcludeTest : KobaltTest() {
     fun html() {
         val inc = IncludedFile(From(""), To(""), listOf(IFileSpec.GlobSpec("**html")))
         val files = inc.allFromFiles(htmlDir.path)
-        println("Files " + files)
         Assert.assertEquals(files.size, 1)
         Assert.assertEquals(files[0].path, A_HTML)
     }
