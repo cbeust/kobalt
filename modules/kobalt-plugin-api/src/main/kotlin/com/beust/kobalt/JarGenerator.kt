@@ -125,7 +125,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
 
         //
         // Generate the manifest
-        // If manifest attributes were specified in the build file, use those to generate the manifest. Otherwise,
+        // If manifest attributes were specified in the build file, use those to generateAndSave the manifest. Otherwise,
         // try to find a META-INF/MANIFEST.MF and use that one if we find any. Otherwise, use the default manifest.
         //
         val manifest =
