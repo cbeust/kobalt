@@ -14,7 +14,6 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.internal.build.VersionFile
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
