@@ -45,10 +45,10 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
     /**
      * @return the latest artifact for the given group and artifactId.
      */
-    fun latestArtifact(group: String, artifactId: String, extension: String = "jar") : DependencyResult
-        = aether.latestArtifact(group, artifactId, extension).let {
-            DependencyResult(AetherDependency(it.artifact), it.repository.toString())
-        }
+    fun latestArtifact(group: String, artifactId: String, extension: String = "jar"): DependencyResult
+            = aether.latestArtifact(group, artifactId, extension).let {
+        DependencyResult(AetherDependency(it.artifact), it.repository.toString())
+    }
 
     fun resolveAll(id: String, isTest: Boolean): List<String> {
         val results = aether.resolve(DefaultArtifact(id), isTest)
@@ -57,23 +57,32 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
 
     fun resolve(id: String, isTest: Boolean = false): DependencyResult {
         log(ConsoleRepositoryListener.LOG_LEVEL, "Resolving $id")
-        val results = aether.resolve(DefaultArtifact(MavenId.toKobaltId(id)), isTest)
-        if (results.size > 0) {
-            return DependencyResult(AetherDependency(results[0].artifact), results[0].repository.toString())
+        val result = resolveToArtifact(id, isTest)
+        if (result != null) {
+            return DependencyResult(AetherDependency(result.artifact), result.repository.toString())
         } else {
             throw KobaltException("Couldn't resolve $id")
         }
     }
 
-}
+    fun resolveToArtifact(id: String, isTest: Boolean = false): ArtifactResult? {
+        log(ConsoleRepositoryListener.LOG_LEVEL, "Resolving $id")
+        val results = aether.resolve(DefaultArtifact(MavenId.toKobaltId(id)), isTest)
+        if (results.size > 0) {
+            return results[0]
+        } else {
+            return null
+        }
+    }
 
-class ExcludeOptionalDependencyFilter: DependencyFilter {
-    override fun accept(node: DependencyNode?, p1: MutableList<DependencyNode>?): Boolean {
+    class ExcludeOptionalDependencyFilter : DependencyFilter {
+        override fun accept(node: DependencyNode?, p1: MutableList<DependencyNode>?): Boolean {
 //        val result = node != null && ! node.dependency.isOptional
-        val accept1 = node == null || node.artifact.artifactId != "srczip"
-        val accept2 = node != null && ! node.dependency.isOptional
-        val result = accept1 && accept2
-        return result
+            val accept1 = node == null || node.artifact.artifactId != "srczip"
+            val accept2 = node != null && !node.dependency.isOptional
+            val result = accept1 && accept2
+            return result
+        }
     }
 }
 
@@ -82,15 +91,15 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
     private val system = Booter.newRepositorySystem()
     private val session = Booter.newRepositorySystemSession(system, localRepo, settings, eventBus)
     private val classpathFilter = AndDependencyFilter(
-            ExcludeOptionalDependencyFilter(),
+            KobaltAether.ExcludeOptionalDependencyFilter(),
             DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE),
             DependencyFilterUtils.classpathFilter(JavaScopes.TEST))
 
     private val testClasspathFilter = AndDependencyFilter(
-            ExcludeOptionalDependencyFilter(),
+            KobaltAether.ExcludeOptionalDependencyFilter(),
             DependencyFilterUtils.classpathFilter(JavaScopes.TEST))
 
-    private val kobaltRepositories : List<RemoteRepository>
+    private val kobaltRepositories: List<RemoteRepository>
         get() = Kobalt.repos.map {
             RemoteRepository.Builder("maven", "default", it.url)
 //                    .setSnapshotPolicy(RepositoryPolicy(false, null, null))
@@ -102,7 +111,7 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
             }
         }
 
-    private fun collectRequest(artifact: Artifact, isTest: Boolean) : CollectRequest {
+    private fun collectRequest(artifact: Artifact, isTest: Boolean): CollectRequest {
         with(CollectRequest()) {
             root = Dependency(artifact, if (isTest) JavaScopes.TEST else JavaScopes.COMPILE)
             repositories = kobaltRepositories
@@ -111,7 +120,7 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
         }
     }
 
-    fun latestArtifact(group: String, artifactId: String, extension: String = "jar") : ArtifactResult {
+    fun latestArtifact(group: String, artifactId: String, extension: String = "jar"): ArtifactResult {
         val artifact = DefaultArtifact(group, artifactId, extension, "(0,]")
         val resolved = resolveVersion(artifact)
         if (resolved != null) {
@@ -119,7 +128,7 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
                     resolved.highestVersion.toString())
             val artifactResult = resolve(newArtifact)
             if (artifactResult != null && artifactResult.size > 0) {
-                    return artifactResult[0]
+                return artifactResult[0]
             } else {
                 throw KobaltException("Couldn't find latest artifact for $group:$artifactId")
             }
@@ -134,32 +143,8 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
         return result
     }
 
-    private fun oldResolveVErsion() {
-//        val artifact = DefaultArtifact(a.groupId, a.artifactId, null, "[0,)")
-//        val r = system.resolveMetadata(session, kobaltRepositories.map {
-//            MetadataRequest(metadata, it, null).apply {
-//                isFavorLocalRepository = false
-//            }
-//        })
-
-//        val metadata = DefaultMetadata(artifact.groupId, artifact.artifactId, "maven-metadata.xml",
-//                org.eclipse.aether.metadata.Metadata.Nature.RELEASE)
-//
-//        kobaltRepositories.forEach {
-//            val request = MetadataRequest(metadata, it, null).apply {
-//                isFavorLocalRepository = false
-//            }
-//            val md = system.resolveMetadata(session, listOf(request))
-//            if (artifact.groupId.contains("org.testng")) {
-//                println("DONOTCOMMIT")
-//            }
-//            println("Repo: $it " + md)
-//        }
-
-    }
-
     fun resolve(artifact: Artifact, isTest: Boolean = false): List<ArtifactResult> {
-        fun manageException(ex: Exception, artifact: Artifact) : List<ArtifactResult> {
+        fun manageException(ex: Exception, artifact: Artifact): List<ArtifactResult> {
             if (artifact.extension == "pom") {
                 // Only display a warning for .pom files. Not resolving a .jar or other artifact
                 // is not necessarily an error as long as there is a pom file.
@@ -186,10 +171,11 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
             = system.collectDependencies(session, collectRequest(artifact, isTest))
 }
 
-class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable<AetherDependency> {
+class AetherDependency(val artifact: Artifact) : IClasspathDependency, Comparable<AetherDependency> {
     val aether: Aether get() = Kobalt.INJECTOR.getInstance(Aether::class.java)
 
-    constructor(node: DependencyNode) : this(node.artifact) {}
+    constructor(node: DependencyNode) : this(node.artifact) {
+    }
 
     override val id: String = toId(artifact)
 
@@ -228,13 +214,13 @@ class AetherDependency(val artifact: Artifact): IClasspathDependency, Comparable
         }
     }
 
-    override fun directDependencies() : List<IClasspathDependency> {
+    override fun directDependencies(): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         val deps = aether.directDependencies(artifact)
         if (deps != null) {
-            if (! deps.root.dependency.optional) {
+            if (!deps.root.dependency.optional) {
                 deps.root.children.forEach {
-                    if (! it.dependency.isOptional) {
+                    if (!it.dependency.isOptional) {
                         result.add(AetherDependency(it.artifact))
                     } else {
                         log(ConsoleRepositoryListener.LOG_LEVEL, "Skipping optional dependency " + deps.root.artifact)
@@ -290,3 +276,4 @@ fun main(argv: Array<String>) {
 //
 //    println("Artifact: " + d)
 }
+
