@@ -214,10 +214,10 @@ private class Main @Inject constructor(
                         plugins.shutdownPlugins()
 
                         if (args.profiling) {
-                            log(1, "\nTIMINGS (SECONDS)")
-                            log(1, "================\n")
+                            log(1, "\n" + AsciiArt.horizontalSingleLine + " Timings (in seconds)")
                             runTargetResult.timings.sortedByDescending { it.durationMillis }.forEach {
-                                log(1, String.format("%.2f", it.durationMillis.toDouble() / 1000) + " " + it.taskName)
+                                log(1, String.format("%1$10.2f", it.durationMillis.toDouble() / 1000)
+                                        + " " + it.taskName)
                             }
                             log(1, "\n")
                         }
