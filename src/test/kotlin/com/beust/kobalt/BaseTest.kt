@@ -8,16 +8,15 @@ import com.beust.kobalt.internal.KobaltPluginXml
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.maven.aether.KobaltAether
-import org.testng.annotations.BeforeSuite
+import org.testng.annotations.BeforeClass
 import java.io.File
 import java.nio.file.Paths
 
 open class BaseTest(open val aether: KobaltAether) {
     val context = KobaltContext(Args())
 
-    @BeforeSuite
-    fun bs() {
-        println("INITIALIZING AETHER TO $aether")
+    @BeforeClass
+    fun bc() {
         context.aether = aether
     }
 
