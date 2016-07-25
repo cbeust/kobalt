@@ -1,15 +1,25 @@
 package com.beust.kobalt
 
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.app.BuildFileCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.KobaltPluginXml
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.maven.aether.KobaltAether
+import org.testng.annotations.BeforeSuite
 import java.io.File
 import java.nio.file.Paths
 
-interface BaseTest {
+open class BaseTest(open val aether: KobaltAether) {
+    val context = KobaltContext(Args())
+
+    @BeforeSuite
+    fun bs() {
+        context.aether = aether
+    }
+
     fun compileBuildFile(buildFileText: String, args: Args, compilerFactory: BuildFileCompiler.IFactory)
             : BuildFileCompiler.FindProjectResult {
         val tmpBuildFile = File.createTempFile("kobaltTest", "").apply {
