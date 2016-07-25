@@ -77,7 +77,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                             packageConfig.wars.forEach { warGenerator.generateWar(packageConfig.project, context, it) }
                             packageConfig.zips.forEach { zipGenerator.generateZip(packageConfig.project, context, it) }
                             if (packageConfig.generatePom) {
-                                pomFactory.create(project).generate()
+                                pomFactory.create(project).generateAndSave()
                             }
                         }
                         TaskResult()

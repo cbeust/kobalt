@@ -46,7 +46,7 @@ open class Project(
 
     val testConfigs = arrayListOf<TestConfig>()
 
-    // If one is specified by default, we only generate a BuildConfig, find a way to fix that
+    // If one is specified by default, we only generateAndSave a BuildConfig, find a way to fix that
     override var buildConfig : BuildConfig? = null // BuildConfig()
 
     val projectProperties = ProjectProperties()

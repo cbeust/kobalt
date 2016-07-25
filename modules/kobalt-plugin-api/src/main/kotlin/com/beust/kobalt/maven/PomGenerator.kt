@@ -18,7 +18,25 @@ class PomGenerator @Inject constructor(@Assisted val project: Project) {
         fun create(project: Project) : PomGenerator
     }
 
-    fun generate() {
+    /**
+     * Generate the POM file and save it.
+     */
+    fun generateAndSave() {
+        val buildDir = KFiles.makeDir(project.directory, project.buildDirectory)
+        val outputDir = KFiles.makeDir(buildDir.path, "libs")
+        val NO_CLASSIFIER = null
+        val mavenId = MavenId.create(project.group!!, project.artifactId!!, project.packaging, NO_CLASSIFIER,
+                project.version!!)
+        val pomFile = SimpleDep(mavenId).toPomFileName()
+        val outputFile = File(outputDir, pomFile)
+        outputFile.writeText(generate(), Charset.defaultCharset())
+        log(1, "  Created $outputFile")
+    }
+
+    /**
+     * @return the text content of the POM file.
+     */
+    fun generate() : String {
         requireNotNull(project.version, { "version mandatory on project ${project.name}" })
         requireNotNull(project.group, { "group mandatory on project ${project.name}" })
         requireNotNull(project.artifactId, { "artifactId mandatory on project ${project.name}" })
@@ -60,15 +78,6 @@ class PomGenerator @Inject constructor(@Assisted val project: Project) {
 
         val s = StringWriter()
         MavenXpp3Writer().write(s, pom)
-
-        val buildDir = KFiles.makeDir(project.directory, project.buildDirectory)
-        val outputDir = KFiles.makeDir(buildDir.path, "libs")
-        val NO_CLASSIFIER = null
-        val mavenId = MavenId.create(project.group!!, project.artifactId!!, project.packaging, NO_CLASSIFIER,
-                project.version!!)
-        val pomFile = SimpleDep(mavenId).toPomFileName()
-        val outputFile = File(outputDir, pomFile)
-        outputFile.writeText(s.toString(), Charset.defaultCharset())
-        log(1, "  Created $outputFile")
+        return s.toString()
     }
 }

@@ -41,7 +41,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
     @Suppress("UNUSED_FUNCTION_LITERAL")
     @Task(name = TASK_GENERATE_POM, description = "Generate the .pom file", dependsOn = arrayOf("assemble"))
     fun taskGeneratePom(project: Project): TaskResult {
-        factory.create(project).generate()
+        factory.create(project).generateAndSave()
         return TaskResult()
     }
 
