@@ -213,7 +213,14 @@ private class Main @Inject constructor(
                         // Shutdown all plug-ins
                         plugins.shutdownPlugins()
 
-                        log(3, "Timings:\n  " + runTargetResult.messages.joinToString("\n  "))
+                        if (args.profiling) {
+                            log(1, "\nTIMINGS (SECONDS)")
+                            log(1, "================\n")
+                            runTargetResult.timings.sortedByDescending { it.durationMillis }.forEach {
+                                log(1, String.format("%.2f", it.durationMillis.toDouble() / 1000) + " " + it.taskName)
+                            }
+                            log(1, "\n")
+                        }
                     }
                 }
             }

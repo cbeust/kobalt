@@ -65,6 +65,9 @@ class Args {
     @Parameter(names = arrayOf("--profiles"), description = "Comma-separated list of profiles to run")
     var profiles: String? = null
 
+    @Parameter(names = arrayOf("--profiling"), description = "Display task timings at the end of the build")
+    var profiling: Boolean = false
+
     @Parameter(names = arrayOf("--resolve"),
             description = "Resolve the given comma-separated dependencies and display their dependency tree")
     var dependencies: String? = null

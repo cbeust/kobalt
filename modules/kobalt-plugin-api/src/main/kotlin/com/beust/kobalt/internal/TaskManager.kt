@@ -62,7 +62,7 @@ class TaskManager @Inject constructor(val args: Args,
         override fun toString() = id
     }
 
-    class RunTargetResult(val taskResult: TaskResult, val messages: List<String>)
+    class RunTargetResult(val taskResult: TaskResult, val timings: List<ProfilerInfo>)
 
     /**
      * @return the list of tasks available for the given project.
@@ -124,10 +124,12 @@ class TaskManager @Inject constructor(val args: Args,
         return if (result.any()) result.toList() else projects
     }
 
+    class ProfilerInfo(val taskName: String, val durationMillis: Long)
+
     private fun runProjects(taskInfos: List<TaskInfo>, projects: List<Project>) : RunTargetResult {
         var result = TaskResult()
         val failedProjects = hashSetOf<String>()
-        val messages = Collections.synchronizedList(arrayListOf<String>())
+        val messages = Collections.synchronizedList(arrayListOf<ProfilerInfo>())
         projects.forEach { project ->
             AsciiArt.logBox("Building ${project.name}")
 
@@ -532,7 +534,7 @@ class TaskManager @Inject constructor(val args: Args,
     /////
 }
 
-class TaskWorker(val tasks: List<ITask>, val dryRun: Boolean, val messages: MutableList<String>)
+class TaskWorker(val tasks: List<ITask>, val dryRun: Boolean, val timings: MutableList<TaskManager.ProfilerInfo>)
         : IWorker<ITask> {
 
     override fun call() : TaskResult2<ITask> {
@@ -550,7 +552,7 @@ class TaskWorker(val tasks: List<ITask>, val dryRun: Boolean, val messages: Muta
                 success = success and tr.success
                 if (tr.errorMessage != null) errorMessages.add(tr.errorMessage)
             }
-            messages.add("$name: $time ms")
+            timings.add(TaskManager.ProfilerInfo(name, time.first))
         }
         return TaskResult2(success, errorMessages.joinToString("\n"), tasks[0])
     }
