@@ -17,6 +17,7 @@ open class BaseTest(open val aether: KobaltAether) {
 
     @BeforeSuite
     fun bs() {
+        println("INITIALIZING AETHER TO $aether")
         context.aether = aether
     }
 
