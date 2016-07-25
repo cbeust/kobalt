@@ -21,29 +21,29 @@ class ContextTest @Inject constructor(override val aether: KobaltAether): BaseTe
     @DataProvider
     fun dp() : Array<Array<out Any?>> {
         return arrayOf(
-                arrayOf(KobaltContext.FileType.JAR, ARTIFACT + "-" + VERSION + ".jar"),
-                arrayOf(KobaltContext.FileType.POM, ARTIFACT + "-" + VERSION + ".pom"),
-                arrayOf(KobaltContext.FileType.JAVADOC, ARTIFACT + "-" + VERSION + "-javadoc.jar"),
-                arrayOf(KobaltContext.FileType.SOURCES, ARTIFACT + "-" + VERSION + "-sources.jar")
+            arrayOf(KobaltContext.FileType.JAR, ARTIFACT + "-" + VERSION + ".jar"),
+            arrayOf(KobaltContext.FileType.POM, ARTIFACT + "-" + VERSION + ".pom"),
+            arrayOf(KobaltContext.FileType.JAVADOC, ARTIFACT + "-" + VERSION + "-javadoc.jar"),
+            arrayOf(KobaltContext.FileType.SOURCES, ARTIFACT + "-" + VERSION + "-sources.jar")
         )
     }
 
-    fun normalize(path: String) = path.replace('.', File.separatorChar)
-
-    @Test(dataProvider = "dp")
-    fun fileForIdShouldWork(fileType: KobaltContext.FileType, expectedFileName: String) {
-        val expected = listOf(REPO_PATH, normalize(GROUP), ARTIFACT, VERSION,
-                ARTIFACT + "-" + VERSION + ".jar").joinToString(File.separator)
-        val file = context.fileFor(id, KobaltContext.FileType.JAR)
+    private fun runTest(id: String, fileType: KobaltContext.FileType, expected: String) {
+        val file = context.fileFor(id, fileType)
         assertThat(file.absolutePath).isEqualTo(expected)
     }
 
-    @Test
-    fun fileForIdOther() {
-        val expected = listOf(REPO_PATH, "io/reactivex/rxandroid/1.0.1/rxandroid-1.0.1.aar")
-                .joinToString(File.separator)
-        val file = context.fileFor("io.reactivex:rxandroid:aar:1.0.1", KobaltContext.FileType.OTHER)
-        assertThat(file.absolutePath).isEqualTo(expected)
+    @Test(dataProvider = "dp", description = "Test KobaltContext#fileForId")
+    fun fileForIdShouldWork(fileType: KobaltContext.FileType, expectedFileName: String) {
+        runTest(id, fileType, listOf(REPO_PATH, GROUP.replace('.', File.separatorChar), ARTIFACT, VERSION,
+                expectedFileName)
+            .joinToString(File.separator))
+    }
 
+    @Test(description = "Test KobaltContext#fileForId for the OTHER file type")
+    fun fileForIdOther() {
+        runTest("io.reactivex:rxandroid:aar:1.0.1", KobaltContext.FileType.OTHER,
+                listOf(REPO_PATH, "io/reactivex/rxandroid/1.0.1/rxandroid-1.0.1.aar")
+                        .joinToString(File.separator))
     }
 }
