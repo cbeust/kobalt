@@ -35,7 +35,7 @@ class ContextTest @Inject constructor(override val aether: KobaltAether): BaseTe
 
     @Test(dataProvider = "dp", description = "Test KobaltContext#fileForId")
     fun fileForIdShouldWork(fileType: KobaltContext.FileType, expectedFileName: String) {
-        runTest(id, fileType, listOf(REPO_PATH, GROUP.replace('.', File.separatorChar), ARTIFACT, VERSION,
+        runTest(id, fileType, expected = listOf(REPO_PATH, GROUP.replace('.', File.separatorChar), ARTIFACT, VERSION,
                 expectedFileName)
             .joinToString(File.separator))
     }
@@ -43,7 +43,7 @@ class ContextTest @Inject constructor(override val aether: KobaltAether): BaseTe
     @Test(description = "Test KobaltContext#fileForId for the OTHER file type")
     fun fileForIdOther() {
         runTest("io.reactivex:rxandroid:aar:1.0.1", KobaltContext.FileType.OTHER,
-                listOf(REPO_PATH, "io/reactivex/rxandroid/1.0.1/rxandroid-1.0.1.aar")
+                expected = listOf(REPO_PATH, "io/reactivex/rxandroid/1.0.1/rxandroid-1.0.1.aar")
                         .joinToString(File.separator))
     }
 }
