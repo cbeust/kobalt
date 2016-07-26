@@ -65,8 +65,7 @@ class DependencyManagerTest @Inject constructor(val dependencyManager: Dependenc
         val compileResult = compileBuildFile(buildFileString, Args(), compilerFactory)
         val project2 = compileResult.projects[1]
         val dependencies = dependencyManager.calculateDependencies(project2, Kobalt.context!!,
-                listOf(Scope.COMPILE, Scope.RUNTIME),
-                project2.compileDependencies + project2.compileRuntimeDependencies)
+                listOf(Scope.COMPILE, Scope.RUNTIME))
         assertContains(dependencies, ":testng:")
         assertContains(dependencies, ":jcommander:")
     }
