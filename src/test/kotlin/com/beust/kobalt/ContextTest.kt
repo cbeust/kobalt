@@ -21,10 +21,10 @@ class ContextTest @Inject constructor(override val aether: KobaltAether): BaseTe
     @DataProvider
     fun dp() : Array<Array<out Any?>> {
         return arrayOf(
-            arrayOf(KobaltContext.FileType.JAR, ARTIFACT + "-" + VERSION + ".jar"),
-            arrayOf(KobaltContext.FileType.POM, ARTIFACT + "-" + VERSION + ".pom"),
-            arrayOf(KobaltContext.FileType.JAVADOC, ARTIFACT + "-" + VERSION + "-javadoc.jar"),
-            arrayOf(KobaltContext.FileType.SOURCES, ARTIFACT + "-" + VERSION + "-sources.jar")
+            arrayOf(KobaltContext.FileType.JAR, "$ARTIFACT-$VERSION.jar"),
+            arrayOf(KobaltContext.FileType.POM, "$ARTIFACT-$VERSION.pom"),
+            arrayOf(KobaltContext.FileType.JAVADOC, "$ARTIFACT-$VERSION-javadoc.jar"),
+            arrayOf(KobaltContext.FileType.SOURCES, "$ARTIFACT-$VERSION-sources.jar")
         )
     }
 
