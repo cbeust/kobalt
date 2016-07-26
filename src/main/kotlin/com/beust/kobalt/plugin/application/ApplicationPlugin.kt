@@ -7,6 +7,7 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.internal.ActorUtils
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.aether.Scope
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.RunCommand
@@ -105,7 +106,9 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
             // on the classpath
             val allDependencies = project.compileDependencies + project.compileRuntimeDependencies
             val allTheDependencies =
-                    dependencyManager.calculateDependencies(project, context, allDependencies = allDependencies)
+                    dependencyManager.calculateDependencies(project, context,
+                            listOf(Scope.COMPILE, Scope.RUNTIME),
+                            passedDependencies = allDependencies)
                             .map { it.jarFile.get().path }
             allDeps.addAll(allTheDependencies)
         }

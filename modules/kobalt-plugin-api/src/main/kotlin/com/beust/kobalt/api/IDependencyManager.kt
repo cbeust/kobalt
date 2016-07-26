@@ -1,5 +1,7 @@
 package com.beust.kobalt.api
 
+import com.beust.kobalt.maven.aether.Scope
+
 /**
  * Manage the creation of dependencies and also provide dependencies for projects.
  */
@@ -33,6 +35,7 @@ interface IDependencyManager {
      * @return the classpath for this project, including the IClasspathContributors.
      * allDependencies is typically either compileDependencies or testDependencies
      */
-    fun calculateDependencies(project: Project?, context: KobaltContext, isTest: Boolean = false,
-            vararg allDependencies: List<IClasspathDependency>): List<IClasspathDependency>
+    fun calculateDependencies(project: Project?, context: KobaltContext,
+            scopeFilters: Collection<Scope> = emptyList(),
+            vararg passedDependencies: List<IClasspathDependency>): List<IClasspathDependency>
 }

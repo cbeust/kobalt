@@ -40,7 +40,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         // Copy them all in kobaltBuild/war/WEB-INF/libs and create one IncludedFile out of that directory
         //
         val allDependencies = dependencyManager.calculateDependencies(project, context,
-                allDependencies = project.compileDependencies)
+                passedDependencies = project.compileDependencies)
 
         val outDir = project.buildDirectory + "/war"
         val fullDir = outDir + "/" + LIB

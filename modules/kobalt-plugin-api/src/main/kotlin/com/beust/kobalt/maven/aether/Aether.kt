@@ -32,11 +32,28 @@ import org.eclipse.aether.util.filter.DependencyFilterUtils
 import java.io.File
 import java.util.concurrent.Future
 
+enum class Scope(val scope: String) {
+    COMPILE(JavaScopes.COMPILE),
+    PROVIDED(JavaScopes.PROVIDED),
+    SYSTEM(JavaScopes.SYSTEM),
+    RUNTIME(JavaScopes.RUNTIME),
+    TEST(JavaScopes.TEST)
+    ;
+
+    companion object {
+        /**
+         * @return a filter that excludes optional dependencies and allows all the scopes passed in parameter.
+         */
+        fun toFilter(scopes: Collection<Scope>): DependencyFilter {
+            val javaScopes = scopes.map { DependencyFilterUtils.classpathFilter(it.scope) }.toTypedArray()
+            return AndDependencyFilter(KobaltAether.ExcludeOptionalDependencyFilter(), *javaScopes)
+        }
+    }
+}
+
 class DependencyResult(val dependency: IClasspathDependency, val repoUrl: String)
 
 class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether: Aether) {
-    val localRepo: File get() = settings.localCache
-
     /**
      * Create an IClasspathDependency from a Kobalt id.
      */
@@ -50,14 +67,16 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
         DependencyResult(AetherDependency(it.artifact), it.repository.toString())
     }
 
-    fun resolveAll(id: String, isTest: Boolean): List<String> {
-        val results = aether.resolve(DefaultArtifact(id), isTest)
+    fun resolveAll(id: String, artifactScope: Scope? = null, filterScopes: Collection<Scope> = emptyList())
+            : List<String> {
+        val results = aether.resolve(DefaultArtifact(id), artifactScope, filterScopes)
         return results.map { it.artifact.toString() }
     }
 
-    fun resolve(id: String, isTest: Boolean = false): DependencyResult {
+    fun resolve(id: String, artifactScope: Scope? = null, filterScopes: Collection<Scope> = emptyList())
+            : DependencyResult {
         log(ConsoleRepositoryListener.LOG_LEVEL, "Resolving $id")
-        val result = resolveToArtifact(id, isTest)
+        val result = resolveToArtifact(id, artifactScope, filterScopes)
         if (result != null) {
             return DependencyResult(AetherDependency(result.artifact), result.repository.toString())
         } else {
@@ -65,9 +84,10 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
         }
     }
 
-    fun resolveToArtifact(id: String, isTest: Boolean = false): ArtifactResult? {
+    fun resolveToArtifact(id: String, artifactScope: Scope? = null, filterScopes: Collection<Scope> = emptyList())
+            : ArtifactResult? {
         log(ConsoleRepositoryListener.LOG_LEVEL, "Resolving $id")
-        val results = aether.resolve(DefaultArtifact(MavenId.toKobaltId(id)), isTest)
+        val results = aether.resolve(DefaultArtifact(MavenId.toKobaltId(id)), artifactScope, filterScopes)
         if (results.size > 0) {
             return results[0]
         } else {
@@ -87,17 +107,11 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
 }
 
 @Singleton
-class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: EventBus) {
+class Aether(localRepo: File, val settings: KobaltSettings, val eventBus: EventBus) {
     private val system = Booter.newRepositorySystem()
     private val session = Booter.newRepositorySystemSession(system, localRepo, settings, eventBus)
-    private val classpathFilter = AndDependencyFilter(
-            KobaltAether.ExcludeOptionalDependencyFilter(),
-            DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE),
-            DependencyFilterUtils.classpathFilter(JavaScopes.TEST))
-
-    private val testClasspathFilter = AndDependencyFilter(
-            KobaltAether.ExcludeOptionalDependencyFilter(),
-            DependencyFilterUtils.classpathFilter(JavaScopes.TEST))
+//    private val classpathFilter = Scopes.toFilter(Scopes.COMPILE, Scopes.TEST)
+//    private val testClasspathFilter = Scopes.toFilter(Scopes.TEST)
 
     private val kobaltRepositories: List<RemoteRepository>
         get() = Kobalt.repos.map {
@@ -111,9 +125,9 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
             }
         }
 
-    private fun collectRequest(artifact: Artifact, isTest: Boolean): CollectRequest {
+    private fun collectRequest(artifact: Artifact, scope: Scope?): CollectRequest {
         with(CollectRequest()) {
-            root = Dependency(artifact, if (isTest) JavaScopes.TEST else JavaScopes.COMPILE)
+            root = Dependency(artifact, scope?.scope)
             repositories = kobaltRepositories
 
             return this
@@ -126,8 +140,8 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
         if (resolved != null) {
             val newArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.extension,
                     resolved.highestVersion.toString())
-            val artifactResult = resolve(newArtifact)
-            if (artifactResult != null && artifactResult.size > 0) {
+            val artifactResult = resolve(newArtifact, null, emptyList())
+            if (artifactResult.any()) {
                 return artifactResult[0]
             } else {
                 throw KobaltException("Couldn't find latest artifact for $group:$artifactId")
@@ -143,7 +157,7 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
         return result
     }
 
-    fun resolve(artifact: Artifact, isTest: Boolean = false): List<ArtifactResult> {
+    fun resolve(artifact: Artifact, artifactScope: Scope?, filterScopes: Collection<Scope>): List<ArtifactResult> {
         fun manageException(ex: Exception, artifact: Artifact): List<ArtifactResult> {
             if (artifact.extension == "pom") {
                 // Only display a warning for .pom files. Not resolving a .jar or other artifact
@@ -154,8 +168,8 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
         }
 
         try {
-            val dependencyRequest = DependencyRequest(collectRequest(artifact, isTest),
-                    if (isTest) testClasspathFilter else classpathFilter)
+            val scopeFilter = Scope.toFilter(filterScopes)
+            val dependencyRequest = DependencyRequest(collectRequest(artifact, artifactScope), scopeFilter)
             val result = system.resolveDependencies(session, dependencyRequest).artifactResults
             return result
         } catch(ex: ArtifactNotFoundException) {
@@ -165,10 +179,10 @@ class Aether(val localRepo: File, val settings: KobaltSettings, val eventBus: Ev
         }
     }
 
-    fun transitiveDependencies(artifact: Artifact) = directDependencies(artifact)
+//    fun transitiveDependencies(artifact: Artifact) = directDependencies(artifact)
 
-    fun directDependencies(artifact: Artifact, isTest: Boolean = false): CollectResult?
-            = system.collectDependencies(session, collectRequest(artifact, isTest))
+    fun directDependencies(artifact: Artifact, artifactScope: Scope? = null): CollectResult?
+            = system.collectDependencies(session, collectRequest(artifact, artifactScope))
 }
 
 class AetherDependency(val artifact: Artifact) : IClasspathDependency, Comparable<AetherDependency> {
@@ -194,12 +208,16 @@ class AetherDependency(val artifact: Artifact) : IClasspathDependency, Comparabl
             if (file.exists()) {
                 CompletedFuture(file)
             } else {
-                val td = aether.resolve(artifact)
-                val newFile = td[0].artifact.file
-                if (newFile != null) {
-                    CompletedFuture(newFile)
+                val td = aether.resolve(artifact, null, emptyList())
+                if (td.any()) {
+                    val newFile = td[0].artifact.file
+                    if (newFile != null) {
+                        CompletedFuture(newFile)
+                    } else {
+                        CompletedFuture(File("DOESNOTEXIST $id")) // will be filtered out
+                    }
                 } else {
-                    CompletedFuture(File("DONOTEXIST")) // will be filtered out
+                    CompletedFuture(File("DOESNOTEXIST $id"))
                 }
             }
         }
@@ -276,4 +294,5 @@ fun main(argv: Array<String>) {
 //
 //    println("Artifact: " + d)
 }
+
 

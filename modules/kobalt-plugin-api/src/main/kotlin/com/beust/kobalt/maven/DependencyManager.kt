@@ -3,6 +3,7 @@ package com.beust.kobalt.maven
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.*
 import com.beust.kobalt.maven.aether.KobaltAether
+import com.beust.kobalt.maven.aether.Scope
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -82,16 +83,40 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
 
     /**
      * @return the classpath for this project, including the IClasspathContributors.
-     * allDependencies is typically either compileDependencies or testDependencies
+     * allDependencies is typically either compileDependencies or testDependencies. If no dependencies
+     * are passed, they are calculated from the scope filters.
      */
-    override fun calculateDependencies(project: Project?, context: KobaltContext, isTest: Boolean,
-            vararg allDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
+    override fun calculateDependencies(project: Project?, context: KobaltContext,
+            scopeFilters: Collection<Scope>,
+            vararg passedDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
+
+        /**
+         * Extract the correct dependencies from the project based on the scope filters.
+         */
+        fun filtersToDependencies(project: Project, scopes: Collection<Scope>): List<IClasspathDependency> {
+            return arrayListOf<IClasspathDependency>().apply {
+                if (scopes.contains(Scope.COMPILE)) {
+                    addAll(project.compileDependencies)
+                }
+                if (scopes.contains(Scope.RUNTIME)) {
+                    addAll(project.compileRuntimeDependencies)
+                }
+                if (scopes.contains(Scope.TEST)) {
+                    addAll(project.testDependencies)
+                }
+            }
+        }
+
+        val allDependencies : Array<out List<IClasspathDependency>> =
+            if (project == null || passedDependencies.any()) passedDependencies
+            else arrayOf(filtersToDependencies(project, scopeFilters))
+
         allDependencies.forEach { dependencies ->
-            result.addAll(transitiveClosure(dependencies, isTest, project?.name))
+            result.addAll(transitiveClosure(dependencies, scopeFilters, project?.name))
         }
         result.addAll(runClasspathContributors(project, context))
-        result.addAll(dependentProjectDependencies(project, context))
+        result.addAll(dependentProjectDependencies(project, context, scopeFilters))
 
         // Dependencies get reordered by transitiveClosure() but since we just added a bunch of new ones,
         // we need to reorder them again in case we're adding dependencies that are already present
@@ -113,13 +138,14 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      * Return the transitive closure of the dependencies *without* running the classpath contributors.
      * TODO: This should be private, everyone should be calling calculateDependencies().
      */
-    fun transitiveClosure(dependencies : List<IClasspathDependency>, isTest: Boolean = false,
+    fun transitiveClosure(dependencies : List<IClasspathDependency>,
+            scopeFilter: Collection<Scope> = emptyList(),
             requiredBy: String? = null): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         dependencies.forEach {
             result.add(it)
             if (it.isMaven) {
-                val resolved = aether.resolveAll(it.id, isTest).map { it.toString() }
+                val resolved = aether.resolveAll(it.id, null, scopeFilter).map { it.toString() }
                 result.addAll(resolved.map { create(it) })
             }
         }
@@ -151,8 +177,8 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      * If this project depends on other projects, we need to include their jar file and also
      * their own dependencies
      */
-    private fun dependentProjectDependencies(
-            project: Project?, context: KobaltContext) : List<IClasspathDependency> {
+    private fun dependentProjectDependencies(project: Project?, context: KobaltContext, scopeFilters: Collection<Scope>)
+            : List<IClasspathDependency> {
         if (project == null) {
             return emptyList()
         } else {
@@ -165,7 +191,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
                         result.add(FileDependency(KFiles.joinDir(p.directory, p.classesDir(context))))
                     }
                 }
-                val otherDependencies = calculateDependencies(p, context, false, p.compileDependencies)
+                val otherDependencies = calculateDependencies(p, context, scopeFilters)
                 result.addAll(otherDependencies)
 
             }
@@ -177,6 +203,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
             : List<IClasspathDependency> {
         val transitive = hashSetOf<IClasspathDependency>()
         with(project) {
+            val scopeFilters = arrayListOf(Scope.COMPILE)
             context.variant.let { variant ->
                 val deps = arrayListOf(compileDependencies, compileProvidedDependencies,
                         variant.buildType.compileDependencies,
@@ -187,9 +214,10 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
                 if (isTest) {
                     deps.add(testDependencies)
                     deps.add(testProvidedDependencies)
+                    scopeFilters.add(Scope.TEST)
                 }
                 deps.filter { it.any() }.forEach {
-                    transitive.addAll(calculateDependencies(project, context, isTest, it))
+                    transitive.addAll(calculateDependencies(project, context, scopeFilters, it))
                 }
             }
         }
