@@ -36,6 +36,6 @@ interface IDependencyManager {
      * allDependencies is typically either compileDependencies or testDependencies
      */
     fun calculateDependencies(project: Project?, context: KobaltContext,
-            scopeFilters: Collection<Scope> = emptyList(),
+            scopeFilters: Collection<Scope> = listOf(Scope.COMPILE),
             vararg passedDependencies: List<IClasspathDependency>): List<IClasspathDependency>
 }
