@@ -5,6 +5,7 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.archive.Jar
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.aether.Scope
 import com.beust.kobalt.misc.*
 import com.google.inject.Inject
 import java.io.File
@@ -102,8 +103,8 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
                 context.variant.buildType.compileRuntimeDependencies +
                 context.variant.productFlavor.compileDependencies +
                 context.variant.productFlavor.compileRuntimeDependencies
-            val transitiveDependencies = dependencyManager.calculateDependencies(project, context, emptyList(),
-                    allDependencies)
+            val transitiveDependencies = dependencyManager.calculateDependencies(project, context,
+                    listOf(Scope.COMPILE), allDependencies)
             transitiveDependencies.map {
                 it.jarFile.get()
             }.forEach { file : File ->
