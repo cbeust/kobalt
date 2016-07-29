@@ -1,5 +1,6 @@
 package com.beust.kobalt.plugin.kotlin
 
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.internal.ICompilerAction
@@ -98,12 +99,13 @@ class KotlinCompiler @Inject constructor(
                     throw UnsupportedOperationException("not implemented")
                 }
 
-                fun CompilerMessageLocation.dump(s: String) = "$path:$line:$column $s"
+                fun CompilerMessageLocation.dump(s: String) = "$lineContent\n$path:$line:$column $s"
 
                 override fun report(severity: CompilerMessageSeverity,
                         message: String, location: CompilerMessageLocation) {
                     if (severity.isError) {
                         System.err.println(location.dump(message))
+                        throw KobaltException("Couldn't compile build file: $message")
                     } else if (severity == CompilerMessageSeverity.WARNING && KobaltLogger.LOG_LEVEL >= 2) {
                         warn(location.dump(message))
                     } else if (severity == CompilerMessageSeverity.INFO && KobaltLogger.LOG_LEVEL >= 2) {
