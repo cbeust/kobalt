@@ -30,6 +30,28 @@ class DynamicGraph<T> {
     private val dependedUpon = HashMultimap.create<Node<T>, Node<T>>()
     private val dependingOn = HashMultimap.create<Node<T>, Node<T>>()
 
+    fun transitiveClosure(root: T): Set<T> {
+        val result = hashSetOf<T>()
+        val seen = hashSetOf<T>()
+        val toProcess = arrayListOf<T>().apply {
+            add(root)
+        }
+        while (toProcess.any()) {
+            val newToProcess = arrayListOf<T>()
+            toProcess.forEach {
+                if (! seen.contains(it)) {
+                    result.add(it)
+                    newToProcess.addAll(dependedUpon[Node(it)].map { it.value })
+                    seen.add(it)
+                }
+            }
+            toProcess.clear()
+            toProcess.addAll(newToProcess)
+        }
+
+        return result
+    }
+
     fun addNode(t: T) = synchronized(nodes) {
         nodes.add(Node(t))
     }
