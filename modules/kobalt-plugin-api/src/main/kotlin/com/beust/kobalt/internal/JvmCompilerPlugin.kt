@@ -9,6 +9,7 @@ import com.beust.kobalt.api.annotation.ExportedProjectProperty
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.DependencyManager2
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.Md5
 import com.beust.kobalt.misc.*
@@ -26,6 +27,7 @@ open class JvmCompilerPlugin @Inject constructor(
         open val localRepo: LocalRepo,
         open val files: KFiles,
         open val dependencyManager: DependencyManager,
+        open val dependencyManager2: DependencyManager2,
         open val executors: KobaltExecutors,
         open val taskContributor : TaskContributor,
         val compilerUtils: CompilerUtils)
@@ -89,8 +91,10 @@ open class JvmCompilerPlugin @Inject constructor(
         val testContributor = ActorUtils.selectAffinityActor(project, context,
                 context.pluginInfo.testRunnerContributors)
         if (testContributor != null && testContributor.affinity(project, context) > 0) {
-            return testContributor.run(project, context, configName,
-                    dependencyManager.testDependencies(project, context))
+//            val td1 = dependencyManager.testDependencies(project, context)
+            val testDependencies = dependencyManager2.resolve(project, context, isTest = true)
+            val compileDependencies = dependencyManager2.resolve(project, context, isTest = false)
+            return testContributor.run(project, context, configName, testDependencies + compileDependencies)
         } else {
             log(2, "Couldn't find a test runner for project ${project.name}, did you specify dependenciesTest{}?")
             return TaskResult()

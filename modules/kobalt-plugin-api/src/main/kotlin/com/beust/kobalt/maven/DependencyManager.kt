@@ -177,8 +177,8 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      * If this project depends on other projects, we need to include their jar file and also
      * their own dependencies
      */
-    private fun dependentProjectDependencies(project: Project?, context: KobaltContext, scopeFilters: Collection<Scope>)
-            : List<IClasspathDependency> {
+    private fun dependentProjectDependencies(project: Project?, context: KobaltContext,
+            scopeFilters: Collection<Scope>): List<IClasspathDependency> {
         if (project == null) {
             return emptyList()
         } else {

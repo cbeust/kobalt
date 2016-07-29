@@ -15,6 +15,7 @@ import org.testng.annotations.Test
 
 @Guice(modules = arrayOf(TestModule::class))
 class DependencyManagerTest @Inject constructor(val dependencyManager: DependencyManager,
+        val dependencyManager2: DependencyManager2,
         val compilerFactory: BuildFileCompiler.IFactory, override val aether: KobaltAether) : BaseTest(aether) {
 
     private fun assertContains(dependencies: List<IClasspathDependency>, vararg ids: String) {
@@ -66,6 +67,32 @@ class DependencyManagerTest @Inject constructor(val dependencyManager: Dependenc
         val project2 = compileResult.projects[1]
         val dependencies = dependencyManager.calculateDependencies(project2, Kobalt.context!!,
                 listOf(Scope.COMPILE, Scope.RUNTIME))
+        assertContains(dependencies, ":testng:")
+        assertContains(dependencies, ":jcommander:")
+    }
+
+    @Test
+    fun honorRuntimeDependenciesBetweenProjects2() {
+        val buildFileString = """
+            import com.beust.kobalt.*
+
+            val lib = project {
+                name = "lib"
+                dependencies {
+                    compile("org.testng:testng:6.9.11")
+                    runtime("com.beust:jcommander:1.48")
+                }
+            }
+
+            val p = project(lib) {
+                name = "transitive"
+            }
+        """
+
+        val compileResult = compileBuildFile(buildFileString, Args(), compilerFactory)
+        val project2 = compileResult.projects[1]
+        val dependencies = dependencyManager2.resolve(project2, Kobalt.context!!, isTest = false,
+                passedScopeFilters = listOf(Scope.COMPILE, Scope.RUNTIME))
         assertContains(dependencies, ":testng:")
         assertContains(dependencies, ":jcommander:")
     }

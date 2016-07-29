@@ -2,6 +2,7 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.*
 import com.beust.kobalt.api.*
+import com.beust.kobalt.maven.DependencyManager2
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import com.google.common.annotations.VisibleForTesting
@@ -23,9 +24,13 @@ abstract class GenericTestRunner: ITestRunnerContributor {
             classpath: List<IClasspathDependency>)
         = TaskResult(runTests(project, context, classpath, configName))
 
-    override fun affinity(project: Project, context: KobaltContext) =
-            if (project.testDependencies.any { it.id.contains(dependencyName)}) IAffinity.DEFAULT_POSITIVE_AFFINITY
+    override fun affinity(project: Project, context: KobaltContext) : Int {
+        val td = Kobalt.INJECTOR.getInstance(DependencyManager2::class.java).resolve(project, context, isTest = true)
+        val result =
+            if (td.any { it.id.contains(dependencyName) }) IAffinity.DEFAULT_POSITIVE_AFFINITY
             else 0
+        return result
+    }
 
     protected fun findTestClasses(project: Project, context: KobaltContext, testConfig: TestConfig): List<String> {
         val testClassDir = KFiles.joinDir(project.buildDirectory, KFiles.TEST_CLASSES_DIR)

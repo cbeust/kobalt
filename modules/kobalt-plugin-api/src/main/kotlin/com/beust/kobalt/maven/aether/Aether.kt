@@ -3,6 +3,7 @@ package com.beust.kobalt.maven.aether
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.KobaltSettingsXml
 import com.beust.kobalt.internal.getProxy
@@ -47,6 +48,22 @@ enum class Scope(val scope: String) {
         fun toFilter(scopes: Collection<Scope>): DependencyFilter {
             val javaScopes = scopes.map { DependencyFilterUtils.classpathFilter(it.scope) }.toTypedArray()
             return AndDependencyFilter(KobaltAether.ExcludeOptionalDependencyFilter(), *javaScopes)
+        }
+
+        /**
+         * @return a lambda that extracts the correct dependencies from a project based on the scope
+         * filters passed.
+         */
+        fun toDependencyLambda(scopes: Collection<Scope>) : (Project) -> List<IClasspathDependency> {
+            val result =
+                if (scopes.contains(Scope.COMPILE) && scopes.contains(Scope.TEST)) {
+                    { project : Project -> project.compileDependencies + project.testDependencies }
+                } else if (scopes.contains(Scope.TEST)) {
+                    { project : Project -> project.testDependencies }
+                } else {
+                    { project : Project -> project.compileDependencies }
+                }
+            return result
         }
     }
 }

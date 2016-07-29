@@ -30,27 +30,31 @@ class DynamicGraph<T> {
     private val dependedUpon = HashMultimap.create<Node<T>, Node<T>>()
     private val dependingOn = HashMultimap.create<Node<T>, Node<T>>()
 
-    fun transitiveClosure(root: T): Set<T> {
-        val result = hashSetOf<T>()
-        val seen = hashSetOf<T>()
-        val toProcess = arrayListOf<T>().apply {
-            add(root)
-        }
-        while (toProcess.any()) {
-            val newToProcess = arrayListOf<T>()
-            toProcess.forEach {
-                if (! seen.contains(it)) {
-                    result.add(it)
-                    newToProcess.addAll(dependedUpon[Node(it)].map { it.value })
-                    seen.add(it)
-                }
+    companion object {
+        fun <T> transitiveClosure(root: T, childrenFor: (T) -> List<T>) : List<T> {
+            val result = arrayListOf<T>()
+            val seen = hashSetOf<T>()
+            val toProcess = arrayListOf<T>().apply {
+                add(root)
             }
-            toProcess.clear()
-            toProcess.addAll(newToProcess)
+            while (toProcess.any()) {
+                val newToProcess = arrayListOf<T>()
+                toProcess.forEach {
+                    if (! seen.contains(it)) {
+                        result.add(it)
+                        newToProcess.addAll(childrenFor(it))
+                        seen.add(it)
+                    }
+                }
+                toProcess.clear()
+                toProcess.addAll(newToProcess)
+            }
+            return result
         }
-
-        return result
     }
+
+    fun transitiveClosure(root: T)
+            = transitiveClosure(root) { element -> dependedUpon[Node(element)].map { it.value } }
 
     fun addNode(t: T) = synchronized(nodes) {
         nodes.add(Node(t))

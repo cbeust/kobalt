@@ -56,11 +56,11 @@ class DynamicGraphTest {
             addEdge(1, 3)
             addEdge(2, 4)
             addEdge(6, 7)
-            assertThat(transitiveClosure(1)).isEqualTo(setOf(1, 2, 3, 4))
-            assertThat(transitiveClosure(2)).isEqualTo(setOf(2, 4))
-            assertThat(transitiveClosure(3)).isEqualTo(setOf(3))
-            assertThat(transitiveClosure(6)).isEqualTo(setOf(6, 7))
-            assertThat(transitiveClosure(7)).isEqualTo(setOf(7))
+            assertThat(transitiveClosure(1)).isEqualTo(listOf(1, 2, 3, 4))
+            assertThat(transitiveClosure(2)).isEqualTo(listOf(2, 4))
+            assertThat(transitiveClosure(3)).isEqualTo(listOf(3))
+            assertThat(transitiveClosure(6)).isEqualTo(listOf(6, 7))
+            assertThat(transitiveClosure(7)).isEqualTo(listOf(7))
             println("done")
         }
     }
