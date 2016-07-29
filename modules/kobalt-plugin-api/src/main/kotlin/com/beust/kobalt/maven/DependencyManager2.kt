@@ -7,8 +7,10 @@ import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.maven.aether.Scope
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
+import com.google.common.collect.ArrayListMultimap
 import com.google.inject.Inject
 import java.io.File
+import java.util.*
 
 class DependencyManager2 @Inject constructor(val aether: KobaltAether) {
     /**
@@ -110,7 +112,27 @@ class DependencyManager2 @Inject constructor(val aether: KobaltAether) {
 
         result.addAll(nonMavenDependencies)
 
-        return result.toList()
+        return reorderDependencies(result)
+    }
+
+    /**
+     * Reorder dependencies so that if an artifact appears several times, only the one with the higest version
+     * is included.
+     */
+    private fun reorderDependencies(dependencies: Collection<IClasspathDependency>): List<IClasspathDependency> {
+        val result = arrayListOf<IClasspathDependency>()
+        val map : ArrayListMultimap<String, IClasspathDependency> = ArrayListMultimap.create()
+        // The multilist maps each artifact to a list of all the versions found
+        // (e.g. {org.testng:testng -> (6.9.5, 6.9.4, 6.1.1)}), then we return just the first one
+        dependencies.forEach {
+            map.put(it.shortId, it)
+        }
+        for (k in map.keySet()) {
+            val l = map.get(k)
+            Collections.sort(l, Collections.reverseOrder())
+            result.add(l[0])
+        }
+        return result
     }
 
     private fun runClasspathContributors(project: Project?, context: KobaltContext) :
