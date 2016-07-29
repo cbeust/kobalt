@@ -19,8 +19,7 @@ class ProjectFinder @Inject constructor(val buildFileCompilerFactory: BuildFileC
         val findProjectResult = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
                 .compileBuildFiles(args)
         if (! findProjectResult.taskResult.success) {
-            throw KobaltException("Couldn't compile build file: "
-                    + findProjectResult.taskResult.errorMessage)
+            throw KobaltException("Couldn't compile build file: " + findProjectResult.taskResult.errorMessage)
         }
 
         val allProjects = findProjectResult.projects
