@@ -58,10 +58,9 @@ enum class Scope(val scope: String, val dependencyLambda: (Project) -> List<ICla
         fun toDependencyLambda(scopes: Collection<Scope>) : (Project) -> List<IClasspathDependency> {
             val result = { project : Project ->
                 scopes.fold(arrayListOf<IClasspathDependency>(),
-                    { l: ArrayList<IClasspathDependency>, scope: Scope ->
-                        val deps = scope.dependencyLambda(project)
-                        l.addAll(deps)
-                        l
+                    { list: ArrayList<IClasspathDependency>, scope: Scope ->
+                        list.addAll(scope.dependencyLambda(project))
+                        list
                     })
                 }
             return result
