@@ -84,8 +84,10 @@ class CompilerUtils @Inject constructor(val files: KFiles,
 //        }
 
         // The directory where the classes get compiled
-        val buildDirectory = if (isTest) File(project.buildDirectory, KFiles.TEST_CLASSES_DIR)
+        val buildDirectory =
+            if (isTest) File(project.buildDirectory, KFiles.TEST_CLASSES_DIR)
             else File(project.classesDir(context))
+
         File(project.directory, buildDirectory.path).mkdirs()
 
         // Remove all the excluded dependencies from the classpath
