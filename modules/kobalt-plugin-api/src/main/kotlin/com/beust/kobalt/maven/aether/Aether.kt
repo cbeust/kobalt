@@ -231,10 +231,10 @@ class AetherDependency(val artifact: Artifact) : IClasspathDependency, Comparabl
                     if (newFile != null) {
                         CompletedFuture(newFile)
                     } else {
-                        throw KobaltException("Could not resolve $id")
+                        CompletedFuture(File("DOESNOTEXIST $id")) // will be filtered out
                     }
                 } else {
-                    throw KobaltException("Could not resolve $id")
+                    CompletedFuture(File("DOESNOTEXIST $id"))
                 }
             }
         }
