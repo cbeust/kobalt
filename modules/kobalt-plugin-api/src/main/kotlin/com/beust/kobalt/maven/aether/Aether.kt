@@ -31,14 +31,15 @@ import org.eclipse.aether.util.artifact.JavaScopes
 import org.eclipse.aether.util.filter.AndDependencyFilter
 import org.eclipse.aether.util.filter.DependencyFilterUtils
 import java.io.File
+import java.util.*
 import java.util.concurrent.Future
 
-enum class Scope(val scope: String) {
-    COMPILE(JavaScopes.COMPILE),
-    PROVIDED(JavaScopes.PROVIDED),
-    SYSTEM(JavaScopes.SYSTEM),
-    RUNTIME(JavaScopes.RUNTIME),
-    TEST(JavaScopes.TEST)
+enum class Scope(val scope: String, val dependencyLambda: (Project) -> List<IClasspathDependency>) {
+    COMPILE(JavaScopes.COMPILE, { project : Project -> project.compileDependencies }),
+    PROVIDED(JavaScopes.PROVIDED, { project : Project -> project.compileProvidedDependencies }),
+    SYSTEM(JavaScopes.SYSTEM, { project : Project -> emptyList() }),
+    RUNTIME(JavaScopes.RUNTIME, { project : Project -> project.compileRuntimeDependencies }),
+    TEST(JavaScopes.TEST, { project : Project -> project.testDependencies })
     ;
 
     companion object {
@@ -55,13 +56,13 @@ enum class Scope(val scope: String) {
          * filters passed.
          */
         fun toDependencyLambda(scopes: Collection<Scope>) : (Project) -> List<IClasspathDependency> {
-            val result =
-                if (scopes.contains(Scope.COMPILE) && scopes.contains(Scope.TEST)) {
-                    { project : Project -> project.compileDependencies + project.testDependencies }
-                } else if (scopes.contains(Scope.TEST)) {
-                    { project : Project -> project.testDependencies }
-                } else {
-                    { project : Project -> project.compileDependencies }
+            val result = { project : Project ->
+                scopes.fold(arrayListOf<IClasspathDependency>(),
+                    { l: ArrayList<IClasspathDependency>, scope: Scope ->
+                        val deps = scope.dependencyLambda(project)
+                        l.addAll(deps)
+                        l
+                    })
                 }
             return result
         }
