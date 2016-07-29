@@ -45,7 +45,7 @@ class KFiles {
                             .absolutePath
                     } + listOf(previousJar)
                     debug("Couldn't find ${jarFile.absolutePath}, using\n  " + result.joinToString(" "))
-                    return result
+                    return result.filter { File(it).exists() }
                 }
             }
         }
