@@ -129,7 +129,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
                 }
                 result = result || errorCode == 0
             } else {
-                log(2, "Couldn't find any test classes")
+                log(1, "  No tests to run")
                 result = true
             }
         } else {
