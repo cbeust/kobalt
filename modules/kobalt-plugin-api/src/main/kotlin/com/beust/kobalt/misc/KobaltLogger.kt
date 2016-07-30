@@ -3,8 +3,8 @@ package com.beust.kobalt.misc
 import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.Kobalt
-import java.text.SimpleDateFormat
-import java.util.*
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 fun Any.log(level: Int, text: CharSequence, newLine : Boolean = true) {
     if (level <= KobaltLogger.LOG_LEVEL) {
@@ -48,11 +48,11 @@ object KobaltLogger {
 }
 
 class Logger(val dev: Boolean) {
-    val FORMAT = SimpleDateFormat("HH:mm:ss.SSS")
+    val FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
 
     private fun getPattern(shortTag: String, shortMessage: CharSequence, longMessage: CharSequence, tag: String) =
         if (dev) {
-            val ts = FORMAT.format(Date())
+            val ts = LocalDateTime.now().format(FORMAT)
             "$shortTag/$ts [" + Thread.currentThread().name + "] $tag - $shortMessage"
         } else {
             longMessage
