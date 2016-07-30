@@ -153,7 +153,7 @@ interface IThreadWorkerFactory<T> {
 }
 
 class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadWorkerFactory<T>) {
-    val executor = Executors.newFixedThreadPool(5, NamedThreadFactory("DynamicGraphExecutor"))
+    val executor = Executors.newFixedThreadPool(1, NamedThreadFactory("DynamicGraphExecutor"))
     val completion = ExecutorCompletionService<TaskResult2<T>>(executor)
 
     fun run() : TaskResult {
