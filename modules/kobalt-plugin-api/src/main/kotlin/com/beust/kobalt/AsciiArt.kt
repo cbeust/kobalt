@@ -106,14 +106,14 @@ class AsciiArt {
         const val CYAN = "\u001B[36m"
         const val WHITE = "\u001B[37m"
 
-        private fun wrap(s: String, color: String) = color + s + RESET
-        private fun blue(s: String) = wrap(s, BLUE)
-        private fun red(s: String) = wrap(s, RED)
-        private fun yellow(s: String) = wrap(s, YELLOW)
+        private fun wrap(s: CharSequence, color: String) = color + s + RESET
+        private fun blue(s: CharSequence) = wrap(s, BLUE)
+        private fun red(s: CharSequence) = wrap(s, RED)
+        private fun yellow(s: CharSequence) = wrap(s, YELLOW)
 
-        fun taskColor(s: String) = s
-        fun errorColor(s: String) = red(s)
-        fun warnColor(s: String) = red(s)
+        fun taskColor(s: CharSequence) = s
+        fun errorColor(s: CharSequence) = red(s)
+        fun warnColor(s: CharSequence) = red(s)
     }
 }
 

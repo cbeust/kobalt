@@ -6,13 +6,13 @@ import com.beust.kobalt.api.Kobalt
 import java.text.SimpleDateFormat
 import java.util.*
 
-fun Any.log(level: Int, text: String, newLine : Boolean = true) {
+fun Any.log(level: Int, text: CharSequence, newLine : Boolean = true) {
     if (level <= KobaltLogger.LOG_LEVEL) {
         KobaltLogger.logger.log(javaClass.simpleName, text, newLine)
     }
 }
 
-fun Any.logWrap(level: Int, text1: String, text2: String, function: () -> Unit) {
+fun Any.logWrap(level: Int, text1: CharSequence, text2: CharSequence, function: () -> Unit) {
     if (level <= KobaltLogger.LOG_LEVEL) {
         KobaltLogger.logger.log(javaClass.simpleName, text1, newLine = false)
     }
@@ -22,17 +22,17 @@ fun Any.logWrap(level: Int, text1: String, text2: String, function: () -> Unit) 
     }
 }
 
-fun Any.debug(text: String) {
+fun Any.debug(text: CharSequence) {
     KobaltLogger.logger.debug(javaClass.simpleName, text)
 }
 
-fun Any.warn(text: String, exception: Exception? = null) {
+fun Any.warn(text: CharSequence, exception: Exception? = null) {
     KobaltLogger.logger.warn(javaClass.simpleName, text, exception)
 }
 
-fun Any.kobaltError(text: String, e: Throwable? = null) = error(text, e)
+fun Any.kobaltError(text: CharSequence, e: Throwable? = null) = error(text, e)
 
-fun Any.error(text: String, e: Throwable? = null) {
+fun Any.error(text: CharSequence, e: Throwable? = null) {
     KobaltLogger.logger.error(javaClass.simpleName, text, e)
 }
 
@@ -50,7 +50,7 @@ object KobaltLogger {
 class Logger(val dev: Boolean) {
     val FORMAT = SimpleDateFormat("HH:mm:ss.SSS")
 
-    private fun getPattern(shortTag: String, shortMessage: String, longMessage: String, tag: String) =
+    private fun getPattern(shortTag: String, shortMessage: CharSequence, longMessage: CharSequence, tag: String) =
         if (dev) {
             val ts = FORMAT.format(Date())
             "$shortTag/$ts [" + Thread.currentThread().name + "] $tag - $shortMessage"
@@ -58,10 +58,10 @@ class Logger(val dev: Boolean) {
             longMessage
         }
 
-    final fun debug(tag: String, message: String) =
+    final fun debug(tag: String, message: CharSequence) =
         println(getPattern("D", message, message, tag))
 
-    final fun error(tag: String, message: String, e: Throwable? = null) {
+    final fun error(tag: String, message: CharSequence, e: Throwable? = null) {
         val docUrl = if (e is KobaltException && e.docUrl != null) e.docUrl else null
         val text = if (! message.isBlank()) message
             else if (e != null && (! e.message.isNullOrBlank())) e.message
@@ -75,7 +75,7 @@ class Logger(val dev: Boolean) {
         }
     }
 
-    final fun warn(tag: String, message: String, e: Throwable? = null) {
+    final fun warn(tag: String, message: CharSequence, e: Throwable? = null) {
         val fullMessage = "***** WARNING " + (e?.message ?: message)
         println(AsciiArt.Companion.warnColor(getPattern("W", fullMessage, fullMessage, tag)))
         if (KobaltLogger.LOG_LEVEL > 1) {
@@ -83,7 +83,7 @@ class Logger(val dev: Boolean) {
         }
     }
 
-    final fun log(tag: String, message: String, newLine: Boolean) =
+    final fun log(tag: String, message: CharSequence, newLine: Boolean) =
         with(getPattern("L", message, message, tag)) {
             if (newLine) println(this)
             else print("\r" + this)
