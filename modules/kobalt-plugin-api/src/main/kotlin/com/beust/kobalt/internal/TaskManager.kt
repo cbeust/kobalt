@@ -17,7 +17,8 @@ import javax.inject.Singleton
 
 @Singleton
 class TaskManager @Inject constructor(val args: Args,
-        val incrementalManagerFactory: IncrementalManager.IFactory) {
+        val incrementalManagerFactory: IncrementalManager.IFactory,
+        val pluginInfo: PluginInfo) {
     private val dependsOn = TreeMultimap.create<String, String>()
     private val reverseDependsOn = TreeMultimap.create<String, String>()
     private val runBefore = TreeMultimap.create<String, String>()
@@ -168,7 +169,7 @@ class TaskManager @Inject constructor(val args: Args,
 
                 val factory = object : IThreadWorkerFactory<ITask> {
                     override fun createWorkers(nodes: Collection<ITask>)
-                            = nodes.map { TaskWorker(listOf(it), args.dryRun, messages) }
+                            = nodes.map { TaskWorker(listOf(it), args.dryRun, messages, pluginInfo) }
                 }
 
                 val executor = DynamicGraphExecutor(graph, factory)
@@ -534,8 +535,13 @@ class TaskManager @Inject constructor(val args: Args,
     /////
 }
 
-class TaskWorker(val tasks: List<ITask>, val dryRun: Boolean, val timings: MutableList<TaskManager.ProfilerInfo>)
-        : IWorker<ITask> {
+class TaskWorker(val tasks: List<ITask>, val dryRun: Boolean, val pluginInfo: PluginInfo) : IWorker<ITask> {
+
+    private fun runBuildListeners(project: Project, context: KobaltContext, taskName: String, start: Boolean) {
+        context.pluginInfo.buildListeners.forEach {
+            if (start) it.taskStart(project, context, taskName) else it.taskEnd(project, context, taskName)
+        }
+    }
 
     override fun call() : TaskResult2<ITask> {
         if (tasks.size > 0) {
@@ -545,14 +551,14 @@ class TaskWorker(val tasks: List<ITask>, val dryRun: Boolean, val timings: Mutab
         }
         var success = true
         val errorMessages = arrayListOf<String>()
+        val context = Kobalt.context!!
         tasks.forEach {
             val name = it.project.name + ":" + it.name
-            val time = benchmarkMillis {
-                val tr = if (dryRun) TaskResult() else it.call()
-                success = success and tr.success
-                if (tr.errorMessage != null) errorMessages.add(tr.errorMessage)
-            }
-            timings.add(TaskManager.ProfilerInfo(name, time.first))
+            runBuildListeners(it.project, context, name, start = true)
+            val tr = if (dryRun) TaskResult() else it.call()
+            runBuildListeners(it.project, context, name, start = false)
+            success = success and tr.success
+            if (tr.errorMessage != null) errorMessages.add(tr.errorMessage)
         }
         return TaskResult2(success, errorMessages.joinToString("\n"), tasks[0])
     }

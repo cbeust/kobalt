@@ -10,3 +10,6 @@ interface IPluginActor {
 interface IContributor : IPluginActor
 
 interface IInterceptor : IPluginActor
+
+interface IListener : IPluginActor
+

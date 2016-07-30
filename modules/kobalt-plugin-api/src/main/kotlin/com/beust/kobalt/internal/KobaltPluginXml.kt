@@ -96,6 +96,8 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
     val mavenIdInterceptors = arrayListOf<IMavenIdInterceptor>()
     val jvmFlagContributors = arrayListOf<IJvmFlagContributor>()
     val localMavenRepoPathInterceptors = arrayListOf<ILocalMavenRepoPathInterceptor>()
+    val buildListeners = arrayListOf<IBuildListener>()
+    val buildReportContributors = arrayListOf<IBuildReportContributor>()
 
     // Note: intentionally repeating them here even though they are defined by our base class so
     // that this class always contains the full list of contributors and interceptors
@@ -212,6 +214,8 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
                 if (this is ITestJvmFlagInterceptor) testJvmFlagInterceptors.add(this)
                 if (this is IJvmFlagContributor) jvmFlagContributors.add(this)
                 if (this is ILocalMavenRepoPathInterceptor) localMavenRepoPathInterceptors.add(this)
+                if (this is IBuildListener) buildListeners.add(this)
+                if (this is IBuildReportContributor) buildReportContributors.add(this)
             }
         }
     }
@@ -225,7 +229,8 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
                 testSourceDirContributors, buildConfigFieldContributors,
                 taskContributors, incrementalTaskContributors, assemblyContributors,
                 incrementalAssemblyContributors, testJvmFlagInterceptors,
-                jvmFlagContributors, localMavenRepoPathInterceptors
+                jvmFlagContributors, localMavenRepoPathInterceptors, buildListeners,
+                buildReportContributors
             ).forEach {
                 it.forEach {
                     it.cleanUpActors()
@@ -266,6 +271,8 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
         testJvmFlagInterceptors.addAll(pluginInfo.testJvmFlagInterceptors)
         jvmFlagContributors.addAll(pluginInfo.jvmFlagContributors)
         localMavenRepoPathInterceptors.addAll(pluginInfo.localMavenRepoPathInterceptors)
+        buildListeners.addAll(pluginInfo.buildListeners)
+        buildReportContributors.addAll(pluginInfo.buildReportContributors)
     }
 }
 

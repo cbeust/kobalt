@@ -213,14 +213,9 @@ private class Main @Inject constructor(
                         // Shutdown all plug-ins
                         plugins.shutdownPlugins()
 
-                        // Display timings if requested
-                        if (args.profiling) {
-                            log(1, "\n" + AsciiArt.horizontalSingleLine + " Timings (in seconds)")
-                            runTargetResult.timings.sortedByDescending { it.durationMillis }.forEach {
-                                log(1, String.format("%1$10.2f", it.durationMillis.toDouble() / 1000)
-                                        + " " + it.taskName)
-                            }
-                            log(1, "\n")
+                        // Run the build report contributors
+                        pluginInfo.buildReportContributors.forEach {
+                            it.generateReport(Kobalt.context!!)
                         }
                     }
                 }
