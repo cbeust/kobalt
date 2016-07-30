@@ -36,31 +36,42 @@ class AsciiArt {
 
         val horizontalSingleLine = "\u2500\u2500\u2500\u2500\u2500"
         val horizontalDoubleLine = "\u2550\u2550\u2550\u2550\u2550"
+        val verticalBar = "\u2551"
 
 //        fun horizontalLine(n: Int) = StringBuffer().apply {
 //                repeat(n, { append("\u2500") })
 //            }.toString()
 
-        fun box(strings: List<String>) : List<String> {
-            val ul = "\u2554"
-            val ur = "\u2557"
-            val h = "\u2550"
-            val v = "\u2551"
-            val bl = "\u255a"
-            val br = "\u255d"
-
-            fun r(n: Int, w: String) : String {
-                with(StringBuffer()) {
-                    repeat(n, { append(w) })
-                    return toString()
-                }
+        // Repeat
+        fun r(n: Int, w: String) : String {
+            with(StringBuffer()) {
+                repeat(n, { append(w) })
+                return toString()
             }
+        }
+
+        val h = "\u2550"
+        val ul = "\u2554"
+        val ur = "\u2557"
+        val bottomLeft = "\u255a"
+        val bottomRight = "\u255d"
+
+        // Bottom left with continuation
+        val bottomLeft2 = "\u2560"
+        // Bottom right with continuation
+        val bottomRight2 = "\u2563"
+
+        fun upperBox(max: Int) = ul + r(max + 2, h) + ur
+        fun lowerBox(max: Int, bl: String = bottomLeft, br : String = bottomRight) = bl + r(max + 2, h) + br
+
+        private fun box(strings: List<String>, bl: String = bottomLeft, br: String = bottomRight) : List<String> {
+            val v = verticalBar
 
             val maxString: String = strings.maxBy { it.length } ?: ""
             val max = maxString.length
-            val result = arrayListOf(ul + r(max + 2, h) + ur)
+            val result = arrayListOf(upperBox(max))
             result.addAll(strings.map { "$v ${center(it, max - 2)} $v" })
-            result.add(bl + r(max + 2, h) + br)
+            result.add(lowerBox(max, bl, br))
             return result
         }
 
@@ -68,14 +79,15 @@ class AsciiArt {
 
         val defaultLog : (s: String) -> Unit = { log(1, "          $it") }
 
-        fun logBox(strings: List<String>, print: (String) -> Unit = defaultLog) {
-            box(strings).forEach {
+        fun logBox(strings: List<String>, bl: String = bottomLeft, br: String = bottomRight,
+                print: (String) -> Unit = defaultLog) {
+            box(strings, bl, br).forEach {
                 print(it)
             }
         }
 
-        fun logBox(s: String, print: (String) -> Unit = defaultLog) {
-            logBox(listOf(s), print)
+        fun logBox(s: String, bl: String = bottomLeft, br: String = bottomRight, print: (String) -> Unit = defaultLog) {
+            logBox(listOf(s), bl, br, print)
         }
 
         fun center(s: String, width: Int) : String {

@@ -35,11 +35,18 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
             }
             log(1, "\n")
 
-            log(1, "\n" + AsciiArt.horizontalSingleLine + " Build status")
-            projectStatuses.forEach { pair ->
-                log(1, "  " + pair.first.name + " " + pair.second)
-            }
         }
+
+        fun col1(s: String) = String.format(" %1\$-30s", s)
+        fun col2(s: String) = String.format(" %1\$-10s", s)
+
+        val line = listOf(col1("Project"), col2("Build status")).joinToString(AsciiArt.verticalBar)
+        AsciiArt.logBox(listOf(line), AsciiArt.bottomLeft2, AsciiArt.bottomRight2)
+        projectStatuses.forEach { pair ->
+            val cl = listOf(col1(pair.first.name), col2(pair.second.toString())).joinToString(AsciiArt.verticalBar)
+            log(1, "          " + AsciiArt.verticalBar + " " + cl + "   " + AsciiArt.verticalBar)
+        }
+        log(1, "          " + AsciiArt.lowerBox(line.length))
 
     }
 
