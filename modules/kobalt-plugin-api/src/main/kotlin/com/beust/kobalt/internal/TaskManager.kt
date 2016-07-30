@@ -208,65 +208,37 @@ class TaskManager @Inject constructor(val args: Args,
 
     /**
      * If the user wants to run a single task on a single project (e.g. "kobalt:assemble"), we need to
-     * see if that project depends on others and if it does, invoke these tasks on all of them. This
-     * function returns all these task names (including dependent).
+     * see if that project depends on others and if it does, compile these projects first. This
+     * function returns all these task names (including the dependent ones).
      */
     fun calculateDependentTaskNames(taskNames: List<String>, projects: List<Project>): List<TaskInfo> {
-        val projectMap = hashMapOf<String, Project>().apply {
-            projects.forEach { project -> put(project.name, project)}
+        return taskNames.flatMap { calculateDependentTaskNames(it, projects) }
+    }
+
+    fun calculateDependentTaskNames(taskName: String, projects: List<Project>): List<TaskInfo> {
+        fun sortProjectsTopologically(projects: List<Project>) : List<Project> {
+            val topological = Topological<Project>().apply {
+                projects.forEach { project ->
+                    addNode(project)
+                    project.dependsOn.forEach {
+                        addEdge(project, it)
+                    }
+                }
+            }
+            val sortedProjects = topological.sort()
+            return sortedProjects
         }
 
-        val allTaskInfos = HashSet(taskNames.map { TaskInfo(it) })
-        with(Topological<TaskInfo>()) {
-            val toProcess = ArrayList(allTaskInfos)
-            val seen = HashSet(allTaskInfos)
-            val newTasks = hashSetOf<TaskInfo>()
-
-            // If at least two tasks were given, preserve the ordering by making each task depend on the
-            // previous one, e.g. for "task1 task2 task3", add the edges "task2 -> task1" and "task3 -> task2"
-            if (taskNames.size >= 2) {
-                projects.forEach { project ->
-                    taskNames.zip(taskNames.drop(1)).forEach { pair ->
-                        addEdge(TaskInfo(project.name, pair.second), TaskInfo(project.name, pair.first))
-                    }
-                }
-            }
-
-            fun maybeAdd(taskInfo: TaskInfo) {
-                if (!seen.contains(taskInfo)) {
-                    newTasks.add(taskInfo)
-                    seen.add(taskInfo)
-                }
-            }
-
-            while (toProcess.any()) {
-                toProcess.forEach { ti ->
-                    val project = projectMap[ti.project]
-                    if (project != null) {
-                        val dependents = project.dependsOn
-                        if (dependents.any()) {
-                            dependents.forEach { depProject ->
-                                val tiDep = TaskInfo(depProject.name, ti.taskName)
-                                allTaskInfos.add(tiDep)
-                                addEdge(ti, tiDep)
-                                maybeAdd(tiDep)
-                            }
-                        } else {
-                            allTaskInfos.add(ti)
-                            addNode(ti)
-                        }
-                    } else {
-                        // No project specified for this task, run that task in all the projects
-                        projects.forEach {
-                            maybeAdd(TaskInfo(it.name, ti.taskName))
-                        }
-                    }
-                }
-                toProcess.clear()
-                toProcess.addAll(newTasks)
-                newTasks.clear()
-            }
-            val result = sort()
+        val ti = TaskInfo(taskName)
+        if (ti.project == null) {
+            val result = sortProjectsTopologically(projects).map { TaskInfo(it.name, taskName) }
+            return result
+        } else {
+            val rootProject = projects.find { it.name == ti.project }!!
+            val allProjects = DynamicGraph.transitiveClosure(rootProject, { p -> p.dependsOn })
+            val sortedProjects = sortProjectsTopologically(allProjects)
+            val sortedMaps = sortedProjects.map { TaskInfo(it.name, "compile")}
+            val result = sortedMaps.subList(0, sortedMaps.size - 1) + listOf(ti)
             return result
         }
     }

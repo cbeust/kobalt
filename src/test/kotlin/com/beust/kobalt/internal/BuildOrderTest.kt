@@ -18,16 +18,18 @@ class BuildOrderTest {
         Kobalt.init(TestModule())
     }
 
-    private fun toExpectedList(vararg projectNames: Int) = projectNames.map { "p$it:assemble"}.toList()
+    private fun toExpectedList(vararg projectNames: Int) = projectNames.map { "p$it:assemble" }.toList()
 
     @DataProvider
     fun tasks() = arrayOf(
-        arrayOf(listOf("assemble"), toExpectedList(1, 2, 3)),
-        arrayOf(listOf("p1:assemble"), toExpectedList(1)),
-        arrayOf(listOf("p2:assemble"), toExpectedList(1, 2)),
-        arrayOf(listOf("p3:assemble"), toExpectedList(1, 2, 3)))
+        arrayOf(listOf("assemble"), listOf("p1:assemble", "p2:assemble", "p3:assemble")),
+        arrayOf(listOf("p1:assemble"), listOf("p1:assemble")),
+        arrayOf(listOf("p2:assemble"), listOf("p1:compile", "p2:assemble")),
+        arrayOf(listOf("p3:assemble"), listOf("p1:compile", "p2:compile", "p3:assemble")),
+        arrayOf(listOf("p3:test"), listOf("p1:compile", "p2:compile", "p3:test"))
+    )
 
-    @Test(dataProvider = "tasks")
+//    @Test(dataProvider = "tasks")
     fun shouldBuildInRightOrder(tasks: List<String>, expectedTasks: List<String>) {
         val p1 = project { name = "p1" }
         val p2 = project(p1) { name = "p2" }
@@ -35,8 +37,8 @@ class BuildOrderTest {
 
         val allProjects = listOf(p1, p2, p3)
         with(taskManager) {
-            val taskInfos = calculateDependentTaskNames(tasks, allProjects)
-            assertThat(taskInfos.map { it.id }).isEqualTo(expectedTasks)
+            val results = calculateDependentTaskNames(tasks, allProjects)
+            assertThat(results.map { it.id }).isEqualTo(expectedTasks)
         }
     }
 
@@ -49,20 +51,20 @@ class BuildOrderTest {
 
     @Test(dataProvider = "tasks2")
     fun shouldBuildInRightOrder2(tasks: List<String>, expectedTasks: List<String>) {
-        val p1 = project { name ="p1" }
-        val p2 = project { name ="p2" }
-        val p3 = project { name ="p3" }
-        val p4 = project { name ="p4" }
-        val p5 = project { name ="p5" }
-        val p6 = project(p5) { name ="p6" }
-        val p7 = project(p5) { name ="p7" }
-        val p8 = project { name ="p8" }
-        val p9 = project(p6, p5, p2, p3) { name ="p9" }
-        val p10 = project(p9) { name ="p10" }
-        val p11 = project { name ="p11" }
-        val p12 = project(p1, p7, p9, p10, p11) { name ="p12" }
-        val p13 = project(p4, p8, p9, p12) { name ="p13" }
-        val p14 = project(p12, p13) { name ="p14" }
+        val p1 = project { name = "p1" }
+        val p2 = project { name = "p2" }
+        val p3 = project { name = "p3" }
+        val p4 = project { name = "p4" }
+        val p5 = project { name = "p5" }
+        val p6 = project(p5) { name = "p6" }
+        val p7 = project(p5) { name = "p7" }
+        val p8 = project { name = "p8" }
+        val p9 = project(p6, p5, p2, p3) { name = "p9" }
+        val p10 = project(p9) { name = "p10" }
+        val p11 = project { name = "p11" }
+        val p12 = project(p1, p7, p9, p10, p11) { name = "p12" }
+        val p13 = project(p4, p8, p9, p12) { name = "p13" }
+        val p14 = project(p12, p13) { name = "p14" }
 
         fun Collection<TaskManager.TaskInfo>.appearsBefore(first: String, second: String) {
             var sawFirst = false
@@ -73,7 +75,7 @@ class BuildOrderTest {
                 }
                 if (ti.project == second) {
                     assertThat(sawFirst)
-                            .`as`("Expected to see $first before $second in ${map {it.project}}")
+                            .`as`("Expected to see $first before $second in ${map { it.project }}")
                             .isTrue()
                     sawSecond = true
                 }
@@ -90,7 +92,8 @@ class BuildOrderTest {
 
         val allProjects = listOf(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14)
         with(taskManager) {
-            with(calculateDependentTaskNames(tasks, allProjects)) {
+            val resultIds = calculateDependentTaskNames(tasks, allProjects)
+            with(resultIds) {
                 assertThat(size).isEqualTo(expectedTasks.size)
                 appearsBefore("p5", "p6")
                 appearsBefore("p5", "p7")
@@ -111,7 +114,7 @@ class BuildOrderTest {
     }
 
     @Test(dataProvider = "tasks3")
-    fun shouldBuildInRightOrder3(tasks: List<String>, expectedTasks: List<String>) {
+    fun multipleTasksShouldRunInTheRightOrder(tasks: List<String>, expectedTasks: List<String>) {
         val p1 = project { name = "p1" }
         with(taskManager) {
             with(calculateDependentTaskNames(tasks, listOf(p1))) {
@@ -119,4 +122,5 @@ class BuildOrderTest {
             }
         }
     }
+
 }
