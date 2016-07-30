@@ -134,6 +134,15 @@ class TaskManager @Inject constructor(val args: Args,
         var result = TaskResult()
         val failedProjects = hashSetOf<String>()
         val messages = Collections.synchronizedList(arrayListOf<ProfilerInfo>())
+
+        fun runProjectListeners(project: Project, context: KobaltContext, start: Boolean,
+                status: ProjectBuildStatus = ProjectBuildStatus.SUCCESS) {
+            context.pluginInfo.buildListeners.forEach {
+                if (start) it.projectStart(project, context) else it.projectEnd(project, context, status)
+            }
+        }
+
+        val context = Kobalt.context!!
         projects.forEach { project ->
             AsciiArt.logBox("Building ${project.name}")
 
@@ -147,10 +156,13 @@ class TaskManager @Inject constructor(val args: Args,
             if (fp.size > 0) {
                 log(2, "Marking project ${project.name} as skipped")
                 failedProjects.add(project.name)
+                runProjectListeners(project, context, false, ProjectBuildStatus.SKIPPED)
                 kobaltError("Not building project ${project.name} since it depends on failed "
                         + Strings.pluralize(fp.size, "project")
                         + " " + fp.joinToString(","))
             } else {
+                runProjectListeners(project, context, true)
+
                 // There can be multiple tasks by the same name (e.g. PackagingPlugin and AndroidPlugin both
                 // define "install"), so use a multimap
                 val tasksByNames = tasksByNames(project)
@@ -181,6 +193,10 @@ class TaskManager @Inject constructor(val args: Args,
                     log(2, "Marking project ${project.name} as failed")
                     failedProjects.add(project.name)
                 }
+
+                runProjectListeners(project, context, false,
+                        if (thisResult.success) ProjectBuildStatus.SUCCESS else ProjectBuildStatus.FAILURE)
+
                 if (result.success) {
                     result = thisResult
                 }
@@ -540,9 +556,10 @@ class TaskManager @Inject constructor(val args: Args,
 
 class TaskWorker(val tasks: List<ITask>, val dryRun: Boolean, val pluginInfo: PluginInfo) : IWorker<ITask> {
 
-    private fun runBuildListeners(project: Project, context: KobaltContext, taskName: String, start: Boolean) {
+    private fun runBuildListeners(project: Project, context: KobaltContext, taskName: String, start: Boolean,
+            success: Boolean = false) {
         context.pluginInfo.buildListeners.forEach {
-            if (start) it.taskStart(project, context, taskName) else it.taskEnd(project, context, taskName)
+            if (start) it.taskStart(project, context, taskName) else it.taskEnd(project, context, taskName, success)
         }
     }
 
@@ -559,7 +576,7 @@ class TaskWorker(val tasks: List<ITask>, val dryRun: Boolean, val pluginInfo: Pl
             val name = it.project.name + ":" + it.name
             runBuildListeners(it.project, context, name, start = true)
             val tr = if (dryRun) TaskResult() else it.call()
-            runBuildListeners(it.project, context, name, start = false)
+            runBuildListeners(it.project, context, name, start = false, success = tr.success)
             success = success and tr.success
             if (tr.errorMessage != null) errorMessages.add(tr.errorMessage)
         }

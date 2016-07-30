@@ -19,7 +19,7 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
         startTimes.put(taskName, System.currentTimeMillis())
     }
 
-    override fun taskEnd(project: Project, context: KobaltContext, taskName: String) {
+    override fun taskEnd(project: Project, context: KobaltContext, taskName: String, success: Boolean) {
         startTimes[taskName]?.let {
             timings.add(ProfilerInfo(taskName, System.currentTimeMillis() - it))
         }
@@ -34,6 +34,22 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
                         + " " + it.taskName)
             }
             log(1, "\n")
+
+            log(1, "\n" + AsciiArt.horizontalSingleLine + " Build status")
+            projectStatuses.forEach { pair ->
+                log(1, "  " + pair.first.name + " " + pair.second)
+            }
         }
+
     }
+
+
+//    override fun projectStart(project: Project, context: KobaltContext) {}
+
+    private val projectStatuses = arrayListOf<Pair<Project, ProjectBuildStatus>>()
+
+    override fun projectEnd(project: Project, context: KobaltContext, status: ProjectBuildStatus) {
+        projectStatuses.add(Pair(project, status))
+    }
+
 }
