@@ -195,7 +195,7 @@ class TaskManager @Inject constructor(val args: Args,
                 }
 
                 runProjectListeners(project, context, false,
-                        if (thisResult.success) ProjectBuildStatus.SUCCESS else ProjectBuildStatus.FAILURE)
+                        if (thisResult.success) ProjectBuildStatus.SUCCESS else ProjectBuildStatus.FAILED)
 
                 if (result.success) {
                     result = thisResult
