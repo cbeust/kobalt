@@ -1,8 +1,6 @@
 package com.beust.kobalt
 
 import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.maven.aether.KobaltAether
-import com.google.inject.Inject
 import org.assertj.core.api.Assertions.assertThat
 import org.testng.annotations.DataProvider
 import org.testng.annotations.Guice
@@ -10,7 +8,7 @@ import org.testng.annotations.Test
 import java.io.File
 
 @Guice(modules = arrayOf(TestModule::class))
-class ContextTest @Inject constructor(override val aether: KobaltAether): BaseTest(aether) {
+class ContextTest : BaseTest() {
 
     val GROUP = "org.testng"
     val ARTIFACT = "testng"

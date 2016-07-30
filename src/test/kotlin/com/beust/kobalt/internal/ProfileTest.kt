@@ -6,15 +6,13 @@ import com.beust.kobalt.TestModule
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.BuildFileCompiler
-import com.beust.kobalt.maven.aether.KobaltAether
 import com.google.inject.Inject
 import org.assertj.core.api.Assertions.assertThat
 import org.testng.annotations.Guice
 import org.testng.annotations.Test
 
 @Guice(modules = arrayOf(TestModule::class))
-class ProfileTest @Inject constructor(val compilerFactory: BuildFileCompiler.IFactory,
-        override val aether: KobaltAether) : BaseTest(aether) {
+class ProfileTest @Inject constructor(val compilerFactory: BuildFileCompiler.IFactory) : BaseTest() {
 
     private fun runTestWithProfile(enabled: Boolean) : Project {
         val buildFileString = """

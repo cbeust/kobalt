@@ -8,10 +8,11 @@ import org.testng.annotations.BeforeClass
 import org.testng.annotations.DataProvider
 import org.testng.annotations.Guice
 import org.testng.annotations.Test
-import javax.inject.Inject
 
 @Guice(modules = arrayOf(TestModule::class))
-class BuildOrderTest @Inject constructor(val taskManager: TaskManager) {
+class BuildOrderTest {
+    val taskManager: TaskManager get() = Kobalt.INJECTOR.getInstance(TaskManager::class.java)
+
     @BeforeClass
     fun beforeClass() {
         Kobalt.init(TestModule())

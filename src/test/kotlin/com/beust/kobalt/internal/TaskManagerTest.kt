@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.BaseTest
 import com.beust.kobalt.TestModule
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
@@ -10,7 +11,7 @@ import org.testng.annotations.Guice
 import org.testng.annotations.Test
 
 @Guice(modules = arrayOf(TestModule::class))
-class TaskManagerTest @Inject constructor(val taskManager: TaskManager) {
+class TaskManagerTest : BaseTest() {
 
     class DryRunGraphExecutor<T>(val graph: DynamicGraph<T>) {
         fun run() : List<T> {

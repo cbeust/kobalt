@@ -6,7 +6,6 @@ import com.beust.kobalt.TestModule
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.app.BuildFileCompiler
-import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.maven.aether.Scope
 import com.google.inject.Inject
 import org.assertj.core.api.Assertions.assertThat
@@ -16,7 +15,7 @@ import org.testng.annotations.Test
 @Guice(modules = arrayOf(TestModule::class))
 class DependencyManagerTest @Inject constructor(val dependencyManager: DependencyManager,
         val dependencyManager2: DependencyManager2,
-        val compilerFactory: BuildFileCompiler.IFactory, override val aether: KobaltAether) : BaseTest(aether) {
+        val compilerFactory: BuildFileCompiler.IFactory) : BaseTest() {
 
     private fun assertContains(dependencies: List<IClasspathDependency>, vararg ids: String) {
         ids.forEach { id ->
