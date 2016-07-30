@@ -4,7 +4,10 @@ import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.Strings
+import com.beust.kobalt.misc.Topological
+import com.beust.kobalt.misc.kobaltError
+import com.beust.kobalt.misc.log
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
@@ -169,7 +172,7 @@ class TaskManager @Inject constructor(val args: Args,
 
                 val factory = object : IThreadWorkerFactory<ITask> {
                     override fun createWorkers(nodes: Collection<ITask>)
-                            = nodes.map { TaskWorker(listOf(it), args.dryRun, messages, pluginInfo) }
+                        = nodes.map { TaskWorker(listOf(it), args.dryRun, pluginInfo) }
                 }
 
                 val executor = DynamicGraphExecutor(graph, factory)
