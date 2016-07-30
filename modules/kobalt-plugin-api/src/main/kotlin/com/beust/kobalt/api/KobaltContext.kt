@@ -9,6 +9,7 @@ import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.MavenId
+import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.maven.SimpleDep
 import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.misc.KobaltExecutors
@@ -59,6 +60,11 @@ class KobaltContext(val args: Args) {
         }
     }
 
+    /**
+     * @return the content of the pom.xml for the given project.
+     */
+    fun generatePom(project: Project) = pomGeneratorFactory.create(project).generate()
+
     /** All the projects that are being built during this run */
     val allProjects = arrayListOf<Project>()
 
@@ -75,6 +81,7 @@ class KobaltContext(val args: Args) {
     lateinit var settings: KobaltSettings
     lateinit var incrementalManager: IncrementalManager
     lateinit var aether: KobaltAether
+    lateinit var pomGeneratorFactory: PomGenerator.IFactory
 }
 
 class InternalContext {

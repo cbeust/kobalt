@@ -14,6 +14,7 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.internal.build.VersionFile
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -35,7 +36,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         val dependencyManager: DependencyManager, val pluginProperties: PluginProperties,
         val executors: KobaltExecutors, val buildScriptUtil: BuildScriptUtil, val settings: KobaltSettings,
         val incrementalManagerFactory: IncrementalManager.IFactory, val args: Args,
-        val aether: KobaltAether) {
+        val aether: KobaltAether, val pomGeneratorFactory: PomGenerator.IFactory) {
 
     interface IFactory {
         fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>, pluginInfo: PluginInfo) : BuildFileCompiler
@@ -56,6 +57,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         context.settings = settings
         context.incrementalManager = incrementalManagerFactory.create()
         context.aether = aether
+        context.pomGeneratorFactory = pomGeneratorFactory
         Kobalt.context = context
 
         //
