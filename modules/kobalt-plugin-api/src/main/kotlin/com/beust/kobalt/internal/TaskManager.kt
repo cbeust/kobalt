@@ -93,7 +93,7 @@ class TaskManager @Inject constructor(val args: Args,
 
         var taskInfos = calculateDependentTaskNames(passedTaskNames, allProjects)
 
-        // Remove not existing tasks (e.g. dynamic task defined for a single project)
+        // Remove non existing tasks (e.g. dynamic task defined for a single project)
         taskInfos = taskInfos.filter { hasTask(it) }
 
         val projectsToRun = findProjectsToRun(taskInfos, allProjects)
@@ -104,7 +104,7 @@ class TaskManager @Inject constructor(val args: Args,
      * Determine which projects to run based on the request tasks. Also make sure that all the requested projects
      * exist.
      */
-    fun findProjectsToRun(taskInfos: List<TaskInfo>, projects: List<Project>) : List<Project> {
+    private fun findProjectsToRun(taskInfos: List<TaskInfo>, projects: List<Project>) : List<Project> {
 
         // Validate projects
         val result = LinkedHashSet<Project>()
@@ -113,15 +113,12 @@ class TaskManager @Inject constructor(val args: Args,
         }
 
         // Extract all the projects we need to run from the tasks
-//        val orderedTaskInfos = calculateDependentTaskNames(taskInfos.map { it.id }, projects)
         taskInfos.forEach {
             val p = it.project
-            if (p != null) {
-                if (! projectMap.containsKey(p)) {
-                    throw KobaltException("Unknown project: ${it.project}")
-                }
-                result.add(projectMap[it.project]!!)
+            if (p != null && ! projectMap.containsKey(p)) {
+                throw KobaltException("Unknown project: ${it.project}")
             }
+            result.add(projectMap[it.project]!!)
         }
 
         // If at least one task didn't specify a project, run them all
@@ -215,7 +212,7 @@ class TaskManager @Inject constructor(val args: Args,
         return taskNames.flatMap { calculateDependentTaskNames(it, projects) }
     }
 
-    fun calculateDependentTaskNames(taskName: String, projects: List<Project>): List<TaskInfo> {
+    private fun calculateDependentTaskNames(taskName: String, projects: List<Project>): List<TaskInfo> {
         fun sortProjectsTopologically(projects: List<Project>) : List<Project> {
             val topological = Topological<Project>().apply {
                 projects.forEach { project ->
