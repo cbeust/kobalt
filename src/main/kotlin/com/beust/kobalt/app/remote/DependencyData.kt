@@ -2,7 +2,9 @@ package com.beust.kobalt.app.remote
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.IClasspathDependency
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.BuildFileCompiler
+import com.beust.kobalt.internal.DynamicGraph
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
@@ -24,8 +26,9 @@ interface IProgressListener {
 class DependencyData @Inject constructor(val executors: KobaltExecutors, val dependencyManager: DependencyManager,
         val buildFileCompilerFactory: BuildFileCompiler.IFactory, val pluginInfo: PluginInfo,
         val taskManager: TaskManager) {
-    fun dependenciesDataFor(buildFilePath: String, args: Args, progressListener: IProgressListener? = null)
-            : GetDependenciesData {
+
+    fun dependenciesDataFor(buildFilePath: String, args: Args, progressListener: IProgressListener? = null,
+            useGraph : Boolean = false): GetDependenciesData {
         val projectDatas = arrayListOf<ProjectData>()
 
         fun toDependencyData(d: IClasspathDependency, scope: String): DependencyData {
@@ -44,16 +47,48 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
             FileDependency(it.absolutePath)
         }
 
+        fun compileDependencies(project: Project, name: String): List<DependencyData> {
+            val result =
+                    (pluginDependencies +
+                    allDeps(project.compileDependencies, name) +
+                    allDeps(project.compileProvidedDependencies, name))
+                .map { toDependencyData(it, "compile") }
+            return result
+        }
+
+        fun toDependencyData2(scope: String, node: DynamicGraph.Companion.Node<IClasspathDependency>): DependencyData {
+            val d = node.value
+            val dep = dependencyManager.create(d.id)
+            return DependencyData(d.id, scope, dep.jarFile.get().absolutePath,
+                    node.children.map { toDependencyData2(scope, it) })
+        }
+
+        fun compileDependenciesGraph(project: Project, name: String): List<DependencyData> {
+            val depLambda = { dep : IClasspathDependency -> dep.directDependencies() }
+            val result =
+                    (DynamicGraph.Companion.transitiveClosureGraph(pluginDependencies, depLambda) +
+                    DynamicGraph.Companion.transitiveClosureGraph(project.compileDependencies, depLambda) +
+                    DynamicGraph.Companion.transitiveClosureGraph(project.compileProvidedDependencies, depLambda))
+                .map { toDependencyData2("compile", it)}
+            return result
+        }
+
+        fun testDependencies(project: Project, name: String): List<DependencyData> {
+            return allDeps(project.testDependencies, name).map { toDependencyData(it, "testCompile") }
+        }
+
+        fun testDependenciesGraph(project: Project, name: String): List<DependencyData> {
+            val depLambda = { dep : IClasspathDependency -> dep.directDependencies() }
+            return DynamicGraph.Companion.transitiveClosureGraph(project.testDependencies, depLambda)
+                    .map { toDependencyData2("compile", it)}
+        }
+
         val allTasks = hashSetOf<TaskData>()
         projectResult.projects.withIndex().forEach { wi ->
             val project = wi.value
             val name = project.name
             progressListener?.onProgress(message = "Synchronizing project ${project.name} "
                     + (wi.index + 1) + "/" + projectResult.projects.size)
-            val compileDependencies = pluginDependencies.map { toDependencyData(it, "compile") } +
-                    allDeps(project.compileDependencies, name).map { toDependencyData(it, "compile") } +
-                    allDeps(project.compileProvidedDependencies, name).map { toDependencyData(it, "compile") }
-            val testDependencies = allDeps(project.testDependencies, name).map { toDependencyData(it, "testCompile") }
 
             val dependentProjects = project.dependsOn.map { it.name }
 
@@ -64,6 +99,13 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
                 TaskData(it.name, it.doc, it.group)
             }
             allTasks.addAll(projectTasks)
+            val compileDependencies =
+                if (useGraph) compileDependenciesGraph(project, project.name)
+                else compileDependencies(project, project.name)
+            val testDependencies =
+                if (useGraph) testDependenciesGraph(project, project.name)
+                else testDependencies(project, project.name)
+
             projectDatas.add(ProjectData(project.name, project.directory, dependentProjects,
                     compileDependencies, testDependencies,
                     sources.second.toSet(), tests.second.toSet(), sources.first.toSet(), tests.first.toSet(),
@@ -77,7 +119,8 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
     // use these same classes.
     //
 
-    class DependencyData(val id: String, val scope: String, val path: String)
+    class DependencyData(val id: String, val scope: String, val path: String,
+            val children: List<DependencyData> = emptyList())
     data class TaskData(val name: String, val description: String, val group: String) {
         override fun toString() = name
     }

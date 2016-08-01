@@ -15,6 +15,7 @@ import java.io.PrintWriter
 import java.net.ServerSocket
 import java.net.SocketException
 
+@Deprecated(message = "Replaced by Websocket server, to be deleted")
 class OldServer(val initCallback: (String) -> List<Project>, val cleanUpCallback: () -> Unit)
         : KobaltServer.IServer, ICommandSender {
     val pending = arrayListOf<CommandData>()

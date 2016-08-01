@@ -185,4 +185,23 @@ class DynamicGraphTest {
         }
     }
 
+    @Test
+    fun transitiveClosureGraphTest() {
+        val graph = DynamicGraph<String>().apply {
+            // a -> b
+            // b -> c, d
+            // e
+            addEdge("a", "b")
+            addEdge("b", "c")
+            addEdge("b", "d")
+            addNode("e")
+        }
+        val closure = DynamicGraph.transitiveClosureGraph("a", { s -> graph.childrenOf(s).toList() } )
+        assertThat(closure.value).isEqualTo("a")
+        val ca = closure.children
+        assertThat(ca.map { it.value }).isEqualTo(listOf("b"))
+        val cb = ca[0].children
+        assertThat(cb.map { it.value }).isEqualTo(listOf("d", "c"))
+
+    }
 }

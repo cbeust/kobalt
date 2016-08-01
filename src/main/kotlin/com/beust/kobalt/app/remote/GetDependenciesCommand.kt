@@ -14,6 +14,7 @@ import javax.inject.Inject
  * { "name" : "getDependencies", "buildFile": "/Users/beust/kotlin/kobalt/kobalt/src/Build.kt" }
  * The response is a GetDependenciesData.
  */
+@Deprecated(message = "Only used by old server, to be deleted")
 class GetDependenciesCommand @Inject constructor(val args: Args, val dependencyData: DependencyData) : ICommand {
 
     override val name = "getDependencies"

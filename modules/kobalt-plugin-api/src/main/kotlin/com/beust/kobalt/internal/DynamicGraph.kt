@@ -14,21 +14,21 @@ open class TaskResult2<T>(success: Boolean, errorMessage: String?, val value: T)
     override fun toString() = com.beust.kobalt.misc.toString("TaskResult", "value", value, "success", success)
 }
 
-class Node<T>(val value: T) {
-    override fun hashCode() = value!!.hashCode()
-    override fun equals(other: Any?) : Boolean {
-        val result = if (other is Node<*>) other.value == value else false
-        return result
-    }
-    override fun toString() = value.toString()
-}
-
 class DynamicGraph<T> {
     val VERBOSE = 2
     val values : Collection<T> get() = nodes.map { it.value }
-    val nodes = hashSetOf<Node<T>>()
-    private val dependedUpon = HashMultimap.create<Node<T>, Node<T>>()
-    private val dependingOn = HashMultimap.create<Node<T>, Node<T>>()
+    val nodes = hashSetOf<PrivateNode<T>>()
+    private val dependedUpon = HashMultimap.create<PrivateNode<T>, PrivateNode<T>>()
+    private val dependingOn = HashMultimap.create<PrivateNode<T>, PrivateNode<T>>()
+
+    class PrivateNode<T>(val value: T) {
+        override fun hashCode() = value!!.hashCode()
+        override fun equals(other: Any?) : Boolean {
+            val result = if (other is PrivateNode<*>) other.value == value else false
+            return result
+        }
+        override fun toString() = value.toString()
+    }
 
     companion object {
         fun <T> transitiveClosure(root: T, childrenFor: (T) -> List<T>) : List<T> {
@@ -51,22 +51,50 @@ class DynamicGraph<T> {
             }
             return result
         }
+
+        class Node<T>(val value: T, val children: List<Node<T>>) {
+            fun dump(root : Node<T> = this, indent: String = "") : String {
+                return StringBuffer().apply {
+                    append(indent).append(root.value).append("\n")
+                    root.children.forEach {
+                        append(dump(it, indent + "  "))
+                    }
+                }.toString()
+            }
+        }
+
+        fun <T> transitiveClosureGraph(roots: List<T>, childrenFor: (T) -> List<T>) : List<Node<T>>
+            = roots.map { transitiveClosureGraph(it, childrenFor) }
+
+        fun <T> transitiveClosureGraph(root: T, childrenFor: (T) -> List<T>, seen: HashSet<T> = hashSetOf()) : Node<T> {
+            val children = arrayListOf<Node<T>>()
+            childrenFor(root).forEach { child ->
+                if (! seen.contains(child)) {
+                    val c = transitiveClosureGraph(child, childrenFor)
+                    children.add(c)
+                    seen.add(child)
+                }
+            }
+            return Node(root, children)
+        }
     }
 
+    fun childrenOf(v: T) : Collection<T> = dependedUpon[PrivateNode(v)].map { it.value }
+
     fun transitiveClosure(root: T)
-            = transitiveClosure(root) { element -> dependedUpon[Node(element)].map { it.value } }
+            = transitiveClosure(root) { element -> dependedUpon[PrivateNode(element)].map { it.value } }
 
     fun addNode(t: T) = synchronized(nodes) {
-        nodes.add(Node(t))
+        nodes.add(PrivateNode(t))
     }
 
     fun removeNode(t: T) = synchronized(nodes) {
         log(VERBOSE, "  Removing node $t")
-        Node(t).let { node ->
+        PrivateNode(t).let { node ->
             nodes.remove(node)
             dependingOn.removeAll(node)
             val set = dependedUpon.keySet()
-            val toReplace = arrayListOf<Pair<Node<T>, Collection<Node<T>>>>()
+            val toReplace = arrayListOf<Pair<PrivateNode<T>, Collection<PrivateNode<T>>>>()
             set.forEach { du ->
                 val l = ArrayList(dependedUpon[du])
                 l.remove(node)
@@ -82,10 +110,10 @@ class DynamicGraph<T> {
      * Make "from" depend on "to" ("from" is no longer free).
      */
     fun addEdge(from: T, to: T) {
-        val fromNode = Node(from)
+        val fromNode = PrivateNode(from)
         nodes.add(fromNode)
-        val toNode = Node(to)
-        nodes.add(Node(to))
+        val toNode = PrivateNode(to)
+        nodes.add(PrivateNode(to))
         dependingOn.put(toNode, fromNode)
         dependedUpon.put(fromNode, toNode)
     }
@@ -109,7 +137,7 @@ class DynamicGraph<T> {
     fun dump() : String {
         val result = StringBuffer()
         result.append("************ Graph dump ***************\n")
-        val free = arrayListOf<Node<T>>()
+        val free = arrayListOf<PrivateNode<T>>()
         nodes.forEach { node ->
             val d = dependedUpon.get(node)
             if (d == null || d.isEmpty()) {
