@@ -5,7 +5,6 @@ import com.beust.kobalt.TestModule
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
 import com.google.common.collect.TreeMultimap
-import com.google.inject.Inject
 import org.assertj.core.api.Assertions.assertThat
 import org.testng.annotations.Guice
 import org.testng.annotations.Test
@@ -81,7 +80,7 @@ class TaskManagerTest : BaseTest() {
             }
         }
 
-        val graph = taskManager.createGraph2("", tasks.map { TaskManager.TaskInfo(it) }, dependencies,
+        val graph = BaseProjectRunner.createTaskGraph("", tasks.map { TaskManager.TaskInfo(it) }, dependencies,
                 dependsOn, reverseDependsOn, runBefore, runAfter, alwaysRunAfter,
                 { it }, { t -> true })
         val result = DryRunGraphExecutor(graph).run()

@@ -180,8 +180,10 @@ interface IThreadWorkerFactory<T> {
     fun createWorkers(nodes: Collection<T>) : List<IWorker<T>>
 }
 
-class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadWorkerFactory<T>) {
-    val executor = Executors.newFixedThreadPool(1, NamedThreadFactory("DynamicGraphExecutor"))
+class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadWorkerFactory<T>,
+        threadCount: Int = 1) {
+    val executor : ExecutorService
+            = Executors.newFixedThreadPool(threadCount, NamedThreadFactory("DynamicGraphExecutor"))
     val completion = ExecutorCompletionService<TaskResult2<T>>(executor)
 
     fun run() : TaskResult {

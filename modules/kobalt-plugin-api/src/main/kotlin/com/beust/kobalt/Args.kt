@@ -53,6 +53,9 @@ class Args {
     @Parameter(names = arrayOf("--noIncremental"), description = "Turn off incremental builds")
     var noIncremental: Boolean = false
 
+    @Parameter(names = arrayOf("--parallel"), description = "Build all the projects in parallel whenever possible")
+    var parallel: Boolean = false
+
     @Parameter(names = arrayOf("--plugins"), description = "Comma-separated list of plug-in Maven id's")
     var pluginIds: String? = null
 
