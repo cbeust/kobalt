@@ -1,15 +1,13 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.Args
-import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.*
-import com.beust.kobalt.misc.Strings
-import com.beust.kobalt.misc.kobaltError
+import com.beust.kobalt.api.ITask
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ListMultimap
 import com.google.common.collect.TreeMultimap
-import java.util.*
+import java.util.concurrent.Callable
 
 /**
  * Build the projects in parallel.
@@ -25,78 +23,68 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
             : BaseProjectRunner() {
     override fun runProjects(taskInfos: List<TaskManager.TaskInfo>, projects: List<Project>)
             : TaskManager .RunTargetResult {
-        var result = TaskResult()
-        val failedProjects = hashSetOf<String>()
-        val messages = Collections.synchronizedList(arrayListOf<TaskManager.ProfilerInfo>())
+        class ProjectTask(val project: Project, val dryRun: Boolean) : Callable<TaskResult2<ProjectTask>> {
+            override fun toString() = "[ProjectTask " + project.name + "]"
+            override fun hashCode() = project.hashCode()
+            override fun equals(other: Any?) : Boolean =
+                    if (other is ProjectTask) other.project.name == project.name
+                    else false
 
-        fun runProjectListeners(project: Project, context: KobaltContext, start: Boolean,
-                status: ProjectBuildStatus = ProjectBuildStatus.SUCCESS) {
-            context.pluginInfo.buildListeners.forEach {
-                if (start) it.projectStart(project, context) else it.projectEnd(project, context, status)
-            }
-        }
-
-        val context = Kobalt.context!!
-        projects.forEach { project ->
-            AsciiArt.logBox("Building ${project.name}")
-
-            // Does the current project depend on any failed projects?
-            val fp = project.dependsOn.filter {
-                failedProjects.contains(it.name)
-            }.map {
-                it.name
-            }
-
-            if (fp.size > 0) {
-                log(2, "Marking project ${project.name} as skipped")
-                failedProjects.add(project.name)
-                runProjectListeners(project, context, false, ProjectBuildStatus.SKIPPED)
-                kobaltError("Not building project ${project.name} since it depends on failed "
-                        + Strings.pluralize(fp.size, "project")
-                        + " " + fp.joinToString(","))
-            } else {
-                runProjectListeners(project, context, true)
-
-                // There can be multiple tasks by the same name (e.g. PackagingPlugin and AndroidPlugin both
-                // define "install"), so use a multimap
+            override fun call(): TaskResult2<ProjectTask> {
                 val tasksByNames = tasksByNames(project)
-
-                log(3, "Tasks:")
-                tasksByNames.keys().forEach {
-                    log(3, "  $it: " + tasksByNames.get(it))
-                }
-
                 val graph = createTaskGraph(project.name, taskInfos, tasksByNames,
                         dependsOn, reverseDependsOn, runBefore, runAfter, alwaysRunAfter,
                         { task: ITask -> task.name },
                         { task: ITask -> task.plugin.accept(project) })
-
-                //
-                // Now that we have a full graph, run it
-                //
-                log(2, "About to run graph:\n  ${graph.dump()}  ")
-
-                val factory = object : IThreadWorkerFactory<ITask> {
-                    override fun createWorkers(nodes: Collection<ITask>)
-                            = nodes.map { TaskWorker(listOf(it), args.dryRun, pluginInfo) }
+                var lastResult = TaskResult()
+                while (graph.freeNodes.any()) {
+                    val toProcess = graph.freeNodes
+                    toProcess.forEach { node ->
+                        val tasks = tasksByNames[node.name]
+                        tasks.forEach { task ->
+                            log(1, "===== " + project.name + ":" + task.name)
+                            val tr = if (dryRun) TaskResult2(true, null, task) else task.call()
+                            if (lastResult.success) {
+                                lastResult = tr
+                            }
+                        }
+                    }
+                    graph.freeNodes.forEach { graph.removeNode(it) }
                 }
 
-                val executor = DynamicGraphExecutor(graph, factory, 5)
-                val thisResult = executor.run()
-                if (! thisResult.success) {
-                    log(2, "Marking project ${project.name} as failed")
-                    failedProjects.add(project.name)
+                return TaskResult2(lastResult.success, lastResult.errorMessage, this)
+            }
+
+        }
+
+        val factory = object : IThreadWorkerFactory<ProjectTask> {
+            override fun createWorkers(nodes: Collection<ProjectTask>): List<IWorker<ProjectTask>> {
+                val result = nodes.map { it ->
+                    object: IWorker<ProjectTask> {
+                        override val priority: Int
+                            get() = 0
+
+                        override fun call(): TaskResult2<ProjectTask> {
+                            val tr = it.call()
+                            return tr
+                        }
+
+                    }
                 }
+                return result
+            }
+        }
 
-                runProjectListeners(project, context, false,
-                        if (thisResult.success) ProjectBuildStatus.SUCCESS else ProjectBuildStatus.FAILED)
-
-                if (result.success) {
-                    result = thisResult
+        val projectGraph = DynamicGraph<ProjectTask>().apply {
+            projects.forEach { project ->
+                project.dependsOn.forEach {
+                    addEdge(ProjectTask(project, args.dryRun), ProjectTask(it, args.dryRun))
                 }
             }
         }
 
-        return TaskManager.RunTargetResult(result, messages)
+        val taskResult = DynamicGraphExecutor(projectGraph, factory, 5).run()
+
+        return TaskManager.RunTargetResult(taskResult, emptyList())
     }
 }
