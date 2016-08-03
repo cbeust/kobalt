@@ -68,11 +68,12 @@ class DynamicGraph<T> {
 
         fun <T> transitiveClosureGraph(root: T, childrenFor: (T) -> List<T>, seen: HashSet<T> = hashSetOf()) : Node<T> {
             val children = arrayListOf<Node<T>>()
+            println("TRANSITIVE CLOSURE FOR " + root)
             childrenFor(root).forEach { child ->
                 if (! seen.contains(child)) {
-                    val c = transitiveClosureGraph(child, childrenFor)
-                    children.add(c)
                     seen.add(child)
+                    val c = transitiveClosureGraph(child, childrenFor, seen)
+                    children.add(c)
                 }
             }
             return Node(root, children)
