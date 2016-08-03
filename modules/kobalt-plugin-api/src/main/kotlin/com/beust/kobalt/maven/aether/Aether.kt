@@ -24,8 +24,12 @@ import org.eclipse.aether.collection.CollectResult
 import org.eclipse.aether.graph.Dependency
 import org.eclipse.aether.graph.DependencyFilter
 import org.eclipse.aether.graph.DependencyNode
+import org.eclipse.aether.repository.ArtifactRepository
 import org.eclipse.aether.repository.RemoteRepository
-import org.eclipse.aether.resolution.*
+import org.eclipse.aether.resolution.DependencyRequest
+import org.eclipse.aether.resolution.DependencyResolutionException
+import org.eclipse.aether.resolution.VersionRangeRequest
+import org.eclipse.aether.resolution.VersionRangeResult
 import org.eclipse.aether.transfer.ArtifactNotFoundException
 import org.eclipse.aether.util.artifact.JavaScopes
 import org.eclipse.aether.util.filter.AndDependencyFilter
@@ -70,6 +74,8 @@ enum class Scope(val scope: String, val dependencyLambda: (Project) -> List<ICla
 
 class DependencyResult(val dependency: IClasspathDependency, val repoUrl: String)
 
+class AetherResult(val artifact: Artifact, val repository: ArtifactRepository)
+
 class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether: Aether) {
     /**
      * Create an IClasspathDependency from a Kobalt id.
@@ -102,7 +108,7 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
     }
 
     fun resolveToArtifact(id: String, artifactScope: Scope? = null, filterScopes: Collection<Scope> = emptyList())
-            : ArtifactResult? {
+            : AetherResult? {
         log(ConsoleRepositoryListener.LOG_LEVEL, "Resolving $id")
         val results = aether.resolve(DefaultArtifact(MavenId.toKobaltId(id)), artifactScope, filterScopes)
         if (results.size > 0) {
@@ -142,6 +148,15 @@ class Aether(localRepo: File, val settings: KobaltSettings, val eventBus: EventB
             }
         }
 
+    private fun rangeRequest(a: Artifact): VersionRangeRequest {
+        with(VersionRangeRequest()) {
+            artifact = a
+            repositories = kobaltRepositories
+
+            return this
+        }
+    }
+
     private fun collectRequest(artifact: Artifact, scope: Scope?): CollectRequest {
         with(CollectRequest()) {
             root = Dependency(artifact, scope?.scope)
@@ -151,7 +166,7 @@ class Aether(localRepo: File, val settings: KobaltSettings, val eventBus: EventB
         }
     }
 
-    fun latestArtifact(group: String, artifactId: String, extension: String = "jar"): ArtifactResult {
+    fun latestArtifact(group: String, artifactId: String, extension: String = "jar"): AetherResult {
         val artifact = DefaultArtifact(group, artifactId, extension, "(0,]")
         val resolved = resolveVersion(artifact)
         if (resolved != null) {
@@ -174,8 +189,8 @@ class Aether(localRepo: File, val settings: KobaltSettings, val eventBus: EventB
         return result
     }
 
-    fun resolve(artifact: Artifact, artifactScope: Scope?, filterScopes: Collection<Scope>): List<ArtifactResult> {
-        fun manageException(ex: Exception, artifact: Artifact): List<ArtifactResult> {
+    fun resolve(artifact: Artifact, artifactScope: Scope?, filterScopes: Collection<Scope>): List<AetherResult> {
+        fun manageException(ex: Exception, artifact: Artifact): List<AetherResult> {
             if (artifact.extension == "pom") {
                 // Only display a warning for .pom files. Not resolving a .jar or other artifact
                 // is not necessarily an error as long as there is a pom file.
@@ -186,8 +201,19 @@ class Aether(localRepo: File, val settings: KobaltSettings, val eventBus: EventB
 
         try {
             val scopeFilter = Scope.toFilter(filterScopes)
-            val dependencyRequest = DependencyRequest(collectRequest(artifact, artifactScope), scopeFilter)
-            val result = system.resolveDependencies(session, dependencyRequest).artifactResults
+            val result =
+                if (artifact.version.contains(",")) {
+                    val request = rangeRequest(artifact)
+                    val v = system.resolveVersionRange(session, request)
+                    val ar = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.classifier,
+                            artifact.extension, v.highestVersion.toString())
+                    listOf(AetherResult(ar, request.repositories[0]))
+                } else {
+                    val dependencyRequest = DependencyRequest(collectRequest(artifact, artifactScope), scopeFilter)
+                    system.resolveDependencies(session, dependencyRequest).artifactResults.map {
+                        AetherResult(it.artifact, it.repository)
+                    }
+                }
             return result
         } catch(ex: ArtifactNotFoundException) {
             return manageException(ex, artifact)
