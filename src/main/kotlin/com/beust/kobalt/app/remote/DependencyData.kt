@@ -80,7 +80,7 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
         fun testDependenciesGraph(project: Project, name: String): List<DependencyData> {
             val depLambda = { dep : IClasspathDependency -> dep.directDependencies() }
             return DynamicGraph.Companion.transitiveClosureGraph(project.testDependencies, depLambda)
-                    .map { toDependencyData2("compile", it)}
+                    .map { toDependencyData2("testCompile", it)}
         }
 
         val allTasks = hashSetOf<TaskData>()
