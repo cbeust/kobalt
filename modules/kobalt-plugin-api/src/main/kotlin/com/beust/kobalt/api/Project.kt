@@ -3,7 +3,9 @@ package com.beust.kobalt.api
 import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.log
 import org.apache.maven.model.Model
 import java.io.File
 import java.util.*
@@ -143,10 +145,20 @@ class Dependencies(val project: Project,
      */
     private fun addToDependencies(project: Project, dependencies: ArrayList<IClasspathDependency>,
             dep: Array<out String>): List<Future<File>>
-        = with(dep.map { DependencyManager.create(it, project.directory)}) {
+        = with(dep.map {
+            val resolved =
+                if (KobaltAether.isRangeVersion(it)) {
+                    val result = Kobalt.INJECTOR.getInstance(KobaltAether::class.java).resolve(it).dependency.id
+                    log(2, "Resolved range id $it to $result")
+                    result
+                } else {
+                    it
+                }
+            DependencyManager.create(resolved, project.directory)
+        }) {
             dependencies.addAll(this)
             this.map { FutureTask { it.jarFile.get() } }
-    }
+        }
 
     @Directive
     fun compile(vararg dep: String) = addToDependencies(project, dependencies, dep)

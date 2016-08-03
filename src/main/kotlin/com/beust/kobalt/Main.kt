@@ -180,12 +180,12 @@ private class Main @Inject constructor(
                     error(buildFile.path.toFile().path + " does not exist")
                 } else {
 
-                    val allProjects = projectFinder.initForBuildFile(buildFile, args)
-
                     // DONOTCOMMIT
-//                    val data = dependencyData.dependenciesDataFor(homeDir("kotlin/klaxon/kobalt/src/Build.kt"), Args(),
+//                    val data = dependencyData.dependenciesDataFor(homeDir("kotlin/ktor/kobalt/src/Build.kt"), Args(),
 //                            useGraph = true)
 //                    println("Data: $data")
+
+                    val allProjects = projectFinder.initForBuildFile(buildFile, args)
 
                     if (args.projectInfo) {
                         // --projectInfo

@@ -77,6 +77,10 @@ class DependencyResult(val dependency: IClasspathDependency, val repoUrl: String
 class AetherResult(val artifact: Artifact, val repository: ArtifactRepository)
 
 class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether: Aether) {
+    companion object {
+        fun isRangeVersion(id: String) = id.contains(",")
+    }
+
     /**
      * Create an IClasspathDependency from a Kobalt id.
      */
@@ -202,7 +206,7 @@ class Aether(localRepo: File, val settings: KobaltSettings, val eventBus: EventB
         try {
             val scopeFilter = Scope.toFilter(filterScopes)
             val result =
-                if (artifact.version.contains(",")) {
+                if (KobaltAether.isRangeVersion(artifact.version)) {
                     val request = rangeRequest(artifact)
                     val v = system.resolveVersionRange(session, request)
                     val ar = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.classifier,
