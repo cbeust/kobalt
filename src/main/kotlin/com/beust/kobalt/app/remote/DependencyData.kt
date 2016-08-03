@@ -93,11 +93,16 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
             val dependentProjects = project.dependsOn.map { it.name }
 
             // Separate resource from source directories
-            val sources = project.sourceDirectories.partition { KFiles.isResource(it) }
-            val tests = project.sourceDirectoriesTest.partition { KFiles.isResource(it) }
+            fun partition(project: Project, dirs: Collection<String>)
+                    = dirs.filter { File(project.directory, it).exists() }
+                    .partition { KFiles.isResource(it) }
+            val sources = partition(project, project.sourceDirectories)
+            val tests = partition(project, project.sourceDirectoriesTest)
+
             val projectTasks = taskManager.tasksByNames(project).values().map {
                 TaskData(it.name, it.doc, it.group)
             }
+
             allTasks.addAll(projectTasks)
             val compileDependencies =
                 if (useGraph) compileDependenciesGraph(project, project.name)
