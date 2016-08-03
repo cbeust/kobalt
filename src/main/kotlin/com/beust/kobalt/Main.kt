@@ -5,6 +5,7 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.app.*
+import com.beust.kobalt.app.remote.DependencyData
 import com.beust.kobalt.app.remote.KobaltClient
 import com.beust.kobalt.app.remote.KobaltServer
 import com.beust.kobalt.internal.Gc
@@ -68,6 +69,7 @@ private class Main @Inject constructor(
         val projectGenerator: ProjectGenerator,
         val serverFactory: KobaltServer.IFactory,
         val projectFinder: ProjectFinder,
+        val dependencyData: DependencyData,
         val resolveDependency: ResolveDependency) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
@@ -181,17 +183,20 @@ private class Main @Inject constructor(
                     val allProjects = projectFinder.initForBuildFile(buildFile, args)
 
                     // DONOTCOMMIT
-//                    val data = dependencyData.dependenciesDataFor(homeDir("kotlin/klaxon/kobalt/src/Build.kt"), Args())
+//                    val data = dependencyData.dependenciesDataFor(homeDir("kotlin/klaxon/kobalt/src/Build.kt"), Args(),
+//                            useGraph = true)
 //                    println("Data: $data")
 
                     if (args.projectInfo) {
                         // --projectInfo
                         allProjects.forEach {
-                            resolveDependency.run(it.compileDependencies.map { it.id })
+                            it.compileDependencies.forEach {
+                                resolveDependency.run(it.id)
+                            }
                         }
-                    } else if (args.dependencies != null) {
+                    } else if (args.dependency != null) {
                         // --resolve
-                        resolveDependency.run(args.dependencies!!.split(',').toList())
+                        args.dependency?.let { resolveDependency.run(it) }
                     } else if (args.tasks) {
                         // --tasks
                         displayTasks()

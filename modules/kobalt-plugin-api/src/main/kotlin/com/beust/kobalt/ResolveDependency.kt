@@ -25,7 +25,7 @@ class ResolveDependency @Inject constructor(
 
     class Dep(val dep: IClasspathDependency, val level: Int)
 
-    fun run(ids: List<String>) = ids.forEach { displayDependenciesFor(it) }
+    fun run(id: String) = displayDependenciesFor(id)
 
     private fun displayDependenciesFor(id: String) {
         val mavenId = MavenId.create(id)

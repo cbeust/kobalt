@@ -72,8 +72,8 @@ class Args {
     var profiling: Boolean = false
 
     @Parameter(names = arrayOf("--resolve"),
-            description = "Resolve the given comma-separated dependencies and display their dependency tree")
-    var dependencies: String? = null
+            description = "Resolve the given dependency and display its tree")
+    var dependency: String? = null
 
     @Parameter(names = arrayOf("--projectInfo"), description = "Display information about the current projects")
     var projectInfo: Boolean = false
