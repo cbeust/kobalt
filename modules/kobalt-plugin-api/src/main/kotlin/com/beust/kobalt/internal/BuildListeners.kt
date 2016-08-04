@@ -7,56 +7,82 @@ import com.beust.kobalt.misc.log
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Record timings and display them at the end of the build.
+ * Record timings and statuses for tasks and projects and display them at the end of the build.
  */
 class BuildListeners : IBuildListener, IBuildReportContributor {
     class ProfilerInfo(val taskName: String, val durationMillis: Long)
+    class ProjectInfo(val projectName: String, var durationMillis: Long = 0)
 
     private val startTimes = ConcurrentHashMap<String, Long>()
     private val timings = arrayListOf<ProfilerInfo>()
+    private val projectInfos = hashMapOf<String, ProjectInfo>()
+    private var hasFailures = false
+    private val args: Args get() = Kobalt.INJECTOR.getInstance(Args::class.java)
 
+    // IBuildListener
     override fun taskStart(project: Project, context: KobaltContext, taskName: String) {
         startTimes.put(taskName, System.currentTimeMillis())
-    }
-
-    override fun taskEnd(project: Project, context: KobaltContext, taskName: String, success: Boolean) {
-        startTimes[taskName]?.let {
-            timings.add(ProfilerInfo(taskName, System.currentTimeMillis() - it))
+        if (! projectInfos.containsKey(project.name)) {
+            projectInfos.put(project.name, ProjectInfo(project.name))
         }
     }
 
+    // IBuildListener
+    override fun taskEnd(project: Project, context: KobaltContext, taskName: String, success: Boolean) {
+        if (! success) hasFailures = true
+        startTimes[taskName]?.let {
+            val taskTime = System.currentTimeMillis() - it
+            timings.add(ProfilerInfo(taskName, taskTime))
+            projectInfos[project.name]?.let {
+                it.durationMillis += taskTime.toLong()
+            }
+        }
+    }
+
+    private val projectStatuses = arrayListOf<Pair<Project, ProjectBuildStatus>>()
+
+    // IBuildListener
+    override fun projectEnd(project: Project, context: KobaltContext, status: ProjectBuildStatus) {
+        projectStatuses.add(Pair(project, status))
+    }
+
+    // IBuildReportContributor
     override fun generateReport(context: KobaltContext) {
-        val profiling = Kobalt.INJECTOR.getInstance(Args::class.java).profiling
+        fun formatMillis(millis: Long, format: String) = String.format(format, millis.toDouble() / 1000)
+        fun formatMillisRight(millis: Long, length: Int) = formatMillis(millis, "%1\$$length.2f")
+        fun formatMillisLeft(millis: Long, length: Int) = formatMillis(millis, "%1\$-$length.2f")
+
+        val profiling = args.profiling
         if (profiling) {
             log(1, "\n" + AsciiArt.horizontalSingleLine + " Timings (in seconds)")
             timings.sortedByDescending { it.durationMillis }.forEach {
-                log(1, String.format("%1$10.2f", it.durationMillis.toDouble() / 1000)
-                        + " " + it.taskName)
+                log(1, formatMillisRight(it.durationMillis, 10) + " " + it.taskName)
             }
             log(1, "\n")
 
         }
 
         fun col1(s: String) = String.format(" %1\$-30s", s)
-        fun col2(s: String) = String.format(" %1\$-10s", s)
+        fun col2(s: String) = String.format(" %1\$-13s", s)
+        fun col3(s: String) = String.format(" %1\$-8s", s)
 
-        val line = listOf(col1("Project"), col2("Build status")).joinToString(AsciiArt.verticalBar)
-        AsciiArt.logBox(listOf(line), AsciiArt.bottomLeft2, AsciiArt.bottomRight2)
-        projectStatuses.forEach { pair ->
-            val cl = listOf(col1(pair.first.name), col2(pair.second.toString())).joinToString(AsciiArt.verticalBar)
-            log(1, "          " + AsciiArt.verticalBar + " " + cl + "   " + AsciiArt.verticalBar)
-        }
-        log(1, "          " + AsciiArt.lowerBox(line.length))
+        // Only print the build report if there is more than one project and at least one of them failed
+//        if (timings.size > 1 && hasFailures) {
+            val line = listOf(col1("Project"), col2("Build status"), col3("Time"))
+                    .joinToString(AsciiArt.verticalBar)
+            AsciiArt.logBox(listOf(line), AsciiArt.bottomLeft2, AsciiArt.bottomRight2)
+            projectStatuses.forEach { pair ->
+                val projectName = pair.first.name
+                val cl = listOf(col1(projectName), col2(pair.second.toString()),
+                        col3(formatMillisLeft(projectInfos[projectName]!!.durationMillis, 8)))
+                    .joinToString(AsciiArt.verticalBar)
+                log(1, "          " + AsciiArt.verticalBar + " " + cl + " " + AsciiArt.verticalBar)
+            }
+            log(1, "          " + AsciiArt.lowerBox(line.length))
+            if (args.parallel) log(1, "Sequential build time would be " +
+                    (projectInfos.values.sumByDouble { it.durationMillis.toDouble() }) / 1000 + " seconds")
+//        }
 
-    }
-
-
-//    override fun projectStart(project: Project, context: KobaltContext) {}
-
-    private val projectStatuses = arrayListOf<Pair<Project, ProjectBuildStatus>>()
-
-    override fun projectEnd(project: Project, context: KobaltContext, status: ProjectBuildStatus) {
-        projectStatuses.add(Pair(project, status))
     }
 
 }

@@ -1,6 +1,8 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.ProjectBuildStatus
 import com.beust.kobalt.misc.log
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ArrayListMultimap
@@ -14,6 +16,20 @@ abstract class BaseProjectRunner {
 
     companion object {
         val LOG_LEVEL = TaskManager.LOG_LEVEL
+
+        fun runBuildListenersForProject(project: Project, context: KobaltContext, start: Boolean,
+                status: ProjectBuildStatus = ProjectBuildStatus.SUCCESS) {
+            context.pluginInfo.buildListeners.forEach {
+                if (start) it.projectStart(project, context) else it.projectEnd(project, context, status)
+            }
+        }
+
+        fun runBuildListenersForTask(project: Project, context: KobaltContext, taskName: String, start: Boolean,
+                success: Boolean = false) {
+            context.pluginInfo.buildListeners.forEach {
+                if (start) it.taskStart(project, context, taskName) else it.taskEnd(project, context, taskName, success)
+            }
+        }
 
         /**
          * Create a graph representing the tasks and their dependencies. That graph will then be run
@@ -156,5 +172,4 @@ abstract class BaseProjectRunner {
             return result
         }
     }
-
 }

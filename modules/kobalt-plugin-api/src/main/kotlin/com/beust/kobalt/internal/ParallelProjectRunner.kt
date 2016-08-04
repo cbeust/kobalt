@@ -3,7 +3,9 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.Args
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.ITask
+import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.ProjectBuildStatus
 import com.beust.kobalt.misc.log
 import com.google.common.collect.ListMultimap
 import com.google.common.collect.TreeMultimap
@@ -31,6 +33,8 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
                     else false
 
             override fun call(): TaskResult2<ProjectTask> {
+                val context = Kobalt.context!!
+                runBuildListenersForProject(project, context, true)
                 val tasksByNames = tasksByNames(project)
                 val graph = createTaskGraph(project.name, taskInfos, tasksByNames,
                         dependsOn, reverseDependsOn, runBefore, runAfter, alwaysRunAfter,
@@ -42,15 +46,22 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
                     toProcess.forEach { node ->
                         val tasks = tasksByNames[node.name]
                         tasks.forEach { task ->
+
+                            runBuildListenersForTask(project, context, task.name, start = true)
                             log(1, "===== " + project.name + ":" + task.name)
-                            val tr = if (dryRun) TaskResult2(true, null, task) else task.call()
+                            val thisResult = if (dryRun) TaskResult2(true, null, task) else task.call()
                             if (lastResult.success) {
-                                lastResult = tr
+                                lastResult = thisResult
                             }
+                            runBuildListenersForTask(project, context, task.name, start = false,
+                                    success = thisResult.success)
                         }
                     }
                     graph.freeNodes.forEach { graph.removeNode(it) }
                 }
+
+                runBuildListenersForProject(project, context, false,
+                        if (lastResult.success) ProjectBuildStatus.SUCCESS else ProjectBuildStatus.FAILED)
 
                 return TaskResult2(lastResult.success, lastResult.errorMessage, this)
             }

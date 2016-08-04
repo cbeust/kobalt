@@ -300,13 +300,6 @@ class TaskManager @Inject constructor(val args: Args,
 
 class TaskWorker(val tasks: List<ITask>, val dryRun: Boolean, val pluginInfo: PluginInfo) : IWorker<ITask> {
 
-    private fun runBuildListeners(project: Project, context: KobaltContext, taskName: String, start: Boolean,
-            success: Boolean = false) {
-        context.pluginInfo.buildListeners.forEach {
-            if (start) it.taskStart(project, context, taskName) else it.taskEnd(project, context, taskName, success)
-        }
-    }
-
     override fun call() : TaskResult2<ITask> {
         if (tasks.size > 0) {
             tasks[0].let {
@@ -318,9 +311,9 @@ class TaskWorker(val tasks: List<ITask>, val dryRun: Boolean, val pluginInfo: Pl
         val context = Kobalt.context!!
         tasks.forEach {
             val name = it.project.name + ":" + it.name
-            runBuildListeners(it.project, context, name, start = true)
+            BaseProjectRunner.runBuildListenersForTask(it.project, context, name, start = true)
             val tr = if (dryRun) TaskResult() else it.call()
-            runBuildListeners(it.project, context, name, start = false, success = tr.success)
+            BaseProjectRunner.runBuildListenersForTask(it.project, context, name, start = false, success = tr.success)
             success = success and tr.success
             if (tr.errorMessage != null) errorMessages.add(tr.errorMessage)
         }

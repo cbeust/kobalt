@@ -3,7 +3,10 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.Args
 import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.*
+import com.beust.kobalt.api.ITask
+import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.ProjectBuildStatus
 import com.beust.kobalt.misc.Strings
 import com.beust.kobalt.misc.kobaltError
 import com.beust.kobalt.misc.log
@@ -29,13 +32,6 @@ class SequentialProjectRunner(val tasksByNames: (Project) -> ListMultimap<String
         val failedProjects = hashSetOf<String>()
         val messages = Collections.synchronizedList(arrayListOf<TaskManager.ProfilerInfo>())
 
-        fun runProjectListeners(project: Project, context: KobaltContext, start: Boolean,
-                status: ProjectBuildStatus = ProjectBuildStatus.SUCCESS) {
-            context.pluginInfo.buildListeners.forEach {
-                if (start) it.projectStart(project, context) else it.projectEnd(project, context, status)
-            }
-        }
-
         val context = Kobalt.context!!
         projects.forEach { project ->
             AsciiArt.logBox("Building ${project.name}")
@@ -50,12 +46,12 @@ class SequentialProjectRunner(val tasksByNames: (Project) -> ListMultimap<String
             if (fp.size > 0) {
                 log(2, "Marking project ${project.name} as skipped")
                 failedProjects.add(project.name)
-                runProjectListeners(project, context, false, ProjectBuildStatus.SKIPPED)
+                runBuildListenersForProject(project, context, false, ProjectBuildStatus.SKIPPED)
                 kobaltError("Not building project ${project.name} since it depends on failed "
                         + Strings.pluralize(fp.size, "project")
                         + " " + fp.joinToString(","))
             } else {
-                runProjectListeners(project, context, true)
+                runBuildListenersForProject(project, context, true)
 
                 // There can be multiple tasks by the same name (e.g. PackagingPlugin and AndroidPlugin both
                 // define "install"), so use a multimap
@@ -88,7 +84,7 @@ class SequentialProjectRunner(val tasksByNames: (Project) -> ListMultimap<String
                     failedProjects.add(project.name)
                 }
 
-                runProjectListeners(project, context, false,
+                runBuildListenersForProject(project, context, false,
                         if (thisResult.success) ProjectBuildStatus.SUCCESS else ProjectBuildStatus.FAILED)
 
                 if (result.success) {
