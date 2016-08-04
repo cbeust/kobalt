@@ -72,17 +72,23 @@ class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileN
     }
 
     fun inputChecksumFor(taskName: String) : String? =
+        synchronized(BUILD_INFO_FILE) {
             taskInfoFor(taskInfos(), taskName).inputChecksum
+        }
 
     fun saveOutputChecksum(taskName: String, outputChecksum: String) {
-        with(taskInfos()) {
-            taskInfoFor(this, taskName).outputChecksum = outputChecksum
-            save(this)
+        synchronized(BUILD_INFO_FILE) {
+            with(taskInfos()) {
+                taskInfoFor(this, taskName).outputChecksum = outputChecksum
+                save(this)
+            }
         }
     }
 
     fun outputChecksumFor(taskName: String) : String? =
+        synchronized(BUILD_INFO_FILE) {
             taskInfoFor(taskInfos(), taskName).outputChecksum
+        }
 
     /**
      * @param method is assumed to return an IncrementalTaskInfo.
