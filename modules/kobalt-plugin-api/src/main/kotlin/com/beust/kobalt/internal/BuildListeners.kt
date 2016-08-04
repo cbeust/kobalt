@@ -97,7 +97,7 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
         if (args.parallel) {
             val sequentialBuildTime = ((projectInfos.values.sumByDouble { it.durationMillis.toDouble() }) / 1000)
                     .toInt()
-            message.append(", sequential build would have been $sequentialBuildTime seconds)")
+            message.append(", sequential build would have taken $sequentialBuildTime seconds)")
         } else {
             message.append(")")
         }
