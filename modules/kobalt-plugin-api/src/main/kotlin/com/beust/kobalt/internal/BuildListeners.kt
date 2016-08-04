@@ -18,6 +18,7 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
     private val projectInfos = hashMapOf<String, ProjectInfo>()
     private var hasFailures = false
     private val args: Args get() = Kobalt.INJECTOR.getInstance(Args::class.java)
+    private var buildStartTime: Long? = null
 
     // IBuildListener
     override fun taskStart(project: Project, context: KobaltContext, taskName: String) {
@@ -42,6 +43,11 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
     private val projectStatuses = arrayListOf<Pair<Project, ProjectBuildStatus>>()
 
     // IBuildListener
+    override fun projectStart(project: Project, context: KobaltContext) {
+        if (buildStartTime == null) buildStartTime = System.currentTimeMillis()
+    }
+
+    // IBuildListener
     override fun projectEnd(project: Project, context: KobaltContext, status: ProjectBuildStatus) {
         projectStatuses.add(Pair(project, status))
     }
@@ -51,6 +57,9 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
         fun formatMillis(millis: Long, format: String) = String.format(format, millis.toDouble() / 1000)
         fun formatMillisRight(millis: Long, length: Int) = formatMillis(millis, "%1\$$length.2f")
         fun formatMillisLeft(millis: Long, length: Int) = formatMillis(millis, "%1\$-$length.2f")
+
+        fun millisToSeconds(millis: Long) = (millis.toDouble() / 1000).toInt()
+        val buildTime = millisToSeconds(System.currentTimeMillis() - buildStartTime!!)
 
         val profiling = args.profiling
         if (profiling) {
@@ -79,9 +88,20 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
                 log(1, "          " + AsciiArt.verticalBar + " " + cl + " " + AsciiArt.verticalBar)
             }
             log(1, "          " + AsciiArt.lowerBox(line.length))
-            if (args.parallel) log(1, "Sequential build time would be " +
-                    (projectInfos.values.sumByDouble { it.durationMillis.toDouble() }) / 1000 + " seconds")
 //        }
+
+        // BUILD SUCCESSFUL / FAILED message
+        val message = StringBuilder(if (args.parallel) "PARALLEL " else "")
+            .append(if (hasFailures) "BUILD FAILED" else "BUILD SUCCESSFUL ($buildTime seconds")
+
+        if (args.parallel) {
+            val sequentialBuildTime = ((projectInfos.values.sumByDouble { it.durationMillis.toDouble() }) / 1000)
+                    .toInt()
+            message.append(", sequential build would have been $sequentialBuildTime seconds)")
+        } else {
+            message.append(")")
+        }
+        log(1, message)
 
     }
 

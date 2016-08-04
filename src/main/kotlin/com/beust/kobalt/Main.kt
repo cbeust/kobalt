@@ -114,18 +114,14 @@ private class Main @Inject constructor(
         var result = 0
         val latestVersionFuture = github.latestKobaltVersion
 
-        val timing = benchmarkSeconds {
-            try {
-                result = runWithArgs(jc, args, argv, pluginClassLoader)
-            } catch(ex: Throwable) {
-                error("", ex.cause ?: ex)
-                result = 1
-            }
+        try {
+            result = runWithArgs(jc, args, argv, pluginClassLoader)
+        } catch(ex: Throwable) {
+            error("", ex.cause ?: ex)
+            result = 1
         }
 
         if (!args.update) {
-            log(1, if (result != 0) "BUILD FAILED: $result" else "BUILD SUCCESSFUL (${timing.first} seconds)")
-
             updateKobalt.checkForNewVersion(latestVersionFuture)
         }
         return result
