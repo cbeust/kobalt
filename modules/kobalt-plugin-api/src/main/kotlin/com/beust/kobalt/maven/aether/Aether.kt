@@ -142,7 +142,7 @@ class Aether(localRepo: File, val settings: KobaltSettings, val eventBus: EventB
 
     private val kobaltRepositories: List<RemoteRepository>
         get() = Kobalt.repos.map {
-            RemoteRepository.Builder("maven", "default", it.url)
+            RemoteRepository.Builder(null, "default", it.url)
 //                    .setSnapshotPolicy(RepositoryPolicy(false, null, null))
                     .build().let { repository ->
                 val proxyConfigs = settings.proxyConfigs ?: return@map repository
@@ -152,14 +152,8 @@ class Aether(localRepo: File, val settings: KobaltSettings, val eventBus: EventB
             }
         }
 
-    private fun rangeRequest(a: Artifact): VersionRangeRequest {
-        with(VersionRangeRequest()) {
-            artifact = a
-            repositories = kobaltRepositories
-
-            return this
-        }
-    }
+    private fun rangeRequest(a: Artifact): VersionRangeRequest
+        = VersionRangeRequest(a, kobaltRepositories, "RELEASE")
 
     private fun collectRequest(artifact: Artifact, scope: Scope?): CollectRequest {
         with(CollectRequest()) {
@@ -209,7 +203,7 @@ class Aether(localRepo: File, val settings: KobaltSettings, val eventBus: EventB
                 if (KobaltAether.isRangeVersion(artifact.version)) {
                     val request = rangeRequest(artifact)
                     val v = system.resolveVersionRange(session, request)
-                    val highestVersion = v.versions.last { ! it.toString().contains("-")}.toString()
+                    val highestVersion = v.highestVersion.toString()
                     val ar = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.classifier,
                             artifact.extension, highestVersion)
                     listOf(AetherResult(ar, request.repositories[0]))
