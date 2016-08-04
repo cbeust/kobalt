@@ -194,7 +194,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
 
             project.dependsOn.forEach { p ->
                 maybeAddClassDir(KFiles.joinDir(p.directory, p.classesDir(context)))
-                maybeAddClassDir(KFiles.makeOutputTestDir(project).path)
+                if (scopeFilters.contains(Scope.TEST)) maybeAddClassDir(KFiles.makeOutputTestDir(project).path)
                 val otherDependencies = calculateDependencies(p, context, scopeFilters)
                 result.addAll(otherDependencies)
 
