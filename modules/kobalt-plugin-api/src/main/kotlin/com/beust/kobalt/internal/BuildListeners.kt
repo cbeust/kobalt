@@ -76,6 +76,7 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
         fun col3(s: String) = String.format(" %1\$-8s", s)
 
         // Only print the build report if there is more than one project and at least one of them failed
+        if (timings.any()) {
 //        if (timings.size > 1 && hasFailures) {
             val line = listOf(col1("Project"), col2("Build status"), col3("Time"))
                     .joinToString(AsciiArt.verticalBar)
@@ -84,11 +85,12 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
                 val projectName = pair.first.name
                 val cl = listOf(col1(projectName), col2(pair.second.toString()),
                         col3(formatMillisLeft(projectInfos[projectName]!!.durationMillis, 8)))
-                    .joinToString(AsciiArt.verticalBar)
+                        .joinToString(AsciiArt.verticalBar)
                 log(1, "          " + AsciiArt.verticalBar + " " + cl + " " + AsciiArt.verticalBar)
             }
             log(1, "          " + AsciiArt.lowerBox(line.length))
 //        }
+        }
 
         // BUILD SUCCESSFUL / FAILED message
         val message = StringBuilder(if (args.parallel) "PARALLEL " else "")
