@@ -57,7 +57,12 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
     /**
      * Create an IClasspathDependency from a Maven id.
      */
-    override fun createMaven(id: String) : IClasspathDependency = aether.create(id)
+    override fun createMaven(id: String) : IClasspathDependency=
+        if (KobaltAether.isRangeVersion(id)) {
+            Kobalt.INJECTOR.getInstance(KobaltAether::class.java).resolve(id).dependency
+        } else {
+            aether.create(id)
+        }
 
     /**
      * Create an IClasspathDependency from a path.
