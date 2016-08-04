@@ -209,8 +209,9 @@ class Aether(localRepo: File, val settings: KobaltSettings, val eventBus: EventB
                 if (KobaltAether.isRangeVersion(artifact.version)) {
                     val request = rangeRequest(artifact)
                     val v = system.resolveVersionRange(session, request)
+                    val highestVersion = v.versions.last { ! it.toString().contains("-")}.toString()
                     val ar = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.classifier,
-                            artifact.extension, v.highestVersion.toString())
+                            artifact.extension, highestVersion)
                     listOf(AetherResult(ar, request.repositories[0]))
                 } else {
                     val dependencyRequest = DependencyRequest(collectRequest(artifact, artifactScope), scopeFilter)
