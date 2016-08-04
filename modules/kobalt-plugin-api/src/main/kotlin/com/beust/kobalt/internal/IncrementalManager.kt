@@ -56,18 +56,18 @@ class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileN
         val bi = BuildInfo(map.values.toList())
         val json = GsonBuilder().setPrettyPrinting().create().toJson(bi)
 
-        synchronized(BUILD_INFO_FILE) {
-            Files.write(Paths.get(fileName), json.toByteArray(Charset.defaultCharset()))
-        }
+        Files.write(Paths.get(fileName), json.toByteArray(Charset.defaultCharset()))
     }
 
     private fun taskInfoFor(taskInfos: HashMap<String, TaskInfo>, taskName: String)
             = taskInfos.getOrPut(taskName, { -> TaskInfo(taskName) })
 
     fun saveInputChecksum(taskName: String, inputChecksum: String) {
-        with(taskInfos()) {
-            taskInfoFor(this, taskName).inputChecksum = inputChecksum
-            save(this)
+        synchronized(BUILD_INFO_FILE) {
+            with(taskInfos()) {
+                taskInfoFor(this, taskName).inputChecksum = inputChecksum
+                save(this)
+            }
         }
     }
 
