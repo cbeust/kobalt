@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.AsciiTable
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.misc.NamedThreadFactory
@@ -162,6 +163,8 @@ interface IWorker<T> : Callable<TaskResult2<T>> {
      */
     //    val tasks : List<T>
 
+    val name: String
+
     /**
      * @return the priority of this task.
      */
@@ -181,10 +184,15 @@ interface IThreadWorkerFactory<T> {
 }
 
 class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadWorkerFactory<T>,
-        threadCount: Int = 1) {
+        val threadCount: Int = 1) {
     val executor : ExecutorService
             = Executors.newFixedThreadPool(threadCount, NamedThreadFactory("DynamicGraphExecutor"))
     val completion = ExecutorCompletionService<TaskResult2<T>>(executor)
+
+    class HistoryLog(val name: String, val timestamp: Long, val threadId: Long, val start: Boolean)
+
+    val historyLog = arrayListOf<HistoryLog>()
+    val threadIds = ConcurrentHashMap<Long, Long>()
 
     fun run() : TaskResult {
         try {
@@ -201,7 +209,24 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
         val newFreeNodes = HashSet<T>(graph.freeNodes)
         while (failedResult == null && (running > 0 || newFreeNodes.size > 0)) {
             nodesRun.addAll(newFreeNodes)
-            val callables : List<IWorker<T>> = factory.createWorkers(newFreeNodes)
+            val callables : List<IWorker<T>> = factory.createWorkers(newFreeNodes).map {
+                it -> object: IWorker<T> {
+                    override val priority: Int
+                        get() = it.priority
+
+                    override val name: String get() = it.name
+                    override fun call(): TaskResult2<T> {
+                        val threadId = Thread.currentThread().id
+                        historyLog.add(HistoryLog(it.name, System.currentTimeMillis(), threadId,
+                                start = true))
+                        threadIds.put(threadId, threadId)
+                        val result = it.call()
+                        historyLog.add(HistoryLog(it.name, System.currentTimeMillis(), Thread.currentThread().id,
+                                start = false))
+                        return result
+                    }
+                }
+            }
             callables.forEach { completion.submit(it) }
             running += callables.size
 
@@ -241,6 +266,51 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
         }
         return if (failedResult != null) failedResult else TaskResult()
     }
+
+    fun dumpHistory() {
+        log(1, "Thread report")
+
+        fun col1(s: String) = String.format(" %1\$-8s", s)
+        fun col2(s: String) = String.format(" %1\$-25s", s)
+
+        val table = AsciiTable.Builder()
+            .width(11)
+        threadIds.keys.forEach {
+            table.width(20)
+        }
+        table.header("Time (sec)")
+        val header = StringBuffer().apply {
+            threadIds.keys.forEach {
+                table.header("Thread " + it.toString())
+            }
+        }
+
+        fun toSeconds(millis: Long) = (millis / 1000).toInt().toString()
+
+        val start = historyLog[0].timestamp
+        val projectStart = ConcurrentHashMap<String, Long>()
+        historyLog.forEach { line ->
+            val row = arrayListOf<String>()
+            row.add(toSeconds(line.timestamp - start))
+            threadIds.keys.forEach {
+                if (line.threadId == it) {
+                    var duration = ""
+                    if (line.start) {
+                        projectStart[line.name] = line.timestamp
+                    } else {
+                        duration = " (" + ((line.timestamp - projectStart[line.name]!!) / 1000)
+                            .toInt().toString() + ")"
+                    }
+                    row.add((line.name + duration))
+                } else {
+                    row.add("")
+                }
+            }
+            table.addRow(row)
+        }
+
+        println(table.build())
+    }
 }
 
 fun main(argv: Array<String>) {
@@ -263,6 +333,7 @@ fun main(argv: Array<String>) {
                     }
 
                     override val priority: Int get() = 0
+                    override val name: String = "workerName"
                 }
             }
         }

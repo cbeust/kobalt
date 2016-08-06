@@ -117,3 +117,47 @@ class AsciiArt {
     }
 }
 
+class AsciiTable {
+    class Builder {
+        private val headers = arrayListOf<String>()
+        fun header(name: String) = headers.add(name)
+        fun headers(vararg names: String) = headers.addAll(names)
+
+        private val widths = arrayListOf<Int>()
+        fun width(w: Int) : Builder {
+            widths.add(w)
+            return this
+        }
+
+        private val rows = arrayListOf<List<String>>()
+        fun addRow(row: List<String>) = rows.add(row)
+
+        private fun col(width: Int, s: String) : String {
+            val format = " %1\$-${width.toString()}s"
+            val result = String.format(format, s)
+            return result
+        }
+
+        val vb = AsciiArt.verticalBar
+        fun build() : String {
+            val formattedHeaders =
+                headers.mapIndexed { index, s ->
+                    val s2 = col(widths[index], s)
+                    s2
+                }.joinToString(vb)
+            val result = buildString {
+                append(AsciiArt.logBox(formattedHeaders, AsciiArt.bottomLeft2, AsciiArt.bottomRight2))
+            }
+            var lineLength = 0
+            rows.forEachIndexed { index, row ->
+                val formattedRow = row.mapIndexed { i, s -> col(widths[i], s) }.joinToString(vb)
+                val line = vb + " " + formattedRow + " " + vb
+                AsciiArt.defaultLog(line)
+                lineLength = line.length
+            }
+            AsciiArt.defaultLog(AsciiArt.lowerBox(lineLength - 4))
+            return result.toString()
+        }
+
+    }
+}

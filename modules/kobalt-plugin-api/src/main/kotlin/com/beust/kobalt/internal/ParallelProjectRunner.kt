@@ -72,9 +72,8 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
             override fun createWorkers(nodes: Collection<ProjectTask>): List<IWorker<ProjectTask>> {
                 val result = nodes.map { it ->
                     object: IWorker<ProjectTask> {
-                        override val priority: Int
-                            get() = 0
-
+                        override val priority: Int get() = 0
+                        override val name: String get() = it.project.name
                         override fun call(): TaskResult2<ProjectTask> {
                             val tr = it.call()
                             return tr
@@ -94,8 +93,12 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
             }
         }
 
-        val taskResult = DynamicGraphExecutor(projectGraph, factory, 5).run()
+        val executor = DynamicGraphExecutor(projectGraph, factory, 5)
+        val taskResult = executor.run()
 
+        if (args.parallel) {
+            executor.dumpHistory()
+        }
         return TaskManager.RunTargetResult(taskResult, emptyList())
     }
 }

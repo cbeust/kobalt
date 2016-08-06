@@ -27,7 +27,7 @@ class DynamicGraphTest {
 
     class Worker<T>(val runNodes: ArrayList<T>, val n: T, val errorFunction: (T) -> Boolean) : IWorker<T> {
         override val priority = 0
-
+        override val name: String get() = "[Worker " + runNodes.map { it.toString() }.joinToString(",") + "]"
         override fun call() : TaskResult2<T> {
             log(2, "Running node $n")
             runNodes.add(n)
