@@ -30,7 +30,7 @@ class KobaltSettingsXml {
     var proxies: ProxiesXml? = null
 
     @XmlElement(name = "kobaltCompilerVersion") @JvmField
-    var kobaltCompilerVersion: String = "1.0.3"
+    var kobaltCompilerVersion: String = "1.0.4-eap-62"
 
     @XmlElement(name = "kobaltCompilerRepo") @JvmField
     var kobaltCompilerRepo: String? = null

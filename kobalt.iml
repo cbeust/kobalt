@@ -17,9 +17,9 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="kobalt-plugin-api" />
     <orderEntry type="module-library">
-      <library name="Kobalt: org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:1.0.3">
+      <library name="Kobalt: org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:1.0.4-eap-62">
         <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.0.3/kotlin-compiler-embeddable-1.0.3.jar!/" />
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.0.4-eap-62/kotlin-compiler-embeddable-1.0.4-eap-62.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -404,5 +404,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
   </component>
 </module>
