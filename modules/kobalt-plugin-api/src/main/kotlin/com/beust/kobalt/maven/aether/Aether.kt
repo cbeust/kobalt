@@ -203,10 +203,14 @@ class Aether(localRepo: File, val settings: KobaltSettings, val eventBus: EventB
                 if (KobaltAether.isRangeVersion(artifact.version)) {
                     val request = rangeRequest(artifact)
                     val v = system.resolveVersionRange(session, request)
-                    val highestVersion = v.highestVersion.toString()
-                    val ar = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.classifier,
-                            artifact.extension, highestVersion)
-                    listOf(AetherResult(ar, request.repositories[0]))
+                    if (v.highestVersion != null) {
+                        val highestVersion = v.highestVersion.toString()
+                        val ar = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.classifier,
+                                artifact.extension, highestVersion)
+                        listOf(AetherResult(ar, request.repositories[0]))
+                    } else {
+                        throw KobaltException("Couldn't resolve range artifact " + artifact)
+                    }
                 } else {
                     val dependencyRequest = DependencyRequest(collectRequest(artifact, artifactScope), scopeFilter)
                     system.resolveDependencies(session, dependencyRequest).artifactResults.map {
