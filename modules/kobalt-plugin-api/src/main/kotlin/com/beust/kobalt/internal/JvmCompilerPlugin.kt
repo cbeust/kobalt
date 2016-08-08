@@ -96,7 +96,7 @@ open class JvmCompilerPlugin @Inject constructor(
             val compileDependencies = dependencyManager2.resolve(project, context, isTest = false)
             return testContributor.run(project, context, configName, testDependencies + compileDependencies)
         } else {
-            log(2, "Couldn't find a test runner for project ${project.name}, did you specify dependenciesTest{}?")
+            lp(project, "Couldn't find a test runner for project ${project.name}, did you specify dependenciesTest{}?")
             return TaskResult()
         }
     }
