@@ -13,6 +13,8 @@ fun Any.log(level: Int, text: CharSequence, newLine : Boolean = true) {
 }
 
 fun Any.kobaltLog(level: Int, text: CharSequence, newLine : Boolean = true) = log(level, text, newLine)
+fun Any.kobaltWarn(text: CharSequence) = warn(text)
+fun Any.kobaltError(text: CharSequence) = error(text)
 
 fun Any.logWrap(level: Int, text1: CharSequence, text2: CharSequence, function: () -> Unit) {
     if (level <= KobaltLogger.LOG_LEVEL) {
