@@ -270,9 +270,6 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
     fun dumpHistory() {
         log(1, "Thread report")
 
-        fun col1(s: String) = String.format(" %1\$-8s", s)
-        fun col2(s: String) = String.format(" %1\$-25s", s)
-
         val table = AsciiTable.Builder()
             .width(11)
         threadIds.keys.forEach {
