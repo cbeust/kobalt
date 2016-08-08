@@ -17,7 +17,7 @@ import javax.inject.Singleton
 @Singleton
 class TaskManager @Inject constructor(val args: Args,
         val incrementalManagerFactory: IncrementalManager.IFactory,
-        val pluginInfo: PluginInfo) {
+        val pluginInfo: PluginInfo, val kobaltLog: KobaltLog) {
     private val dependsOn = TreeMultimap.create<String, String>()
     private val reverseDependsOn = TreeMultimap.create<String, String>()
     private val runBefore = TreeMultimap.create<String, String>()
@@ -99,7 +99,7 @@ class TaskManager @Inject constructor(val args: Args,
         val projectsToRun = findProjectsToRun(taskInfos, allProjects)
         val projectRunner =
             if (args.parallel) ParallelProjectRunner({ p -> tasksByNames(p) }, dependsOn,
-                    reverseDependsOn, runBefore, runAfter, alwaysRunAfter, args, pluginInfo)
+                    reverseDependsOn, runBefore, runAfter, alwaysRunAfter, args, pluginInfo, kobaltLog)
             else SequentialProjectRunner({ p -> tasksByNames(p) }, dependsOn,
                     reverseDependsOn, runBefore, runAfter, alwaysRunAfter, args, pluginInfo)
         return projectRunner.runProjects(taskInfos, projectsToRun)

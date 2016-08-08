@@ -9,6 +9,7 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
+import com.beust.kobalt.internal.KobaltLog
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Strings
 import com.beust.kobalt.misc.log
@@ -22,7 +23,8 @@ import javax.tools.JavaFileObject
 import javax.tools.ToolProvider
 
 @Singleton
-class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) : ICompiler {
+class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler,
+        val kobaltLog: KobaltLog) : ICompiler {
     fun compilerAction(executable: File) = object : ICompilerAction {
         override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
             if (info.sourceFiles.isEmpty()) {
@@ -58,7 +60,8 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler) : ICompiler
                     command = "javac " + allArgs.joinToString(" ") + " " + info.sourceFiles.joinToString(" ")
                     log(2, "Launching\n$command")
 
-                    log(1, "  Java compiling " + Strings.pluralizeAll(info.sourceFiles.size, "file"))
+                    kobaltLog.log(projectName!!, 1,
+                            "  Java compiling " + Strings.pluralizeAll(info.sourceFiles.size, "file"))
                     val result = task.call()
                     errorMessage = dc.diagnostics.joinToString("\n")
                     result

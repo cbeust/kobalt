@@ -3,10 +3,7 @@ package com.beust.kobalt.plugin.kotlin
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
-import com.beust.kobalt.internal.ICompilerAction
-import com.beust.kobalt.internal.JvmCompiler
-import com.beust.kobalt.internal.KobaltSettings
-import com.beust.kobalt.internal.KotlinJarFiles
+import com.beust.kobalt.internal.*
 import com.beust.kobalt.kotlin.ParentLastClassLoader
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
@@ -38,14 +35,16 @@ class KotlinCompiler @Inject constructor(
         val executors: KobaltExecutors,
         val settings: KobaltSettings,
         val jvmCompiler: JvmCompiler,
-        val kotlinJarFiles: KotlinJarFiles) {
+        val kotlinJarFiles: KotlinJarFiles,
+        val kobaltLog: KobaltLog) {
 
     val compilerAction = object: ICompilerAction {
         override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
             val version = settings.kobaltCompilerVersion
             if (! info.outputDir.path.endsWith("ript.jar")) {
                 // Don't display the message if compiling Build.kt
-                log(1, "  Kotlin $version compiling " + Strings.pluralizeAll(info.sourceFiles.size, "file"))
+                kobaltLog.log(projectName!!, 1,
+                        "  Kotlin $version compiling " + Strings.pluralizeAll(info.sourceFiles.size, "file"))
             }
             val cp = compilerFirst(info.dependencies.map { it.jarFile.get() })
             val infoDir = info.directory

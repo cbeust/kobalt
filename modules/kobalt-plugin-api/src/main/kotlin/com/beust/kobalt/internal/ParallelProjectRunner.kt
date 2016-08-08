@@ -6,7 +6,6 @@ import com.beust.kobalt.api.ITask
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.ProjectBuildStatus
-import com.beust.kobalt.misc.log
 import com.google.common.collect.ListMultimap
 import com.google.common.collect.TreeMultimap
 import java.util.concurrent.Callable
@@ -21,7 +20,8 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
         val dependsOn: TreeMultimap<String, String>,
         val reverseDependsOn: TreeMultimap<String, String>, val runBefore: TreeMultimap<String, String>,
         val runAfter: TreeMultimap<String, String>,
-        val alwaysRunAfter: TreeMultimap<String, String>, val args: Args, val pluginInfo: PluginInfo)
+        val alwaysRunAfter: TreeMultimap<String, String>, val args: Args, val pluginInfo: PluginInfo,
+        val kobaltLog: KobaltLog)
             : BaseProjectRunner() {
     override fun runProjects(taskInfos: List<TaskManager.TaskInfo>, projects: List<Project>)
             : TaskManager .RunTargetResult {
@@ -38,9 +38,11 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
                 val tasksByNames = tasksByNames(project)
                 val graph = createTaskGraph(project.name, taskInfos, tasksByNames,
                         dependsOn, reverseDependsOn, runBefore, runAfter, alwaysRunAfter,
-                        { task: ITask -> task.name },
+                        ITask::name,
                         { task: ITask -> task.plugin.accept(project) })
                 var lastResult = TaskResult()
+                kobaltLog.onProjectStarted(project.name)
+                kobaltLog.log(project.name, 1, "Parallel build of ${project.name} starting")
                 while (graph.freeNodes.any()) {
                     val toProcess = graph.freeNodes
                     toProcess.forEach { node ->
@@ -48,7 +50,8 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
                         tasks.forEach { task ->
 
                             runBuildListenersForTask(project, context, task.name, start = true)
-                            log(1, "===== " + project.name + ":" + task.name)
+                            kobaltLog.log(project.name, 1, "===== " + project.name + ":" + task.name)
+//                            log(1, "===== " + project.name + ":" + task.name)
                             val thisResult = if (dryRun) TaskResult2(true, null, task) else task.call()
                             if (lastResult.success) {
                                 lastResult = thisResult
@@ -60,8 +63,11 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
                     graph.freeNodes.forEach { graph.removeNode(it) }
                 }
 
+                kobaltLog.onProjectStopped(project.name)
                 runBuildListenersForProject(project, context, false,
                         if (lastResult.success) ProjectBuildStatus.SUCCESS else ProjectBuildStatus.FAILED)
+
+                kobaltLog.log(project.name, 1, "Parallel build of ${project.name} ending")
 
                 return TaskResult2(lastResult.success, lastResult.errorMessage, this)
             }
@@ -95,6 +101,8 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
 
         val executor = DynamicGraphExecutor(projectGraph, factory, 5)
         val taskResult = executor.run()
+
+        kobaltLog.shutdown()
 
         if (args.parallel) {
             executor.dumpHistory()

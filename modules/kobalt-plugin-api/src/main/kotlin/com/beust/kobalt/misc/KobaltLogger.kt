@@ -12,6 +12,8 @@ fun Any.log(level: Int, text: CharSequence, newLine : Boolean = true) {
     }
 }
 
+fun Any.kobaltLog(level: Int, text: CharSequence, newLine : Boolean = true) = log(level, text, newLine)
+
 fun Any.logWrap(level: Int, text1: CharSequence, text2: CharSequence, function: () -> Unit) {
     if (level <= KobaltLogger.LOG_LEVEL) {
         KobaltLogger.logger.log(javaClass.simpleName, text1, newLine = false)

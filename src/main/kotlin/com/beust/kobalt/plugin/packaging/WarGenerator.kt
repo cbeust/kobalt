@@ -7,6 +7,7 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.archive.War
+import com.beust.kobalt.internal.KobaltLog
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.From
 import com.beust.kobalt.misc.IncludedFile
@@ -18,7 +19,7 @@ import java.io.OutputStream
 import java.nio.file.Paths
 import java.util.jar.JarOutputStream
 
-class WarGenerator @Inject constructor(val dependencyManager: DependencyManager){
+class WarGenerator @Inject constructor(val dependencyManager: DependencyManager, val kobaltLog: KobaltLog) {
 
     companion object {
         val WEB_INF = "WEB-INF"
@@ -88,7 +89,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         val allFiles = findIncludedFiles(project, context, war)
         val jarFactory = { os: OutputStream -> JarOutputStream(os, manifest) }
         return Archives.generateArchive(project, context, war.name, ".war", allFiles,
-                false /* don't expand jar files */, jarFactory)
+                false /* don't expand jar files */, jarFactory, kobaltLog)
     }
 
 }

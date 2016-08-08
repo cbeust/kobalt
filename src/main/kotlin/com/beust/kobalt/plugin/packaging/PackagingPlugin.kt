@@ -9,6 +9,7 @@ import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.archive.*
 import com.beust.kobalt.internal.IncrementalManager
 import com.beust.kobalt.internal.JvmCompilerPlugin
+import com.beust.kobalt.internal.KobaltLog
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.misc.KFiles
@@ -23,6 +24,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val incrementalManagerFactory: IncrementalManager.IFactory,
         val executors: KobaltExecutors, val jarGenerator: JarGenerator, val warGenerator: WarGenerator,
         val zipGenerator: ZipGenerator, val taskContributor: TaskContributor,
+        val kobaltLog: KobaltLog,
         val pomFactory: PomGenerator.IFactory, val configActor: ConfigActor<InstallConfig>)
             : BasePlugin(), ITaskContributor, IIncrementalAssemblyContributor,
         IConfigActor<InstallConfig> by configActor {
@@ -73,7 +75,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 { project ->
                     try {
                         packages.filter { it.project.name == project.name }.forEach { packageConfig ->
-                            packageConfig.jars.forEach { jarGenerator.generateJar(packageConfig.project, context, it) }
+                            packageConfig.jars.forEach { jarGenerator.generateJar(packageConfig.project, context, it,
+                                    kobaltLog) }
                             packageConfig.wars.forEach { warGenerator.generateWar(packageConfig.project, context, it) }
                             packageConfig.zips.forEach { zipGenerator.generateZip(packageConfig.project, context, it) }
                             if (packageConfig.generatePom) {
