@@ -11,6 +11,10 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
+interface ILogger {
+    fun log(tag: String, level: Int, message: String)
+}
+
 /**
  * This class manages logs for parallel builds. These logs come from multiple projects interwoven as
  * they are being scheduled on different threads. This class maintains a "current" project which has
@@ -18,10 +22,10 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * Once the current project is done, this class will catch up all the finished project logs and then
  * pick the next current project to be displayed live.
  *
- * Yes, this code was pretty painful to write and I'm pretty sure it still have a few bugs left.
+ * Yes, this code was pretty painful to write and I'm pretty sure it can be made less ugly.
  */
 @Singleton
-class ParallelLogger @Inject constructor(val args: Args) {
+class ParallelLogger @Inject constructor(val args: Args) : ILogger {
     enum class Type { LOG, WARN, ERROR }
 
     class LogLine(val name: String? = null, val level: Int, val message: String, val type: Type)
@@ -108,9 +112,9 @@ class ParallelLogger @Inject constructor(val args: Args) {
         }
     }
 
-    fun log(name: String, level: Int, message: String) {
+    override fun log(tag: String, level: Int, message: String) {
         if (args.parallel) {
-            addLogLine(name, LogLine(name, level, message, Type.LOG))
+            addLogLine(tag, LogLine(tag, level, message, Type.LOG))
         } else {
             kobaltLog(level, message)
         }

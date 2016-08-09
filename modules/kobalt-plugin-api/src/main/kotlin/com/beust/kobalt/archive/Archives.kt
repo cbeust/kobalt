@@ -5,7 +5,6 @@ import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.ExportedProjectProperty
-import com.beust.kobalt.internal.ParallelLogger
 import com.beust.kobalt.misc.*
 import java.io.File
 import java.io.FileOutputStream
@@ -28,8 +27,7 @@ class Archives {
                 suffix: String,
                 includedFiles: List<IncludedFile>,
                 expandJarFiles : Boolean = false,
-                outputStreamFactory: (OutputStream) -> ZipOutputStream = DEFAULT_STREAM_FACTORY,
-                kobaltLog: ParallelLogger) : File {
+                outputStreamFactory: (OutputStream) -> ZipOutputStream = DEFAULT_STREAM_FACTORY) : File {
             val fullArchiveName = context.variant.archiveName(project, archiveName, suffix)
             val archiveDir = File(KFiles.libsDir(project))
             val result = File(archiveDir.path, fullArchiveName)
@@ -39,7 +37,7 @@ class Archives {
                     outputStreamFactory(FileOutputStream(result)).use {
                         JarUtils.addFiles(project.directory, includedFiles, it, expandJarFiles)
                         log(2, text = "Added ${includedFiles.size} files to $result")
-                        kobaltLog.log(project.name, 1, "  Created $result")
+                        context.logger.log(project.name, 1, "  Created $result")
                     }
                 } catch (e: Throwable) {
                     // make sure that incomplete archive is deleted

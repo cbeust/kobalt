@@ -4,6 +4,7 @@ import com.beust.kobalt.Args
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.Variant
+import com.beust.kobalt.internal.ILogger
 import com.beust.kobalt.internal.IncrementalManager
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
@@ -82,6 +83,7 @@ class KobaltContext(val args: Args) {
     lateinit var incrementalManager: IncrementalManager
     lateinit var aether: KobaltAether
     lateinit var pomGeneratorFactory: PomGenerator.IFactory
+    lateinit var logger: ILogger
 }
 
 class InternalContext {
