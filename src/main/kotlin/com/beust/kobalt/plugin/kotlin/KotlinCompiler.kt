@@ -4,7 +4,6 @@ import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.internal.*
-import com.beust.kobalt.kotlin.ParentLastClassLoader
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.*
@@ -15,10 +14,7 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.PrintStream
-import java.nio.charset.Charset
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -87,7 +83,10 @@ class KotlinCompiler @Inject constructor(
                 freeArgs = sourceFiles
                 friendPaths = friends
             }
-            log(2, "Invoking K2JVMCompiler with arguments:"
+
+            fun logk(level: Int, message: CharSequence) = kobaltLog.log(projectName ?: "", level, message)
+
+            logk(2, "Invoking K2JVMCompiler with arguments:"
                     + " -moduleName " + args.moduleName
                     + " -d " + args.destination
                     + " -friendPaths " + args.friendPaths.joinToString(";")
@@ -108,10 +107,15 @@ class KotlinCompiler @Inject constructor(
                     } else if (severity == CompilerMessageSeverity.WARNING && KobaltLogger.LOG_LEVEL >= 2) {
                         warn(location.dump(message))
                     } else if (severity == CompilerMessageSeverity.INFO && KobaltLogger.LOG_LEVEL >= 2) {
-                        log(2, location.dump(message))
+                        logk(2, location.dump(message))
                     }
                 }
             }
+
+            System.setProperty("kotlin.incremental.compilation", "true")
+            // TODO: experimental should be removed as soon as it becomes standard
+            System.setProperty("kotlin.incremental.compilation.experimental", "true")
+
             val exitCode = K2JVMCompiler().exec(collector, Services.Builder().build(), args)
             val result = TaskResult(exitCode == ExitCode.OK)
             return result
@@ -127,38 +131,38 @@ class KotlinCompiler @Inject constructor(
          * There are plenty of ways in which this method can break but this will be immediately
          * apparent if it happens.
          */
-        private fun invokeCompilerWithStringArgs(projectName: String, cp: List<File>, args: List<String>): TaskResult {
-            val allArgs = listOf("-module-name", "project-" + projectName) + args
-            log(2, "Calling kotlinc " + allArgs.joinToString(" "))
-
-            //
-            // In order to capture the error stream, I need to invoke CLICompiler.exec(), which
-            // is the first method that accepts a PrintStream for the errors in parameter
-            //
-            val result =
-                ByteArrayOutputStream().use { baos ->
-                    val compilerJar = listOf(kotlinJarFiles.compiler.toURI().toURL())
-
-                    val classLoader = ParentLastClassLoader(compilerJar)
-                    val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
-                    val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
-
-                    PrintStream(baos).use { ps ->
-                        val execMethod = compiler.declaredMethods.filter {
-                            it.name == "exec" && it.parameterTypes.size == 2
-                        }[0]
-                        val exitCode = execMethod.invoke(kCompiler.newInstance(), ps, allArgs.toTypedArray())
-                        val errorString = baos.toString(Charset.defaultCharset().toString())
-
-                        // The return value is an enum
-                        val nameMethod = exitCode.javaClass.getMethod("name")
-                        val success = "OK" == nameMethod.invoke(exitCode).toString()
-                        TaskResult(success, errorString)
-                    }
-                }
-
-            return result
-        }
+//        private fun invokeCompilerWithStringArgs(projectName: String, cp: List<File>, args: List<String>): TaskResult {
+//            val allArgs = listOf("-module-name", "project-" + projectName) + args
+//            kobaltLog(2, "Calling kotlinc " + allArgs.joinToString(" "))
+//
+//            //
+//            // In order to capture the error stream, I need to invoke CLICompiler.exec(), which
+//            // is the first method that accepts a PrintStream for the errors in parameter
+//            //
+//            val result =
+//                ByteArrayOutputStream().use { baos ->
+//                    val compilerJar = listOf(kotlinJarFiles.compiler.toURI().toURL())
+//
+//                    val classLoader = ParentLastClassLoader(compilerJar)
+//                    val compiler = classLoader.loadClass("org.jetbrains.kotlin.cli.common.CLICompiler")
+//                    val kCompiler = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
+//
+//                    PrintStream(baos).use { ps ->
+//                        val execMethod = compiler.declaredMethods.filter {
+//                            it.name == "exec" && it.parameterTypes.size == 2
+//                        }[0]
+//                        val exitCode = execMethod.invoke(kCompiler.newInstance(), ps, allArgs.toTypedArray())
+//                        val errorString = baos.toString(Charset.defaultCharset().toString())
+//
+//                        // The return value is an enum
+//                        val nameMethod = exitCode.javaClass.getMethod("name")
+//                        val success = "OK" == nameMethod.invoke(exitCode).toString()
+//                        TaskResult(success, errorString)
+//                    }
+//                }
+//
+//            return result
+//        }
 
         /**
          * Reorder the files so that the kotlin-*jar files are at the front.

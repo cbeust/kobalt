@@ -12,7 +12,10 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.DependencyManager2
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.Md5
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.error
+import com.beust.kobalt.misc.warn
 import java.io.File
 import java.util.*
 import javax.inject.Inject
@@ -49,13 +52,6 @@ open class JvmCompilerPlugin @Inject constructor(
         const val GROUP_TEST = "test"
         const val GROUP_BUILD = "build"
         const val GROUP_DOCUMENTATION = "documentation"
-
-        /**
-         * Log with a project.
-         */
-        fun lp(project: Project, s: String) {
-            log(2, "${project.name}: $s")
-        }
     }
 
     override val name: String = PLUGIN_NAME
@@ -86,7 +82,7 @@ open class JvmCompilerPlugin @Inject constructor(
     }
 
     private fun taskTest(project: Project, configName: String): TaskResult {
-        lp(project, "Running tests: $configName")
+        context.logger.log(project.name, 2, "Running tests: $configName")
 
         val testContributor = ActorUtils.selectAffinityActor(project, context,
                 context.pluginInfo.testRunnerContributors)
@@ -96,7 +92,8 @@ open class JvmCompilerPlugin @Inject constructor(
             val compileDependencies = dependencyManager2.resolve(project, context, isTest = false)
             return testContributor.run(project, context, configName, testDependencies + compileDependencies)
         } else {
-            lp(project, "Couldn't find a test runner for project ${project.name}, did you specify dependenciesTest{}?")
+            context.logger.log(project.name, 2,
+                "Couldn't find a test runner for project ${project.name}, did you specify dependenciesTest{}?")
             return TaskResult()
         }
     }

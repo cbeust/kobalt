@@ -36,7 +36,7 @@ class Archives {
                 try {
                     outputStreamFactory(FileOutputStream(result)).use {
                         JarUtils.addFiles(project.directory, includedFiles, it, expandJarFiles)
-                        log(2, text = "Added ${includedFiles.size} files to $result")
+                        context.logger.log(project.name, 2, "Added ${includedFiles.size} files to $result")
                         context.logger.log(project.name, 1, "  Created $result")
                     }
                 } catch (e: Throwable) {
@@ -47,7 +47,7 @@ class Archives {
                 }
 
             } else {
-                log(3, "  $result is up to date")
+                context.logger.log(project.name, 3, "  $result is up to date")
             }
 
             project.projectProperties.put(JAR_NAME, result.absolutePath)
@@ -68,7 +68,7 @@ class Archives {
                         File(KFiles.joinDir(directory, root.from, relFile.path))
                     if (file.isFile) {
                         if (file.lastModified() > lastModified) {
-                            log(3, "    TS - Outdated $file and $output "
+                            kobaltLog(3, "    TS - Outdated $file and $output "
                                     + Date(file.lastModified()) + " " + Date(output.lastModified()))
                             return true
                         }

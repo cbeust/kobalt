@@ -46,7 +46,7 @@ class TaskManagerTest : BaseTest() {
 //                    alwaysRunAfter = TreeMultimap.create<String, String>().apply {
 //                        put("postCompile", "compile")
 //                    })
-//            log(1, "GRAPH RUN: " + result)
+//            kobaltLog((1, "GRAPH RUN: " + result)
 //            return result
 //        }
 //
@@ -84,7 +84,7 @@ class TaskManagerTest : BaseTest() {
                 dependsOn, reverseDependsOn, runBefore, runAfter, alwaysRunAfter,
                 { it }, { t -> true })
         val result = DryRunGraphExecutor(graph).run()
-//        log(1, "GRAPH RUN: $result")
+//        kobaltLog((1, "GRAPH RUN: $result")
         return result
     }
 

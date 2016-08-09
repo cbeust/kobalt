@@ -4,7 +4,7 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import java.io.File
@@ -49,7 +49,7 @@ class KobaltServer @Inject constructor(@Assisted val force: Boolean, @Assisted @
         val port = givenPort ?: ProcessUtil.findAvailablePort(1234)
         try {
             if (createServerFile(port, force)) {
-                log(1, "KobaltServer listening on port $port")
+                kobaltLog(1, "KobaltServer listening on port $port")
 //                OldServer(initCallback, cleanUpCallback).run(port)
 //                JerseyServer(initCallback, cleanUpCallback).run(port)
                 SparkServer(initCallback, cleanUpCallback, pluginInfo).run(port)
@@ -69,7 +69,7 @@ class KobaltServer @Inject constructor(@Assisted val force: Boolean, @Assisted @
 
     private fun createServerFile(port: Int, force: Boolean) : Boolean {
         if (File(SERVER_FILE).exists() && ! force) {
-            log(1, "Server file $SERVER_FILE already exists, is another server running?")
+            kobaltLog(1, "Server file $SERVER_FILE already exists, is another server running?")
             return false
         } else {
             val processName = ManagementFactory.getRuntimeMXBean().name
@@ -78,13 +78,13 @@ class KobaltServer @Inject constructor(@Assisted val force: Boolean, @Assisted @
                 put(KEY_PORT, port.toString())
                 put(KEY_PID, pid)
             }.store(FileWriter(SERVER_FILE), "")
-            log(2, "KobaltServer created $SERVER_FILE")
+            kobaltLog(2, "KobaltServer created $SERVER_FILE")
             return true
         }
     }
 
     private fun deleteServerFile() {
-        log(1, "KobaltServer deleting $SERVER_FILE")
+        kobaltLog(1, "KobaltServer deleting $SERVER_FILE")
         File(SERVER_FILE).delete()
     }
 }

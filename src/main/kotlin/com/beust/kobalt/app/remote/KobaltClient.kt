@@ -8,7 +8,7 @@ import com.beust.kobalt.app.MainModule
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.misc.warn
 import com.google.gson.Gson
 import com.google.gson.JsonObject
@@ -168,7 +168,7 @@ class ServerProcess @Inject constructor(val serverFactory: KobaltServer.IFactory
                         }
                     }
                 } catch(ex: IOException) {
-                    log(1, "Couldn't connect to current server, launching a new one")
+                    kobaltLog(1, "Couldn't connect to current server, launching a new one")
                     Thread.sleep(1000)
                 }
             }
@@ -179,7 +179,7 @@ class ServerProcess @Inject constructor(val serverFactory: KobaltServer.IFactory
 
         private fun launchServer(port: Int) {
             val kobaltJar = File(KFiles().kobaltJar[0])
-            log(1, "Kobalt jar: $kobaltJar")
+            kobaltLog(1, "Kobalt jar: $kobaltJar")
             if (! kobaltJar.exists()) {
                 warn("Can't find the jar file " + kobaltJar.absolutePath + " can't be found")
             } else {
@@ -198,28 +198,28 @@ class ServerProcess @Inject constructor(val serverFactory: KobaltServer.IFactory
                 val process = pb.start()
                 val errorCode = process.waitFor()
                 if (errorCode == 0) {
-                    log(1, "Server exiting")
+                    kobaltLog(1, "Server exiting")
                 } else {
-                    log(1, "Server exiting with error")
+                    kobaltLog(1, "Server exiting with error")
                 }
             }
         }
 
     private fun createServerFile(port: Int, force: Boolean) : Boolean {
         if (File(SERVER_FILE).exists() && ! force) {
-            log(1, "Server file $SERVER_FILE already exists, is another server running?")
+            kobaltLog(1, "Server file $SERVER_FILE already exists, is another server running?")
             return false
         } else {
             Properties().apply {
                 put(KEY_PORT, port.toString())
             }.store(FileWriter(SERVER_FILE), "")
-            log(2, "KobaltServer created $SERVER_FILE")
+            kobaltLog(2, "KobaltServer created $SERVER_FILE")
             return true
         }
     }
 
     private fun deleteServerFile() {
-        log(1, "KobaltServer deleting $SERVER_FILE")
+        kobaltLog(1, "KobaltServer deleting $SERVER_FILE")
         File(SERVER_FILE).delete()
     }
 }

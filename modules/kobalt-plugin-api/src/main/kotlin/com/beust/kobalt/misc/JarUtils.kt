@@ -47,14 +47,14 @@ public class JarUtils {
                 }
 
                 if (foundFile.isDirectory) {
-                    log(2, "  Writing contents of directory $foundFile")
+                    kobaltLog(2, "  Writing contents of directory $foundFile")
 
                     // Directory
                     val includedFile = IncludedFile(From(""), To(""), listOf(IFileSpec.GlobSpec("**")))
                     addSingleFile(localFile.path, includedFile, outputStream, expandJarFiles)
                 } else {
                     if (file.expandJarFiles && foundFile.name.endsWith(".jar") && ! file.from.contains("resources")) {
-                        log(2, "  Writing contents of jar file $foundFile")
+                        kobaltLog(2, "  Writing contents of jar file $foundFile")
                         val stream = JarInputStream(FileInputStream(localFile))
                         var entry = stream.nextEntry
                         while (entry != null) {
@@ -100,7 +100,7 @@ public class JarUtils {
             while (enumEntries.hasMoreElements()) {
                 val file = enumEntries.nextElement()
                 if (file.name == fileName) {
-                    log(2, "Found $fileName in ${zip.name}")
+                    kobaltLog(2, "Found $fileName in ${zip.name}")
                     zip.getInputStream(file).use { ins ->
                         return CharStreams.toString(InputStreamReader(ins, "UTF-8"))
                     }

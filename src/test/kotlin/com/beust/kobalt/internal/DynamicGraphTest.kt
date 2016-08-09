@@ -1,7 +1,7 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.misc.Topological
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import org.assertj.core.api.Assertions.assertThat
 import org.testng.Assert
 import org.testng.annotations.Test
@@ -29,7 +29,7 @@ class DynamicGraphTest {
         override val priority = 0
         override val name: String get() = "[Worker " + runNodes.map { it.toString() }.joinToString(",") + "]"
         override fun call() : TaskResult2<T> {
-            log(2, "Running node $n")
+            kobaltLog(2, "Running node $n")
             runNodes.add(n)
             return TaskResult2(errorFunction(n), null, n)
         }
@@ -159,27 +159,27 @@ class DynamicGraphTest {
             addEdge("b", "c")
             addEdge("b", "d")
             addNode("e")
-            log(VERBOSE, dump())
+            kobaltLog(VERBOSE, dump())
             Assert.assertEquals(freeNodes, setOf("c", "d", "e"))
 
             removeNode("c")
-            log(VERBOSE, dump())
+            kobaltLog(VERBOSE, dump())
             Assert.assertEquals(freeNodes, setOf("d", "e"))
 
             removeNode("d")
-            log(VERBOSE, dump())
+            kobaltLog(VERBOSE, dump())
             Assert.assertEquals(freeNodes, setOf("b", "e"))
 
             removeNode("e")
-            log(VERBOSE, dump())
+            kobaltLog(VERBOSE, dump())
             Assert.assertEquals(freeNodes, setOf("b"))
 
             removeNode("b")
-            log(VERBOSE, dump())
+            kobaltLog(VERBOSE, dump())
             Assert.assertEquals(freeNodes, setOf("a"))
 
             removeNode("a")
-            log(VERBOSE, dump())
+            kobaltLog(VERBOSE, dump())
             Assert.assertTrue(freeNodes.isEmpty())
             Assert.assertTrue(nodes.isEmpty())
         }

@@ -3,6 +3,7 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.ProxyConfig
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import com.google.inject.Singleton
@@ -112,7 +113,7 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
                     return result
                 }
             } else {
-                log(2, "Couldn't find ${KobaltSettings.SETTINGS_FILE_PATH}, using default settings")
+                kobaltLog(2, "Couldn't find ${KobaltSettings.SETTINGS_FILE_PATH}, using default settings")
                 return KobaltSettings(KobaltSettingsXml())
             }
         }

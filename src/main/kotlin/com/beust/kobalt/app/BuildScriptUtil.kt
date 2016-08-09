@@ -12,7 +12,7 @@ import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Topological
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.plugin.KobaltPlugin
 import com.google.inject.Inject
 import java.io.File
@@ -83,7 +83,7 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
                         try {
                             val r = method.invoke(null)
                             if (r is Project) {
-                                log(2, "Found project ${r.name} in class $cls")
+                                kobaltLog(2, "Found project ${r.name} in class $cls")
                                 projects.add(r)
                             }
                         } catch(ex: Throwable) {

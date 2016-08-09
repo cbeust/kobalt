@@ -6,7 +6,6 @@ import com.beust.kobalt.internal.ActorUtils
 import com.beust.kobalt.internal.CompilerUtils
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
 import com.google.common.collect.ArrayListMultimap
 import com.google.inject.Inject
 import java.io.File
@@ -124,7 +123,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
             addFlags(config.outputDir)
         }
 
-        log(2, "New flags from apt: " + result.joinToString(" "))
+        context.logger.log(project.name, 2, "New flags from apt: " + result.joinToString(" "))
         return result
     }
 

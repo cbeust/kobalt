@@ -3,6 +3,7 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.Args
 import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.api.*
+import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.misc.log
 import java.util.concurrent.ConcurrentHashMap
 
@@ -63,11 +64,11 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
 
         val profiling = args.profiling
         if (profiling) {
-            log(1, "\n" + AsciiArt.horizontalSingleLine + " Timings (in seconds)")
+            kobaltLog(1, "\n" + AsciiArt.horizontalSingleLine + " Timings (in seconds)")
             timings.sortedByDescending { it.durationMillis }.forEach {
-                log(1, formatMillisRight(it.durationMillis, 10) + " " + it.taskName)
+                kobaltLog(1, formatMillisRight(it.durationMillis, 10) + " " + it.taskName)
             }
-            log(1, "\n")
+            kobaltLog(1, "\n")
 
         }
 
@@ -90,7 +91,7 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
                 table.append("          " + AsciiArt.verticalBar + " " + cl + " " + AsciiArt.verticalBar + "\n")
             }
             table.append("          " + AsciiArt.lowerBox(line.length))
-            log(1, table.toString())
+            kobaltLog(1, table.toString())
 //        }
         }
 
@@ -105,7 +106,7 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
         } else {
             message.append(")")
         }
-        log(1, message)
+        kobaltLog(1, message)
 
     }
 

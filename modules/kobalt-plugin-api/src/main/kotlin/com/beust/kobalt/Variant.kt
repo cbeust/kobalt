@@ -2,9 +2,9 @@ package com.beust.kobalt
 
 import com.beust.kobalt.api.*
 import com.beust.kobalt.internal.ActorUtils
+import com.beust.kobalt.internal.ParallelLogger
 import com.beust.kobalt.internal.SourceSet
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
 import java.io.File
 import java.util.*
 
@@ -76,22 +76,21 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
             result.addAll(sourceDirectories)
         } else {
 //            // The ordering of files is: 1) build type 2) product flavor 3) default
+            val kobaltLog = Kobalt.INJECTOR.getInstance(ParallelLogger::class.java)
             buildType.let {
                 val dir = File(KFiles.joinDir("src", it.name, suffix))
-                log(3, "Adding source for build type ${it.name}: ${dir.path}")
+                kobaltLog.log(project.name, 3, "Adding source for build type ${it.name}: ${dir.path}")
                 result.add(dir)
             }
             productFlavor.let {
                 val dir = File(KFiles.joinDir("src", it.name, suffix))
-                log(3, "Adding source for product flavor ${it.name}: ${dir.path}")
+                kobaltLog.log(project.name, 3, "Adding source for product flavor ${it.name}: ${dir.path}")
                 result.add(dir)
             }
 
-            result.addAll(allDirectories(project).map {
-                File(KFiles.joinDir("src", it, suffix))
-            }.filter {
-                it.exists()
-            })
+            result.addAll(allDirectories(project)
+                    .map { File(KFiles.joinDir("src", it, suffix)) }
+                    .filter(File::exists))
 
             // Now that all the variant source directories have been added, add the project's default ones
             result.addAll(sourceDirectories)
@@ -175,7 +174,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
                 val outputGeneratedSourceDirectory = File(result, pkg.replace('.', File.separatorChar))
                 val outputDir = File(outputGeneratedSourceDirectory, "BuildConfig." + contributor.buildConfigSuffix)
                 KFiles.saveFile(outputDir, code)
-                log(2, "Generated ${outputDir.path}")
+                context.logger.log(project.name, 2, "Generated ${outputDir.path}")
                 return result
             } else {
                 throw KobaltException("Couldn't find a contributor to generateAndSave BuildConfig")

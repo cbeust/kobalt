@@ -14,7 +14,6 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.log
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -147,7 +146,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val buildDir = project.projectProperties.getString(LIBS_DIR)
         val buildDirFile = File(buildDir)
         if (buildDirFile.exists()) {
-            log(1, "Installing from $buildDir to ${config.libDir}")
+            context.logger.log(project.name, 1, "Installing from $buildDir to ${config.libDir}")
 
             val toDir = KFiles.makeDir(config.libDir)
             KFiles.copyRecursively(buildDirFile, toDir, deleteFirst = true)

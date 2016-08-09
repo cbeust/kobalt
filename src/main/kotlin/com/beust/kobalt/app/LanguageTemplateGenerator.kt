@@ -5,6 +5,7 @@ import com.beust.kobalt.api.ITemplate
 import com.beust.kobalt.api.ITemplateContributor
 import com.beust.kobalt.maven.Pom
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.KobaltPlugin
 import com.github.mustachejava.DefaultMustacheFactory
@@ -35,7 +36,7 @@ abstract class LanguageTemplateGenerator : ITemplate {
                     .getResource(ITemplateContributor.DIRECTORY_NAME + "/$templateName/$mustache").openStream()
             val createdFile = File(KFiles.joinDir(it.dir, it.fileName))
             Mustache.generateFile(fileInputStream, File(KFiles.joinDir(it.dir, it.fileName)), map)
-            log(2, "Created $createdFile")
+            kobaltLog(2, "Created $createdFile")
         }
     }
 
@@ -78,7 +79,7 @@ abstract class LanguageTemplateGenerator : ITemplate {
                 it.print(buildFileContent)
             }
         } else {
-            log(1, "Build file already exists, not overwriting it")
+            kobaltLog(1, "Build file already exists, not overwriting it")
         }
     }
 

@@ -70,7 +70,7 @@ class GithubApi2 @Inject constructor(
     class RetrofitError(var message: String = "", var errors : List<Error> = arrayListOf())
 
     fun uploadRelease(packageName: String, tagName: String, zipFile: File) {
-        log(1, "Uploading release ${zipFile.name}")
+        kobaltLog(1, "Uploading release ${zipFile.name}")
 
         val username = localProperties.get(PROPERTY_USERNAME, DOC_URL)
         val accessToken = localProperties.get(PROPERTY_ACCESS_TOKEN, DOC_URL)
@@ -86,7 +86,7 @@ class GithubApi2 @Inject constructor(
             uploadAsset(accessToken, body.uploadUrl!!, Http.TypedFile("application/zip", zipFile), tagName)
                     .toBlocking()
                 .forEach { action ->
-                    log(1, "\n${zipFile.name} successfully uploaded")
+                    kobaltLog(1, "\n${zipFile.name} successfully uploaded")
                 }
         }
     }
@@ -131,7 +131,7 @@ class GithubApi2 @Inject constructor(
                         warn("Didn't receive any body in the response to GitHub.getReleases()")
                     }
                 } catch(e: Exception) {
-                    log(1, "Couldn't retrieve releases from github: " + e.message)
+                    kobaltLog(1, "Couldn't retrieve releases from github: " + e.message)
                     e.printStackTrace()
 //                    val error = parseRetrofitError(e)
 //                    val details = if (error.errors != null) {
@@ -141,7 +141,7 @@ class GithubApi2 @Inject constructor(
 //                    }
 //                    // TODO: If the credentials didn't work ("bad credentials"), should start again
 //                    // using cbeust/kobalt, like above. Right now, just bailing.
-//                    log(2, "Couldn't retrieve releases from github, ${error.message ?: e}: "
+//                    kobaltLog(2, "Couldn't retrieve releases from github, ${error.message ?: e}: "
 //                            + details?.code + " field: " + details?.field)
                 }
                 result

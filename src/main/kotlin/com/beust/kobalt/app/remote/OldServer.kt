@@ -5,7 +5,7 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.remote.CommandData
 import com.beust.kobalt.internal.remote.ICommandSender
 import com.beust.kobalt.internal.remote.PingCommand
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -21,12 +21,12 @@ class OldServer(val initCallback: (String) -> List<Project>, val cleanUpCallback
     val pending = arrayListOf<CommandData>()
 
     override fun run(port: Int) {
-        log(1, "Listening to port $port")
+        kobaltLog(1, "Listening to port $port")
         var quit = false
         serverInfo = ServerInfo(port)
         while (!quit) {
             if (pending.size > 0) {
-                log(1, "Emptying the queue, size $pending.size()")
+                kobaltLog(1, "Emptying the queue, size $pending.size()")
                 synchronized(pending) {
                     pending.forEach { sendData(it) }
                     pending.clear()
@@ -36,11 +36,11 @@ class OldServer(val initCallback: (String) -> List<Project>, val cleanUpCallback
             try {
                 var line = serverInfo.reader.readLine()
                 while (!quit && line != null) {
-                    log(1, "Received from client $line")
+                    kobaltLog(1, "Received from client $line")
                     val jo = JsonParser().parse(line) as JsonObject
                     commandName = jo.get("name").asString
                     if ("quit" == commandName) {
-                        log(1, "Quitting")
+                        kobaltLog(1, "Quitting")
                         quit = true
                     } else {
                         runCommand(jo, initCallback)
@@ -54,18 +54,18 @@ class OldServer(val initCallback: (String) -> List<Project>, val cleanUpCallback
                     }
                 }
                 if (line == null) {
-                    log(1, "Received null line, resetting the server")
+                    kobaltLog(1, "Received null line, resetting the server")
                     serverInfo.reset()
                 }
             } catch(ex: SocketException) {
-                log(1, "Client disconnected, resetting")
+                kobaltLog(1, "Client disconnected, resetting")
                 serverInfo.reset()
             } catch(ex: Throwable) {
                 ex.printStackTrace()
                 if (commandName != null) {
                     sendData(CommandData(commandName, null, ex.message))
                 }
-                log(1, "Command failed: ${ex.message}")
+                kobaltLog(1, "Command failed: ${ex.message}")
             }
         }
     }
@@ -111,7 +111,7 @@ class OldServer(val initCallback: (String) -> List<Project>, val cleanUpCallback
         if (serverInfo.writer != null) {
             serverInfo.writer!!.println(content)
         } else {
-            log(1, "Queuing $content")
+            kobaltLog(1, "Queuing $content")
             synchronized(pending) {
                 pending.add(commandData)
             }

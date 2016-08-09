@@ -1,7 +1,7 @@
 package com.beust.kobalt.maven.aether
 
 import com.beust.kobalt.misc.KobaltLogger
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import org.eclipse.aether.transfer.AbstractTransferListener
 import org.eclipse.aether.transfer.MetadataNotFoundException
 import org.eclipse.aether.transfer.TransferEvent
@@ -27,7 +27,7 @@ class ConsoleTransferListener @JvmOverloads constructor(out: PrintStream? = null
     override fun transferInitiated(event: TransferEvent?) {
         val message = if (event!!.requestType == TransferEvent.RequestType.PUT) "Uploading" else "Downloading"
 
-        log(2, message + ": " + event.resource.repositoryUrl + event.resource.resourceName)
+        kobaltLog(2, message + ": " + event.resource.repositoryUrl + event.resource.resourceName)
     }
 
     override fun transferProgressed(event: TransferEvent?) {
@@ -92,7 +92,7 @@ class ConsoleTransferListener @JvmOverloads constructor(out: PrintStream? = null
                 throughput = " at " + format.format(kbPerSec) + " KB/sec"
             }
 
-            log(2, type + ": " + resource.repositoryUrl + resource.resourceName + " (" + len
+            kobaltLog(2, type + ": " + resource.repositoryUrl + resource.resourceName + " (" + len
                     + throughput + ")")
         }
     }

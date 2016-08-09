@@ -66,14 +66,14 @@ class KobaltExecutors {
             progress(r)
             result.add(r)
             remainingMs -= (System.currentTimeMillis() - start)
-            log(3, "Received $r, remaining: $remainingMs ms")
+            kobaltLog(3, "Received $r, remaining: $remainingMs ms")
             i++
         }
 
         if (remainingMs < 0) {
             warn("Didn't receive all the results in time: $i / ${tasks.size}")
         } else {
-            log(2, "Received all results in ${maxMs - remainingMs} ms")
+            kobaltLog(2, "Received all results in ${maxMs - remainingMs} ms")
         }
 
         executor.shutdown()

@@ -9,7 +9,6 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.ProjectBuildStatus
 import com.beust.kobalt.misc.Strings
 import com.beust.kobalt.misc.kobaltError
-import com.beust.kobalt.misc.log
 import com.google.common.collect.ListMultimap
 import com.google.common.collect.TreeMultimap
 import java.util.*
@@ -33,14 +32,17 @@ class SequentialProjectRunner(val tasksByNames: (Project) -> ListMultimap<String
         val messages = Collections.synchronizedList(arrayListOf<TaskManager.ProfilerInfo>())
 
         val context = Kobalt.context!!
+
         projects.forEach { project ->
-            log(1, AsciiArt.logBox("Building ${project.name}", indent = 5))
+            val projectName = project.name
+            fun klog(level: Int, message: String) = context.logger.log(projectName, level, message)
+            klog(1, AsciiArt.logBox("Building $projectName", indent = 5))
 
             // Does the current project depend on any failed projects?
             val fp = project.dependsOn.filter { failedProjects.contains(it.name) }.map(Project::name)
 
             if (fp.size > 0) {
-                log(2, "Marking project ${project.name} as skipped")
+                klog(2, "Marking project $projectName as skipped")
                 failedProjects.add(project.name)
                 runBuildListenersForProject(project, context, false, ProjectBuildStatus.SKIPPED)
                 kobaltError("Not building project ${project.name} since it depends on failed "
@@ -53,9 +55,9 @@ class SequentialProjectRunner(val tasksByNames: (Project) -> ListMultimap<String
                 // define "install"), so use a multimap
                 val tasksByNames = tasksByNames(project)
 
-                log(3, "Tasks:")
+                klog(3, "Tasks:")
                 tasksByNames.keys().forEach {
-                    log(3, "  $it: " + tasksByNames.get(it))
+                    klog(3, "  $it: " + tasksByNames.get(it))
                 }
 
                 val graph = createTaskGraph(project.name, taskInfos, tasksByNames,
@@ -66,7 +68,7 @@ class SequentialProjectRunner(val tasksByNames: (Project) -> ListMultimap<String
                 //
                 // Now that we have a full graph, run it
                 //
-                log(2, "About to run graph:\n  ${graph.dump()}  ")
+                klog(2, "About to run graph:\n  ${graph.dump()}  ")
 
                 val factory = object : IThreadWorkerFactory<ITask> {
                     override fun createWorkers(nodes: Collection<ITask>)
@@ -76,7 +78,7 @@ class SequentialProjectRunner(val tasksByNames: (Project) -> ListMultimap<String
                 val executor = DynamicGraphExecutor(graph, factory)
                 val thisResult = executor.run()
                 if (! thisResult.success) {
-                    log(2, "Marking project ${project.name} as failed")
+                    klog(2, "Marking project ${project.name} as failed")
                     failedProjects.add(project.name)
                 }
 

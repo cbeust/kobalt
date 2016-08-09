@@ -5,7 +5,7 @@ import com.beust.kobalt.api.ITemplateContributor
 import com.beust.kobalt.app.java.JavaTemplateGenerator
 import com.beust.kobalt.app.kotlin.KotlinTemplateGenerator
 import com.beust.kobalt.internal.PluginInfo
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
 
@@ -25,9 +25,9 @@ class Templates : ITemplateContributor {
     fun displayTemplates(pluginInfo : PluginInfo) {
         val templates = getTemplates(pluginInfo)
         templates.keySet().forEach {
-            log(1, "  Plug-in: $it")
+            kobaltLog(1, "  Plug-in: $it")
             templates[it].forEach {
-                log(1, "    \"" + it.templateName + "\"\t\t" + it.templateDescription)
+                kobaltLog(1, "    \"" + it.templateName + "\"\t\t" + it.templateDescription)
             }
         }
     }

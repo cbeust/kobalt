@@ -8,10 +8,7 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.LocalRepo
-import com.beust.kobalt.misc.JarUtils
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.*
 import com.google.inject.Provider
 import java.io.File
 import java.lang.reflect.Method
@@ -65,7 +62,7 @@ class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManage
             }
 
             // Call apply() on each plug-in that accepts a project
-            log(2, "Applying plug-in \"${plugin.name}\"")
+            kobaltLog(2, "Applying plug-in \"${plugin.name}\"")
             projects.filter { plugin.accept(it) }.forEach { project ->
                 plugin.apply(project, context)
             }

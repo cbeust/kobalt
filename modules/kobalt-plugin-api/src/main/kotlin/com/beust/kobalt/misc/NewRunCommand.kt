@@ -45,7 +45,8 @@ open class NewRunCommand(val info: RunCommandInfo) {
 
     companion object {
         val DEFAULT_SUCCESS = { output: List<String> -> }
-        //    val DEFAULT_SUCCESS_VERBOSE = { output: List<String> -> log(2, "Success:\n " + output.joinToString("\n"))}
+        //    val DEFAULT_SUCCESS_VERBOSE = { output: List<String> -> kobaltLog(2, "Success:\n " + output.joinToString
+        // ("\n"))}
         //        val defaultSuccess = DEFAULT_SUCCESS
         val DEFAULT_ERROR = {
             output: List<String> ->
@@ -65,7 +66,7 @@ open class NewRunCommand(val info: RunCommandInfo) {
 
         val pb = ProcessBuilder(allArgs)
         pb.directory(info.directory)
-        log(2, "Running command in directory ${info.directory.absolutePath}" +
+        kobaltLog(2, "Running command in directory ${info.directory.absolutePath}" +
                 "\n  " + allArgs.joinToString(" ").replace("\\", "/"))
         pb.environment().let { pbEnv ->
             info.env.forEach {

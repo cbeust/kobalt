@@ -135,7 +135,7 @@ class KFiles {
             val seen = hashSetOf<java.nio.file.Path>()
             allDirs.forEach { dir ->
                 if (! dir.exists()) {
-                    log(2, "Couldn't find directory $dir")
+                    kobaltLog(2, "Couldn't find directory $dir")
                 } else {
                     val files = findRecursively(dir, function)
                     files.map { Paths.get(it) }.forEach {
@@ -144,7 +144,7 @@ class KFiles {
                             result.add(File(dir, rel.toFile().path).path)
                             seen.add(rel)
                         } else {
-                            log(2, "Skipped file already seen in previous flavor: $rel")
+                            kobaltLog(2, "Skipped file already seen in previous flavor: $rel")
                         }
                     }
                 }
@@ -212,7 +212,7 @@ class KFiles {
                             dstFile.mkdirs()
                         } else {
                             if (Features.USE_TIMESTAMPS && dstFile.exists() && Md5.toMd5(src) == Md5.toMd5(dstFile)) {
-                                log(3, "  Identical files, not copying $src to $dstFile")
+                                kobaltLog(3, "  Identical files, not copying $src to $dstFile")
                             } else {
                                 val target = src.copyTo(dstFile, true)
                                 if (target.length() != src.length()) {
@@ -242,34 +242,34 @@ class KFiles {
          */
         fun findBuildScriptLocation(buildFile: BuildFile, jarFile: String) : String {
             val result = joinDir(buildFile.dotKobaltDir.absolutePath, KFiles.SCRIPT_BUILD_DIR, jarFile)
-            log(2, "Script jar file: $result")
+            kobaltLog(2, "Script jar file: $result")
             return result
         }
 
         fun saveFile(file: File, text: String) {
             file.absoluteFile.parentFile.mkdirs()
             file.writeText(text)
-            log(2, "Created $file")
+            kobaltLog(2, "Created $file")
         }
 
         private fun isWindows() = System.getProperty("os.name").contains("Windows");
 
         fun copy(from: Path?, to: Path?, option: StandardCopyOption = StandardCopyOption.REPLACE_EXISTING) {
             if (isWindows() && to!!.toFile().exists()) {
-                log(2, "Windows detected, not overwriting $to")
+                kobaltLog(2, "Windows detected, not overwriting $to")
             } else {
                 try {
                     if (from != null && to != null) {
                         if (!Files.exists(to) || Md5.toMd5(from.toFile()) != Md5.toMd5(to.toFile())) {
-                            log(3, "Copy from $from to $to")
+                            kobaltLog(3, "Copy from $from to $to")
                             Files.copy(from, to, option)
                         } else {
-                            log(3, "  Not copying, indentical files: $from $to")
+                            kobaltLog(3, "  Not copying, indentical files: $from $to")
                         }
                     }
                 } catch(ex: IOException) {
                     // Windows is anal about this
-                    log(1, "Couldn't copy $from to $to: ${ex.message}")
+                    kobaltLog(1, "Couldn't copy $from to $to: ${ex.message}")
                 }
             }
         }
@@ -326,7 +326,7 @@ class KFiles {
                         false
                     })
                 } else {
-                    log(3, "Skipping nonexistent source directory $sourceDir")
+                    kobaltLog(3, "Skipping nonexistent source directory $sourceDir")
                 }
             }
             return result

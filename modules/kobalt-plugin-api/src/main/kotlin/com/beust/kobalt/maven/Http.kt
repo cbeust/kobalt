@@ -3,6 +3,7 @@ package com.beust.kobalt.maven
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.misc.CountingFileRequestBody
+import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import okhttp3.*
@@ -41,7 +42,7 @@ class Http @Inject constructor(val settings:KobaltSettings) {
     fun percentProgressCallback(totalSize: Long) : (Long) -> Unit {
         return { num: Long ->
             val progress = num * 100 / totalSize
-            log(1, "\rUploaded: $progress%", newLine = false)
+            kobaltLog(1, "\rUploaded: $progress%", newLine = false)
         }
     }
 
@@ -74,7 +75,7 @@ class Http @Inject constructor(val settings:KobaltSettings) {
                 requestBuilder.put(CountingFileRequestBody(file.file, file.mimeType, progressCallback)))
             .build()
 
-        log(2, "Uploading $file to $url")
+        kobaltLog(2, "Uploading $file to $url")
         val response = OkHttpClient.Builder().proxy(settings.proxyConfigs?.firstOrNull()?.toProxy()).build().newCall(request).execute()
         if (! response.isSuccessful) {
             error(response)

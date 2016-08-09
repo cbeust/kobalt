@@ -7,7 +7,7 @@ import com.beust.kobalt.Variant
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.inject.Inject
@@ -182,5 +182,5 @@ class IncrementalManager @Inject constructor(val args: Args, @Assisted val fileN
     }
 
     val LEVEL = 2
-    private fun logIncremental(level: Int, s: String) = log(level, "    INC - $s")
+    private fun logIncremental(level: Int, s: String) = kobaltLog(level, "    INC - $s")
 }

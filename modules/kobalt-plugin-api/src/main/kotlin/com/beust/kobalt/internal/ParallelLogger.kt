@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
 interface ILogger {
-    fun log(tag: CharSequence, level: Int, message: CharSequence)
+    fun log(tag: CharSequence, level: Int, message: CharSequence, newLine: Boolean = true)
 }
 
 /**
@@ -28,7 +28,8 @@ interface ILogger {
 class ParallelLogger @Inject constructor(val args: Args) : ILogger {
     enum class Type { LOG, WARN, ERROR }
 
-    class LogLine(val name: CharSequence? = null, val level: Int, val message: CharSequence, val type: Type)
+    class LogLine(val name: CharSequence? = null, val level: Int, val message: CharSequence, val type: Type,
+            val newLine: Boolean)
     private val logLines = ConcurrentHashMap<CharSequence, ArrayList<LogLine>>()
 
     private val runningProjects = ConcurrentLinkedQueue<String>()
@@ -82,7 +83,7 @@ class ParallelLogger @Inject constructor(val args: Args) : ILogger {
         val time = System.currentTimeMillis() - startTime!!
         val m = (if (args.dev) "### [$time] " else "") + ll.message
         when(ll.type) {
-            Type.LOG -> kobaltLog(ll.level, m)
+            Type.LOG -> kobaltLog(ll.level, m, ll.newLine)
             Type.WARN -> kobaltWarn(m)
             Type.ERROR -> kobaltError(m)
         }
@@ -114,11 +115,11 @@ class ParallelLogger @Inject constructor(val args: Args) : ILogger {
         }
     }
 
-    override fun log(tag: CharSequence, level: Int, message: CharSequence) {
+    override fun log(tag: CharSequence, level: Int, message: CharSequence, newLine: Boolean) {
         if (args.parallel) {
-            addLogLine(tag, LogLine(tag, level, message, Type.LOG))
+            addLogLine(tag, LogLine(tag, level, message, Type.LOG, newLine))
         } else {
-            kobaltLog(level, message)
+            kobaltLog(level, message, newLine)
         }
     }
 

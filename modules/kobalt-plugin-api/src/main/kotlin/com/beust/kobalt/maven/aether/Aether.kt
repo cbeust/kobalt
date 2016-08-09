@@ -12,7 +12,7 @@ import com.beust.kobalt.maven.LocalDep
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.misc.Versions
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.misc.warn
 import com.google.common.eventbus.EventBus
 import com.google.inject.Inject
@@ -102,7 +102,7 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
 
     fun resolve(id: String, artifactScope: Scope? = null, filterScopes: Collection<Scope> = emptyList())
             : DependencyResult {
-        log(ConsoleRepositoryListener.LOG_LEVEL, "Resolving $id")
+        kobaltLog(ConsoleRepositoryListener.LOG_LEVEL, "Resolving $id")
         val result = resolveToArtifact(id, artifactScope, filterScopes)
         if (result != null) {
             return DependencyResult(AetherDependency(result.artifact), result.repository.toString())
@@ -113,7 +113,7 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
 
     fun resolveToArtifact(id: String, artifactScope: Scope? = null, filterScopes: Collection<Scope> = emptyList())
             : AetherResult? {
-        log(ConsoleRepositoryListener.LOG_LEVEL, "Resolving $id")
+        kobaltLog(ConsoleRepositoryListener.LOG_LEVEL, "Resolving $id")
         val results = aether.resolve(DefaultArtifact(MavenId.toKobaltId(id)), artifactScope, filterScopes)
         if (results.size > 0) {
             return results[0]
@@ -287,11 +287,11 @@ class AetherDependency(val artifact: Artifact) : IClasspathDependency, Comparabl
                     if (!it.dependency.isOptional) {
                         result.add(AetherDependency(it.artifact))
                     } else {
-                        log(ConsoleRepositoryListener.LOG_LEVEL, "Skipping optional dependency " + deps.root.artifact)
+                        kobaltLog(ConsoleRepositoryListener.LOG_LEVEL, "Skipping optional dependency " + deps.root.artifact)
                     }
                 }
             } else {
-                log(ConsoleRepositoryListener.LOG_LEVEL, "Skipping optional dependency " + deps.root.artifact)
+                kobaltLog(ConsoleRepositoryListener.LOG_LEVEL, "Skipping optional dependency " + deps.root.artifact)
             }
         } else {
             warn("Couldn't resolve $artifact")

@@ -10,7 +10,7 @@ import com.beust.kobalt.internal.build.VersionFile
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.countChar
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import java.io.File
 import java.net.URL
@@ -85,7 +85,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
                 (context.profiles as List<String>).forEach {
                     if (line.matches(Regex("[ \\t]*val[ \\t]+$it[ \\t]*=.*"))) {
                         with("val $it = true") {
-                            log(2, "Activating profile $it in build file")
+                            kobaltLog(2, "Activating profile $it in build file")
                             activeProfiles.add(it)
                             profileLines.add(this)
                             return this
@@ -110,7 +110,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         //
         val pluginSourceFile = KFiles.createTempFile(".kt", deleteOnExit = true)
         pluginSourceFile.writeText(preBuildScriptCode, Charset.defaultCharset())
-        log(2, "Saved ${pluginSourceFile.absolutePath}")
+        kobaltLog(2, "Saved ${pluginSourceFile.absolutePath}")
 
         //
         // Compile to preBuildScript.jar

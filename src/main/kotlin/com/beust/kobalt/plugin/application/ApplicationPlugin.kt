@@ -11,7 +11,6 @@ import com.beust.kobalt.maven.aether.Scope
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.RunCommand
-import com.beust.kobalt.misc.log
 import com.beust.kobalt.plugin.packaging.PackageConfig
 import com.beust.kobalt.plugin.packaging.PackagingPlugin
 import com.google.inject.Inject
@@ -59,7 +58,9 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
         if (runContributor != null && runContributor.affinity(project, context) > 0) {
             return runContributor.run(project, context, dependencyManager.dependencies(project, context))
         } else {
-            log(2, "Couldn't find a runner for project ${project.name}. Please make sure your build file contains " +
+            context.logger.log(project.name, 2,
+                    "Couldn't find a runner for project ${project.name}. Please make sure" +
+                    " your build file contains " +
                     "an application{} directive with a mainClass=... in it")
             return TaskResult()
         }

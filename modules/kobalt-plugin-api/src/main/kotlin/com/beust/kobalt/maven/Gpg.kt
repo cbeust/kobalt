@@ -2,7 +2,7 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.OperatingSystem
 import com.beust.kobalt.misc.error
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.misc.warn
 import com.google.inject.Singleton
 import java.io.BufferedReader
@@ -47,7 +47,7 @@ public class Gpg {
 
                 val pb = ProcessBuilder(allArgs)
                 pb.directory(directory)
-                log(2, "Signing file: " + allArgs.joinToString(" "))
+                kobaltLog(2, "Signing file: " + allArgs.joinToString(" "))
                 val process = pb.start()
 
                 val br = BufferedReader(InputStreamReader(process.errorStream))

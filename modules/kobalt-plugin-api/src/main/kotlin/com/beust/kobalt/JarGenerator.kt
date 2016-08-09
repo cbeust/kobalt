@@ -36,16 +36,16 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
                                 val normalized = Paths.get(file.path).normalize().toFile().path
                                 includedSpecs.add(IFileSpec.FileSpec(normalized))
                             } else {
-                                log(2, "Not adding ${file.path} to jar file because it's excluded")
+                                kobaltLog(2, "Not adding ${file.path} to jar file because it's excluded")
                             }
 
                         }
                     } else {
-                        log(2, "Directory $fromPath doesn't exist, not including it in the jar")
+                        kobaltLog(2, "Directory $fromPath doesn't exist, not including it in the jar")
                     }
                 }
                 if (includedSpecs.size > 0) {
-                    log(3, "Including specs $includedSpecs")
+                    kobaltLog(3, "Including specs $includedSpecs")
                     result.add(IncludedFile(From(includedFile.from), To(includedFile.to), includedSpecs))
                 }
             }
@@ -95,7 +95,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         // If fatJar is true, add all the transitive dependencies as well: compile, runtime and dependent projects
         //
         if (jar.fatJar) {
-            log(2, "Finding included files for fat jar")
+            context.logger.log(project.name, 2, "Finding included files for fat jar")
 
             val seen = hashSetOf<String>()
             @Suppress("UNCHECKED_CAST")

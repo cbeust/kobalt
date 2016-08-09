@@ -1,7 +1,7 @@
 package com.beust.kobalt
 
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import org.testng.Assert
 import org.testng.annotations.Test
 import java.io.File
@@ -69,9 +69,9 @@ class VerifyKobaltZipTest : KobaltTest() {
             if (!foundWrapperJar) {
                 throw KobaltException("Couldn't find wrapper jar in $zipFilePath")
             }
-            log(1, "$zipFilePath looks correct")
+            kobaltLog(1, "$zipFilePath looks correct")
         } else {
-            log(1, "Couldn't find $zipFilePath, skipping test")
+            kobaltLog(1, "Couldn't find $zipFilePath, skipping test")
         }
     }
 
@@ -89,7 +89,7 @@ class VerifyKobaltZipTest : KobaltTest() {
         if (file.exists()) {
             assertExistsInJarInputStream(JarInputStream(FileInputStream(file)), *fileNames)
         } else {
-            log(1, "Couldn't find $file, skipping test")
+            kobaltLog(1, "Couldn't find $file, skipping test")
         }
     }
 

@@ -12,7 +12,6 @@ import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.ParallelLogger
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Strings
-import com.beust.kobalt.misc.log
 import com.beust.kobalt.misc.warn
 import com.google.inject.Inject
 import com.google.inject.Singleton
@@ -23,8 +22,7 @@ import javax.tools.JavaFileObject
 import javax.tools.ToolProvider
 
 @Singleton
-class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler,
-        val kobaltLog: ParallelLogger) : ICompiler {
+class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler, val kobaltLog: ParallelLogger) : ICompiler {
     fun compilerAction(executable: File) = object : ICompilerAction {
         override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
             if (info.sourceFiles.isEmpty()) {
@@ -35,9 +33,10 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler,
             var command: String
             var errorMessage: String
             val compiler = ToolProvider.getSystemJavaCompiler()
+            fun logk(level: Int, message: CharSequence) = kobaltLog.log(projectName ?: "", level, message)
             val result =
                 if (compiler != null) {
-                    log(2, "Found system Java compiler, using the compiler API")
+                    logk(2, "Found system Java compiler, using the compiler API")
                     val allArgs = arrayListOf(
                             "-d", KFiles.makeDir(info.directory!!, info.outputDir.path).path)
                     if (info.dependencies.size > 0) {
@@ -56,7 +55,7 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler,
                     val task = compiler.getTask(writer, fileManager, dc, allArgs, classes, fileObjects)
 
                     command = "javac " + allArgs.joinToString(" ") + " " + info.sourceFiles.joinToString(" ")
-                    log(2, "Launching\n$command")
+                    logk(2, "Launching\n$command")
 
                     kobaltLog.log(projectName!!, 1,
                             "  Java compiling " + Strings.pluralizeAll(info.sourceFiles.size, "file"))
@@ -64,7 +63,7 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler,
                     errorMessage = dc.diagnostics.joinToString("\n")
                     result
                 } else {
-                    log(2, "Didn't find system Java compiler, forking javac")
+                    logk(2, "Didn't find system Java compiler, forking javac")
                     val allArgs = arrayListOf(
                             executable.absolutePath,
                             "-d", KFiles.makeDir(info.directory!!, info.outputDir.path).path)
@@ -80,8 +79,8 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler,
                     val pb = ProcessBuilder(allArgs)
                     pb.inheritIO()
                     val line = allArgs.joinToString(" ")
-                    log(1, "  Java compiling " + Strings.pluralizeAll(info.sourceFiles.size, "file"))
-                    log(2, "  Java compiling $line")
+                    logk(1, "  Java compiling " + Strings.pluralizeAll(info.sourceFiles.size, "file"))
+                    logk(2, "  Java compiling $line")
 
                     command = allArgs.joinToString(" ") + " " + info.sourceFiles.joinToString(" ")
                     val process = pb.start()
@@ -94,7 +93,7 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler,
                     TaskResult(true, "Compilation succeeded")
                 } else {
                     val message = "Compilation errors, command:\n$command" + errorMessage
-                    log(1, message)
+                    logk(1, message)
                     TaskResult(false, message)
                 }
 

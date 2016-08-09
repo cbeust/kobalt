@@ -11,7 +11,10 @@ import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.localMaven
 import com.beust.kobalt.maven.Md5
 import com.beust.kobalt.maven.PomGenerator
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.GithubApi2
+import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.LocalProperties
+import com.beust.kobalt.misc.warn
 import java.io.File
 import java.net.URL
 import java.nio.file.Paths
@@ -68,6 +71,9 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         return publishToMavenLocal(project)
     }
 
+    fun logk(projectName: String, level: Int, message: CharSequence)
+            = context.logger.log(projectName, level, message)
+
     private fun publishToMavenLocal(project: Project) : TaskResult {
         val files = findArtifactFiles(project)
         val allFiles = arrayListOf<File>()
@@ -82,12 +88,12 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         }
 
         val outputDir = URL(localMaven()).file
-        log(1, "Deploying " + allFiles.size + " files to local maven " + outputDir)
+        logk(project.name, 1, "Deploying " + allFiles.size + " files to local maven " + outputDir)
         val groupDir = project.group!!.replace('.', File.separatorChar)
         val targetDir = KFiles.makeDir(KFiles.joinDir(outputDir, groupDir,
                 project.artifactId!!, project.version!!))
         allFiles.forEach { file ->
-            log(2, "    $file")
+            logk(project.name, 2, "    $file")
             KFiles.copy(Paths.get(file.absolutePath), Paths.get(targetDir.path, file.name),
                     StandardCopyOption.REPLACE_EXISTING)
         }
@@ -131,7 +137,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
                 }
             }
         } else {
-            log(2, "Couldn't find any jcenter{} configuration, not uploading anything")
+            context.logger.log(project.name, 2, "Couldn't find any jcenter{} configuration, not uploading anything")
             success = true
         }
 
@@ -153,7 +159,7 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         //
         if (configuration != null) {
             configuration.files.forEach {
-                log(2, "Uploading $it tag: ${project.version}")
+                logk(project.name, 2, "Uploading $it tag: ${project.version}")
                 github.uploadRelease(project.name, project.version!!, it)
             }
         } else {

@@ -2,7 +2,7 @@ package com.beust.kobalt.api
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import java.io.File
 import java.io.FileOutputStream
 import java.util.jar.JarInputStream
@@ -22,7 +22,7 @@ abstract class JarTemplate(val jarName: String) : ITemplate {
                     continue
                 }
 
-                log(2, "Extracting: $entry to ${f.absolutePath}")
+                kobaltLog(2, "Extracting: $entry to ${f.absolutePath}")
                 FileOutputStream(f).use { fos ->
                     KFiles.copy(ins, fos)
                 }
@@ -32,7 +32,7 @@ abstract class JarTemplate(val jarName: String) : ITemplate {
     }
 
     override fun generateTemplate(args: Args, classLoader: ClassLoader) {
-        log(2, "Generating template with class loader $classLoader")
+        kobaltLog(2, "Generating template with class loader $classLoader")
         val destDir = File(".")
         val ins = JarInputStream(classLoader.getResource(jarName).openConnection().inputStream)
         extractFile(ins, destDir)

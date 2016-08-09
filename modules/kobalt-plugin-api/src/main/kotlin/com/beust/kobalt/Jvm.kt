@@ -1,6 +1,6 @@
 package com.beust.kobalt
 
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.misc.warn
 import java.io.File
 import java.io.IOException
@@ -93,7 +93,7 @@ public open class Jvm constructor(
 //        return false
 //    }
 
-    override public fun findExecutable(command: String): File {
+    override fun findExecutable(command: String): File {
         if (javaHome != null) {
             val jdkHome = if (javaHome!!.endsWith("jre")) javaHome!!.parentFile else javaHome
             val exec = File(jdkHome, "bin/" + command)
@@ -110,7 +110,7 @@ public open class Jvm constructor(
 
         val pathExecutable = os.findInPath(command)
         if (pathExecutable != null) {
-            log(2, "Unable to find the $command executable using home: " +
+            kobaltLog(2, "Unable to find the $command executable using home: " +
                     "$javaHome but found it on the PATH: $pathExecutable.")
             return pathExecutable
         }

@@ -44,18 +44,18 @@ class UpdateKobalt @Inject constructor(val github: GithubApi2, val wrapperProper
             val distFile = File(KFiles.distributionsDir)
             if (latestVersion > current) {
                 if (distFile.exists()) {
-                    log(1, "**** Version $latestVersionString is installed, you can switch to it with " +
+                    kobaltLog(1, "**** Version $latestVersionString is installed, you can switch to it with " +
                             "./kobaltw --update")
                 } else {
                     listOf("", "New Kobalt version available: $latestVersionString",
                             "To update, run ./kobaltw --update", "").forEach {
-                        log(1, "**** $it")
+                        kobaltLog(1, "**** $it")
                     }
                 }
             }
             VersionCheckTimestampFile.updateTimestamp(Instant.now())
         } catch(ex: TimeoutException) {
-            log(2, "Didn't get the new version in time, skipping it")
+            kobaltLog(2, "Didn't get the new version in time, skipping it")
         }
     }
 }

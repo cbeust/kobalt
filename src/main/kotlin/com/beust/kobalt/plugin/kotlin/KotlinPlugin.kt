@@ -69,9 +69,9 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
 //                        config.sourceLinks.map { SourceLinkDefinition(it.dir, it.url, it.urlSuffix) }
 //                )
 //                gen.generate()
-//                log(2, "Documentation generated in $outputDir")
+//                kobaltLog(2, "Documentation generated in $outputDir")
 //            } else {
-//                log(2, "skip is true, not generating the documentation")
+//                kobaltLog(2, "skip is true, not generating the documentation")
 //            }
 //        }
 //        return TaskResult(success)

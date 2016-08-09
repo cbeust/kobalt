@@ -5,7 +5,7 @@ import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.misc.NamedThreadFactory
 import com.beust.kobalt.misc.error
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.google.common.collect.HashMultimap
 import java.lang.reflect.InvocationTargetException
 import java.util.*
@@ -16,7 +16,7 @@ open class TaskResult2<T>(success: Boolean, errorMessage: String?, val value: T)
 }
 
 class DynamicGraph<T> {
-    val VERBOSE = 2
+    val VERBOSE = 3
     val values : Collection<T> get() = nodes.map { it.value }
     val nodes = hashSetOf<PrivateNode<T>>()
     private val dependedUpon = HashMultimap.create<PrivateNode<T>, PrivateNode<T>>()
@@ -90,7 +90,7 @@ class DynamicGraph<T> {
     }
 
     fun removeNode(t: T) = synchronized(nodes) {
-        log(VERBOSE, "  Removing node $t")
+        kobaltLog(VERBOSE, "  Removing node $t")
         PrivateNode(t).let { node ->
             nodes.remove(node)
             dependingOn.removeAll(node)
@@ -130,7 +130,7 @@ class DynamicGraph<T> {
                     }
                 }
                 val result = nodes.map { it.value }.filter { !nonFree.contains(it) }.toHashSet()
-                log(VERBOSE, "  Free nodes: $result")
+                kobaltLog(VERBOSE, "  Free nodes: $result")
                 return result
             }
         }
@@ -236,19 +236,19 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
                 running--
                 if (taskResult.success) {
                     nodesRun.add(taskResult.value)
-                    log(2, "Task succeeded: $taskResult")
+                    kobaltLog(3, "Task succeeded: $taskResult")
                     graph.removeNode(taskResult.value)
                     newFreeNodes.clear()
                     newFreeNodes.addAll(graph.freeNodes.minus(nodesRun))
                 } else {
-                    log(2, "Task failed: $taskResult")
+                    kobaltLog(3, "Task failed: $taskResult")
                     newFreeNodes.clear()
                     if (failedResult == null) {
                         failedResult = taskResult
                     }
                 }
             } catch(ex: TimeoutException) {
-                log(2, "Time out")
+                kobaltLog(3, "Time out")
             } catch(ex: Exception) {
                 val ite = ex.cause
                 if (ite is InvocationTargetException) {
@@ -268,7 +268,7 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
     }
 
     fun dumpHistory() {
-        log(1, "Thread report")
+        kobaltLog(1, "Thread report")
 
         val table = AsciiTable.Builder()
             .columnWidth(11)
@@ -323,7 +323,7 @@ fun main(argv: Array<String>) {
             return nodes.map {
                 object: IWorker<String> {
                     override fun call(): TaskResult2<String>? {
-                        log(1, "  Running worker $it")
+                        kobaltLog(1, "  Running worker $it")
                         return TaskResult2(true, null, it)
                     }
 

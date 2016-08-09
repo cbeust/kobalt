@@ -5,6 +5,7 @@ import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.misc.log
 import org.apache.maven.model.Model
 import java.io.File
@@ -149,7 +150,7 @@ class Dependencies(val project: Project,
             val resolved =
                 if (KobaltAether.isRangeVersion(it)) {
                     val result = Kobalt.INJECTOR.getInstance(KobaltAether::class.java).resolve(it).dependency.id
-                    log(2, "Resolved range id $it to $result")
+                    kobaltLog(2, "Resolved range id $it to $result")
                     result
                 } else {
                     it

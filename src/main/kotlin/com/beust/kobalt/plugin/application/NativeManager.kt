@@ -5,7 +5,7 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.JarUtils
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.google.inject.Inject
 import java.io.File
 
@@ -26,11 +26,11 @@ class NativeManager @Inject constructor() : IJvmFlagContributor {
         if (! buildDir.exists()) {
             buildDir.mkdirs()
             project.nativeDependencies.forEach { dep ->
-                log(2, "Extracting $dep " + dep.jarFile.get() + " in $buildDir")
+                kobaltLog(2, "Extracting $dep " + dep.jarFile.get() + " in $buildDir")
                 JarUtils.extractJarFile(dep.jarFile.get(), buildDir)
             }
         } else {
-            log(2, "Native directory $buildDir already exists, not extracting the native jar files")
+            kobaltLog(2, "Native directory $buildDir already exists, not extracting the native jar files")
         }
     }
 }

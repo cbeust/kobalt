@@ -6,7 +6,7 @@ import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.Node
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.google.inject.Inject
 import java.util.*
 
@@ -42,7 +42,7 @@ class ResolveDependency @Inject constructor(
         val seen = hashSetOf(dep.id)
         root.addChildren(findChildren(root, seen))
 
-        log(1, AsciiArt.logBox(listOf(dep.id, url, dep.jarFile.get()).map { "          $it" }))
+        kobaltLog(1, AsciiArt.logBox(listOf(dep.id, url, dep.jarFile.get()).map { "          $it" }))
 
         display(root.children)
         println("")
@@ -73,13 +73,13 @@ class ResolveDependency @Inject constructor(
             if (! seen.contains(it.id)) {
                 val dep = Dep(it, root.value.level + 1)
                 val node = Node(dep)
-                log(2, "Found dependency ${dep.dep.id} level: ${dep.level}")
+                kobaltLog(2, "Found dependency ${dep.dep.id} level: ${dep.level}")
                 result.add(node)
                 seen.add(it.id)
                 node.addChildren(findChildren(node, seen))
             }
         }
-        log(2, "Children for ${root.value.dep.id}: ${result.size}")
+        kobaltLog(2, "Children for ${root.value.dep.id}: ${result.size}")
         return result
     }
 }

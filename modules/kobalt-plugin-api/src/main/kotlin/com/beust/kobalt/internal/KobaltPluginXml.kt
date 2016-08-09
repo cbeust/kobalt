@@ -2,7 +2,7 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.*
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import javax.xml.bind.JAXBContext
@@ -123,7 +123,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
         fun readKobaltPluginXml(): PluginInfo {
             // Note: use forward slash here since we're looking up this file in a .jar file
             val url = Kobalt::class.java.classLoader.getResource(PLUGIN_CORE_XML)
-            log(2, "URL for core kobalt-plugin.xml: $url")
+            kobaltLog(2, "URL for core kobalt-plugin.xml: $url")
             if (url != null) {
                 return readPluginXml(url.openConnection().inputStream)
             } else {
@@ -139,7 +139,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
             val jaxbContext = JAXBContext.newInstance(KobaltPluginXml::class.java)
             val kobaltPlugin: KobaltPluginXml = jaxbContext.createUnmarshaller().unmarshal(ins)
                     as KobaltPluginXml
-            log(2, "Parsed plugin XML file, found: " + kobaltPlugin.name)
+            kobaltLog(2, "Parsed plugin XML file, found: " + kobaltPlugin.name)
             val result =
                 try {
                     PluginInfo(kobaltPlugin, pluginClassLoader, classLoader)
@@ -242,7 +242,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
      * Add the content of @param[pluginInfo] to this pluginInfo.
      */
     fun addPluginInfo(pluginInfo: PluginInfo) {
-        log(2, "Found new plug-in, adding it to pluginInfo: $pluginInfo")
+        kobaltLog(2, "Found new plug-in, adding it to pluginInfo: $pluginInfo")
 
         plugins.addAll(pluginInfo.plugins)
         classpathContributors.addAll(pluginInfo.classpathContributors)

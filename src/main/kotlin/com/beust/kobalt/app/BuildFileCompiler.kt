@@ -19,7 +19,7 @@ import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import com.google.inject.assistedinject.Assisted
 import java.io.File
@@ -94,7 +94,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
             // changed in-between
             buildScriptJarFile.parentFile.let { dir ->
                 if (! VersionFile.isSameVersionFile(dir)) {
-                    log(1, "Detected new installation, wiping $dir")
+                    kobaltLog(1, "Detected new installation, wiping $dir")
                     dir.listFiles().map { it.delete() }
                 }
             }
@@ -125,7 +125,7 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
 
     private fun maybeCompileBuildFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File,
             pluginUrls: List<URL>) : TaskResult {
-        log(2, "Running build file ${buildFile.name} jar: $buildScriptJarFile")
+        kobaltLog(2, "Running build file ${buildFile.name} jar: $buildScriptJarFile")
 
         // If the user specifed --profiles, always recompile the build file since we don't know if
         // the current buildScript.jar we have contains the correct value for these profiles
@@ -136,10 +136,10 @@ public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val b
         val bs = BuildScriptJarFile(buildScriptJarFile)
         val same = bs.sameProfiles(args.profiles)
         if (same && buildScriptUtil.isUpToDate(buildFile, buildScriptJarFile)) {
-            log(2, "  Build file is up to date")
+            kobaltLog(2, "  Build file is up to date")
             return TaskResult()
         } else {
-            log(2, "  Need to recompile ${buildFile.name}")
+            kobaltLog(2, "  Need to recompile ${buildFile.name}")
 
             buildScriptJarFile.delete()
             val buildFileClasspath = Kobalt.buildFileClasspath.map { it.jarFile.get() }.map { it.absolutePath }

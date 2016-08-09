@@ -8,7 +8,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.google.inject.Inject
 import java.util.*
 
@@ -41,7 +41,7 @@ class ProjectFinder @Inject constructor(val buildFileCompilerFactory: BuildFileC
         //
         runClasspathInterceptors(allProjects)
 
-        log(2, "Final list of repos:\n  " + Kobalt.repos.joinToString("\n  "))
+        kobaltLog(2, "Final list of repos:\n  " + Kobalt.repos.joinToString("\n  "))
 
         //
         // Call apply() on all plug-ins now that the repos are set up

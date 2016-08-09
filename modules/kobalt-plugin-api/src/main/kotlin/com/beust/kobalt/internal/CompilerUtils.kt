@@ -7,7 +7,6 @@ import com.beust.kobalt.maven.DependencyManager2
 import com.beust.kobalt.maven.aether.Scope
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import java.io.File
 import java.nio.file.Paths
@@ -45,7 +44,8 @@ class CompilerUtils @Inject constructor(val files: KFiles,
                 failedResult = thisResult.failedResult
             }
         } else {
-            log(2, "${compiler.name} compiler not running on ${project.name} since no source files were found")
+            context.logger.log(project.name, 2,
+                "${compiler.name} compiler not running on ${project.name} since no source files were found")
         }
 
         return CompilerResult(results, failedResult)
@@ -206,16 +206,17 @@ class CompilerUtils @Inject constructor(val files: KFiles,
 
         val variantSourceDirs = context.variant.resourceDirectories(project, sourceSet)
         if (variantSourceDirs.size > 0) {
-            JvmCompilerPlugin.lp(project, "Copying $sourceSet resources")
+            context.logger.log(project.name, 2, "Copying $sourceSet resources")
             val absOutputDir = File(KFiles.joinDir(project.directory, project.buildDirectory, outputDir))
-            variantSourceDirs.map { File(project.directory, it.path) }.filter {
-                it.exists()
-            }.forEach {
-                log(2, "Copying from $it to $absOutputDir")
-                KFiles.copyRecursively(it, absOutputDir, deleteFirst = false)
-            }
+            variantSourceDirs
+                .map { File(project.directory, it.path) }
+                .filter(File::exists)
+                .forEach {
+                context.logger.log(project.name, 2, "Copying from $it to $absOutputDir")
+                    KFiles.copyRecursively(it, absOutputDir, deleteFirst = false)
+                }
         } else {
-            JvmCompilerPlugin.lp(project, "No resources to copy for $sourceSet")
+            context.logger.log(project.name, 2, "No resources to copy for $sourceSet")
         }
     }
 

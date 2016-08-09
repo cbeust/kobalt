@@ -1,6 +1,6 @@
 package com.beust.kobalt
 
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import java.io.File
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
@@ -28,15 +28,15 @@ sealed class IFileSpec {
         private fun isIncluded(includeMatchers: Glob, excludes: List<Glob>, rel: Path) : Boolean {
             excludes.forEach {
                 if (it.matches(rel)) {
-                    log(3, "Excluding ${rel.toFile()}")
+                    kobaltLog(3, "Excluding ${rel.toFile()}")
                     return false
                 }
             }
             if (includeMatchers.matches(rel)) {
-                log(3, "Including ${rel.toFile().path}")
+                kobaltLog(3, "Including ${rel.toFile().path}")
                 return true
             }
-            log(2, "Excluding ${rel.toFile()} (not matching any include pattern")
+            kobaltLog(2, "Excluding ${rel.toFile()} (not matching any include pattern")
             return false
         }
 
@@ -56,7 +56,7 @@ sealed class IFileSpec {
                             val path = p.normalize()
                             val rel = orgRootDir.relativize(path)
                             if (isIncluded(includes, excludes, path)) {
-                                log(3, "  including file " + rel.toFile() + " from rootDir $rootDir")
+                                kobaltLog(3, "  including file " + rel.toFile() + " from rootDir $rootDir")
                                 result.add(rel.toFile())
                             }
                             return FileVisitResult.CONTINUE

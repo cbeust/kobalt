@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 open class RunCommand(val command: String) {
     val DEFAULT_SUCCESS = { output: List<String> -> }
-//    val DEFAULT_SUCCESS_VERBOSE = { output: List<String> -> log(2, "Success:\n " + output.joinToString("\n"))}
+//    val DEFAULT_SUCCESS_VERBOSE = { output: List<String> -> kobaltLog(2, "Success:\n " + output.joinToString("\n"))}
     val defaultSuccess = DEFAULT_SUCCESS
     val DEFAULT_ERROR = {
         output: List<String> -> error(output.joinToString("\n       "))
@@ -39,7 +39,7 @@ open class RunCommand(val command: String) {
 
         val pb = ProcessBuilder(allArgs)
         pb.directory(directory)
-        log(2, "Running command in directory ${directory.absolutePath}" +
+        kobaltLog(2, "Running command in directory ${directory.absolutePath}" +
             "\n  " + allArgs.joinToString(" "))
         val process = pb.start()
         pb.environment().let { pbEnv ->

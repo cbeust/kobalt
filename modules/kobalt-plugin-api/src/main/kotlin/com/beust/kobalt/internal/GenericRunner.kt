@@ -4,7 +4,6 @@ import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.maven.DependencyManager2
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
 import com.google.common.annotations.VisibleForTesting
 import java.io.File
 import java.util.*
@@ -55,7 +54,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
 //                result
 //            }
 
-        log(2, "Found ${result.size} test classes")
+        context.logger.log(project.name, 2, "Found ${result.size} test classes")
         return result.map { it.second }
     }
 
@@ -118,18 +117,18 @@ abstract class GenericTestRunner: ITestRunnerContributor {
                 val pb = ProcessBuilder(allArgs)
                 pb.directory(File(project.directory))
                 pb.inheritIO()
-                log(2, "Running tests with classpath size ${classpath.size}")
-                log(2, "Launching " + allArgs.joinToString(" "))
+                context.logger.log(project.name, 2, "Running tests with classpath size ${classpath.size}")
+                context.logger.log(project.name, 2, "Launching " + allArgs.joinToString(" "))
                 val process = pb.start()
                 val errorCode = process.waitFor()
                 if (errorCode == 0) {
-                    log(1, "All tests passed")
+                    context.logger.log(project.name, 1, "All tests passed")
                 } else {
-                    log(1, "Test failures")
+                    context.logger.log(project.name, 1, "Test failures")
                 }
                 result = result || errorCode == 0
             } else {
-                log(1, "  No tests to run")
+                context.logger.log(project.name, 1, "  No tests to run")
                 result = true
             }
         } else {
@@ -165,7 +164,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
         }
 
         if (result.any()) {
-            log(2, "Final JVM test flags after running the contributors and interceptors: $result")
+            context.logger.log(project.name, 2, "Final JVM test flags after running the contributors and interceptors: $result")
         }
 
         return result

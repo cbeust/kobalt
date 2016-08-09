@@ -5,7 +5,7 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.misc.Topological
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
 import com.google.common.collect.TreeMultimap
@@ -240,7 +240,7 @@ class TaskManager @Inject constructor(val args: Args,
             val method = staticTask.method
 
             val methodName = method.declaringClass.toString() + "." + method.name
-            log(3, "    Found task:${staticTask.name} method: $methodName")
+            kobaltLog(3, "    Found task:${staticTask.name} method: $methodName")
 
             val plugin = staticTask.plugin
             projects.filter { plugin.accept(it) }.forEach { project ->
@@ -303,7 +303,7 @@ class TaskWorker(val tasks: List<ITask>, val dryRun: Boolean, val pluginInfo: Pl
     override fun call() : TaskResult2<ITask> {
         if (tasks.size > 0) {
             tasks[0].let {
-                log(1, AsciiArt.taskColor(AsciiArt.horizontalSingleLine + " ${it.project.name}:${it.name}"))
+                kobaltLog(1, AsciiArt.taskColor(AsciiArt.horizontalSingleLine + " ${it.project.name}:${it.name}"))
             }
         }
         var success = true

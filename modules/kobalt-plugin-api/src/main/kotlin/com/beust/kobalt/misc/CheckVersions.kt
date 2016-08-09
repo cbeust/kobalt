@@ -38,17 +38,17 @@ class CheckVersions @Inject constructor(val depManager: DependencyManager,
                             newVersions.add(artifact.groupId + ":" + artifact.artifactId + ":" + highest)
                         }
                     } catch(e: KobaltException) {
-                        log(1, "  Cannot resolve ${dep.shortId}. ignoring")
+                        kobaltLog(1, "  Cannot resolve ${dep.shortId}. ignoring")
                     }
                 }
             }
         }
 
         if (newVersions.size > 0) {
-            log(1, "  New versions found:")
-            newVersions.forEach { log(1, "    $it") }
+            kobaltLog(1, "  New versions found:")
+            newVersions.forEach { kobaltLog(1, "    $it") }
         } else {
-            log(1, "  All dependencies up to date")
+            kobaltLog(1, "  All dependencies up to date")
         }
         executor.shutdown()
     }

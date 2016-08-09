@@ -3,7 +3,7 @@ package com.beust.kobalt.maven
 import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.kobaltLog
 import com.google.inject.assistedinject.Assisted
 import org.apache.maven.model.Developer
 import org.apache.maven.model.Model
@@ -30,7 +30,7 @@ class PomGenerator @Inject constructor(@Assisted val project: Project) {
         val pomFile = SimpleDep(mavenId).toPomFileName()
         val outputFile = File(outputDir, pomFile)
         outputFile.writeText(generate(), Charset.defaultCharset())
-        log(1, "  Created $outputFile")
+        kobaltLog(1, "  Created $outputFile")
     }
 
     /**

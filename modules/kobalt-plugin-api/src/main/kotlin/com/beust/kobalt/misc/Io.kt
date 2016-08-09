@@ -7,14 +7,14 @@ import java.nio.file.StandardCopyOption
 
 class Io(val dryRun: Boolean = false) {
     fun mkdirs(dir: String) {
-        log("mkdirs $dir")
+        kobaltLog("mkdirs $dir")
         if (! dryRun) {
             File(dir).mkdirs()
         }
     }
 
     fun rm(path: String) {
-        log("rm $path")
+        kobaltLog("rm $path")
 
         if (! dryRun) {
             File(path).deleteRecursively()
@@ -22,7 +22,7 @@ class Io(val dryRun: Boolean = false) {
     }
 
     fun moveFile(from: File, toDir: File) {
-        log("mv $from $toDir")
+        kobaltLog("mv $from $toDir")
         if (! dryRun) {
             require(from.exists(), { -> "$from should exist" })
             require(from.isFile, { -> "$from should be a file" })
@@ -34,7 +34,7 @@ class Io(val dryRun: Boolean = false) {
     }
 
     fun rename(from: File, to: File) {
-        log("rename $from $to")
+        kobaltLog("rename $from $to")
         moveFile(from, to.parentFile)
         if (from.name != to.name) {
             File(to, from.name).renameTo(to)
@@ -42,7 +42,7 @@ class Io(val dryRun: Boolean = false) {
     }
 
     fun copyDirectory(from: File, toDir: File) {
-        log("cp -r $from $toDir")
+        kobaltLog("cp -r $from $toDir")
 
         if (! dryRun) {
             KFiles.copyRecursively(from, toDir)
@@ -56,7 +56,7 @@ class Io(val dryRun: Boolean = false) {
     fun rmDir(dir: File, keep: (File) -> Boolean = { t -> false }) = rmDir(dir, keep, "  ")
 
     private fun rmDir(dir: File, keep: (File) -> Boolean, indent : String) {
-        log("rm -rf $dir")
+        kobaltLog("rm -rf $dir")
 
         require(dir.isDirectory,  { -> println("$dir should be a directory")})
 
@@ -66,21 +66,21 @@ class Io(val dryRun: Boolean = false) {
                 it.deleteRecursively()
             }
             else {
-                log(indent + "rm $it")
+                kobaltLog(indent + "rm $it")
                 if (! dryRun) it.delete()
             }
         }
     }
 
     fun mkdir(dir: File) {
-        log("mkdir $dir")
+        kobaltLog("mkdir $dir")
         if (! dryRun) {
             dir.mkdirs()
         }
     }
 
-    private fun log(s: String) {
-        log(1, "[Io] $s")
+    private fun kobaltLog(s: String) {
+        kobaltLog(1, "[Io] $s")
     }
 
 }

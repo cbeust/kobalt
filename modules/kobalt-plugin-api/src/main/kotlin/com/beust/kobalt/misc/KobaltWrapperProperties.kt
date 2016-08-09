@@ -16,7 +16,7 @@ class KobaltWrapperProperties @Inject constructor() {
     private val PROPERTY_DOWNLOAD_URL = "kobalt.downloadUrl"
 
     fun create(version: String) {
-        log(2, "Creating $file with $version and ${defaultUrlFor(version)}")
+        kobaltLog(2, "Creating $file with $version and ${defaultUrlFor(version)}")
         KFiles.saveFile(file, listOf(
                 "$PROPERTY_VERSION=$version"
 //                "$PROPERTY_DOWNLOAD_URL=${defaultUrlFor(version)}"

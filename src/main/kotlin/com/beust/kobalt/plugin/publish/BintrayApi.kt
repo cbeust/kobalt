@@ -3,10 +3,14 @@ package com.beust.kobalt.plugin.publish
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.Project
+import com.beust.kobalt.internal.ParallelLogger
 import com.beust.kobalt.maven.Gpg
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.Md5
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.CountingFileRequestBody
+import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.error
+import com.beust.kobalt.misc.warn
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
@@ -24,10 +28,10 @@ import javax.annotation.Nullable
 import javax.inject.Inject
 
 class BintrayApi @Inject constructor(val http: Http,
-                                     @Nullable @Assisted("username") val username: String?,
-                                     @Nullable @Assisted("password") val password: String?,
-                                     @Nullable @Assisted("org") val org: String?,
-                                     val gpg: Gpg, val executors: KobaltExecutors) {
+        @Nullable @Assisted("username") val username: String?,
+        @Nullable @Assisted("password") val password: String?,
+        @Nullable @Assisted("org") val org: String?,
+        val gpg: Gpg, val executors: KobaltExecutors, val logger: ParallelLogger) {
 
     companion object {
         const val BINTRAY_URL_API = "https://api.bintray.com"
@@ -141,7 +145,7 @@ class BintrayApi @Inject constructor(val http: Http,
 
         val fileCount = filesToUpload.size
         if (fileCount > 0) {
-            log(1, "  Found $fileCount artifacts to upload")
+            logger.log(project.name, 1, "  Found $fileCount artifacts to upload")
             val errorMessages = arrayListOf<String>()
 
             fun dots(total: Int, list: List<Boolean>, file: File? = null): String {
@@ -169,13 +173,13 @@ class BintrayApi @Inject constructor(val http: Http,
                     results.add(true)
                 }
 
-                log(1, "    Uploading ${i + 1} / $fileCount " + dots(fileCount, results, file), false)
+                logger.log(project.name, 1, "    Uploading ${i + 1} / $fileCount " + dots(fileCount, results, file), false)
             }
             val success = results
                     .filter { it }
                     .count()
-            log(1, "    Uploaded $success / $fileCount " + dots(fileCount, results), false)
-            log(1, "", true)
+            logger.log(project.name, 1, "    Uploaded $success / $fileCount " + dots(fileCount, results), false)
+            logger.log(project.name, 1, "", true)
             if (errorMessages.isEmpty()) {
                 return TaskResult()
             } else {
