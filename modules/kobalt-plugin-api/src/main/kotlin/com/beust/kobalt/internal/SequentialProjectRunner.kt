@@ -34,7 +34,7 @@ class SequentialProjectRunner(val tasksByNames: (Project) -> ListMultimap<String
 
         val context = Kobalt.context!!
         projects.forEach { project ->
-            AsciiArt.logBox("Building ${project.name}")
+            log(1, AsciiArt.logBox("Building ${project.name}", indent = 5))
 
             // Does the current project depend on any failed projects?
             val fp = project.dependsOn.filter { failedProjects.contains(it.name) }.map(Project::name)

@@ -276,10 +276,8 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
             table.width(20)
         }
         table.header("Time (sec)")
-        val header = StringBuffer().apply {
-            threadIds.keys.forEach {
-                table.header("Thread " + it.toString())
-            }
+        threadIds.keys.forEach {
+            table.header("Thread " + it.toString())
         }
 
         fun toSeconds(millis: Long) = (millis / 1000).toInt().toString()

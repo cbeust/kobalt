@@ -75,20 +75,21 @@ class AsciiArt {
             return result
         }
 
-        private fun fill(n: Int) = StringBuffer().apply { repeat(n, { append(" ")})}.toString()
-
         val defaultLog : (s: String) -> Unit = { log(1, "          $it") }
 
         fun logBox(strings: List<String>, bl: String = bottomLeft, br: String = bottomRight,
-                print: (String) -> Unit = defaultLog) {
-            box(strings, bl, br).forEach {
-                print(it)
+                indent: Int = 0): String {
+            return buildString {
+                box(strings, bl, br).forEach {
+                    append(fill(indent)).append(it).append("\n")
+                }
             }
         }
 
-        fun logBox(s: String, bl: String = bottomLeft, br: String = bottomRight, print: (String) -> Unit = defaultLog) {
-            logBox(listOf(s), bl, br, print)
-        }
+        fun logBox(s: String, bl: String = bottomLeft, br: String = bottomRight, indent: Int = 0)
+            = logBox(listOf(s), bl, br, indent)
+
+        fun fill(n: Int) = buildString { repeat(n, { append(" ")})}.toString()
 
         fun center(s: String, width: Int) : String {
             val diff = width - s.length
@@ -139,23 +140,24 @@ class AsciiTable {
         }
 
         val vb = AsciiArt.verticalBar
+
         fun build() : String {
             val formattedHeaders =
                 headers.mapIndexed { index, s ->
                     val s2 = col(widths[index], s)
                     s2
                 }.joinToString(vb)
-            val result = buildString {
+            val result = StringBuffer().apply {
                 append(AsciiArt.logBox(formattedHeaders, AsciiArt.bottomLeft2, AsciiArt.bottomRight2))
             }
             var lineLength = 0
             rows.forEachIndexed { index, row ->
                 val formattedRow = row.mapIndexed { i, s -> col(widths[i], s) }.joinToString(vb)
                 val line = vb + " " + formattedRow + " " + vb
-                AsciiArt.defaultLog(line)
+                result.append(line).append("\n")
                 lineLength = line.length
             }
-            AsciiArt.defaultLog(AsciiArt.lowerBox(lineLength - 4))
+            result.append(AsciiArt.lowerBox(lineLength - 4))
             return result.toString()
         }
 

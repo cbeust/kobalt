@@ -80,15 +80,17 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
 //        if (timings.size > 1 && hasFailures) {
             val line = listOf(col1("Project"), col2("Build status"), col3("Time"))
                     .joinToString(AsciiArt.verticalBar)
-            AsciiArt.logBox(listOf(line), AsciiArt.bottomLeft2, AsciiArt.bottomRight2)
+            val table = StringBuffer()
+            table.append(AsciiArt.logBox(listOf(line), AsciiArt.bottomLeft2, AsciiArt.bottomRight2, indent = 10))
             projectStatuses.forEach { pair ->
                 val projectName = pair.first.name
                 val cl = listOf(col1(projectName), col2(pair.second.toString()),
                         col3(formatMillisLeft(projectInfos[projectName]!!.durationMillis, 8)))
                         .joinToString(AsciiArt.verticalBar)
-                log(1, "          " + AsciiArt.verticalBar + " " + cl + " " + AsciiArt.verticalBar)
+                table.append("          " + AsciiArt.verticalBar + " " + cl + " " + AsciiArt.verticalBar + "\n")
             }
-            log(1, "          " + AsciiArt.lowerBox(line.length))
+            table.append("          " + AsciiArt.lowerBox(line.length))
+            log(1, table.toString())
 //        }
         }
 

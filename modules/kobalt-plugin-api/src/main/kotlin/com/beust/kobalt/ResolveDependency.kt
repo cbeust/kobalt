@@ -42,7 +42,7 @@ class ResolveDependency @Inject constructor(
         val seen = hashSetOf(dep.id)
         root.addChildren(findChildren(root, seen))
 
-        AsciiArt.logBox(listOf(dep.id, url, dep.jarFile.get()).map { "          $it" })
+        log(1, AsciiArt.logBox(listOf(dep.id, url, dep.jarFile.get()).map { "          $it" }))
 
         display(root.children)
         println("")
