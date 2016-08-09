@@ -31,7 +31,7 @@ class Archives {
             val fullArchiveName = context.variant.archiveName(project, archiveName, suffix)
             val archiveDir = File(KFiles.libsDir(project))
             val result = File(archiveDir.path, fullArchiveName)
-            log(3, "Creating $result")
+            context.logger.log(project.name, 3, "Creating $result")
             if (! Features.USE_TIMESTAMPS || isOutdated(project.directory, includedFiles, result)) {
                 try {
                     outputStreamFactory(FileOutputStream(result)).use {

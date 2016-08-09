@@ -132,7 +132,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         //
         val manifest =
             if (jar.attributes.size > 1) {
-                log(2, "Creating MANIFEST.MF from " + jar.attributes.size + " attributes")
+                context.logger.log(project.name, 2, "Creating MANIFEST.MF from " + jar.attributes.size + " attributes")
                 Manifest().apply {
                     jar.attributes.forEach { attribute ->
                         mainAttributes.putValue(attribute.first, attribute.second)
@@ -149,7 +149,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
 
                 val manifestFile = findManifestFile(project, includedFiles)
                 if (manifestFile != null) {
-                    log(2, "Including MANIFEST.MF file $manifestFile")
+                    context.logger.log(project.name, 2, "Including MANIFEST.MF file $manifestFile")
                     Manifest(FileInputStream(manifestFile))
                 } else {
                     Manifest()
