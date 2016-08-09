@@ -81,7 +81,7 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
             val line = listOf(col1("Project"), col2("Build status"), col3("Time"))
                     .joinToString(AsciiArt.verticalBar)
             val table = StringBuffer()
-            table.append(AsciiArt.logBox(listOf(line), AsciiArt.bottomLeft2, AsciiArt.bottomRight2, indent = 10))
+            table.append(AsciiArt.logBox(listOf(line), AsciiArt.bottomLeft2, AsciiArt.bottomRight2, indent = 10) + "\n")
             projectStatuses.forEach { pair ->
                 val projectName = pair.first.name
                 val cl = listOf(col1(projectName), col2(pair.second.toString()),

@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
 interface ILogger {
-    fun log(tag: String, level: Int, message: String)
+    fun log(tag: CharSequence, level: Int, message: CharSequence)
 }
 
 /**
@@ -28,8 +28,8 @@ interface ILogger {
 class ParallelLogger @Inject constructor(val args: Args) : ILogger {
     enum class Type { LOG, WARN, ERROR }
 
-    class LogLine(val name: String? = null, val level: Int, val message: String, val type: Type)
-    private val logLines = ConcurrentHashMap<String, ArrayList<LogLine>>()
+    class LogLine(val name: CharSequence? = null, val level: Int, val message: CharSequence, val type: Type)
+    private val logLines = ConcurrentHashMap<CharSequence, ArrayList<LogLine>>()
 
     private val runningProjects = ConcurrentLinkedQueue<String>()
     var startTime: Long? = null
@@ -65,9 +65,11 @@ class ParallelLogger @Inject constructor(val args: Args) : ILogger {
         }
     }
 
-    private fun debug(s: String) {
-        val time = System.currentTimeMillis() - startTime!!
-        println("                    @@@ [$time] $s")
+    private fun debug(s: CharSequence) {
+        if (args.log >= 2) {
+            val time = System.currentTimeMillis() - startTime!!
+            println("                    ### [$time] $s")
+        }
     }
 
     val LOCK = Any()
@@ -78,7 +80,7 @@ class ParallelLogger @Inject constructor(val args: Args) : ILogger {
 
     private fun displayLine(ll: LogLine) {
         val time = System.currentTimeMillis() - startTime!!
-        val m = "### [$time] " + ll.message
+        val m = (if (args.dev) "### [$time] " else "") + ll.message
         when(ll.type) {
             Type.LOG -> kobaltLog(ll.level, m)
             Type.WARN -> kobaltWarn(m)
@@ -86,22 +88,22 @@ class ParallelLogger @Inject constructor(val args: Args) : ILogger {
         }
     }
 
-    private fun emptyProjectLog(name: String?) {
+    private fun emptyProjectLog(name: CharSequence?) {
         val lines = logLines[name]
         if (lines != null && lines.any()) {
-            debug("EMPTY PROJECT LOG FOR $name")
+            debug("emptyProjectLog($name)")
             lines.forEach {
                 displayLine(it)
             }
             lines.clear()
-            debug("DONE EMPTY PROJECT LOG FOR $name")
+            debug("Done emptyProjectLog($name)")
 //            logLines.remove(name)
         } else if (lines == null) {
             throw KobaltException("Didn't call onStartProject() for $name")
         }
     }
 
-    private fun addLogLine(name: String, ll: LogLine) {
+    private fun addLogLine(name: CharSequence, ll: LogLine) {
         if (name != currentName) {
             val list = logLines[name] ?: arrayListOf()
             logLines[name] = list
@@ -112,7 +114,7 @@ class ParallelLogger @Inject constructor(val args: Args) : ILogger {
         }
     }
 
-    override fun log(tag: String, level: Int, message: String) {
+    override fun log(tag: CharSequence, level: Int, message: CharSequence) {
         if (args.parallel) {
             addLogLine(tag, LogLine(tag, level, message, Type.LOG))
         } else {

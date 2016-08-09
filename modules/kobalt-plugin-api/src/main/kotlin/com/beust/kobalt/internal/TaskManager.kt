@@ -323,5 +323,5 @@ class TaskWorker(val tasks: List<ITask>, val dryRun: Boolean, val pluginInfo: Pl
 //    override val timeOut : Long = 10000
 
     override val priority: Int = 0
-    override val name: String get() = "[Taskworker " + tasks.map { it.toString() }.joinToString(",") + "]"
+    override val name: String get() = "[Taskworker " + tasks.map(ITask::toString).joinToString(",") + "]"
 }

@@ -271,9 +271,9 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
         log(1, "Thread report")
 
         val table = AsciiTable.Builder()
-            .width(11)
+            .columnWidth(11)
         threadIds.keys.forEach {
-            table.width(20)
+            table.columnWidth(24)
         }
         table.header("Time (sec)")
         threadIds.keys.forEach {

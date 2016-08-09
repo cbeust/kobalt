@@ -1,6 +1,7 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.ITask
 import com.beust.kobalt.api.Kobalt
@@ -42,7 +43,7 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
                         { task: ITask -> task.plugin.accept(project) })
                 var lastResult = TaskResult()
                 kobaltLog.onProjectStarted(project.name)
-                kobaltLog.log(project.name, 1, "Parallel build of ${project.name} starting")
+                context.logger.log(project.name, 1, AsciiArt.logBox("Building ${project.name}", indent = 5))
                 while (graph.freeNodes.any()) {
                     val toProcess = graph.freeNodes
                     toProcess.forEach { node ->
@@ -50,8 +51,8 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
                         tasks.forEach { task ->
 
                             runBuildListenersForTask(project, context, task.name, start = true)
-                            kobaltLog.log(project.name, 1, "===== " + project.name + ":" + task.name)
-//                            log(1, "===== " + project.name + ":" + task.name)
+                            kobaltLog.log(project.name, 1,
+                                    AsciiArt.taskColor(AsciiArt.horizontalSingleLine + " ${project.name}:${task.name}"))
                             val thisResult = if (dryRun) TaskResult2(true, null, task) else task.call()
                             if (lastResult.success) {
                                 lastResult = thisResult
@@ -66,8 +67,6 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
                 kobaltLog.onProjectStopped(project.name)
                 runBuildListenersForProject(project, context, false,
                         if (lastResult.success) ProjectBuildStatus.SUCCESS else ProjectBuildStatus.FAILED)
-
-                kobaltLog.log(project.name, 1, "Parallel build of ${project.name} ending")
 
                 return TaskResult2(lastResult.success, lastResult.errorMessage, this)
             }

@@ -1,6 +1,5 @@
 package com.beust.kobalt
 
-import com.beust.kobalt.misc.log
 import java.util.*
 
 /**
@@ -75,13 +74,12 @@ class AsciiArt {
             return result
         }
 
-        val defaultLog : (s: String) -> Unit = { log(1, "          $it") }
-
-        fun logBox(strings: List<String>, bl: String = bottomLeft, br: String = bottomRight,
-                indent: Int = 0): String {
+        fun logBox(strings: List<String>, bl: String = bottomLeft, br: String = bottomRight, indent: Int = 0): String {
             return buildString {
-                box(strings, bl, br).forEach {
-                    append(fill(indent)).append(it).append("\n")
+                val boxLines = box(strings, bl, br)
+                boxLines.withIndex().forEach { iv ->
+                    append(fill(indent)).append(iv.value)
+                    if (iv.index < boxLines.size - 1) append("\n")
                 }
             }
         }
@@ -125,7 +123,7 @@ class AsciiTable {
         fun headers(vararg names: String) = headers.addAll(names)
 
         private val widths = arrayListOf<Int>()
-        fun width(w: Int) : Builder {
+        fun columnWidth(w: Int) : Builder {
             widths.add(w)
             return this
         }
@@ -149,6 +147,7 @@ class AsciiTable {
                 }.joinToString(vb)
             val result = StringBuffer().apply {
                 append(AsciiArt.logBox(formattedHeaders, AsciiArt.bottomLeft2, AsciiArt.bottomRight2))
+                append("\n")
             }
             var lineLength = 0
             rows.forEachIndexed { index, row ->
