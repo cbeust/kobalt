@@ -7,7 +7,7 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.archive.War
-import com.beust.kobalt.internal.KobaltLog
+import com.beust.kobalt.internal.ParallelLogger
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.From
 import com.beust.kobalt.misc.IncludedFile
@@ -19,7 +19,7 @@ import java.io.OutputStream
 import java.nio.file.Paths
 import java.util.jar.JarOutputStream
 
-class WarGenerator @Inject constructor(val dependencyManager: DependencyManager, val kobaltLog: KobaltLog) {
+class WarGenerator @Inject constructor(val dependencyManager: DependencyManager, val kobaltLog: ParallelLogger) {
 
     companion object {
         val WEB_INF = "WEB-INF"

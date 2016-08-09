@@ -36,7 +36,7 @@ class KotlinCompiler @Inject constructor(
         val settings: KobaltSettings,
         val jvmCompiler: JvmCompiler,
         val kotlinJarFiles: KotlinJarFiles,
-        val kobaltLog: KobaltLog) {
+        val kobaltLog: ParallelLogger) {
 
     val compilerAction = object: ICompilerAction {
         override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {

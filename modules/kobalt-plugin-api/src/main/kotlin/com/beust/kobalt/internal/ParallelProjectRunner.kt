@@ -21,7 +21,7 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
         val reverseDependsOn: TreeMultimap<String, String>, val runBefore: TreeMultimap<String, String>,
         val runAfter: TreeMultimap<String, String>,
         val alwaysRunAfter: TreeMultimap<String, String>, val args: Args, val pluginInfo: PluginInfo,
-        val kobaltLog: KobaltLog)
+        val kobaltLog: ParallelLogger)
             : BaseProjectRunner() {
     override fun runProjects(taskInfos: List<TaskManager.TaskInfo>, projects: List<Project>)
             : TaskManager .RunTargetResult {

@@ -9,7 +9,7 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
-import com.beust.kobalt.internal.KobaltLog
+import com.beust.kobalt.internal.ParallelLogger
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Strings
 import com.beust.kobalt.misc.log
@@ -24,7 +24,7 @@ import javax.tools.ToolProvider
 
 @Singleton
 class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler,
-        val kobaltLog: KobaltLog) : ICompiler {
+        val kobaltLog: ParallelLogger) : ICompiler {
     fun compilerAction(executable: File) = object : ICompilerAction {
         override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
             if (info.sourceFiles.isEmpty()) {

@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * Yes, this code was pretty painful to write and I'm pretty sure it still have a few bugs left.
  */
 @Singleton
-class KobaltLog @Inject constructor(val args: Args) {
+class ParallelLogger @Inject constructor(val args: Args) {
     enum class Type { LOG, WARN, ERROR }
 
     class LogLine(val name: String? = null, val level: Int, val message: String, val type: Type)

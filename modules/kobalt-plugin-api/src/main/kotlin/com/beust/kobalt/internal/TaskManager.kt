@@ -17,7 +17,7 @@ import javax.inject.Singleton
 @Singleton
 class TaskManager @Inject constructor(val args: Args,
         val incrementalManagerFactory: IncrementalManager.IFactory,
-        val pluginInfo: PluginInfo, val kobaltLog: KobaltLog) {
+        val pluginInfo: PluginInfo, val kobaltLog: ParallelLogger) {
     private val dependsOn = TreeMultimap.create<String, String>()
     private val reverseDependsOn = TreeMultimap.create<String, String>()
     private val runBefore = TreeMultimap.create<String, String>()
