@@ -159,7 +159,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         val jarFactory = { os: OutputStream -> JarOutputStream(os, manifest) }
 
         return Archives.generateArchive(project, context, jar.name, ".jar", includedFiles,
-                true /* expandJarFiles */, jarFactory, kobaltLog)
+                true /* expandJarFiles */, jarFactory)
     }
 
 }

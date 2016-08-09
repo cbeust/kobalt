@@ -89,7 +89,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager,
         val allFiles = findIncludedFiles(project, context, war)
         val jarFactory = { os: OutputStream -> JarOutputStream(os, manifest) }
         return Archives.generateArchive(project, context, war.name, ".war", allFiles,
-                false /* don't expand jar files */, jarFactory, kobaltLog)
+                false /* don't expand jar files */, jarFactory)
     }
 
 }
