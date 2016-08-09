@@ -164,7 +164,8 @@ abstract class GenericTestRunner: ITestRunnerContributor {
         }
 
         if (result.any()) {
-            context.logger.log(project.name, 2, "Final JVM test flags after running the contributors and interceptors: $result")
+            context.logger.log(project.name, 2,
+                    "Final JVM test flags after running the contributors and interceptors: $result")
         }
 
         return result
