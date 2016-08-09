@@ -1,6 +1,5 @@
 package com.beust.kobalt.internal
 
-import com.beust.kobalt.Args
 import com.beust.kobalt.TestConfig
 import com.beust.kobalt.TestModule
 import com.beust.kobalt.api.*
@@ -8,6 +7,7 @@ import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.project
 import org.assertj.core.api.Assertions.assertThat
 import org.testng.annotations.BeforeClass
+import org.testng.annotations.Guice
 import org.testng.annotations.Test
 import javax.inject.Inject
 
@@ -15,14 +15,14 @@ import javax.inject.Inject
 /**
  * Test ITestJvmFlagContributor and ITestJvmFlagInterceptor.
  */
-class DependencyTest @Inject constructor() {
+@Guice(modules = arrayOf(TestModule::class))
+class DependencyTest @Inject constructor(val context: KobaltContext) {
     private fun isWindows() = System.getProperty("os.name").toLowerCase().contains("ndows")
     private val A_JAR = if (isWindows()) "c:\\tmp\\a.jar" else "/tmp/a.jar"
     private val B_JAR = if (isWindows()) "c:\\tmp\\b.jar" else "/tmp/b.jar"
 
     private val project : Project get() = project { name = "dummy" }
     private val classpath = listOf(FileDependency(A_JAR))
-    private val context = KobaltContext(Args())
     private val contributor = object : ITestJvmFlagContributor {
         override fun testJvmFlagsFor(project: Project, context: KobaltContext,
                 currentFlags: List<String>): List<String> {
