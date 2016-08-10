@@ -1,3 +1,3 @@
-java -Xmx2048m -jar $(dirname $0)/kobalt/wrapper/kobalt-wrapper.jar $* --parallel clean assemble test
+java -Xmx2048m -jar $(dirname $0)/kobalt/wrapper/kobalt-wrapper.jar $*  clean assemble test
 
 
