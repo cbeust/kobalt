@@ -6,7 +6,7 @@ import java.io.File
 import java.security.MessageDigest
 import javax.xml.bind.DatatypeConverter
 
-public class Md5 {
+class Md5 {
     companion object {
 //        private fun md5(file: File) : String {
 //            if (file.isDirectory) {
@@ -26,10 +26,10 @@ public class Md5 {
         fun toMd5Directories(filesOrDirectories: List<File>,
                 toBytes: (File) -> ByteArray = { "${it.path} ${it.lastModified()} ${it.length()}".toByteArray() } )
                         : String? {
-            if (filesOrDirectories.any { it.exists() }) {
+            if (filesOrDirectories.any(File::exists)) {
                 MessageDigest.getInstance("MD5").let { md5 ->
                     var fileCount = 0
-                    filesOrDirectories.filter { it.exists() }.forEach { file ->
+                    filesOrDirectories.filter(File::exists).forEach { file ->
                         if (file.isFile) {
                             kobaltLog(2, "      Calculating checksum of $file")
                             val bytes = toBytes(file)
