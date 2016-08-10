@@ -4,7 +4,6 @@ import com.beust.kobalt.Args
 import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.kobaltLog
-import com.beust.kobalt.misc.log
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -96,16 +95,17 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
         }
 
         // BUILD SUCCESSFUL / FAILED message
-        val message = StringBuilder(if (args.parallel) "PARALLEL " else "")
-            .append(if (hasFailures) "BUILD FAILED" else "BUILD SUCCESSFUL ($buildTime seconds")
-
-        if (args.parallel) {
-            val sequentialBuildTime = ((projectInfos.values.sumByDouble { it.durationMillis.toDouble() }) / 1000)
+        val message =
+            if (hasFailures) {
+                String.format("BUILD FAILED", buildTime)
+            } else if (args.parallel) {
+                val sequentialBuildTime = ((projectInfos.values.sumByDouble { it.durationMillis.toDouble() }) / 1000)
                     .toInt()
-            message.append(", sequential build would have taken $sequentialBuildTime seconds)")
-        } else {
-            message.append(")")
-        }
+                String.format("PARALLEL BUILD SUCCESSFUL (%d SECONDS), sequential build sould have taken %d seconds",
+                        buildTime, sequentialBuildTime)
+            } else {
+                String.format("BUILD SUCCESSFUL (%d SECONDS)", buildTime)
+            }
         kobaltLog(1, message)
 
     }
