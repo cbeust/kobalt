@@ -128,7 +128,7 @@ class TaskManagerTest : BaseTest() {
                 runAfter = TreeMultimap.create<String, String>().apply {
                     put("compile", "example")
                 }).let { runTasks ->
-            assertThat(runTasks).isEqualTo(listOf("clean", "example", "compile"))
+            assertThat(runTasks).isEqualTo(listOf("clean", "compile"))
         }
 
         runTasks(listOf("compile"),
