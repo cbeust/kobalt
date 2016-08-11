@@ -154,7 +154,7 @@ class DependencyManager2 @Inject constructor(val aether: KobaltAether) {
         // Get the transitive closure of all the projects this project depends on
         val transitiveProjects =
             if (project == null) emptyList()
-            else DynamicGraph.transitiveClosure(project) { project -> project.dependsOn }
+            else DynamicGraph.transitiveClosure(project, Project::dependsOn)
 
         val result = arrayListOf<IClasspathDependency>()
 
