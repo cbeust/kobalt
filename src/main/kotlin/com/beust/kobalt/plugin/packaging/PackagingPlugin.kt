@@ -74,8 +74,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 { project ->
                     try {
                         packages.filter { it.project.name == project.name }.forEach { packageConfig ->
-                            packageConfig.jars.forEach { jarGenerator.generateJar(packageConfig.project, context, it,
-                                    kobaltLog) }
+                            packageConfig.jars.forEach { jarGenerator.generateJar(packageConfig.project, context, it) }
                             packageConfig.wars.forEach { warGenerator.generateWar(packageConfig.project, context, it) }
                             packageConfig.zips.forEach { zipGenerator.generateZip(packageConfig.project, context, it) }
                             if (packageConfig.generatePom) {

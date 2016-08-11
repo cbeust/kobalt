@@ -4,7 +4,6 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.archive.Jar
-import com.beust.kobalt.internal.ParallelLogger
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.aether.Scope
 import com.beust.kobalt.misc.*
@@ -122,7 +121,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         return result
     }
 
-    fun generateJar(project: Project, context: KobaltContext, jar: Jar, kobaltLog: ParallelLogger) : File {
+    fun generateJar(project: Project, context: KobaltContext, jar: Jar) : File {
         val includedFiles = findIncludedFiles(project, context, jar)
 
         //
