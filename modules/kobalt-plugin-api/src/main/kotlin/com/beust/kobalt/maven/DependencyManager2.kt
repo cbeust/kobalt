@@ -168,7 +168,7 @@ class DependencyManager2 @Inject constructor(val aether: KobaltAether) {
                 result.add(FileDependency(classDir))
             }
         }
-        transitiveProjects.forEach { p ->
+        transitiveProjects.filter { it.name != project?.name }.forEach { p ->
             maybeAddClassDir(KFiles.joinDir(p.directory, p.classesDir(context)))
             maybeAddClassDir(KFiles.makeOutputTestDir(p).path)
         }
