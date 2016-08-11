@@ -148,12 +148,17 @@ abstract class BaseProjectRunner {
                     // runBefore and runAfter (task ordering) are only considered for explicit tasks (tasks that were
                     // explicitly requested by the user)
                     //
-                    passedTasks.map { it.taskName }.let { taskNames ->
+                    val passedTaskNames = passedTasks.map { it.taskName }.toSet()
+                    passedTaskNames.let { taskNames ->
                         runBefore[taskName].forEach { from ->
-                            addEdge(result, from, taskName, newToProcess, "runBefore")
+                            if (passedTaskNames.contains(from)) {
+                                addEdge(result, from, taskName, newToProcess, "runBefore")
+                            }
                         }
                         runAfter[taskName].forEach { to ->
-                            addEdge(result, to, taskName, newToProcess, "runAfter")
+                            if (passedTaskNames.contains(to)) {
+                                addEdge(result, to, taskName, newToProcess, "runAfter")
+                            }
                         }
                     }
                     seen.add(taskName)

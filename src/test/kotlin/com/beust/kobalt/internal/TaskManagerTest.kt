@@ -92,6 +92,13 @@ class TaskManagerTest : BaseTest() {
     fun exampleInTheDocTest() {
 //        KobaltLogger.LOG_LEVEL = 3
 
+        runTasks(listOf("clean"),
+                runAfter = TreeMultimap.create<String, String>().apply {
+                    put("clean", "compile")
+                }).let { runTasks ->
+            assertThat(runTasks).isEqualTo(listOf("clean"))
+        }
+
         runTasks(listOf("assemble"),
                 dependsOn = TreeMultimap.create<String, String>().apply {
                     put("assemble", "compile")
@@ -138,7 +145,7 @@ class TaskManagerTest : BaseTest() {
                 runBefore = TreeMultimap.create<String, String>().apply {
                     put("compile", "example")
                 }).let { runTasks ->
-            assertThat(runTasks).isEqualTo(listOf("clean", "compile", "example"))
+            assertThat(runTasks).isEqualTo(listOf("clean", "compile"))
         }
 
         runTasks(listOf("compile", "example"),
