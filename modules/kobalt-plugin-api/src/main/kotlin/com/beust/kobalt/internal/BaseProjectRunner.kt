@@ -150,14 +150,10 @@ abstract class BaseProjectRunner {
                     //
                     passedTasks.map { it.taskName }.let { taskNames ->
                         runBefore[taskName].forEach { from ->
-                            if (taskNames.contains(from)) {
-                                addEdge(result, from, taskName, newToProcess, "runBefore")
-                            }
+                            addEdge(result, from, taskName, newToProcess, "runBefore")
                         }
                         runAfter[taskName].forEach { to ->
-                            if (taskNames.contains(to)) {
-                                addEdge(result, taskName, to, newToProcess, "runAfter")
-                            }
+                            addEdge(result, to, taskName, newToProcess, "runAfter")
                         }
                     }
                     seen.add(taskName)

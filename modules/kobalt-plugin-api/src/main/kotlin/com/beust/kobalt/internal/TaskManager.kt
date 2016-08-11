@@ -46,7 +46,7 @@ class TaskManager @Inject constructor(val args: Args,
     /**
      * Ordering: task2 runs after task 1.
      */
-    fun runAfter(task1: String, task2: String) = runAfter.put(task2, task1)
+    fun runAfter(task1: String, task2: String) = runAfter.put(task1, task2)
 
     /**
      * Wrapper task: task2 runs after task 1.
