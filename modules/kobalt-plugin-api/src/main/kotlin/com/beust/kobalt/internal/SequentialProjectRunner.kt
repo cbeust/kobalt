@@ -62,7 +62,7 @@ class SequentialProjectRunner(val tasksByNames: (Project) -> ListMultimap<String
 
                 val graph = createTaskGraph(project.name, taskInfos, tasksByNames,
                         dependsOn, reverseDependsOn, runBefore, runAfter, alwaysRunAfter,
-                        { task: ITask -> task.name },
+                        ITask::name,
                         { task: ITask -> task.plugin.accept(project) })
 
                 //
