@@ -46,6 +46,10 @@ class Args {
             "(${Constants.LOG_DEFAULT_LEVEL}-${Constants.LOG_MAX_LEVEL})")
     var log: Int = Constants.LOG_DEFAULT_LEVEL
 
+    @Parameter(names = arrayOf("--logTags"),
+            description = "Comma-separated list of tags to enable logging for")
+    var logTags: String = ""
+
     @Parameter(names = arrayOf("--forceIncremental"),
             description = "Force the build to be incremental even if the build file was modified")
     var forceIncremental: Boolean = false

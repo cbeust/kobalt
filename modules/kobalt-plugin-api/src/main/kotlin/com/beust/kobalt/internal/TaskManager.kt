@@ -24,10 +24,6 @@ class TaskManager @Inject constructor(val args: Args,
     private val runAfter = TreeMultimap.create<String, String>()
     private val alwaysRunAfter = TreeMultimap.create<String, String>()
 
-    companion object {
-        val LOG_LEVEL = 3
-    }
-
     /**
      * Dependency: task2 depends on task 1.
      */

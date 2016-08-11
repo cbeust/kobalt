@@ -15,7 +15,7 @@ abstract class BaseProjectRunner {
             : TaskManager.RunTargetResult
 
     companion object {
-        val LOG_LEVEL = TaskManager.LOG_LEVEL
+        val TAG = "graph"
 
         fun runBuildListenersForProject(project: Project, context: KobaltContext, start: Boolean,
                 status: ProjectBuildStatus = ProjectBuildStatus.SUCCESS) {
@@ -86,7 +86,7 @@ abstract class BaseProjectRunner {
                     val froms = nodeMap[from]
                     froms.forEach { f: T ->
                         nodeMap[to].forEach { t: T ->
-                            kobaltLog(LOG_LEVEL, "                                  Adding edge ($text) $f -> $t")
+                            kobaltLog(TAG, "                                  Adding edge ($text) $f -> $t")
                             result.addEdge(f, t)
                             newToProcess.add(t)
                         }
@@ -97,19 +97,19 @@ abstract class BaseProjectRunner {
                  * Whenever a task is added to the graph, we also add its alwaysRunAfter tasks.
                  */
                 fun processAlways(always: Multimap<String, String>, node: T) {
-                    kobaltLog(LOG_LEVEL, "      Processing always for $node")
+                    kobaltLog(TAG, "      Processing always for $node")
                     always[toName(node)]?.let { to: Collection<String> ->
                         to.forEach { t ->
                             nodeMap[t].forEach { from ->
-                                kobaltLog(LOG_LEVEL, "                                  Adding always edge $from -> $node")
+                                kobaltLog(TAG, "                                  Adding always edge $from -> $node")
                                 result.addEdge(from, node)
                             }
                         }
-                        kobaltLog(LOG_LEVEL, "        ... done processing always for $node")
+                        kobaltLog(TAG, "        ... done processing always for $node")
                     }
                 }
 
-                kobaltLog(LOG_LEVEL, "  Current batch to process: $toProcess")
+                kobaltLog(TAG, "  Current batch to process: $toProcess")
 
                 //
                 // Move dependsOn + reverseDependsOn in one multimap called allDepends
@@ -131,7 +131,7 @@ abstract class BaseProjectRunner {
                 //
                 toProcess.forEach { taskInfo ->
                     val taskName = taskInfo.taskName
-                    kobaltLog(LOG_LEVEL, "    ***** Current node: $taskName")
+                    kobaltLog(TAG, "    ***** Current node: $taskName")
                     nodeMap[taskName].forEach {
                         result.addNode(it)
                         processAlways(always, it)

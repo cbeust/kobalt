@@ -1,5 +1,6 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.Args
 import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.Kobalt
@@ -15,6 +16,11 @@ fun Any.log(level: Int, text: CharSequence, newLine : Boolean = true) {
 fun Any.kobaltLog(level: Int, text: CharSequence, newLine : Boolean = true) = log(level, text, newLine)
 fun Any.kobaltWarn(text: CharSequence) = warn(text)
 fun Any.kobaltError(text: CharSequence) = error(text)
+fun Any.kobaltLog(tag: String, text: CharSequence, newLine : Boolean = true) {
+    if (Kobalt.INJECTOR.getInstance(Args::class.java).logTags.split(',').contains(tag)) {
+        log(1, text, newLine)
+    }
+}
 
 fun Any.logWrap(level: Int, text1: CharSequence, text2: CharSequence, function: () -> Unit) {
     if (level <= KobaltLogger.LOG_LEVEL) {
