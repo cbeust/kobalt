@@ -30,8 +30,8 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler, val kobaltL
                 return TaskResult()
             }
 
-            var command: String
-            var errorMessage: String
+            val command: String
+            val errorMessage: String
             val compiler = ToolProvider.getSystemJavaCompiler()
             fun logk(level: Int, message: CharSequence) = kobaltLog.log(projectName ?: "", level, message)
             val result =
