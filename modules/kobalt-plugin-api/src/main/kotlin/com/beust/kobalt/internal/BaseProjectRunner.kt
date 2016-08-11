@@ -77,21 +77,21 @@ abstract class BaseProjectRunner {
             // the end of the loop, @param[toProcess] is cleared and all the new nodes get added to it. Then we loop.
             val toProcess = ArrayList(taskInfos)
 
-            while (toProcess.size > 0) {
-
-                /**
-                 * Add an edge from @param from to all its tasks.
-                 */
-                fun addEdge(result: DynamicGraph<T>, from: String, to: String, newToProcess: ArrayList<T>, text: String) {
-                    val froms = nodeMap[from]
-                    froms.forEach { f: T ->
-                        nodeMap[to].forEach { t: T ->
-                            kobaltLog(LOG_LEVEL, "                                  Adding edge ($text) $f -> $t")
-                            result.addEdge(f, t)
-                            newToProcess.add(t)
-                        }
+            /**
+             * Add an edge from @param from to all its tasks.
+             */
+            fun addEdge(result: DynamicGraph<T>, from: String, to: String, newToProcess: ArrayList<T>, text: String) {
+                val froms = nodeMap[from]
+                froms.forEach { f: T ->
+                    nodeMap[to].forEach { t: T ->
+                        kobaltLog(LOG_LEVEL, "                                  Adding edge ($text) $f -> $t")
+                        result.addEdge(f, t)
+                        newToProcess.add(t)
                     }
                 }
+            }
+
+            while (toProcess.size > 0) {
 
                 /**
                  * Whenever a task is added to the graph, we also add its alwaysRunAfter tasks.
@@ -144,22 +144,6 @@ abstract class BaseProjectRunner {
                         addEdge(result, taskName, to, newToProcess, "dependsOn")
                     }
 
-                    //
-                    // runBefore and runAfter (task ordering) are only considered for explicit tasks (tasks that were
-                    // explicitly requested by the user)
-                    //
-                    passedTasks.map { it.taskName }.let { taskNames ->
-                        runBefore[taskName].forEach { from ->
-                            if (taskNames.contains(from)) {
-                                addEdge(result, from, taskName, newToProcess, "runBefore")
-                            }
-                        }
-                        runAfter[taskName].forEach { to ->
-                            if (taskNames.contains(to)) {
-                                addEdge(result, taskName, to, newToProcess, "runAfter")
-                            }
-                        }
-                    }
                     seen.add(taskName)
                 }
 
@@ -169,6 +153,22 @@ abstract class BaseProjectRunner {
                 toProcess.addAll(newToProcess.filter { !seen.contains(toName(it)) }.map { TaskManager.TaskInfo(toName(it)) })
                 newToProcess.clear()
             }
+
+
+            //
+            // runBefore and runAfter (task ordering) are only considered for explicit tasks (tasks that were
+            // explicitly requested by the user)
+            //
+            val values = result.nodes.map { TaskManager.TaskInfo(it.value.toString()).taskName }
+            values.forEach { taskName ->
+                runBefore[taskName].forEach { from ->
+                    addEdge(result, from, taskName, newToProcess, "runBefore")
+                }
+                runAfter[taskName].forEach { to ->
+                    addEdge(result, taskName, to, newToProcess, "runAfter")
+                }
+            }
+
             return result
         }
     }
