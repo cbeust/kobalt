@@ -282,6 +282,37 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
 
         fun toSeconds(millis: Long) = (millis / 1000).toInt().toString()
 
+//        class CompressedLog(val timestamp: Long, val threadMap: HashMap<Long, String>)
+//
+//        fun compressLog(historyLog: List<HistoryLog>): ArrayList<CompressedLog> {
+//            val compressed = arrayListOf<CompressedLog>()
+//
+//            var currentLog: CompressedLog? = null
+//
+//            historyLog.forEach { hl ->
+//                if (currentLog == null) {
+//                    currentLog = CompressedLog(hl.timestamp, hashMapOf(hl.threadId to hl.name))
+//                } else currentLog?.let { cl ->
+//                    if (hl.timestamp - cl.timestamp < 1000) {
+//                        cl.threadMap[hl.threadId] = hl.name
+//                    } else {
+//                        compressed.add(cl)
+//                        currentLog = null
+//                    }
+//                }
+//            }
+//            return compressed
+//        }
+//
+//        compressLog(historyLog).forEach {
+//            val row = arrayListOf<String>()
+//            row.add(toSeconds(it.timestamp))
+//            it.threadMap.values.forEach {
+//                row.add(it)
+//            }
+//            table.addRow(row)
+//        }
+
         val start = historyLog[0].timestamp
         val projectStart = ConcurrentHashMap<String, Long>()
         historyLog.forEach { line ->
