@@ -59,7 +59,6 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
         fun formatMillisLeft(millis: Long, length: Int) = formatMillis(millis, "%1\$-$length.2f")
 
         fun millisToSeconds(millis: Long) = (millis.toDouble() / 1000).toInt()
-        val buildTime = millisToSeconds(System.currentTimeMillis() - buildStartTime!!)
 
         val profiling = args.profiling
         if (profiling) {
@@ -94,6 +93,11 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
 //        }
         }
 
+        val buildTime =
+            if (buildStartTime != null)
+                millisToSeconds(System.currentTimeMillis() - buildStartTime!!)
+            else
+                0
         // BUILD SUCCESSFUL / FAILED message
         val message =
             if (hasFailures) {

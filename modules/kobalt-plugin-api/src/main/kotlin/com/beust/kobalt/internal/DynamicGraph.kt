@@ -339,26 +339,28 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
         }
 
         fun displayRegularLog(table: AsciiTable.Builder) : AsciiTable.Builder {
-            val start = historyLog[0].timestamp
-            val projectStart = ConcurrentHashMap<String, Long>()
-            historyLog.forEach { line ->
-                val row = arrayListOf<String>()
-                row.add(toSeconds(line.timestamp - start))
-                threadIds.keys.forEach {
-                    if (line.threadId == it) {
-                        var duration = ""
-                        if (line.start) {
-                            projectStart[line.name] = line.timestamp
+            if (historyLog.any()) {
+                val start = historyLog[0].timestamp
+                val projectStart = ConcurrentHashMap<String, Long>()
+                historyLog.forEach { line ->
+                    val row = arrayListOf<String>()
+                    row.add(toSeconds(line.timestamp - start))
+                    threadIds.keys.forEach {
+                        if (line.threadId == it) {
+                            var duration = ""
+                            if (line.start) {
+                                projectStart[line.name] = line.timestamp
+                            } else {
+                                duration = " (" + ((line.timestamp - projectStart[line.name]!!) / 1000)
+                                        .toInt().toString() + ")"
+                            }
+                            row.add((line.name + duration))
                         } else {
-                            duration = " (" + ((line.timestamp - projectStart[line.name]!!) / 1000)
-                                    .toInt().toString() + ")"
+                            row.add("")
                         }
-                        row.add((line.name + duration))
-                    } else {
-                        row.add("")
                     }
+                    table.addRow(row)
                 }
-                table.addRow(row)
             }
             return table
         }
