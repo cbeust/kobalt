@@ -189,7 +189,7 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
             = Executors.newFixedThreadPool(threadCount, NamedThreadFactory("DynamicGraphExecutor"))
     val completion = ExecutorCompletionService<TaskResult2<T>>(executor)
 
-    class HistoryLog(val name: String, val timestamp: Long, val threadId: Long, val start: Boolean)
+    data class HistoryLog(val name: String, val timestamp: Long, val threadId: Long, val start: Boolean)
 
     val historyLog = arrayListOf<HistoryLog>()
     val threadIds = ConcurrentHashMap<Long, Long>()
@@ -283,7 +283,7 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
         fun toSeconds(millis: Long) = (millis / 1000).toInt().toString()
 
         fun displayCompressedLog(table: AsciiTable.Builder) : AsciiTable.Builder {
-            class CompressedLog(val timestamp: Long, val threadMap: HashMap<Long, String>)
+            data class CompressedLog(val timestamp: Long, val threadMap: HashMap<Long, String>)
 
             fun compressLog(historyLog: List<HistoryLog>): ArrayList<CompressedLog> {
                 val compressed = arrayListOf<CompressedLog>()
@@ -291,29 +291,35 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
                 var currentLog: CompressedLog? = null
 
                 val projectStart = hashMapOf<String, Long>()
+                fun toName(hl: HistoryLog) : String {
+                    var duration = ""
+                    if (! hl.start) {
+                        val start = projectStart[hl.name]
+                        if (start != null) {
+                            duration = " (" + ((hl.timestamp - start) / 1000)
+                                    .toInt().toString() + ")"
+                        } else {
+                            println("DONOTCOMMIT")
+                        }
+                    }
+                    return hl.name + duration
+                }
+
                 historyLog.forEach { hl ->
+                    println("CURRENT LOG: " + currentLog + " HISTORY LINE: " + hl)
                     if (hl.start) {
                         projectStart[hl.name] = hl.timestamp
                     }
                     if (currentLog == null) {
                         currentLog = CompressedLog(hl.timestamp, hashMapOf(hl.threadId to hl.name))
                     } else currentLog?.let { cl ->
-                        if (hl.timestamp - cl.timestamp < 1000) {
-                            var duration = ""
-                            if (! hl.start) {
-                                val start = projectStart[hl.name]
-                                if (start != null) {
-                                    duration = " (" + ((hl.timestamp - start) / 1000)
-                                            .toInt().toString() + ")"
-                                } else {
-                                    println("DONOTCOMMIT")
-                                }
-                            }
-
-                            cl.threadMap[hl.threadId] = hl.name + duration
+                        if (! hl.start || hl.timestamp - cl.timestamp < 1000) {
+                            println("    CURRENT LOG IS WITHING ONE SECOND: $hl")
+                            cl.threadMap[hl.threadId] = toName(hl)
                         } else {
+                            println("  ADDING COMPRESSED LINE $cl")
                             compressed.add(cl)
-                            currentLog = null
+                            currentLog = CompressedLog(hl.timestamp, hashMapOf(hl.threadId to toName(hl)))
                         }
                     }
                 }
