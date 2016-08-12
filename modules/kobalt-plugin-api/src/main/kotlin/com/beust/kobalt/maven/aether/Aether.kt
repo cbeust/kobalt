@@ -39,11 +39,11 @@ import java.util.*
 import java.util.concurrent.Future
 
 enum class Scope(val scope: String, val dependencyLambda: (Project) -> List<IClasspathDependency>) {
-    COMPILE(JavaScopes.COMPILE, { project : Project -> project.compileDependencies }),
-    PROVIDED(JavaScopes.PROVIDED, { project : Project -> project.compileProvidedDependencies }),
-    SYSTEM(JavaScopes.SYSTEM, { project : Project -> emptyList() }),
-    RUNTIME(JavaScopes.RUNTIME, { project : Project -> project.compileRuntimeDependencies }),
-    TEST(JavaScopes.TEST, { project : Project -> project.testDependencies })
+    COMPILE(JavaScopes.COMPILE, Project::compileDependencies),
+    PROVIDED(JavaScopes.PROVIDED, Project::compileProvidedDependencies),
+    SYSTEM(JavaScopes.SYSTEM, { project -> emptyList() }),
+    RUNTIME(JavaScopes.RUNTIME, Project::compileRuntimeDependencies),
+    TEST(JavaScopes.TEST, Project::testDependencies)
     ;
 
     companion object {
@@ -134,7 +134,7 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
 }
 
 @Singleton
-class Aether(localRepo: File, val settings: KobaltSettings, val eventBus: EventBus) {
+class Aether(localRepo: File, val settings: KobaltSettings, eventBus: EventBus) {
     private val system = Booter.newRepositorySystem()
     private val session = Booter.newRepositorySystemSession(system, localRepo, settings, eventBus)
 //    private val classpathFilter = Scopes.toFilter(Scopes.COMPILE, Scopes.TEST)
