@@ -282,60 +282,82 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
 
         fun toSeconds(millis: Long) = (millis / 1000).toInt().toString()
 
-//        class CompressedLog(val timestamp: Long, val threadMap: HashMap<Long, String>)
-//
-//        fun compressLog(historyLog: List<HistoryLog>): ArrayList<CompressedLog> {
-//            val compressed = arrayListOf<CompressedLog>()
-//
-//            var currentLog: CompressedLog? = null
-//
-//            historyLog.forEach { hl ->
-//                if (currentLog == null) {
-//                    currentLog = CompressedLog(hl.timestamp, hashMapOf(hl.threadId to hl.name))
-//                } else currentLog?.let { cl ->
-//                    if (hl.timestamp - cl.timestamp < 1000) {
-//                        cl.threadMap[hl.threadId] = hl.name
-//                    } else {
-//                        compressed.add(cl)
-//                        currentLog = null
-//                    }
-//                }
-//            }
-//            return compressed
-//        }
-//
-//        compressLog(historyLog).forEach {
-//            val row = arrayListOf<String>()
-//            row.add(toSeconds(it.timestamp))
-//            it.threadMap.values.forEach {
-//                row.add(it)
-//            }
-//            table.addRow(row)
-//        }
+        fun displayCompressedLog(table: AsciiTable.Builder) : AsciiTable.Builder {
+            class CompressedLog(val timestamp: Long, val threadMap: HashMap<Long, String>)
 
-        val start = historyLog[0].timestamp
-        val projectStart = ConcurrentHashMap<String, Long>()
-        historyLog.forEach { line ->
-            val row = arrayListOf<String>()
-            row.add(toSeconds(line.timestamp - start))
-            threadIds.keys.forEach {
-                if (line.threadId == it) {
-                    var duration = ""
-                    if (line.start) {
-                        projectStart[line.name] = line.timestamp
-                    } else {
-                        duration = " (" + ((line.timestamp - projectStart[line.name]!!) / 1000)
-                            .toInt().toString() + ")"
+            fun compressLog(historyLog: List<HistoryLog>): ArrayList<CompressedLog> {
+                val compressed = arrayListOf<CompressedLog>()
+
+                var currentLog: CompressedLog? = null
+
+                val projectStart = hashMapOf<String, Long>()
+                historyLog.forEach { hl ->
+                    if (hl.start) {
+                        projectStart[hl.name] = hl.timestamp
                     }
-                    row.add((line.name + duration))
-                } else {
-                    row.add("")
+                    if (currentLog == null) {
+                        currentLog = CompressedLog(hl.timestamp, hashMapOf(hl.threadId to hl.name))
+                    } else currentLog?.let { cl ->
+                        if (hl.timestamp - cl.timestamp < 1000) {
+                            var duration = ""
+                            if (! hl.start) {
+                                val start = projectStart[hl.name]
+                                if (start != null) {
+                                    duration = " (" + ((hl.timestamp - start) / 1000)
+                                            .toInt().toString() + ")"
+                                } else {
+                                    println("DONOTCOMMIT")
+                                }
+                            }
+
+                            cl.threadMap[hl.threadId] = hl.name + duration
+                        } else {
+                            compressed.add(cl)
+                            currentLog = null
+                        }
+                    }
                 }
+                return compressed
             }
-            table.addRow(row)
+
+            compressLog(historyLog).forEach {
+                val row = arrayListOf<String>()
+                row.add(toSeconds(it.timestamp))
+                it.threadMap.values.forEach {
+                    row.add(it)
+                }
+                table.addRow(row)
+            }
+
+            return table
         }
 
-        println(table.build())
+        fun displayRegularLog(table: AsciiTable.Builder) : AsciiTable.Builder {
+            val start = historyLog[0].timestamp
+            val projectStart = ConcurrentHashMap<String, Long>()
+            historyLog.forEach { line ->
+                val row = arrayListOf<String>()
+                row.add(toSeconds(line.timestamp - start))
+                threadIds.keys.forEach {
+                    if (line.threadId == it) {
+                        var duration = ""
+                        if (line.start) {
+                            projectStart[line.name] = line.timestamp
+                        } else {
+                            duration = " (" + ((line.timestamp - projectStart[line.name]!!) / 1000)
+                                    .toInt().toString() + ")"
+                        }
+                        row.add((line.name + duration))
+                    } else {
+                        row.add("")
+                    }
+                }
+                table.addRow(row)
+            }
+            return table
+        }
+
+        println(displayRegularLog(table).build())
     }
 }
 
