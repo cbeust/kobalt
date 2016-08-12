@@ -58,7 +58,7 @@ class Args {
     var noIncremental: Boolean = false
 
     @Parameter(names = arrayOf("--parallel"), description = "Build all the projects in parallel whenever possible")
-    var parallel: Boolean = false
+    var parallel: Boolean = true
 
     @Parameter(names = arrayOf("--plugins"), description = "Comma-separated list of plug-in Maven id's")
     var pluginIds: String? = null
@@ -81,6 +81,9 @@ class Args {
 
     @Parameter(names = arrayOf("--projectInfo"), description = "Display information about the current projects")
     var projectInfo: Boolean = false
+
+    @Parameter(names = arrayOf("--sequential"), description = "Build all the projects in sequence")
+    var sequential: Boolean = false
 
     @Parameter(names = arrayOf("--server"), description = "Run in server mode")
     var serverMode: Boolean = false

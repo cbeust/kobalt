@@ -105,7 +105,7 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
 
         logger.shutdown()
 
-        if (args.parallel) {
+        if (! args.sequential) {
             executor.dumpHistory()
         }
         return TaskManager.RunTargetResult(taskResult, emptyList())

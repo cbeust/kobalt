@@ -98,10 +98,10 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
         val message =
             if (hasFailures) {
                 String.format("BUILD FAILED", buildTime)
-            } else if (args.parallel) {
+            } else if (! args.sequential) {
                 val sequentialBuildTime = ((projectInfos.values.sumByDouble { it.durationMillis.toDouble() }) / 1000)
                     .toInt()
-                String.format("PARALLEL BUILD SUCCESSFUL (%d SECONDS), sequential build sould have taken %d seconds",
+                String.format("PARALLEL BUILD SUCCESSFUL (%d SECONDS), sequential build would have taken %d seconds",
                         buildTime, sequentialBuildTime)
             } else {
                 String.format("BUILD SUCCESSFUL (%d SECONDS)", buildTime)

@@ -94,10 +94,13 @@ class TaskManager @Inject constructor(val args: Args,
 
         val projectsToRun = findProjectsToRun(taskInfos, allProjects)
         val projectRunner =
-            if (args.parallel) ParallelProjectRunner({ p -> tasksByNames(p) }, dependsOn,
-                    reverseDependsOn, runBefore, runAfter, alwaysRunAfter, args, pluginInfo, kobaltLog)
-            else SequentialProjectRunner({ p -> tasksByNames(p) }, dependsOn,
-                    reverseDependsOn, runBefore, runAfter, alwaysRunAfter, args, pluginInfo)
+            if (args.sequential) {
+                SequentialProjectRunner({ p -> tasksByNames(p) }, dependsOn,
+                        reverseDependsOn, runBefore, runAfter, alwaysRunAfter, args, pluginInfo)
+            } else {
+                ParallelProjectRunner({ p -> tasksByNames(p) }, dependsOn,
+                        reverseDependsOn, runBefore, runAfter, alwaysRunAfter, args, pluginInfo, kobaltLog)
+            }
         return projectRunner.runProjects(taskInfos, projectsToRun)
     }
 

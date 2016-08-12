@@ -116,10 +116,10 @@ class ParallelLogger @Inject constructor(val args: Args) : ILogger {
     }
 
     override fun log(tag: CharSequence, level: Int, message: CharSequence, newLine: Boolean) {
-        if (args.parallel) {
-            addLogLine(tag, LogLine(tag, level, message, Type.LOG, newLine))
-        } else {
+        if (args.sequential) {
             kobaltLog(level, message, newLine)
+        } else {
+            addLogLine(tag, LogLine(tag, level, message, Type.LOG, newLine))
         }
     }
 
