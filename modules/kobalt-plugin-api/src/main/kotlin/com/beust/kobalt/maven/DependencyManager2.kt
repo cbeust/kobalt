@@ -104,10 +104,14 @@ class DependencyManager2 @Inject constructor(val aether: KobaltAether) {
         //
         var i = 0
         ids.forEach {
-            val resolved = aether.resolveAll(it.id, filterScopes = scopeFilters)
-                .map { create(it.toString(), project.directory) }
-            i++
-            result.addAll(resolved)
+            if (it.isMaven) {
+                val resolved = aether.resolveAll(it.id, filterScopes = scopeFilters)
+                        .map { create(it.toString(), project.directory) }
+                i++
+                result.addAll(resolved)
+            } else {
+                result.add(it)
+            }
         }
 
         result.addAll(nonMavenDependencies)
