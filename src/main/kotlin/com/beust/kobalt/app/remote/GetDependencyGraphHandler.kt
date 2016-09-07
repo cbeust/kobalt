@@ -29,7 +29,7 @@ class GetDependencyGraphHandler : WebSocketListener {
     }
 
     override fun onWebSocketError(cause: Throwable?) {
-        Exceptions.printStackTrace(cause)
+        Exceptions.printStackTrace(cause!!)
         throw UnsupportedOperationException()
     }
 
