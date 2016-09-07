@@ -50,19 +50,19 @@ class DependencyTest @Inject constructor(val context: KobaltContext) {
 
     @Test
     fun noContributorsNoInterceptors() {
-        runTest(BasePluginInfo(), listOf("-classpath", A_JAR))
+        runTest(BasePluginInfo(), listOf("-ea", "-classpath", A_JAR))
     }
 
     @Test
     fun contributorOnly() {
         runTest(BasePluginInfo().apply { testJvmFlagContributors.add(contributor) },
-                listOf("-classpath", A_JAR, "-agent", "foo"))
+                listOf("-ea", "-classpath", A_JAR, "-agent", "foo"))
     }
 
     @Test
     fun interceptorOnly() {
         runTest(BasePluginInfo().apply { testJvmFlagInterceptors.add(interceptor) },
-                listOf("-classpath", B_JAR))
+                listOf("-ea", "-classpath", B_JAR))
     }
 
     @Test
@@ -71,7 +71,7 @@ class DependencyTest @Inject constructor(val context: KobaltContext) {
                 testJvmFlagContributors.add(contributor)
                 testJvmFlagInterceptors.add(interceptor)
             },
-            listOf("-classpath", B_JAR, "-agent", "foo"))
+            listOf("-ea", "-classpath", B_JAR, "-agent", "foo"))
     }
 }
 

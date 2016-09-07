@@ -146,6 +146,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
         // Default JVM args
         val jvmFlags = arrayListOf<String>().apply {
             addAll(testConfig.jvmArgs)
+            add("-ea")
             add("-classpath")
             add(classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator))
         }
