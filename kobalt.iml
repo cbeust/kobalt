@@ -16,15 +16,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="kobalt-plugin-api" />
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:1.0.4-eap-62">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.0.4-eap-62/kotlin-compiler-embeddable-1.0.4-eap-62.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="module-library" scope="TEST">
       <library name="Kobalt: org.beanshell:bsh:jar:2.0b4">
         <CLASSES>
@@ -251,15 +242,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Kobalt: org.osgi:org.osgi.core:jar:4.3.1">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/osgi/org.osgi.core/4.3.1/org.osgi.core-4.3.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
       <library name="Kobalt: org.eclipse.jetty:jetty-webapp:jar:9.3.6.v20151106">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-webapp/9.3.6.v20151106/jetty-webapp-9.3.6.v20151106.jar!/" />
@@ -405,5 +387,21 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.1.0-dev-2615/kotlin-compiler-embeddable-1.1.0-dev-2615.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.1.0-dev-2615/kotlin-compiler-embeddable-1.1.0-dev-2615-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.1.0-dev-2615/kotlin-compiler-embeddable-1.1.0-dev-2615-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.1.0-dev-2615/kotlin-compiler-embeddable-1.1.0-dev-2615-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.1.0-dev-2615/kotlin-compiler-embeddable-1.1.0-dev-2615-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.1.0-dev-2615/kotlin-compiler-embeddable-1.1.0-dev-2615-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.1.0-dev-2615/kotlin-compiler-embeddable-1.1.0-dev-2615-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>

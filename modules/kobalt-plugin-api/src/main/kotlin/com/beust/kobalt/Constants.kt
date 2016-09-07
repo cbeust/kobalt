@@ -14,7 +14,8 @@ object Constants {
             "http://repo1.maven.org/maven2/",
             "https://jcenter.bintray.com/",
             "http://repository.jetbrains.com/all/",
-            "https://dl.bintray.com/kotlin/kotlin-eap"
+            "https://dl.bintray.com/kotlin/kotlin-eap",
+            "https://dl.bintray.com/kotlin/kotlin-dev"
 
             // snapshots
 //            "https://oss.sonatype.org/content/repositories/snapshots/"
