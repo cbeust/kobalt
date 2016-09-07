@@ -5,6 +5,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.app.ProjectFinder
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.internal.eventbus.ArtifactDownloadedEvent
+import com.beust.kobalt.maven.aether.Exceptions
 import com.google.common.eventbus.EventBus
 import com.google.common.eventbus.Subscribe
 import com.google.gson.Gson
@@ -28,7 +29,7 @@ class GetDependencyGraphHandler : WebSocketListener {
     }
 
     override fun onWebSocketError(cause: Throwable?) {
-        cause?.printStackTrace()
+        Exceptions.printStackTrace(cause)
         throw UnsupportedOperationException()
     }
 
@@ -72,7 +73,7 @@ class GetDependencyGraphHandler : WebSocketListener {
                         }
                     }, useGraph = true)
                 } catch(ex: Throwable) {
-                    ex.printStackTrace()
+                    Exceptions.printStackTrace(ex)
                     val errorMessage = ex.stackTrace.map { it.toString() }.joinToString("\n<p>")
                     DependencyData.GetDependenciesData(errorMessage = errorMessage)
                 } finally {

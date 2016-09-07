@@ -4,6 +4,7 @@ import com.beust.kobalt.Args
 import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.maven.aether.Exceptions
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -81,7 +82,9 @@ class Logger(val dev: Boolean) {
 
         println(AsciiArt.errorColor(getPattern("E", shortMessage, longMessage, tag)))
         if (KobaltLogger.LOG_LEVEL > 1) {
-            e?.printStackTrace()
+            val t = e as Throwable
+            Exceptions.printStackTrace(t)
+//            e?.printStackTrace()
         }
     }
 
@@ -89,7 +92,7 @@ class Logger(val dev: Boolean) {
         val fullMessage = "***** WARNING " + (e?.message ?: message)
         println(AsciiArt.Companion.warnColor(getPattern("W", fullMessage, fullMessage, tag)))
         if (KobaltLogger.LOG_LEVEL > 1) {
-            e?.printStackTrace()
+            Exceptions.printStackTrace(e!!)
         }
     }
 

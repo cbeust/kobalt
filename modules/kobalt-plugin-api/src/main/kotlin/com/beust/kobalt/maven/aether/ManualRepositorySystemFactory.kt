@@ -27,7 +27,7 @@ object ManualRepositorySystemFactory {
 
         locator.setErrorHandler(object : DefaultServiceLocator.ErrorHandler() {
             override fun serviceCreationFailed(type: Class<*>, impl: Class<*>, exception: Throwable) {
-                exception.printStackTrace()
+                Exceptions.printStackTrace(exception)
             }
         })
 

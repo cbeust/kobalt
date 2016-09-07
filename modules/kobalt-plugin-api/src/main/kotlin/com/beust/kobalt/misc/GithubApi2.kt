@@ -4,6 +4,7 @@ import com.beust.kobalt.KobaltException
 import com.beust.kobalt.internal.DocUrl
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.maven.Http
+import com.beust.kobalt.maven.aether.Exceptions
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.google.inject.Inject
@@ -132,7 +133,7 @@ class GithubApi2 @Inject constructor(
                     }
                 } catch(e: Exception) {
                     kobaltLog(1, "Couldn't retrieve releases from github: " + e.message)
-                    e.printStackTrace()
+                    Exceptions.printStackTrace(e)
 //                    val error = parseRetrofitError(e)
 //                    val details = if (error.errors != null) {
 //                        error.errors[0]

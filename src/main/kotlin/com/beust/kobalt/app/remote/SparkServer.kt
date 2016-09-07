@@ -9,6 +9,7 @@ import com.beust.kobalt.app.Templates
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.internal.eventbus.ArtifactDownloadedEvent
+import com.beust.kobalt.maven.aether.Exceptions
 import com.google.common.collect.ListMultimap
 import com.google.common.eventbus.EventBus
 import com.google.common.eventbus.Subscribe
@@ -110,7 +111,7 @@ class GetDependenciesHandler : WebSocketListener {
     }
 
     override fun onWebSocketError(cause: Throwable?) {
-        cause?.printStackTrace()
+        Exceptions.printStackTrace(cause)
         throw UnsupportedOperationException()
     }
 

@@ -7,6 +7,7 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.app.MainModule
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.KobaltSettings
+import com.beust.kobalt.maven.aether.Exceptions
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.misc.warn
@@ -71,7 +72,7 @@ class KobaltWebSocketClient : Runnable {
             }
 
             override fun onFailure(ex: IOException, response: Response?) {
-                ex.printStackTrace()
+                Exceptions.printStackTrace(ex)
                 error("WebSocket failure: ${ex.message} response: $response")
             }
 

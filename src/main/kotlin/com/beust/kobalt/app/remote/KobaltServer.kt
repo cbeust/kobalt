@@ -3,6 +3,7 @@ package com.beust.kobalt.app.remote
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.PluginInfo
+import com.beust.kobalt.maven.aether.Exceptions
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
 import com.google.inject.Inject
@@ -56,7 +57,7 @@ class KobaltServer @Inject constructor(@Assisted val force: Boolean, @Assisted @
 //                WasabiServer(initCallback, cleanUpCallback).run(port)
             }
         } catch(ex: Exception) {
-            ex.printStackTrace()
+            Exceptions.printStackTrace(ex)
         } finally {
 //            deleteServerFile()
         }

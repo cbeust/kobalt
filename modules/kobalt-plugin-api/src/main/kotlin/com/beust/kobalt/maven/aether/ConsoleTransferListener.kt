@@ -102,7 +102,7 @@ class ConsoleTransferListener @JvmOverloads constructor(out: PrintStream? = null
 
         if (event.exception !is MetadataNotFoundException) {
             if (KobaltLogger.LOG_LEVEL > 2) {
-                event.exception.printStackTrace(out)
+                Exceptions.printStackTrace(event.exception)
             }
         }
     }
@@ -117,7 +117,7 @@ class ConsoleTransferListener @JvmOverloads constructor(out: PrintStream? = null
     }
 
     override fun transferCorrupted(event: TransferEvent?) {
-        event!!.exception.printStackTrace(out)
+        Exceptions.printStackTrace(event!!.exception)
     }
 
     protected fun toKB(bytes: Long): Long {
