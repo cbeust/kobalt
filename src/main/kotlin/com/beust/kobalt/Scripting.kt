@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler
 import org.jetbrains.kotlin.codegen.CompilationException
+import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -23,6 +24,7 @@ import org.jetbrains.kotlin.types.TypeProjection
 import org.jetbrains.kotlin.types.TypeProjectionImpl
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.PathUtil
+import java.io.File
 import java.lang.RuntimeException
 import kotlin.reflect.*
 
@@ -59,6 +61,16 @@ class Scripting {
             runIsolated: Boolean,
             suppressOutput: Boolean): Class<*>?
     {
+        val resolver = object: ScriptDependenciesResolver {
+//            override fun resolve(script: ScriptContents,
+//                    environment: Map<String, Any?>?,
+//                    report: (ReportSeverity, String, ScriptContents.Position?) -> Unit,
+//                    previousDependencies: KotlinScriptExternalDependencies?
+//            ): Future<KotlinScriptExternalDependencies?> = PseudoFuture(null) {
+//                return PseudoFuture(null)
+//        }
+    }
+
         val paths = PathUtil.getKotlinPathsForDistDirectory()
         val messageCollector =
                 if (suppressOutput) MessageCollector.NONE
@@ -72,7 +84,7 @@ class Scripting {
                 private var hasErrors: Boolean = false
                 override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation) {
                     if (severity.isError) hasErrors = true
-                    println("REPORTING $message")
+                    System.err.println("$location: $message")
                 }
 
                 override fun hasErrors(): Boolean {
@@ -127,7 +139,21 @@ class KobaltDescription(val template: KClass<out Any>) : KotlinScriptDefinition 
         return getFileName(file).endsWith(KotlinParserDefinition.STD_SCRIPT_EXT)
     }
 
-    fun getKotlinTypeByKType(scriptDescriptor: ScriptDescriptor, kType: KType): KotlinType {
+    override fun <TF> getDependenciesFor(file: TF,
+            project: Project, previousDependencies: KotlinScriptExternalDependencies?):
+                KotlinScriptExternalDependencies? {
+        val java = JavaInfo.create(File(SystemProperties.javaBase))
+        val result = object: KotlinScriptExternalDependencies {
+            override val javaHome = java.javaHome?.absolutePath
+            override val classpath: Iterable<File> get() = listOf(java.runtimeJar!!)
+            override val imports: Iterable<String> get() = emptyList()
+            override val sources: Iterable<File> get() = emptyList()
+            override val scripts: Iterable<File> get() = emptyList()
+        }
+        return result
+    }
+
+    private fun getKotlinTypeByKType(scriptDescriptor: ScriptDescriptor, kType: KType): KotlinType {
         val classifier = kType.classifier
         if (classifier !is KClass<*>) {
             println("ERROR Only classes are supported as parameters in script template: $classifier")
