@@ -38,7 +38,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
         val executors: KobaltExecutors, val buildScriptUtil: BuildScriptUtil, val settings: KobaltSettings,
         val incrementalManagerFactory: IncrementalManager.IFactory, val args: Args,
         val aether: KobaltAether, val pomGeneratorFactory: PomGenerator.IFactory,
-        val parallelLogger: ParallelLogger) {
+        val parallelLogger: ParallelLogger, val processedBuildFileFactory: ProcessedBuildFile.IFactory) {
 
     interface IFactory {
         fun create(@Assisted("buildFiles") buildFiles: List<BuildFile>, pluginInfo: PluginInfo) : BuildFileCompiler
@@ -167,5 +167,5 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
      * - the URL's of all the plug-ins that were found.
      */
     private fun parseBuildFile(context: KobaltContext, buildFile: BuildFile) =
-            ProcessedBuildFile(buildFile, context, buildScriptUtil, dependencyManager, files)
+        processedBuildFileFactory.create(buildFile, context)
 }

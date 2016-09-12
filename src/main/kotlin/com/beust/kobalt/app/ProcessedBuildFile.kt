@@ -13,6 +13,8 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.countChar
 import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
+import com.google.inject.Inject
+import com.google.inject.assistedinject.Assisted
 import java.io.File
 import java.net.URL
 import java.nio.charset.Charset
@@ -22,16 +24,20 @@ import java.util.*
 /**
  * Process the given build file (either with kotlinc or through scripting) and return projects and pluginUrls.
  */
-class ProcessedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val buildScriptUtil: BuildScriptUtil,
-        val dependencyManager: DependencyManager, val files: KFiles) {
+class ProcessedBuildFile @Inject constructor(@Assisted val buildFile: BuildFile, @Assisted val context: KobaltContext,
+        val dependencyManager: DependencyManager, val files: KFiles, val compiledBuildFile: CompiledBuildFile) {
+
+    interface IFactory {
+        fun create(buildFile: BuildFile, context: KobaltContext) : ProcessedBuildFile
+    }
+
     val pluginUrls = arrayListOf<URL>()
     val splitFile = SplitBuildFile(buildFile, context, dependencyManager, files)
 
     fun compile(): BuildFileCompiler.FindProjectResult {
 
         // Find the projects but also invoke the plugins() directive, which will initialize Plugins.dynamicPlugins
-        val projects = CompiledBuildFile(buildScriptUtil, dependencyManager, files)
-                .findProjects(splitFile, context)
+        val projects = compiledBuildFile.findProjects(splitFile, context)
 
         // All the plug-ins are now in Plugins.dynamicPlugins, download them if they're not already
         Plugins.dynamicPlugins.forEach {
@@ -45,8 +51,8 @@ class ProcessedBuildFile(val buildFile: BuildFile, val context: KobaltContext, v
 /**
  * Compile a build file with kotlinc.
  */
-class CompiledBuildFile(val buildScriptUtil: BuildScriptUtil, val dependencyManager: DependencyManager,
-        val files: KFiles) {
+class CompiledBuildFile @Inject constructor(val buildScriptUtil: BuildScriptUtil,
+        val dependencyManager: DependencyManager, val files: KFiles) {
 
     fun findProjects(splitFile: SplitBuildFile, context: KobaltContext): List<Project> {
         //
