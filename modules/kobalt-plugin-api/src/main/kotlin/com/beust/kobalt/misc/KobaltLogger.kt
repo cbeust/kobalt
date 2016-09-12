@@ -69,10 +69,10 @@ class Logger(val dev: Boolean) {
             longMessage
         }
 
-    final fun debug(tag: String, message: CharSequence) =
+    fun debug(tag: String, message: CharSequence) =
         println(getPattern("D", message, message, tag))
 
-    final fun error(tag: String, message: CharSequence, e: Throwable? = null) {
+    fun error(tag: String, message: CharSequence, e: Throwable? = null) {
         val docUrl = if (e is KobaltException && e.docUrl != null) e.docUrl else null
         val text = if (! message.isBlank()) message
             else if (e != null && (! e.message.isNullOrBlank())) e.message
@@ -88,15 +88,15 @@ class Logger(val dev: Boolean) {
         }
     }
 
-    final fun warn(tag: String, message: CharSequence, e: Throwable? = null) {
+    fun warn(tag: String, message: CharSequence, e: Throwable? = null) {
         val fullMessage = "***** WARNING " + (e?.message ?: message)
         println(AsciiArt.Companion.warnColor(getPattern("W", fullMessage, fullMessage, tag)))
-        if (KobaltLogger.LOG_LEVEL > 1) {
-            Exceptions.printStackTrace(e!!)
+        if (KobaltLogger.LOG_LEVEL > 1 && e != null) {
+            Exceptions.printStackTrace(e)
         }
     }
 
-    final fun log(tag: String, message: CharSequence, newLine: Boolean) =
+    fun log(tag: String, message: CharSequence, newLine: Boolean) =
         with(getPattern("L", message, message, tag)) {
             if (newLine) println(this)
             else print("\r" + this)
