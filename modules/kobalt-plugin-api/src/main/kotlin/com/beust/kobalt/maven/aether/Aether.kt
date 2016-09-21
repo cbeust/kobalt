@@ -284,7 +284,8 @@ class AetherDependency(val artifact: Artifact) : IClasspathDependency, Comparabl
                     if (!it.dependency.isOptional) {
                         result.add(AetherDependency(it.artifact))
                     } else {
-                        kobaltLog(ConsoleRepositoryListener.LOG_LEVEL, "Skipping optional dependency " + deps.root.artifact)
+                        kobaltLog(ConsoleRepositoryListener.LOG_LEVEL,
+                                "Skipping optional dependency " + deps.root.artifact)
                     }
                 }
             } else {
