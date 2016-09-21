@@ -268,15 +268,12 @@ class AetherDependency(val artifact: Artifact) : IClasspathDependency, Comparabl
             }
         }
 
-    override fun toMavenDependencies() = let { md ->
+    override fun toMavenDependencies() =
         org.apache.maven.model.Dependency().apply {
-            artifact.let { md ->
-                groupId = md.groupId
-                artifactId = md.artifactId
-                version = md.version
-            }
+            groupId = artifact.groupId
+            artifactId = artifact.artifactId
+            version = artifact.version
         }
-    }
 
     override fun directDependencies(): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
