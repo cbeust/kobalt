@@ -18,14 +18,14 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
         : IDependencyManager {
 
     companion object {
-        fun create(id: String, projectDirectory: String? = null) =
-                Kobalt.INJECTOR.getInstance(DependencyManager::class.java).create(id, projectDirectory)
+        fun create(id: String, optional: Boolean = false, projectDirectory: String? = null) =
+                Kobalt.INJECTOR.getInstance(DependencyManager::class.java).create(id, optional, projectDirectory)
     }
 
     /**
      * Parse the id and return the correct IClasspathDependency
      */
-    override fun create(id: String, projectDirectory: String?) : IClasspathDependency {
+    override fun create(id: String, optional: Boolean, projectDirectory: String?) : IClasspathDependency {
         if (id.startsWith(FileDependency.PREFIX_FILE)) {
             val path = if (projectDirectory != null) {
                 val idPath = id.substring(FileDependency.PREFIX_FILE.length)
@@ -50,18 +50,18 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
         } else {
             // Convert to a Kobalt id first (so that if it doesn't have a version, it gets translated to
             // an Aether ranged id "[0,)")
-            return createMaven(MavenId.create(id).toId)
+            return createMaven(MavenId.create(id).toId, optional)
         }
     }
 
     /**
      * Create an IClasspathDependency from a Maven id.
      */
-    override fun createMaven(id: String) : IClasspathDependency=
+    override fun createMaven(id: String, optional: Boolean) : IClasspathDependency=
         if (KobaltAether.isRangeVersion(id)) {
             Kobalt.INJECTOR.getInstance(KobaltAether::class.java).resolve(id).dependency
         } else {
-            aether.create(id)
+            aether.create(id, optional)
         }
 
     /**

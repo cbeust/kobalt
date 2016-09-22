@@ -9,12 +9,12 @@ interface IDependencyManager {
     /**
      * Parse the id and return the correct IClasspathDependency
      */
-    fun create(id: String, projectDirectory: String? = null): IClasspathDependency
+    fun create(id: String, optional: Boolean = false, projectDirectory: String? = null): IClasspathDependency
 
     /**
      * Create an IClasspathDependency from a Maven id.
      */
-    fun createMaven(id: String): IClasspathDependency
+    fun createMaven(id: String, optional: Boolean = false): IClasspathDependency
 
     /**
      * Create an IClasspathDependency from a path.

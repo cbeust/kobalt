@@ -16,7 +16,7 @@ class DependencyManager2 @Inject constructor(val aether: KobaltAether) {
     /**
      * Create an IClasspathDependency from a Maven id.
      */
-    fun createMaven(id: String) : IClasspathDependency = aether.create(id)
+    fun createMaven(id: String, optional: Boolean) : IClasspathDependency = aether.create(id, optional)
 
     /**
      * Create an IClasspathDependency from a path.
@@ -26,7 +26,7 @@ class DependencyManager2 @Inject constructor(val aether: KobaltAether) {
     /**
      * Parse the id and return the correct IClasspathDependency
      */
-    fun create(id: String, projectDirectory: String?) : IClasspathDependency {
+    fun create(id: String, optional: Boolean, projectDirectory: String?) : IClasspathDependency {
         if (id.startsWith(FileDependency.PREFIX_FILE)) {
             val path = if (projectDirectory != null) {
                 val idPath = id.substring(FileDependency.PREFIX_FILE.length)
@@ -51,7 +51,7 @@ class DependencyManager2 @Inject constructor(val aether: KobaltAether) {
         } else {
             // Convert to a Kobalt id first (so that if it doesn't have a version, it gets translated to
             // an Aether ranged id "[0,)")
-            return createMaven(MavenId.create(id).toId)
+            return createMaven(MavenId.create(id).toId, optional)
         }
     }
 
@@ -106,7 +106,7 @@ class DependencyManager2 @Inject constructor(val aether: KobaltAether) {
         ids.forEach {
             if (it.isMaven) {
                 val resolved = aether.resolveAll(it.id, filterScopes = scopeFilters)
-                        .map { create(it.toString(), project.directory) }
+                        .map { create(it.toString(), false, project.directory) }
                 i++
                 result.addAll(resolved)
             } else {

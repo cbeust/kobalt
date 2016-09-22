@@ -11,6 +11,7 @@ interface IDependencyHolder {
     var project: Project
 
     val compileDependencies : ArrayList<IClasspathDependency>
+    val optionalDependencies : ArrayList<IClasspathDependency>
     val compileProvidedDependencies : ArrayList<IClasspathDependency>
     val compileRuntimeDependencies : ArrayList<IClasspathDependency>
     val excludedDependencies : ArrayList<IClasspathDependency>
@@ -26,6 +27,7 @@ interface IDependencyHolder {
 open class DependencyHolder : IDependencyHolder {
     override lateinit var project: Project
     override val compileDependencies : ArrayList<IClasspathDependency> = arrayListOf()
+    override val optionalDependencies : ArrayList<IClasspathDependency> = arrayListOf()
     override val compileProvidedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
     override val compileRuntimeDependencies : ArrayList<IClasspathDependency> = arrayListOf()
     override val excludedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
@@ -34,7 +36,7 @@ open class DependencyHolder : IDependencyHolder {
     override var dependencies : Dependencies? = null
 
     override fun dependencies(init: Dependencies.() -> Unit) : Dependencies {
-        dependencies = Dependencies(project, compileDependencies, compileProvidedDependencies,
+        dependencies = Dependencies(project, compileDependencies, optionalDependencies, compileProvidedDependencies,
                 compileRuntimeDependencies, excludedDependencies, nativeDependencies)
         dependencies!!.init()
         return dependencies!!

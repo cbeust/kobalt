@@ -6,7 +6,6 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
-import com.beust.kobalt.misc.log
 import org.apache.maven.model.Model
 import java.io.File
 import java.util.*
@@ -86,8 +85,8 @@ open class Project(
 
     @Directive
     fun dependenciesTest(init: Dependencies.() -> Unit) : Dependencies {
-        dependencies = Dependencies(this, testDependencies, testProvidedDependencies, compileRuntimeDependencies,
-                excludedDependencies, nativeDependencies)
+        dependencies = Dependencies(this, testDependencies, arrayListOf(),
+                testProvidedDependencies, compileRuntimeDependencies, excludedDependencies, nativeDependencies)
         dependencies!!.init()
         return dependencies!!
     }
@@ -133,6 +132,7 @@ class Sources(val project: Project, val sources: HashSet<String>) {
 
 class Dependencies(val project: Project,
         val dependencies: ArrayList<IClasspathDependency>,
+        val optionalDependencies: ArrayList<IClasspathDependency>,
         val providedDependencies: ArrayList<IClasspathDependency>,
         val runtimeDependencies: ArrayList<IClasspathDependency>,
         val excludedDependencies: ArrayList<IClasspathDependency>,
@@ -145,7 +145,7 @@ class Dependencies(val project: Project,
      * future tasks receive a get(), the repos will be correct.
      */
     private fun addToDependencies(project: Project, dependencies: ArrayList<IClasspathDependency>,
-            dep: Array<out String>): List<Future<File>>
+            dep: Array<out String>, optional: Boolean = false): List<Future<File>>
         = with(dep.map {
             val resolved =
                 if (KobaltAether.isRangeVersion(it)) {
@@ -155,7 +155,7 @@ class Dependencies(val project: Project,
                 } else {
                     it
                 }
-            DependencyManager.create(resolved, project.directory)
+            DependencyManager.create(resolved, optional, project.directory)
         }) {
             dependencies.addAll(this)
             this.map { FutureTask { it.jarFile.get() } }
@@ -163,6 +163,10 @@ class Dependencies(val project: Project,
 
     @Directive
     fun compile(vararg dep: String) = addToDependencies(project, dependencies, dep)
+
+    @Directive
+    fun compileOptional(vararg dep: String) = addToDependencies(project, optionalDependencies, dep,
+            optional = true)
 
     @Directive
     fun provided(vararg dep: String) = addToDependencies(project, providedDependencies, dep)

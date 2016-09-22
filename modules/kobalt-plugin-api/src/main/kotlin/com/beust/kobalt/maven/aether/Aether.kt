@@ -84,7 +84,7 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
     /**
      * Create an IClasspathDependency from a Kobalt id.
      */
-    fun create(id: String) = AetherDependency(DefaultArtifact(id))
+    fun create(id: String, optional: Boolean) = AetherDependency(DefaultArtifact(id), optional)
 
     /**
      * @return the latest artifact for the given group and artifactId.
@@ -231,11 +231,9 @@ class Aether(localRepo: File, val settings: KobaltSettings, eventBus: EventBus) 
             = system.collectDependencies(session, collectRequest(artifact, artifactScope))
 }
 
-class AetherDependency(val artifact: Artifact) : IClasspathDependency, Comparable<AetherDependency> {
+class AetherDependency(val artifact: Artifact, override val optional: Boolean = false)
+        : IClasspathDependency, Comparable<AetherDependency> {
     val aether: Aether get() = Kobalt.INJECTOR.getInstance(Aether::class.java)
-
-    constructor(node: DependencyNode) : this(node.artifact) {
-    }
 
     override val id: String = toId(artifact)
 
@@ -268,12 +266,15 @@ class AetherDependency(val artifact: Artifact) : IClasspathDependency, Comparabl
             }
         }
 
-    override fun toMavenDependencies() =
-        org.apache.maven.model.Dependency().apply {
+    override fun toMavenDependencies() : org.apache.maven.model.Dependency {
+        val op = this.optional
+        return org.apache.maven.model.Dependency().apply {
             groupId = artifact.groupId
             artifactId = artifact.artifactId
             version = artifact.version
+            if (op) optional = op.toString()
         }
+    }
 
     override fun directDependencies(): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()

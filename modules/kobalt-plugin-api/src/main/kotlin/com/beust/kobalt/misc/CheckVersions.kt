@@ -24,7 +24,7 @@ class CheckVersions @Inject constructor(val depManager: DependencyManager,
             cds.forEach { dep ->
                 if (MavenId.isMavenId(dep.id)) {
                     try {
-                        val latestDep = depManager.create(dep.shortId, project.directory)
+                        val latestDep = depManager.create(dep.shortId, false, project.directory)
                         val artifact = (latestDep as AetherDependency).artifact
                         val versions = aether.resolveVersion(artifact)
                         val releases = versions?.versions?.filter { !it.toString().contains("SNAP")}
