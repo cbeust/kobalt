@@ -72,6 +72,21 @@ class PomGenerator @Inject constructor(@Assisted val project: Project) {
             pom.dependencies.add(dep.toMavenDependencies())
         }
 
+        // Provided dependencies
+        project.compileProvidedDependencies.forEach { dep ->
+            pom.dependencies.add(dep.toMavenDependencies("provided"))
+        }
+
+        // Test dependencies
+        project.testDependencies.forEach { dep ->
+            pom.dependencies.add(dep.toMavenDependencies("test"))
+        }
+
+        // Test provided dependencies
+        project.testProvidedDependencies.forEach { dep ->
+            pom.dependencies.add(dep.toMavenDependencies("test"))
+        }
+
         // Project dependencies
         project.dependsOn.forEach {
             pom.dependencies.add(org.apache.maven.model.Dependency().apply {

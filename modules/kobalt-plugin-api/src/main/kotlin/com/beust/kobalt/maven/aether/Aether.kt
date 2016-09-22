@@ -266,13 +266,15 @@ class AetherDependency(val artifact: Artifact, override val optional: Boolean = 
             }
         }
 
-    override fun toMavenDependencies() : org.apache.maven.model.Dependency {
+    override fun toMavenDependencies(scope: String?) : org.apache.maven.model.Dependency {
+        val passedScope = scope
         val op = this.optional
         return org.apache.maven.model.Dependency().apply {
             groupId = artifact.groupId
             artifactId = artifact.artifactId
             version = artifact.version
             if (op) optional = op.toString()
+            if (passedScope != null) this.scope = passedScope
         }
     }
 

@@ -19,9 +19,10 @@ open class FileDependency(open val fileName: String, override val optional: Bool
 
     override val jarFile = CompletedFuture(File(fileName))
 
-    override fun toMavenDependencies(): Dependency {
+    override fun toMavenDependencies(scope: String?): Dependency {
         with(Dependency()) {
             systemPath = jarFile.get().absolutePath
+            this.scope = scope
             return this
         }
     }
