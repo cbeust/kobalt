@@ -7,14 +7,10 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.DocUrl
-import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.localMaven
 import com.beust.kobalt.maven.Md5
 import com.beust.kobalt.maven.PomGenerator
-import com.beust.kobalt.misc.GithubApi2
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.LocalProperties
-import com.beust.kobalt.misc.warn
+import com.beust.kobalt.misc.*
 import java.io.File
 import java.net.URL
 import java.nio.file.Paths
@@ -26,7 +22,7 @@ import javax.inject.Singleton
 @Singleton
 public class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGenerator.IFactory,
         val bintrayFactory: BintrayApi.IFactory, val github: GithubApi2, val localProperties: LocalProperties,
-        val settings: KobaltSettings) : BasePlugin() {
+        val git: Git) : BasePlugin() {
 
     override val name = PLUGIN_NAME
 
@@ -118,30 +114,34 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         val configuration = bintrayConfigurations[project.name]
         val messages = arrayListOf<String>()
 
-        if (configuration != null) {
-            //
-            // Upload to Maven
-            //
-            val trMaven = jcenter.uploadMaven(project, findArtifactFiles(project), configuration)
-            success = trMaven.success
-            if (! success) messages.add(trMaven.errorMessage!!)
+        val tmpResult =
+            if (configuration != null) {
+                //
+                // Upload to Maven
+                //
+                val trMaven = jcenter.uploadMaven(project, findArtifactFiles(project), configuration)
+                success = trMaven.success
+                if (! success) messages.add(trMaven.errorMessage!!)
 
-            //
-            // Upload individual files, if applicable
-            //
-            configuration.files.forEach {
-                val taskResult = jcenter.uploadFile(project, File(project.directory, it.first), configuration)
-                success = success and taskResult.success
-                if (!taskResult.success) {
-                    messages.add(taskResult.errorMessage!!)
+                //
+                // Upload individual files, if applicable
+                //
+                configuration.files.forEach {
+                    val taskResult = jcenter.uploadFile(project, File(project.directory, it.first), configuration)
+                    success = success and taskResult.success
+                    if (!taskResult.success) {
+                        messages.add(taskResult.errorMessage!!)
+                    }
                 }
+                git.maybeTagRelease(project, TaskResult(), configuration.autoGitTag)
+            } else {
+                context.logger.log(project.name, 2, "Couldn't find any jcenter{} configuration, not uploading anything")
+                TaskResult()
             }
-        } else {
-            context.logger.log(project.name, 2, "Couldn't find any jcenter{} configuration, not uploading anything")
-            success = true
-        }
 
-        return TaskResult(success, messages.joinToString("\n  "))
+        val result = TaskResult(tmpResult.success, messages.joinToString("\n  "))
+
+        return result
     }
 
     @Task(name = TASK_UPLOAD_GITHUB, description = "Upload files to Github",
@@ -157,16 +157,19 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
         //
         // Upload individual files, if applicable
         //
-        if (configuration != null) {
-            configuration.files.forEach {
-                logk(project.name, 2, "Uploading $it tag: ${project.version}")
-                github.uploadRelease(project.name, project.version!!, it)
+        val result =
+            if (configuration != null) {
+                configuration.files.forEach {
+                    logk(project.name, 2, "Uploading $it tag: ${project.version}")
+                    github.uploadRelease(project.name, project.version!!, it)
+                }
+                git.maybeTagRelease(project, TaskResult(), configuration.autoGitTag)
+            } else {
+                warn("Couldn't find any github{} configuration, not uploading anything")
+                TaskResult()
             }
-        } else {
-            warn("Couldn't find any github{} configuration, not uploading anything")
-        }
 
-        return TaskResult()
+        return result
     }
 
     /**
@@ -189,8 +192,15 @@ public class PublishPlugin @Inject constructor(val files: KFiles, val factory: P
 data class GithubConfig(val project: Project) {
     val files = arrayListOf<File>()
 
+    /**
+     * If true, automatically tag this release with the current version number and push that tag to origin when
+     * the uploadGithub task is called.
+     */
     @Directive
-    public fun file(filePath: String, url: String) {
+    var autoGitTag: Boolean = false
+
+    @Directive
+    fun file(filePath: String, url: String) {
         files.add(File(filePath))
     }
 }
@@ -218,6 +228,13 @@ data class BintrayConfig(val project: Project) {
      */
     @Directive
     var sign: Boolean = false
+
+    /**
+     * If true, automatically tag this release with the current version number and push that tag to origin when
+     * the uploadBintray task is called.
+     */
+    @Directive
+    var autoGitTag: Boolean = true
 
     val files = arrayListOf<Pair<String, String>>()
 
