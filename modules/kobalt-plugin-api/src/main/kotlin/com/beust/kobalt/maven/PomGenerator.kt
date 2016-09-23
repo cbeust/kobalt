@@ -1,6 +1,7 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.SystemProperties
+import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
@@ -62,8 +63,17 @@ class PomGenerator @Inject constructor(@Assisted val project: Project) {
         //
         pom.dependencies = arrayListOf<org.apache.maven.model.Dependency>()
 
+        /**
+         * optional and provided dependencies are added both to the compile dependencies (since they are needed
+         * to build the project) and to their respective list as well (for POM generation). Make sure they
+         * don't get added twice to the .pom in such cases.
+         */
+        fun providedOrOptional(dep: IClasspathDependency) =
+                project.compileProvidedDependencies.contains(dep) ||
+                project.optionalDependencies.contains(dep)
+
         // Compile dependencies
-        project.compileDependencies.forEach { dep ->
+        project.compileDependencies.filterNot(::providedOrOptional).forEach { dep ->
             pom.dependencies.add(dep.toMavenDependencies())
         }
 
