@@ -165,11 +165,16 @@ class Dependencies(val project: Project,
     fun compile(vararg dep: String) = addToDependencies(project, dependencies, dep)
 
     @Directive
-    fun compileOptional(vararg dep: String) = addToDependencies(project, optionalDependencies, dep,
-            optional = true)
+    fun compileOptional(vararg dep: String) {
+        addToDependencies(project, optionalDependencies, dep, optional = true)
+        addToDependencies(project, dependencies, dep, optional = true)
+    }
 
     @Directive
-    fun provided(vararg dep: String) = addToDependencies(project, providedDependencies, dep)
+    fun provided(vararg dep: String) {
+        addToDependencies(project, providedDependencies, dep)
+        addToDependencies(project, dependencies, dep)
+    }
 
     @Directive
     fun runtime(vararg dep: String) = addToDependencies(project, runtimeDependencies, dep)
