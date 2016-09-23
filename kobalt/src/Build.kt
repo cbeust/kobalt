@@ -98,6 +98,7 @@ val kobaltPluginApi = project {
                 "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "com.beust:jcommander:1.48",
+                "org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r",
 
                 "org.slf4j:slf4j-nop:1.6.0",
                 "org.eclipse.aether:aether-spi:${Versions.aether}",
@@ -207,6 +208,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
     github {
         file("$buildDirectory/libs/$name-$version.zip", "$name/$version/$name-$version.zip")
+        autoGitTag = true
     }
 
     test {
