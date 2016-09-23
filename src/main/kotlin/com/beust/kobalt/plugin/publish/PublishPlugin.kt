@@ -56,7 +56,7 @@ class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGener
     private fun findArtifactFiles(project: Project) : List<File> {
         val result = files.findRecursively(File(project.directory, project.buildDirectory)) { file ->
                 VALID.any { file.endsWith(it)} and file.contains(project.version!!)
-            }.map { it -> File(it) }
+            }.map(::File)
         return result
     }
 
