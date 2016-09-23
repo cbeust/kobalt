@@ -4,7 +4,6 @@ import com.beust.kobalt.ProxyConfig
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
-import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
@@ -31,7 +30,7 @@ class KobaltSettingsXml {
     var proxies: ProxiesXml? = null
 
     @XmlElement(name = "kobaltCompilerVersion") @JvmField
-    var kobaltCompilerVersion: String = "1.0.4-eap-62"
+    var kobaltCompilerVersion: String = "1.0.4"
 
     @XmlElement(name = "kobaltCompilerRepo") @JvmField
     var kobaltCompilerRepo: String? = null
