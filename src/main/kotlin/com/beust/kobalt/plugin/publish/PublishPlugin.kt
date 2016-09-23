@@ -20,7 +20,7 @@ import javax.inject.Singleton
 
 @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
 @Singleton
-public class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGenerator.IFactory,
+class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGenerator.IFactory,
         val bintrayFactory: BintrayApi.IFactory, val github: GithubApi2, val localProperties: LocalProperties,
         val git: Git) : BasePlugin() {
 
@@ -206,7 +206,7 @@ data class GithubConfig(val project: Project) {
 }
 
 @Directive
-public fun Project.github(init: GithubConfig.() -> Unit) {
+fun Project.github(init: GithubConfig.() -> Unit) {
     with(GithubConfig(this)) {
         init()
         (Kobalt.findPlugin(PublishPlugin.PLUGIN_NAME) as PublishPlugin).addGithubConfiguration(name, this)
@@ -239,13 +239,13 @@ data class BintrayConfig(val project: Project) {
     val files = arrayListOf<Pair<String, String>>()
 
     @Directive
-    public fun file(filePath: String, url: String) {
+    fun file(filePath: String, url: String) {
         files.add(Pair(filePath, url))
     }
 }
 
 @Directive
-public fun Project.bintray(init: BintrayConfig.() -> Unit) {
+fun Project.bintray(init: BintrayConfig.() -> Unit) {
     with(BintrayConfig(this)) {
         init()
         (Kobalt.findPlugin(PublishPlugin.PLUGIN_NAME) as PublishPlugin).addBintrayConfiguration(name, this)
