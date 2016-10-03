@@ -32,7 +32,7 @@ import javax.inject.Inject
  * 1) Extract the repos() and plugins() statements in a separate .kt and compile it into preBuildScript.jar.
  * 2) Actually build the whole Build.kt file after adding to the classpath whatever phase 1 found (plugins, repos)
  */
-class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFiles: List<BuildFile>,
+public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFiles: List<BuildFile>,
         @Assisted val pluginInfo: PluginInfo, val files: KFiles, val plugins: Plugins,
         val dependencyManager: DependencyManager, val pluginProperties: PluginProperties,
         val executors: KobaltExecutors, val buildScriptUtil: BuildScriptUtil, val settings: KobaltSettings,
@@ -71,7 +71,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
         return projectResult
     }
 
-    val compiledBuildFiles = arrayListOf<ProcessedBuildFile>()
+    val parsedBuildFiles = arrayListOf<ParsedBuildFile>()
 
     class FindProjectResult(val context: KobaltContext, val projects: List<Project>, val pluginUrls: List<URL>,
             val taskResult: TaskResult)
@@ -80,9 +80,9 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
         var errorTaskResult: TaskResult? = null
         val projects = arrayListOf<Project>()
         buildFiles.forEach { buildFile ->
-            val compiledBuildFile = parseBuildFile(context, buildFile)
-            compiledBuildFiles.add(compiledBuildFile)
-            val pluginUrls = compiledBuildFile.pluginUrls
+            val parsedBuildFile = parseBuildFile(context, buildFile)
+            parsedBuildFiles.add(parsedBuildFile)
+            val pluginUrls = parsedBuildFile.pluginUrls
             val buildScriptJarFile = File(KFiles.findBuildScriptLocation(buildFile, SCRIPT_JAR))
 
             //
@@ -102,7 +102,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
             // Write the modified Build.kt (e.g. maybe profiles were applied) to a temporary file,
             // compile it, jar it in buildScript.jar and run it
             val modifiedBuildFile = KFiles.createTempFile(".kt", deleteOnExit = true)
-            KFiles.saveFile(modifiedBuildFile, compiledBuildFile.splitFile.buildScriptCode)
+            KFiles.saveFile(modifiedBuildFile, parsedBuildFile.buildScriptCode)
             val taskResult = maybeCompileBuildFile(context, BuildFile(Paths.get(modifiedBuildFile.path),
                     "Modified ${Constants.BUILD_FILE_NAME}", buildFile.realPath),
                     buildScriptJarFile, pluginUrls)
@@ -118,7 +118,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
             context.internalContext.absoluteDir = null
 
         }
-        val pluginUrls = compiledBuildFiles.flatMap { it.pluginUrls }
+        val pluginUrls = parsedBuildFiles.flatMap { it.pluginUrls }
         return FindProjectResult(context, projects, pluginUrls,
                 if (errorTaskResult != null) errorTaskResult!! else TaskResult())
     }
@@ -167,5 +167,5 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
      * - the URL's of all the plug-ins that were found.
      */
     private fun parseBuildFile(context: KobaltContext, buildFile: BuildFile) =
-        processedBuildFileFactory.create(buildFile, context)
+            ParsedBuildFile(buildFile, context, buildScriptUtil, dependencyManager, files)
 }
