@@ -433,13 +433,19 @@ public class Main {
     }
 
     private Proxy getProxy() {
-        String http_proxy = System.getenv("http_proxy");
+        String httpProxy = System.getenv("http_proxy");
         try {
-            String host = http_proxy == null || http_proxy.indexOf(':') == -1 ? "localhost" : http_proxy.substring(0, http_proxy.indexOf(':'));
-            int port = http_proxy == null || http_proxy.indexOf(':') == -1 ? 0 : Integer.parseInt(http_proxy.substring(http_proxy.indexOf(':') + 1));
-            return http_proxy == null ? null : new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
+            String host = httpProxy == null || httpProxy.indexOf(':') == -1
+                    ? "localhost"
+                    : httpProxy.substring(0, httpProxy.indexOf(':'));
+            int port = httpProxy == null || httpProxy.indexOf(':') == -1
+                    ? 0
+                    : Integer.parseInt(httpProxy.substring(httpProxy.indexOf(':') + 1));
+            return httpProxy == null
+                    ? null
+                    : new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
         } catch (NumberFormatException e) {
-            log(1, "Warning: invalid proxy port: " + http_proxy);;
+            log(1, "Warning: invalid proxy port: " + httpProxy);;
             return null;
         }
     }
