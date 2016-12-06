@@ -433,7 +433,7 @@ public class Main {
     }
 
     private Proxy getProxy() {
-        String httpProxy = System.getenv("http_proxy");
+        String httpProxy = System.getenv("httpProxy");
         try {
             String host = httpProxy == null || httpProxy.indexOf(':') == -1
                     ? "localhost"
