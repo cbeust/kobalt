@@ -2,6 +2,8 @@ package com.beust.kobalt.wrapper;
 
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.*;
@@ -364,13 +366,18 @@ public class Main {
         log(2, "Downloading " + fileUrl);
 
         boolean done = false;
+        Proxy proxy = getProxy();
         HttpURLConnection httpConn = null;
         try {
             int responseCode = 0;
             URL url = null;
             while (!done) {
                 url = new URL(fileUrl);
-                httpConn = (HttpURLConnection) url.openConnection();
+                if (proxy != null) {
+                    httpConn = (HttpURLConnection) url.openConnection(proxy);
+                } else {
+                    httpConn = (HttpURLConnection) url.openConnection();
+                }
                 responseCode = httpConn.getResponseCode();
                 if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
                         responseCode == HttpURLConnection.HTTP_MOVED_PERM) {
@@ -422,6 +429,18 @@ public class Main {
             if (httpConn != null) {
                 httpConn.disconnect();
             }
+        }
+    }
+
+    private Proxy getProxy() {
+        String http_proxy = System.getenv("http_proxy");
+        try {
+            String host = http_proxy == null || http_proxy.indexOf(':') == -1 ? "localhost" : http_proxy.substring(0, http_proxy.indexOf(':'));
+            int port = http_proxy == null || http_proxy.indexOf(':') == -1 ? 0 : Integer.parseInt(http_proxy.substring(http_proxy.indexOf(':') + 1));
+            return http_proxy == null ? null : new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
+        } catch (NumberFormatException e) {
+            log(1, "Warning: invalid proxy port: " + http_proxy);;
+            return null;
         }
     }
 
