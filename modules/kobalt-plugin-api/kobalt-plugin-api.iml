@@ -583,12 +583,12 @@
     <orderEntry type="module-library">
       <library name="Kobalt: org.sonatype.sisu:sisu-guice:jar:no_aop:3.0.3">
         <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/sonatype/sisu/sisu-guice/3.0.3/sisu-guice-3.0.3.jar!/" />
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/sonatype/sisu/sisu-guice/3.0.3/sisu-guice-3.0.3-no_aop.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="kobalt.jar" level="project" />
+    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
   </component>
 </module>
