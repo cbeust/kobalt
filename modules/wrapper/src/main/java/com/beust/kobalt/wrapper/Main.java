@@ -2,7 +2,6 @@ package com.beust.kobalt.wrapper;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -366,7 +365,7 @@ public class Main {
         log(2, "Downloading " + fileUrl);
 
         boolean done = false;
-        Proxy proxy = getProxy();
+        Proxy proxy = Config.getProxy();
         HttpURLConnection httpConn = null;
         try {
             int responseCode = 0;
@@ -429,24 +428,6 @@ public class Main {
             if (httpConn != null) {
                 httpConn.disconnect();
             }
-        }
-    }
-
-    private Proxy getProxy() {
-        String httpProxy = System.getenv("http_proxy");
-        try {
-            String host = httpProxy == null || httpProxy.indexOf(':') == -1
-                    ? "localhost"
-                    : httpProxy.substring(0, httpProxy.indexOf(':'));
-            int port = httpProxy == null || httpProxy.indexOf(':') == -1
-                    ? 0
-                    : Integer.parseInt(httpProxy.substring(httpProxy.indexOf(':') + 1));
-            return httpProxy == null
-                    ? null
-                    : new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
-        } catch (NumberFormatException e) {
-            log(1, "Warning: invalid proxy port: " + httpProxy);;
-            return null;
         }
     }
 
