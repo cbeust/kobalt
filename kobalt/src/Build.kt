@@ -143,7 +143,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
     dependencies {
         // Used by the plugins
-        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.3")
+        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.5")
 
         // Used by the main app
         compile("com.github.spullara.mustache.java:compiler:0.9.1",
@@ -157,7 +157,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "com.squareup.okhttp3:okhttp-ws:${Versions.okhttp}",
-                "org.codehaus.plexus:plexus-utils:3.0.22",
+                "org.codehaus.plexus:plexus-utils:4.0",
                 "biz.aQute.bnd:bndlib:2.4.0",
 
                 "com.squareup.okhttp3:logging-interceptor:3.2.0",

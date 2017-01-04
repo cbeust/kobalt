@@ -229,4 +229,25 @@ class CompilerUtils @Inject constructor(val files: KFiles,
     private fun isDependencyExcluded(id: IClasspathDependency, excluded: List<IClasspathDependency>)
             = excluded.any { id.id.startsWith(it.id) }
 
+    fun sourceCompilerFlags(project: Project?, context: KobaltContext, info: CompilerActionInfo) : List<String> {
+        val adapters = context.pluginInfo.compilerFlagContributors.map {
+            val closure = { project: Project, context: KobaltContext, currentFlags: List<String>,
+                    suffixesBeingCompiled: List<String>
+                -> it.compilerFlagsFor(project, context, currentFlags, suffixesBeingCompiled) }
+            FlagContributor(it.flagPriority, closure)
+        }
+        return compilerFlags(project, context, info, adapters)
+    }
+
+    fun compilerFlags(project: Project?, context: KobaltContext, info: CompilerActionInfo,
+            adapters: List<FlagContributor>) : List<String> {
+        val result = arrayListOf<String>()
+        if (project != null) {
+            adapters.sortedBy { it.flagPriority }
+            adapters.forEach {
+                result.addAll(it.flagsFor(project, context, result, info.suffixesBeingCompiled))
+            }
+        }
+        return result
+    }
 }

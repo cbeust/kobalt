@@ -150,8 +150,7 @@ open class JvmCompilerPlugin @Inject constructor(
         val results = arrayListOf<TaskResult>()
 
         val compilerContributors = context.pluginInfo.compilerContributors
-                ActorUtils.selectAffinityActors(project, context,
-                context.pluginInfo.compilerContributors)
+                ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
 
         var failedResult: TaskResult? = null
         if (compilerContributors.isEmpty()) {

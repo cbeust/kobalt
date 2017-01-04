@@ -15,13 +15,12 @@ import java.util.*
  * Also validates the classpath and run all the contributors.
  */
 class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) {
-
     /**
      * Take the given CompilerActionInfo and enrich it with all the applicable contributors and
      * then pass it to the ICompilerAction.
      */
-    fun doCompile(project: Project?, context: KobaltContext?, action: ICompilerAction, info: CompilerActionInfo)
-            : TaskResult {
+    fun doCompile(project: Project?, context: KobaltContext?, action: ICompilerAction, info: CompilerActionInfo,
+            flags: List<String>): TaskResult {
 
         // Dependencies
         val allDependencies = (info.dependencies
@@ -30,16 +29,7 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
 
         // Plugins that add flags to the compiler
         val currentFlags = arrayListOf<String>().apply { addAll(info.compilerArgs) }
-        val contributorFlags : List<String> = if (project != null) {
-            val contributors = context.pluginInfo.compilerFlagContributors
-            contributors.sortBy { it.flagPriority }
-            context.pluginInfo.compilerFlagContributors.forEach {
-                currentFlags.addAll(it.flagsFor(project, context, currentFlags, info.suffixesBeingCompiled))
-            }
-            currentFlags
-        } else {
-            emptyList()
-        }
+        val contributorFlags : List<String> = if (project != null) flags else emptyList()
 
         val addedFlags = contributorFlags + ArrayList(info.compilerArgs)
 

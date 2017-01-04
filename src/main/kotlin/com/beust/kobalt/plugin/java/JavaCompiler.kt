@@ -3,10 +3,8 @@ package com.beust.kobalt.plugin.java
 import com.beust.kobalt.JavaInfo
 import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.api.CompilerActionInfo
-import com.beust.kobalt.api.ICompiler
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
+import com.beust.kobalt.internal.CompilerUtils
 import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.ParallelLogger
@@ -22,7 +20,8 @@ import javax.tools.JavaFileObject
 import javax.tools.ToolProvider
 
 @Singleton
-class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler, val kobaltLog: ParallelLogger) : ICompiler {
+class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler, val kobaltLog: ParallelLogger,
+        val compilerUtils: CompilerUtils) : ICompiler {
     fun compilerAction(executable: File) = object : ICompilerAction {
         override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
             if (info.sourceFiles.isEmpty()) {
@@ -35,11 +34,12 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler, val kobaltL
             val compiler = ToolProvider.getSystemJavaCompiler()
             fun logk(level: Int, message: CharSequence) = kobaltLog.log(projectName ?: "", level, message)
             val result =
-                if (compiler != null) {
+                if (false) {
+//                if (compiler != null) {
                     logk(2, "Found system Java compiler, using the compiler API")
                     val allArgs = arrayListOf(
                             "-d", KFiles.makeDir(info.directory!!, info.outputDir.path).path)
-                    if (info.dependencies.size > 0) {
+                    if (info.dependencies.isNotEmpty()) {
                         allArgs.add("-classpath")
                         allArgs.add(info.dependencies.map { it.jarFile.get() }.joinToString(File.pathSeparator))
                     }
@@ -63,12 +63,12 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler, val kobaltL
                     errorMessage = dc.diagnostics.joinToString("\n")
                     result
                 } else {
-                    logk(2, "Didn't find system Java compiler, forking javac")
+                    logk(2, "Forking $executable")
                     val allArgs = arrayListOf(
                             executable.absolutePath,
                             "-d", KFiles.makeDir(info.directory!!, info.outputDir.path).path)
 
-                    if (info.dependencies.size > 0) {
+                    if (info.dependencies.isNotEmpty()) {
                         allArgs.add("-classpath")
                         allArgs.add(info.dependencies.map { it.jarFile.get() }.joinToString(File.pathSeparator))
                     }
@@ -103,13 +103,30 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler, val kobaltL
     /**
      * Invoke the given executable on the CompilerActionInfo.
      */
-    private fun run(project: Project?, context: KobaltContext?, cai: CompilerActionInfo, executable: File): TaskResult {
-        return jvmCompiler.doCompile(project, context, compilerAction(executable), cai)
+    private fun run(project: Project?, context: KobaltContext?, cai: CompilerActionInfo, executable: File,
+            flags: List<String>): TaskResult {
+        return jvmCompiler.doCompile(project, context, compilerAction(executable), cai, flags)
     }
 
-    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult
-        = run(project, context, info, JavaInfo.create(File(SystemProperties.javaBase)).javacExecutable!!)
+    override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
+        val adapters = context.pluginInfo.compilerFlagContributors.map {
+            val closure = { project: Project, context: KobaltContext, currentFlags: List<String>,
+                suffixesBeingCompiled: List<String>
+                    -> it.compilerFlagsFor(project, context, currentFlags, suffixesBeingCompiled) }
+            FlagContributor(it.flagPriority, closure)
+        }
+        return run(project, context, info, JavaInfo.create(File(SystemProperties.javaBase)).javacExecutable!!,
+                compilerUtils.compilerFlags(project, context, info, adapters))
+    }
 
-    fun javadoc(project: Project?, context: KobaltContext?, cai: CompilerActionInfo) : TaskResult
-        = run(project, context, cai, JavaInfo.create(File(SystemProperties.javaBase)).javadocExecutable!!)
+    fun javadoc(project: Project?, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
+        val adapters = context.pluginInfo.docFlagContributors.map {
+            val closure = { project: Project, context: KobaltContext, currentFlags: List<String>,
+                    suffixesBeingCompiled: List<String>
+                -> it.docFlagsFor(project, context, currentFlags, suffixesBeingCompiled) }
+            FlagContributor(it.flagPriority, closure)
+        }
+        return run(project, context, info, JavaInfo.create(File(SystemProperties.javaBase)).javadocExecutable!!,
+                compilerUtils.compilerFlags(project, context, info, adapters))
+    }
 }

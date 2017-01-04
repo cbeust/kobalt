@@ -192,6 +192,7 @@ class TaskManager @Inject constructor(val args: Args,
             = TaskAnnotation(method, plugin, ta.name, ta.description, ta.group, ta.dependsOn, ta.reverseDependsOn,
                 ta.runBefore, ta.runAfter, ta.alwaysRunAfter,
             { project ->
+                Kobalt.context?.variant = Variant()
                 method.invoke(plugin, project) as TaskResult
             })
 

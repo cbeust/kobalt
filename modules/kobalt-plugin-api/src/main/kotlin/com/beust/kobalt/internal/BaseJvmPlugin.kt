@@ -12,7 +12,7 @@ abstract class BaseJvmPlugin<T>(open val configActor: ConfigActor<T>) :
         ICompilerFlagContributor {
     companion object {
         // Run before other flag contributors
-        val FLAG_CONTRIBUTOR_PRIORITY = ICompilerFlagContributor.DEFAULT_FLAG_PRIORITY - 10
+        val FLAG_CONTRIBUTOR_PRIORITY = FlagContributor.DEFAULT_FLAG_PRIORITY - 10
     }
 
     protected fun maybeCompilerArgs(sourceSuffixes: List<String>, suffixesBeingCompiled: List<String>,
@@ -21,14 +21,14 @@ abstract class BaseJvmPlugin<T>(open val configActor: ConfigActor<T>) :
 
     override val flagPriority = FLAG_CONTRIBUTOR_PRIORITY
 
-    override fun accept(project: Project) = hasSourceFiles(project)
+    override fun accept(project: Project) = sourceFileCount(project) > 0
 
     // IBuildConfigContributor
 
-    private fun hasSourceFiles(project: Project)
-            = KFiles.findSourceFiles(project.directory, project.sourceDirectories, sourceSuffixes()).size > 0
+    protected fun sourceFileCount(project: Project)
+            = KFiles.findSourceFiles(project.directory, project.sourceDirectories, sourceSuffixes()).size
 
-    fun affinity(project: Project) = if (hasSourceFiles(project)) 1 else 0
+    fun affinity(project: Project) = sourceFileCount(project)
 
     abstract fun sourceSuffixes() : List<String>
 }

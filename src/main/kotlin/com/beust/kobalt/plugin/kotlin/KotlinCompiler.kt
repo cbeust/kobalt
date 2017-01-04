@@ -31,7 +31,7 @@ class KotlinCompiler @Inject constructor(
         val executors: KobaltExecutors,
         val settings: KobaltSettings,
         val jvmCompiler: JvmCompiler,
-        val kotlinJarFiles: KotlinJarFiles,
+        val compilerUtils: CompilerUtils,
         val kobaltLog: ParallelLogger) {
 
     val compilerAction = object: ICompilerAction {
@@ -93,6 +93,10 @@ class KotlinCompiler @Inject constructor(
                     + " -classpath " + args.classpath
                     + " " + sourceFiles.joinToString(" "))
             val collector = object : MessageCollector {
+                override fun clear() {
+                    throw UnsupportedOperationException("not implemented")
+                }
+
                 override fun hasErrors(): Boolean {
                     throw UnsupportedOperationException("not implemented")
                 }
@@ -214,7 +218,8 @@ class KotlinCompiler @Inject constructor(
         val info = CompilerActionInfo(project?.directory, dependencies, sourceFiles, listOf("kt"), outputDir, args,
                 friendPaths)
 
-        return jvmCompiler.doCompile(project, context, compilerAction, info)
+        return jvmCompiler.doCompile(project, context, compilerAction, info,
+                if (context != null) compilerUtils.sourceCompilerFlags(project, context, info) else emptyList())
     }
 }
 

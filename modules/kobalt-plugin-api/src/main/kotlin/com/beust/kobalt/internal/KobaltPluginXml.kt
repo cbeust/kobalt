@@ -98,6 +98,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
     val localMavenRepoPathInterceptors = arrayListOf<ILocalMavenRepoPathInterceptor>()
     val buildListeners = arrayListOf<IBuildListener>()
     val buildReportContributors = arrayListOf<IBuildReportContributor>()
+    val docFlagContributors = arrayListOf<IDocFlagContributor>()
 
     // Note: intentionally repeating them here even though they are defined by our base class so
     // that this class always contains the full list of contributors and interceptors
@@ -216,6 +217,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
                 if (this is ILocalMavenRepoPathInterceptor) localMavenRepoPathInterceptors.add(this)
                 if (this is IBuildListener) buildListeners.add(this)
                 if (this is IBuildReportContributor) buildReportContributors.add(this)
+                if (this is IDocFlagContributor) docFlagContributors.add(this)
             }
         }
     }
@@ -230,11 +232,9 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
                 taskContributors, incrementalTaskContributors, assemblyContributors,
                 incrementalAssemblyContributors, testJvmFlagInterceptors,
                 jvmFlagContributors, localMavenRepoPathInterceptors, buildListeners,
-                buildReportContributors
+                buildReportContributors, docFlagContributors
             ).forEach {
-                it.forEach {
-                    it.cleanUpActors()
-                }
+                it.forEach(IPluginActor::cleanUpActors)
             }
     }
 
@@ -273,6 +273,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
         localMavenRepoPathInterceptors.addAll(pluginInfo.localMavenRepoPathInterceptors)
         buildListeners.addAll(pluginInfo.buildListeners)
         buildReportContributors.addAll(pluginInfo.buildReportContributors)
+        docFlagContributors.addAll(pluginInfo.docFlagContributors)
     }
 }
 

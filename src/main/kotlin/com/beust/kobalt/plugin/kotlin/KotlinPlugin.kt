@@ -40,10 +40,11 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
     }
 
     // ICompilerFlagsContributor
-    override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
+    override fun compilerFlagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
             suffixesBeingCompiled: List<String>) : List<String> {
         val args = (configurationFor(project)?.compilerArgs ?: listOf<String>()) + "-no-stdlib"
-        return maybeCompilerArgs(compiler.sourceSuffixes, suffixesBeingCompiled, args)
+        val result = maybeCompilerArgs(compiler.sourceSuffixes, suffixesBeingCompiled, args)
+        return result
     }
 
     //    override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
@@ -113,7 +114,8 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
     val compiler = CompilerDescription(PLUGIN_NAME, "kotlin", SOURCE_SUFFIXES, KotlinCompiler(),
             ICompilerDescription.DEFAULT_PRIORITY - 5, canCompileDirectories = false)
 
-    override fun compilersFor(project: Project, context: KobaltContext) = arrayListOf(compiler)
+    override fun compilersFor(project: Project, context: KobaltContext)
+            = if (sourceFileCount(project) > 0) listOf(compiler) else emptyList()
 
     //    private val dokkaConfigurations = ArrayListMultimap.create<String, DokkaConfig>()
 //

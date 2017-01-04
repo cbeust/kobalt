@@ -14,7 +14,7 @@ import javax.inject.Singleton
 @Singleton
 class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override val configActor: ConfigActor<JavaConfig>)
         : BaseJvmPlugin<JavaConfig>(configActor), IDocContributor, ICompilerContributor,
-            ITestSourceDirectoryContributor, IBuildConfigContributor {
+            ITestSourceDirectoryContributor, IBuildConfigContributor, IDocFlagContributor {
 
     companion object {
         val PLUGIN_NAME = "Java"
@@ -24,14 +24,13 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override va
     override val name = PLUGIN_NAME
 
     // IDocContributor
-    override fun affinity(project: Project, context: KobaltContext) =
-            if (accept(project)) 1 else 0
+    override fun affinity(project: Project, context: KobaltContext) = sourceFileCount(project)
 
     override fun sourceSuffixes() = SOURCE_SUFFIXES
 
     override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         val result =
-            if (info.sourceFiles.size > 0) {
+            if (info.sourceFiles.isNotEmpty()) {
                 javaCompiler.javadoc(project, context, info)
             } else {
                 warn("Couldn't find any source files to run Javadoc on")
@@ -41,15 +40,22 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override va
     }
 
     // ICompilerFlagsContributor
-    override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
+    override fun compilerFlagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
             suffixesBeingCompiled: List<String>) =
                 maybeCompilerArgs(compiler.sourceSuffixes, suffixesBeingCompiled,
                         configurationFor(project)?.compilerArgs ?: listOf<String>())
 
+    // IDocFlagContributor
+    override fun docFlagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
+            suffixesBeingCompiled: List<String>): List<String> {
+        return listOf("-d", "javadoc", "-Xdoclint:none", "-Xmaxerrs", "1", "-quiet")
+    }
+
     // ICompilerContributor
     val compiler = CompilerDescription(PLUGIN_NAME, "java", SOURCE_SUFFIXES, javaCompiler)
 
-    override fun compilersFor(project: Project, context: KobaltContext) = listOf(compiler)
+    override fun compilersFor(project: Project, context: KobaltContext)
+            = if (sourceFileCount(project) > 0) listOf(compiler) else emptyList()
 
     // ITestSourceDirectoryContributor
     override fun testSourceDirectoriesFor(project: Project, context: KobaltContext)

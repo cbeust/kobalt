@@ -102,7 +102,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
                     context.variant.toIntermediateDir())
 
     // ICompilerFlagContributor
-    override fun flagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
+    override fun compilerFlagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
             suffixesBeingCompiled: List<String>): List<String> {
         if (!suffixesBeingCompiled.contains("java")) return emptyList()
 
