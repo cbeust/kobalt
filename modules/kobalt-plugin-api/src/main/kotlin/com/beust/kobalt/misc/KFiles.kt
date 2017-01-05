@@ -71,7 +71,6 @@ class KFiles {
         private val SRC = "src"
 
         val TEST_CLASSES_DIR : String = "test-classes"
-        val JAVADOC_DIR: String = "docs/javadoc"
 
         val NATIVES_DIR : String = "native"
 

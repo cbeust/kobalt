@@ -222,7 +222,8 @@ class PackageConfig(val project: Project) : AttributeHolder {
         }
         jar {
             name = "${project.name}-${project.version}-javadoc.jar"
-            include(from(JvmCompilerPlugin.DOCS_DIRECTORY), to(""), glob("**"))
+            val fromDir = KFiles.joinDir(project.buildDirectory, JvmCompilerPlugin.DOCS_DIRECTORY)
+            include(from(fromDir), to(""), glob("**"))
         }
 
         mainJarAttributes.forEach {

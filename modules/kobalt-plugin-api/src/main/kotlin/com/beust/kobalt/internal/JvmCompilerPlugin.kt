@@ -221,7 +221,7 @@ open class JvmCompilerPlugin @Inject constructor(
     fun taskJavadoc(project: Project): TaskResult {
         val docGenerator = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.docContributors)
         if (docGenerator != null) {
-            val buildDirectory = File(project.buildDirectory, KFiles.JAVADOC_DIR)
+            val buildDirectory = File(project.buildDirectory, JvmCompilerPlugin.DOCS_DIRECTORY)
             val contributors =
                     ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
             var result: TaskResult? = null
