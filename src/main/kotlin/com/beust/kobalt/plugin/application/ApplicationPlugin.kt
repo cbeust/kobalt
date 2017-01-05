@@ -20,9 +20,12 @@ import java.io.File
 @Directive
 class ApplicationConfig {
     var mainClass: String? = null
-    var jvmArgs = arrayListOf<String>()
 
+    val jvmArgs = arrayListOf<String>()
     fun jvmArgs(vararg args: String) = args.forEach { jvmArgs.add(it) }
+
+    val args = arrayListOf<String>()
+    fun args(vararg argv: String) = argv.forEach { args.add(it) }
 }
 
 @Directive
@@ -93,7 +96,8 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
     }
 
     private fun runJarFile(project: Project, context: KobaltContext, config: ApplicationConfig) : TaskResult {
-        val jarFileName = project.projectProperties.get(Archives.JAR_NAME)
+        val fileName = project.projectProperties.get(Archives.JAR_NAME) as String
+        val jarFileName = KFiles.joinDir(KFiles.libsDir(project), fileName)
         val jarName = (jarFileName ?: KFiles.joinDir(KFiles.libsDir(project),
                 context.variant.archiveName(project, null, ".jar")))
             as String
@@ -118,7 +122,7 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
         val contributorFlags = context.pluginInfo.jvmFlagContributors.flatMap {
             it.jvmFlagsFor(project, context, initialArgs)
         }
-        val args = contributorFlags + initialArgs
+        val args = contributorFlags + initialArgs + config.args
         val exitCode = RunCommand(java.absolutePath).run(args,
                 successCallback = { output: List<String> ->
                     println(output.joinToString("\n"))
