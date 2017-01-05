@@ -73,6 +73,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 { null },
                 { project ->
                     try {
+                        project.projectProperties.put(Archives.JAR_NAME,
+                                context.variant.archiveName(project, null, ".jar"))
                         packages.filter { it.project.name == project.name }.forEach { packageConfig ->
                             packageConfig.jars.forEach { jarGenerator.generateJar(packageConfig.project, context, it) }
                             packageConfig.wars.forEach { warGenerator.generateWar(packageConfig.project, context, it) }

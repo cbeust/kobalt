@@ -50,8 +50,6 @@ class Archives {
                 context.logger.log(project.name, 3, "  $result is up to date")
             }
 
-            project.projectProperties.put(JAR_NAME, result.absolutePath)
-
             return result
         }
 
