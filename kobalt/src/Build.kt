@@ -157,7 +157,6 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "com.squareup.okhttp3:okhttp-ws:${Versions.okhttp}",
-                "org.codehaus.plexus:plexus-utils:4.0",
                 "biz.aQute.bnd:bndlib:2.4.0",
 
                 "com.squareup.okhttp3:logging-interceptor:3.2.0",
