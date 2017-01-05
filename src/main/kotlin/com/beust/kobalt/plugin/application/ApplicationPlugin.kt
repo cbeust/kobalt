@@ -58,7 +58,7 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
         if (runContributor != null && runContributor.affinity(project, context) > 0) {
             return runContributor.run(project, context, dependencyManager.dependencies(project, context))
         } else {
-            context.logger.log(project.name, 2,
+            context.logger.log(project.name, 1,
                     "Couldn't find a runner for project ${project.name}. Please make sure" +
                     " your build file contains " +
                     "an application{} directive with a mainClass=... in it")
