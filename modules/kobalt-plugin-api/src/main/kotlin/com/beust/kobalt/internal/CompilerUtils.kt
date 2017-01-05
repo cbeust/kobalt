@@ -22,7 +22,7 @@ class CompilerUtils @Inject constructor(val files: KFiles,
     class CompilerResult(val successResults: List<TaskResult>, val failedResult: TaskResult?)
 
     fun invokeCompiler(project: Project, context: KobaltContext, compiler: ICompilerDescription,
-            sourceDirectories: List<File>, isTest: Boolean): CompilerResult {
+            sourceDirectories: List<File>, isTest: Boolean, buildDirectory: File): CompilerResult {
         val results = arrayListOf<TaskResult>()
         var failedResult: TaskResult? = null
         val contributedSourceDirs =
@@ -37,7 +37,7 @@ class CompilerUtils @Inject constructor(val files: KFiles,
             // TODO: createCompilerActionInfo recalculates the source files, only compute them
             // once and pass them
             val info = createCompilerActionInfo(project, context, compiler, isTest,
-                    sourceDirectories, sourceSuffixes = compiler.sourceSuffixes)
+                    sourceDirectories, sourceSuffixes = compiler.sourceSuffixes, buildDirectory = buildDirectory)
             val thisResult = invokeCompiler(project, context, compiler, info)
             results.addAll(thisResult.successResults)
             if (failedResult == null) {
@@ -68,7 +68,8 @@ class CompilerUtils @Inject constructor(val files: KFiles,
      * Runs all the contributors and interceptors relevant to that task.
      */
     fun createCompilerActionInfo(project: Project, context: KobaltContext, compiler: ICompilerDescription,
-            isTest: Boolean, sourceDirectories: List<File>, sourceSuffixes: List<String>): CompilerActionInfo {
+            isTest: Boolean, sourceDirectories: List<File>, sourceSuffixes: List<String>, buildDirectory: File)
+            : CompilerActionInfo {
         copyResources(project, context, SourceSet.of(isTest))
 
         val fullClasspath = dependencyManager2.resolve(project, context, isTest, listOf(Scope.COMPILE, Scope.TEST))
@@ -82,11 +83,6 @@ class CompilerUtils @Inject constructor(val files: KFiles,
 //            println("DONOTCOMMIT")
 //            val d2 = dependencyManager2.resolve(project, context, isTest, listOf(Scope.COMPILE, Scope.TEST))
 //        }
-
-        // The directory where the classes get compiled
-        val buildDirectory =
-            if (isTest) File(project.buildDirectory, KFiles.TEST_CLASSES_DIR)
-            else File(project.classesDir(context))
 
         File(project.directory, buildDirectory.path).mkdirs()
 

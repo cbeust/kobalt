@@ -177,9 +177,14 @@ open class JvmCompilerPlugin @Inject constructor(
             val hasKapt = project.projectProperties.get("kaptConfig") != null
             val allCompilersSorted = if (hasKapt) swapJavaAndKotlin(allCompilers) else allCompilers
             var done = false
+            // The directory where the classes get compiled
+            val buildDirectory =
+                    if (isTest) File(project.buildDirectory, KFiles.TEST_CLASSES_DIR)
+                    else File(project.classesDir(context))
+
             allCompilersSorted.doWhile({ ! done }) { compiler ->
                 val compilerResults = compilerUtils.invokeCompiler(project, context, compiler,
-                        sourceDirectories(project, context, isTest), isTest)
+                        sourceDirectories(project, context, isTest), isTest, buildDirectory)
                 results.addAll(compilerResults.successResults)
                 if (failedResult == null) failedResult = compilerResults.failedResult
                 compilerResults.failedResult?.let { failedResult ->
@@ -216,6 +221,7 @@ open class JvmCompilerPlugin @Inject constructor(
     fun taskJavadoc(project: Project): TaskResult {
         val docGenerator = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.docContributors)
         if (docGenerator != null) {
+            val buildDirectory = File(project.buildDirectory, KFiles.JAVADOC_DIR)
             val contributors =
                     ActorUtils.selectAffinityActors(project, context, context.pluginInfo.compilerContributors)
             var result: TaskResult? = null
@@ -224,7 +230,7 @@ open class JvmCompilerPlugin @Inject constructor(
                     result = docGenerator.generateDoc(project, context,
                             compilerUtils.createCompilerActionInfo(project, context, compiler,
                                     isTest = false, sourceDirectories = sourceDirectories(project, context, false),
-                            sourceSuffixes = compiler.sourceSuffixes))
+                            sourceSuffixes = compiler.sourceSuffixes, buildDirectory = buildDirectory))
                 }
             }
             return result!!

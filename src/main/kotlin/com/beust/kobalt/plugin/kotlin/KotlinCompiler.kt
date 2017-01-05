@@ -44,11 +44,12 @@ class KotlinCompiler @Inject constructor(
             }
             val cp = compilerFirst(info.dependencies.map { it.jarFile.get() })
             val infoDir = info.directory
-            val outputDir = if (infoDir != null) {
-                KFiles.joinDir(infoDir, info.outputDir.path)
-            } else {
-                info.outputDir.path
-            }
+            val outputDir =
+                if (infoDir != null) {
+                    KFiles.joinDir(infoDir, info.outputDir.path)
+                } else {
+                    info.outputDir.path
+                }
             // kotlinc can accept a jar file as -d (which is super convenient) so only
             // create a directory if the output is not a jar file
             if (! outputDir.endsWith(".jar")) {
