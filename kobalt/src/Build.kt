@@ -143,7 +143,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
     dependencies {
         // Used by the plugins
-        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.5")
+        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.6")
 
         // Used by the main app
         compile("com.github.spullara.mustache.java:compiler:0.9.1",
