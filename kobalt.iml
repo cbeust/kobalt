@@ -15,406 +15,18 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="kobalt-plugin-api" />
     <orderEntry type="module-library">
-      <library name="Kobalt: org.codehaus.plexus:plexus-utils:jar:4.0">
+      <library name="Kobalt: org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:1.0.6">
         <CLASSES>
-          <root url="file://$MODULE_DIR$/DOESNOTEXIST org.codehaus.plexus:plexus-utils:jar:4.0" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="TEST">
-      <library name="Kobalt: org.beanshell:bsh:jar:2.0b4">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/beanshell/bsh/2.0b4/bsh-2.0b4.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="TEST">
-      <library name="Kobalt: com.beust:jcommander:jar:1.48">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/beust/jcommander/1.48/jcommander-1.48.jar!/" />
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.0.6/kotlin-compiler-embeddable-1.0.6.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Kobalt: com.google.inject:guice:jar:4.0">
+      <library name="Kobalt: org.osgi:org.osgi.core:jar:4.3.1">
         <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/google/inject/guice/4.0/guice-4.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.google.guava:guava:jar:16.0.1">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/google/guava/guava/16.0.1/guava-16.0.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.eclipse.jetty:jetty-xml:jar:9.3.6.v20151106">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-xml/9.3.6.v20151106/jetty-xml-9.3.6.v20151106.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.google.code.findbugs:jsr305:jar:3.0.1">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/google/code/findbugs/jsr305/3.0.1/jsr305-3.0.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.apache.maven:maven-model:jar:3.3.9">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/maven/maven-model/3.3.9/maven-model-3.3.9.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: javax.inject:javax.inject:jar:1">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/javax/inject/javax.inject/1/javax.inject-1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.eclipse.jetty.websocket:websocket-server:jar:9.3.6.v20151106">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/websocket/websocket-server/9.3.6.v20151106/websocket-server-9.3.6.v20151106.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.eclipse.jetty.websocket:websocket-client:jar:9.3.6.v20151106">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/websocket/websocket-client/9.3.6.v20151106/websocket-client-9.3.6.v20151106.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.squareup.okhttp3:okhttp:jar:3.2.0">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okhttp3/okhttp/3.2.0/okhttp-3.2.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.eclipse.jetty:jetty-servlet:jar:9.3.6.v20151106">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-servlet/9.3.6.v20151106/jetty-servlet-9.3.6.v20151106.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.eclipse.jetty:jetty-util:jar:9.3.6.v20151106">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-util/9.3.6.v20151106/jetty-util-9.3.6.v20151106.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.squareup.okhttp3:logging-interceptor:jar:3.2.0">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okhttp3/logging-interceptor/3.2.0/logging-interceptor-3.2.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.eclipse.jetty:jetty-http:jar:9.3.6.v20151106">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-http/9.3.6.v20151106/jetty-http-9.3.6.v20151106.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.beust:jcommander:jar:1.48">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/beust/jcommander/1.48/jcommander-1.48.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.eclipse.jetty.websocket:websocket-common:jar:9.3.6.v20151106">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/websocket/websocket-common/9.3.6.v20151106/websocket-common-9.3.6.v20151106.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.eclipse.jetty.websocket:websocket-api:jar:9.3.6.v20151106">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/websocket/websocket-api/9.3.6.v20151106/websocket-api-9.3.6.v20151106.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.eclipse.jetty:jetty-security:jar:9.3.6.v20151106">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-security/9.3.6.v20151106/jetty-security-9.3.6.v20151106.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.codehaus.plexus:plexus-utils:jar:3.0.22">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/codehaus/plexus/plexus-utils/3.0.22/plexus-utils-3.0.22.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.slf4j:slf4j-api:jar:1.7.13">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/slf4j/slf4j-api/1.7.13/slf4j-api-1.7.13.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.apache.commons:commons-lang3:jar:3.4">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/commons/commons-lang3/3.4/commons-lang3-3.4.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.google.code.gson:gson:jar:2.6.2">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/google/code/gson/gson/2.6.2/gson-2.6.2.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.eclipse.jetty.websocket:websocket-servlet:jar:9.3.6.v20151106">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/websocket/websocket-servlet/9.3.6.v20151106/websocket-servlet-9.3.6.v20151106.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.eclipse.jetty:jetty-webapp:jar:9.3.6.v20151106">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-webapp/9.3.6.v20151106/jetty-webapp-9.3.6.v20151106.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.github.spullara.mustache.java:compiler:jar:0.9.1">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/github/spullara/mustache/java/compiler/0.9.1/compiler-0.9.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.sparkjava:spark-core:jar:2.5">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/sparkjava/spark-core/2.5/spark-core-2.5.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.eclipse.jetty:jetty-io:jar:9.3.6.v20151106">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-io/9.3.6.v20151106/jetty-io-9.3.6.v20151106.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.squareup.okio:okio:jar:1.6.0">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okio/okio/1.6.0/okio-1.6.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: javax.servlet:javax.servlet-api:jar:3.1.0">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.eclipse.jetty:jetty-server:jar:9.3.6.v20151106">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-server/9.3.6.v20151106/jetty-server-9.3.6.v20151106.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.google.inject.extensions:guice-assistedinject:jar:4.0">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/google/inject/extensions/guice-assistedinject/4.0/guice-assistedinject-4.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: aopalliance:aopalliance:jar:1.0">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/aopalliance/aopalliance/1.0/aopalliance-1.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module" module-name="kobalt-wrapper" />
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.squareup.okhttp3:okhttp-ws:jar:3.2.0">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okhttp3/okhttp-ws/3.2.0/okhttp-ws-3.2.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="TEST">
-      <library name="Kobalt: org.apache.ant:ant:jar:1.7.0">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/ant/ant/1.7.0/ant-1.7.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="TEST">
-      <library name="Kobalt: org.assertj:assertj-core:jar:3.4.1">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/assertj/assertj-core/3.4.1/assertj-core-3.4.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="TEST">
-      <library name="Kobalt: org.apache.ant:ant-launcher:jar:1.7.0">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/ant/ant-launcher/1.7.0/ant-launcher-1.7.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="TEST">
-      <library name="Kobalt: org.testng:testng:jar:6.9.11">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/testng/testng/6.9.11/testng-6.9.11.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.squareup.retrofit2:retrofit:jar:2.1.0">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/retrofit2/retrofit/2.1.0/retrofit-2.1.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.squareup.retrofit2:converter-gson:jar:2.1.0">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/retrofit2/converter-gson/2.1.0/converter-gson-2.1.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.squareup.okhttp3:okhttp:jar:3.3.0">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okhttp3/okhttp/3.3.0/okhttp-3.3.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.google.code.gson:gson:jar:2.7">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/google/code/gson/gson/2.7/gson-2.7.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: com.squareup.okio:okio:jar:1.8.0">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okio/okio/1.8.0/okio-1.8.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:1.0.5">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.0.5/kotlin-compiler-embeddable-1.0.5.jar!/" />
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/osgi/org.osgi.core/4.3.1/org.osgi.core-4.3.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -430,9 +42,388 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Kobalt: org.osgi:org.osgi.core:jar:4.3.1">
+      <library name="Kobalt: com.squareup.okio:okio:jar:1.8.0">
         <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/osgi/org.osgi.core/4.3.1/org.osgi.core-4.3.1.jar!/" />
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okio/okio/1.8.0/okio-1.8.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.google.code.gson:gson:jar:2.7">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/google/code/gson/gson/2.7/gson-2.7.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.squareup.okhttp3:okhttp:jar:3.3.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okhttp3/okhttp/3.3.0/okhttp-3.3.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.squareup.retrofit2:converter-gson:jar:2.1.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/retrofit2/converter-gson/2.1.0/converter-gson-2.1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.squareup.retrofit2:retrofit:jar:2.1.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/retrofit2/retrofit/2.1.0/retrofit-2.1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library name="Kobalt: org.testng:testng:jar:6.9.11">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/testng/testng/6.9.11/testng-6.9.11.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library name="Kobalt: org.apache.ant:ant-launcher:jar:1.7.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/ant/ant-launcher/1.7.0/ant-launcher-1.7.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library name="Kobalt: org.assertj:assertj-core:jar:3.4.1">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/assertj/assertj-core/3.4.1/assertj-core-3.4.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library name="Kobalt: org.apache.ant:ant:jar:1.7.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/ant/ant/1.7.0/ant-1.7.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.squareup.okhttp3:okhttp-ws:jar:3.2.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okhttp3/okhttp-ws/3.2.0/okhttp-ws-3.2.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module" module-name="kobalt-wrapper" />
+    <orderEntry type="module-library">
+      <library name="Kobalt: aopalliance:aopalliance:jar:1.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/aopalliance/aopalliance/1.0/aopalliance-1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.google.inject.extensions:guice-assistedinject:jar:4.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/google/inject/extensions/guice-assistedinject/4.0/guice-assistedinject-4.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.jetty:jetty-server:jar:9.3.6.v20151106">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-server/9.3.6.v20151106/jetty-server-9.3.6.v20151106.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: javax.servlet:javax.servlet-api:jar:3.1.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.squareup.okio:okio:jar:1.6.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okio/okio/1.6.0/okio-1.6.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.jetty:jetty-io:jar:9.3.6.v20151106">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-io/9.3.6.v20151106/jetty-io-9.3.6.v20151106.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.sparkjava:spark-core:jar:2.5">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/sparkjava/spark-core/2.5/spark-core-2.5.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.github.spullara.mustache.java:compiler:jar:0.9.1">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/github/spullara/mustache/java/compiler/0.9.1/compiler-0.9.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.jetty:jetty-webapp:jar:9.3.6.v20151106">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-webapp/9.3.6.v20151106/jetty-webapp-9.3.6.v20151106.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.jetty.websocket:websocket-servlet:jar:9.3.6.v20151106">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/websocket/websocket-servlet/9.3.6.v20151106/websocket-servlet-9.3.6.v20151106.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.google.code.gson:gson:jar:2.6.2">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/google/code/gson/gson/2.6.2/gson-2.6.2.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.apache.commons:commons-lang3:jar:3.4">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/commons/commons-lang3/3.4/commons-lang3-3.4.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.slf4j:slf4j-api:jar:1.7.13">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/slf4j/slf4j-api/1.7.13/slf4j-api-1.7.13.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.codehaus.plexus:plexus-utils:jar:3.0.22">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/codehaus/plexus/plexus-utils/3.0.22/plexus-utils-3.0.22.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.jetty:jetty-security:jar:9.3.6.v20151106">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-security/9.3.6.v20151106/jetty-security-9.3.6.v20151106.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.jetty.websocket:websocket-api:jar:9.3.6.v20151106">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/websocket/websocket-api/9.3.6.v20151106/websocket-api-9.3.6.v20151106.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.jetty.websocket:websocket-common:jar:9.3.6.v20151106">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/websocket/websocket-common/9.3.6.v20151106/websocket-common-9.3.6.v20151106.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.beust:jcommander:jar:1.48">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/beust/jcommander/1.48/jcommander-1.48.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.jetty:jetty-http:jar:9.3.6.v20151106">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-http/9.3.6.v20151106/jetty-http-9.3.6.v20151106.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.squareup.okhttp3:logging-interceptor:jar:3.2.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okhttp3/logging-interceptor/3.2.0/logging-interceptor-3.2.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.jetty:jetty-util:jar:9.3.6.v20151106">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-util/9.3.6.v20151106/jetty-util-9.3.6.v20151106.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.jetty:jetty-servlet:jar:9.3.6.v20151106">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-servlet/9.3.6.v20151106/jetty-servlet-9.3.6.v20151106.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.squareup.okhttp3:okhttp:jar:3.2.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okhttp3/okhttp/3.2.0/okhttp-3.2.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.jetty.websocket:websocket-client:jar:9.3.6.v20151106">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/websocket/websocket-client/9.3.6.v20151106/websocket-client-9.3.6.v20151106.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.jetty.websocket:websocket-server:jar:9.3.6.v20151106">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/websocket/websocket-server/9.3.6.v20151106/websocket-server-9.3.6.v20151106.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: javax.inject:javax.inject:jar:1">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/javax/inject/javax.inject/1/javax.inject-1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.apache.maven:maven-model:jar:3.3.9">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/maven/maven-model/3.3.9/maven-model-3.3.9.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.google.code.findbugs:jsr305:jar:3.0.1">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/google/code/findbugs/jsr305/3.0.1/jsr305-3.0.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.jetty:jetty-xml:jar:9.3.6.v20151106">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/jetty/jetty-xml/9.3.6.v20151106/jetty-xml-9.3.6.v20151106.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.google.guava:guava:jar:16.0.1">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/google/guava/guava/16.0.1/guava-16.0.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: com.google.inject:guice:jar:4.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/google/inject/guice/4.0/guice-4.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library name="Kobalt: com.beust:jcommander:jar:1.48">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/beust/jcommander/1.48/jcommander-1.48.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library name="Kobalt: org.beanshell:bsh:jar:2.0b4">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/beanshell/bsh/2.0b4/bsh-2.0b4.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
