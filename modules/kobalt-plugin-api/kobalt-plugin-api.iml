@@ -22,6 +22,7 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="Kobalt: org.sonatype.sisu:sisu-guice:jar:no_aop:3.0.3">
+<<<<<<< 39b380f38528359a4ed1b1b99ce21a7bbadc41f2
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/sonatype/sisu/sisu-guice/3.0.3/sisu-guice-3.0.3-no_aop.jar!/" />
         </CLASSES>
@@ -51,120 +52,197 @@
       <library name="Kobalt: org.codehaus.plexus:plexus-utils:jar:1.4.2">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/codehaus/plexus/plexus-utils/1.4.2/plexus-utils-1.4.2.jar!/" />
+=======
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/sonatype/sisu/sisu-guice/3.0.3/sisu-guice-3.0.3-no_aop.jar!/" />
+>>>>>>> IDEA files.
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+<<<<<<< 39b380f38528359a4ed1b1b99ce21a7bbadc41f2
       <library name="Kobalt: org.apache.httpcomponents:httpcore:jar:4.3.3">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/httpcomponents/httpcore/4.3.3/httpcore-4.3.3.jar!/" />
+=======
+      <library name="Kobalt: com.google.guava:guava:jar:18.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/google/guava/guava/18.0/guava-18.0.jar!/" />
+>>>>>>> IDEA files.
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+<<<<<<< 39b380f38528359a4ed1b1b99ce21a7bbadc41f2
       <library name="Kobalt: com.squareup.okio:okio:jar:1.8.0">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okio/okio/1.8.0/okio-1.8.0.jar!/" />
+=======
+      <library name="Kobalt: org.apache.httpcomponents:httpcore:jar:4.3.3">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/httpcomponents/httpcore/4.3.3/httpcore-4.3.3.jar!/" />
+>>>>>>> IDEA files.
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+<<<<<<< 39b380f38528359a4ed1b1b99ce21a7bbadc41f2
       <library name="Kobalt: org.eclipse.aether:aether-impl:jar:1.0.2.v20150114">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-impl/1.0.2.v20150114/aether-impl-1.0.2.v20150114.jar!/" />
+=======
+      <library name="Kobalt: com.squareup.okio:okio:jar:1.8.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okio/okio/1.8.0/okio-1.8.0.jar!/" />
+>>>>>>> IDEA files.
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+<<<<<<< 39b380f38528359a4ed1b1b99ce21a7bbadc41f2
       <library name="Kobalt: org.eclipse.aether:aether-util:jar:1.0.2.v20150114">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-util/1.0.2.v20150114/aether-util-1.0.2.v20150114.jar!/" />
+=======
+      <library name="Kobalt: org.eclipse.aether:aether-impl:jar:1.0.2.v20150114">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-impl/1.0.2.v20150114/aether-impl-1.0.2.v20150114.jar!/" />
+>>>>>>> IDEA files.
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+<<<<<<< 39b380f38528359a4ed1b1b99ce21a7bbadc41f2
       <library name="Kobalt: org.eclipse.aether:aether-spi:jar:1.0.2.v20150114">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-spi/1.0.2.v20150114/aether-spi-1.0.2.v20150114.jar!/" />
+=======
+      <library name="Kobalt: org.eclipse.aether:aether-util:jar:1.0.2.v20150114">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-util/1.0.2.v20150114/aether-util-1.0.2.v20150114.jar!/" />
+>>>>>>> IDEA files.
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+<<<<<<< 39b380f38528359a4ed1b1b99ce21a7bbadc41f2
       <library name="Kobalt: org.eclipse.aether:aether-api:jar:1.0.2.v20150114">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-api/1.0.2.v20150114/aether-api-1.0.2.v20150114.jar!/" />
+=======
+      <library name="Kobalt: org.eclipse.aether:aether-spi:jar:1.0.2.v20150114">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-spi/1.0.2.v20150114/aether-spi-1.0.2.v20150114.jar!/" />
+>>>>>>> IDEA files.
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+<<<<<<< 39b380f38528359a4ed1b1b99ce21a7bbadc41f2
       <library name="Kobalt: org.codehaus.plexus:plexus-utils:jar:2.0.7">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/codehaus/plexus/plexus-utils/2.0.7/plexus-utils-2.0.7.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
+=======
       <library name="Kobalt: org.slf4j:slf4j-api:jar:1.6.0">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/slf4j/slf4j-api/1.6.0/slf4j-api-1.6.0.jar!/" />
+>>>>>>> IDEA files.
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+<<<<<<< 39b380f38528359a4ed1b1b99ce21a7bbadc41f2
+      <library name="Kobalt: org.slf4j:slf4j-api:jar:1.6.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/slf4j/slf4j-api/1.6.0/slf4j-api-1.6.0.jar!/" />
+=======
       <library name="Kobalt: org.slf4j:slf4j-api:jar:1.7.2">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/slf4j/slf4j-api/1.7.2/slf4j-api-1.7.2.jar!/" />
+>>>>>>> IDEA files.
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+<<<<<<< 39b380f38528359a4ed1b1b99ce21a7bbadc41f2
+      <library name="Kobalt: org.slf4j:slf4j-api:jar:1.7.2">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/slf4j/slf4j-api/1.7.2/slf4j-api-1.7.2.jar!/" />
+=======
       <library name="Kobalt: org.apache.httpcomponents:httpclient:jar:4.3.6">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/httpcomponents/httpclient/4.3.6/httpclient-4.3.6.jar!/" />
+>>>>>>> IDEA files.
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+<<<<<<< 39b380f38528359a4ed1b1b99ce21a7bbadc41f2
+      <library name="Kobalt: org.apache.httpcomponents:httpclient:jar:4.3.6">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/httpcomponents/httpclient/4.3.6/httpclient-4.3.6.jar!/" />
+=======
       <library name="Kobalt: com.googlecode.javaewah:JavaEWAH:jar:0.7.9">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/com/googlecode/javaewah/JavaEWAH/0.7.9/JavaEWAH-0.7.9.jar!/" />
+>>>>>>> IDEA files.
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+<<<<<<< 39b380f38528359a4ed1b1b99ce21a7bbadc41f2
+      <library name="Kobalt: com.googlecode.javaewah:JavaEWAH:jar:0.7.9">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/googlecode/javaewah/JavaEWAH/0.7.9/JavaEWAH-0.7.9.jar!/" />
+=======
       <library name="Kobalt: com.jcraft:jsch:jar:0.1.53">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/com/jcraft/jsch/0.1.53/jsch-0.1.53.jar!/" />
+>>>>>>> IDEA files.
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+<<<<<<< 39b380f38528359a4ed1b1b99ce21a7bbadc41f2
+      <library name="Kobalt: com.jcraft:jsch:jar:0.1.53">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/jcraft/jsch/0.1.53/jsch-0.1.53.jar!/" />
+=======
+      <library name="Kobalt: com.google.code.gson:gson:jar:2.7">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/google/code/gson/gson/2.7/gson-2.7.jar!/" />
+>>>>>>> IDEA files.
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+<<<<<<< 39b380f38528359a4ed1b1b99ce21a7bbadc41f2
       <library name="Kobalt: com.google.code.gson:gson:jar:2.7">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/com/google/code/gson/gson/2.7/gson-2.7.jar!/" />
@@ -174,6 +252,8 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+=======
+>>>>>>> IDEA files.
       <library name="Kobalt: com.squareup.okhttp3:okhttp:jar:3.3.0">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okhttp3/okhttp/3.3.0/okhttp-3.3.0.jar!/" />
