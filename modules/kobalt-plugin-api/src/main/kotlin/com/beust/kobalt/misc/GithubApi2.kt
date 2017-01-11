@@ -6,6 +6,7 @@ import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.aether.Exceptions
 import com.google.gson.Gson
+import com.google.gson.JsonParser
 import com.google.gson.annotations.SerializedName
 import com.google.inject.Inject
 import okhttp3.OkHttpClient
@@ -119,17 +120,24 @@ class GithubApi2 @Inject constructor(
                             } else {
                                 service.getReleasesNoAuth("cbeust", "kobalt")
                             }
-                    val releases = req.execute().body()
-                    if (releases != null) {
-                        releases.firstOrNull()?.let {
-                            try {
-                                result = listOf(it.name, it.tagName).filterNotNull().first { !it.isBlank() }
-                            } catch(ex: NoSuchElementException) {
-                                throw KobaltException("Couldn't find the latest release")
-                            }
-                        }
+                    val ex = req.execute()
+                    val errorBody = ex.errorBody()
+                    if (errorBody != null) {
+                        val jsonError = JsonParser().parse(errorBody.string())
+                        warn("Couldn't call Github.getReleases(): $jsonError")
                     } else {
-                        warn("Didn't receive any body in the response to GitHub.getReleases()")
+                        val releases = ex.body()
+                        if (releases != null) {
+                            releases.firstOrNull()?.let {
+                                try {
+                                    result = listOf(it.name, it.tagName).filterNotNull().first { !it.isBlank() }
+                                } catch(ex: NoSuchElementException) {
+                                    throw KobaltException("Couldn't find the latest release")
+                                }
+                            }
+                        } else {
+                            warn("Didn't receive any body in the response to GitHub.getReleases()")
+                        }
                     }
                 } catch(e: Exception) {
                     kobaltLog(1, "Couldn't retrieve releases from github: " + e.message)
