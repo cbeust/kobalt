@@ -39,24 +39,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Kobalt: org.codehaus.plexus:plexus-component-annotations:jar:1.5.5">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/codehaus/plexus/plexus-component-annotations/1.5.5/plexus-component-annotations-1.5.5.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.codehaus.plexus:plexus-utils:jar:1.4.2">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/codehaus/plexus/plexus-utils/1.4.2/plexus-utils-1.4.2.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
       <library name="Kobalt: org.apache.httpcomponents:httpcore:jar:4.3.3">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/httpcomponents/httpcore/4.3.3/httpcore-4.3.3.jar!/" />
@@ -105,15 +87,6 @@
       <library name="Kobalt: org.eclipse.aether:aether-api:jar:1.0.2.v20150114">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-api/1.0.2.v20150114/aether-api-1.0.2.v20150114.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.codehaus.plexus:plexus-utils:jar:2.0.7">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/codehaus/plexus/plexus-utils/2.0.7/plexus-utils-2.0.7.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -363,15 +336,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Kobalt: org.apache.httpcomponents:httpcore:jar:4.3.2">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/httpcomponents/httpcore/4.3.2/httpcore-4.3.2.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
       <library name="Kobalt: org.codehaus.plexus:plexus-utils:jar:3.0.22">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/codehaus/plexus/plexus-utils/3.0.22/plexus-utils-3.0.22.jar!/" />
@@ -420,15 +384,6 @@
       <library name="Kobalt: org.eclipse.aether:aether-transport-file:jar:1.1.0">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-transport-file/1.1.0/aether-transport-file-1.1.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.apache.httpcomponents:httpclient:jar:4.3.5">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/apache/httpcomponents/httpclient/4.3.5/httpclient-4.3.5.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
