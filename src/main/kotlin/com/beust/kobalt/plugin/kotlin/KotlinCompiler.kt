@@ -108,7 +108,7 @@ class KotlinCompiler @Inject constructor(
                         message: String, location: CompilerMessageLocation) {
                     if (severity.isError) {
                         System.err.println(location.dump(message))
-                        throw KobaltException("Couldn't compile build file: $message")
+                        throw KobaltException("Couldn't compile file: $message")
                     } else if (severity == CompilerMessageSeverity.WARNING && KobaltLogger.LOG_LEVEL >= 2) {
                         warn(location.dump(message))
                     } else if (severity == CompilerMessageSeverity.INFO && KobaltLogger.LOG_LEVEL >= 2) {
