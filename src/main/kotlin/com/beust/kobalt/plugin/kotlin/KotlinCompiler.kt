@@ -85,6 +85,23 @@ class KotlinCompiler @Inject constructor(
                 friendPaths = friends
             }
 
+            /**
+             * ~/.config/kobalt/settings.xml allows users to specify -Xflags in the
+             * <kobaltCompilerFlags> tag. Map each of these string flags to the boolean
+             * found in the args class
+             */
+            fun updateArgsWithCompilerFlags(args: K2JVMCompilerArguments, settings: KobaltSettings) {
+                val flags = settings.kobaltCompilerFlags?.split(" ")
+                flags?.forEach {
+                    if (it.startsWith("-X")) when(it.substring(2)) {
+                        "skip-metadata-version-check" -> args.skipMetadataVersionCheck = true
+                        else -> warn("Unknown Kotlin compiler flag found in config.xml: $it")
+                    }
+                }
+            }
+
+            updateArgsWithCompilerFlags(args, settings)
+
             fun logk(level: Int, message: CharSequence) = kobaltLog.log(projectName ?: "", level, message)
 
             logk(2, "Invoking K2JVMCompiler with arguments:"

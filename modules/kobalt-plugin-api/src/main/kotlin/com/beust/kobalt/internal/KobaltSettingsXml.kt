@@ -34,6 +34,9 @@ class KobaltSettingsXml {
 
     @XmlElement(name = "kobaltCompilerRepo") @JvmField
     var kobaltCompilerRepo: String? = null
+
+    @XmlElement(name = "kobaltCompilerFlags") @JvmField
+    var kobaltCompilerFlags: String? = null
 }
 
 class ProxiesXml {
@@ -97,6 +100,7 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
 
     var kobaltCompilerVersion = xmlFile.kobaltCompilerVersion
     var kobaltCompilerRepo = xmlFile.kobaltCompilerRepo
+    var kobaltCompilerFlags = xmlFile.kobaltCompilerFlags
 
     companion object {
         val SETTINGS_FILE_PATH = KFiles.joinDir(KFiles.HOME_KOBALT_DIR.absolutePath, "settings.xml")
