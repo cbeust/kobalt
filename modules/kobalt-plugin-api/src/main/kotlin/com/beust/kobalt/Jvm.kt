@@ -5,14 +5,14 @@ import com.beust.kobalt.misc.warn
 import java.io.File
 import java.io.IOException
 
-public open class Jvm constructor(
+open class Jvm constructor(
         val os: OperatingSystem,
         var javaBase: File? = null) : JavaInfo() {
 
     private var _javaHome: File? = null
-    override public var javaHome: File? = null
+    override var javaHome: File? = null
         get() = _javaHome!!
-    override public var runtimeJar: File? = null
+    override var runtimeJar: File? = null
     private fun findRuntimeJar() : File? {
         var runtimeJar = File(javaBase, "lib/rt.jar")
         if (runtimeJar.exists()) {
@@ -21,7 +21,7 @@ public open class Jvm constructor(
         runtimeJar = File(javaBase, "jre/lib/rt.jar")
         return if (runtimeJar.exists()) runtimeJar else null
     }
-    override public var toolsJar: File? = null
+    override var toolsJar: File? = null
 
     private var userSupplied: Boolean? = false
     private var javaVersion: String? = null
@@ -89,7 +89,7 @@ public open class Jvm constructor(
         return null
     }
 
-//    open public fun isIbmJvm(): Boolean {
+//    open fun isIbmJvm(): Boolean {
 //        return false
 //    }
 
