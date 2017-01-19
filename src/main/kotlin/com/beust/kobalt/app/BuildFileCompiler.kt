@@ -32,7 +32,7 @@ import javax.inject.Inject
  * 1) Extract the repos() and plugins() statements in a separate .kt and compile it into preBuildScript.jar.
  * 2) Actually build the whole Build.kt file after adding to the classpath whatever phase 1 found (plugins, repos)
  */
-public class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFiles: List<BuildFile>,
+class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFiles: List<BuildFile>,
         @Assisted val pluginInfo: PluginInfo, val files: KFiles, val plugins: Plugins,
         val dependencyManager: DependencyManager, val pluginProperties: PluginProperties,
         val executors: KobaltExecutors, val buildScriptUtil: BuildScriptUtil, val settings: KobaltSettings,

@@ -72,7 +72,7 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override va
 }
 
 @Directive
-public fun javaProject(vararg projects: Project, init: Project.() -> Unit): Project {
+fun javaProject(vararg projects: Project, init: Project.() -> Unit): Project {
     return Project().apply {
         warn("javaProject{} is deprecated, please use project{}")
         init()

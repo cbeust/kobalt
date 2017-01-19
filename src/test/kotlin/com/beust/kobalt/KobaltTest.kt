@@ -8,7 +8,7 @@ import org.testng.annotations.Guice
 open class KobaltTest {
     companion object {
         @BeforeSuite
-        public fun bs() {
+        fun bs() {
             Kobalt.INJECTOR = com.google.inject.Guice.createInjector(TestModule())
         }
     }

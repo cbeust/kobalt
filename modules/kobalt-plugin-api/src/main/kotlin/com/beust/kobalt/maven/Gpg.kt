@@ -10,7 +10,7 @@ import java.io.File
 import java.io.InputStreamReader
 
 @Singleton
-public class Gpg {
+class Gpg {
     val COMMANDS = listOf("gpg", "gpg2")
 
      fun findGpgCommand() : String? {

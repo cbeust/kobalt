@@ -29,17 +29,17 @@ class DependencyTest @Inject constructor(val executors: KobaltExecutors) {
     private var executor: ExecutorService by Delegates.notNull()
 
     @BeforeClass
-    public fun bc() {
+    fun bc() {
         executor = executors.newExecutor("DependencyTest", 5)
     }
 
     @AfterClass
-    public fun ac() {
+    fun ac() {
         executor.shutdown()
     }
 
     @Test(dataProvider = "dpVersions")
-    public fun versionSorting(k: String, v: String) {
+    fun versionSorting(k: String, v: String) {
         val dep1 = Versions.toLongVersion(k)
         val dep2 = Versions.toLongVersion(v)
         Assert.assertTrue(dep1.compareTo(dep2) < 0)

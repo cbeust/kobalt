@@ -65,7 +65,7 @@ open class MainModule(val args: Args, val settings: KobaltSettings) : AbstractMo
 //        bindListener(Matchers.any(), object: TypeListener {
 //            override fun <I> hear(typeLiteral: TypeLiteral<I>?, typeEncounter: TypeEncounter<I>?) {
 //                val bean = object: InjectionListener<I> {
-//                    override public fun afterInjection(injectee: I) {
+//                    override fun afterInjection(injectee: I) {
 //                        if (Scopes.isCircularProxy(injectee)) {
 //                            println("CYCLE: " + typeLiteral?.getRawType()?.getName());
 //                        }

@@ -1,6 +1,6 @@
 package com.beust.kobalt.maven
 
-open public class LocalDep(override val mavenId: MavenId, open val localRepo: LocalRepo)
+open class LocalDep(override val mavenId: MavenId, open val localRepo: LocalRepo)
         : SimpleDep(mavenId) {
 
     fun toAbsoluteJarFilePath(v: String) = localRepo.toFullPath(toJarFile(v))

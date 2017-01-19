@@ -12,7 +12,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
-public class JarUtils {
+class JarUtils {
     companion object {
         val DEFAULT_HANDLER: (Exception) -> Unit = { ex: Exception ->
             // Ignore duplicate entry exceptions
@@ -150,7 +150,7 @@ class IncludedFile(val fromOriginal: From, val toOriginal: To, val specs: List<I
     val from: String get() = fromOriginal.path.replace("\\", "/")
     fun to(s: String) = File(if (toOriginal.isCurrentDir()) s else KFiles.joinDir(to, s))
     val to: String get() = toOriginal.path.replace("\\", "/")
-    override public fun toString() = toString("IncludedFile",
+    override fun toString() = toString("IncludedFile",
             "files - ", specs.map { it.toString() },
             "from", from,
             "to", to)
