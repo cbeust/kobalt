@@ -3,11 +3,11 @@ package com.beust.kobalt
 import java.io.File
 
 abstract class JavaInfo {
-    var javaExecutable: File? = null
+    val javaExecutable: File?
         get() = findExecutable("java")
-    var javacExecutable: File? = null
+    val javacExecutable: File?
         get() = findExecutable("javac")
-    var javadocExecutable: File? = null
+    val javadocExecutable: File?
         get() = findExecutable("javadoc")
     abstract var javaHome: File?
     abstract var runtimeJar: File?

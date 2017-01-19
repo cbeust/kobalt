@@ -97,7 +97,7 @@ open class Jvm constructor(
         if (javaHome != null) {
             val jdkHome = if (javaHome!!.endsWith("jre")) javaHome!!.parentFile else javaHome
             val exec = File(jdkHome, "bin/" + command)
-            var executable = File(os.getExecutableName(exec.absolutePath))
+            val executable = File(os.getExecutableName(exec.absolutePath))
             if (executable.isFile) {
                 return executable
             }
