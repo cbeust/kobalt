@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.Constants
 import com.beust.kobalt.ProxyConfig
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.misc.KFiles
@@ -8,6 +9,7 @@ import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
 import java.io.FileInputStream
+import java.lang.NumberFormatException
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
@@ -30,7 +32,7 @@ class KobaltSettingsXml {
     var proxies: ProxiesXml? = null
 
     @XmlElement(name = "kobaltCompilerVersion") @JvmField
-    var kobaltCompilerVersion: String = "1.0.6"
+    var kobaltCompilerVersion: String = Constants.KOTLIN_COMPILER_VERSION
 
     @XmlElement(name = "kobaltCompilerRepo") @JvmField
     var kobaltCompilerRepo: String? = null
