@@ -127,10 +127,6 @@ private class Main @Inject constructor(
         return result
     }
 
-    //    public fun runTest() {
-    //        val file = File("src\\main\\resources\\META-INF\\plugin.ml")
-    //    }
-
     private fun runWithArgs(jc: JCommander, args: Args, argv: Array<String>, pluginClassLoader: ClassLoader): Int {
 //        val file = File("/Users/beust/.kobalt/repository/com/google/guava/guava/19.0-rc2/guava-19.0-rc2.pom")
 //        val md5 = Md5.toMd5(file)
