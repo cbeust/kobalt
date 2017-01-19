@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.BUILD_SCRIPT_CONFIG
 import com.beust.kobalt.Constants
 import com.beust.kobalt.ProxyConfig
 import com.beust.kobalt.homeDir
@@ -100,9 +101,32 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
         }
     }
 
-    var kobaltCompilerVersion = xmlFile.kobaltCompilerVersion
-    var kobaltCompilerRepo = xmlFile.kobaltCompilerRepo
-    var kobaltCompilerFlags = xmlFile.kobaltCompilerFlags
+    val kobaltCompilerVersion : String?
+        get() {
+            return if (BUILD_SCRIPT_CONFIG != null && BUILD_SCRIPT_CONFIG?.kobaltCompilerVersion != null) {
+                BUILD_SCRIPT_CONFIG?.kobaltCompilerVersion
+            } else {
+                xmlFile.kobaltCompilerVersion
+            }
+        }
+
+    val kobaltCompilerRepo : String?
+        get() {
+            return if (BUILD_SCRIPT_CONFIG != null && BUILD_SCRIPT_CONFIG?.kobaltCompilerRepo != null) {
+                BUILD_SCRIPT_CONFIG?.kobaltCompilerRepo
+            } else {
+                xmlFile.kobaltCompilerRepo
+            }
+        }
+
+    val kobaltCompilerFlags : String?
+        get() {
+            return if (BUILD_SCRIPT_CONFIG != null && BUILD_SCRIPT_CONFIG?.kobaltCompilerFlags != null) {
+                BUILD_SCRIPT_CONFIG?.kobaltCompilerFlags
+            } else {
+                xmlFile.kobaltCompilerFlags
+            }
+        }
 
     companion object {
         val SETTINGS_FILE_PATH = KFiles.joinDir(KFiles.HOME_KOBALT_DIR.absolutePath, "settings.xml")

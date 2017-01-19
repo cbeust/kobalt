@@ -34,7 +34,8 @@ class KotlinCompiler @Inject constructor(
         val kobaltLog: ParallelLogger) {
 
     val compilerAction = object: ICompilerAction {
-        override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
+        override fun compile(project: Project?, info: CompilerActionInfo): TaskResult {
+            val projectName = project?.name
             val version = settings.kobaltCompilerVersion
             if (! info.outputDir.path.endsWith("ript.jar")) {
                 // Don't display the message if compiling Build.kt
@@ -72,28 +73,36 @@ class KotlinCompiler @Inject constructor(
             // If the Kotlin compiler version in settings.xml is different from the default, we
             // need to spawn a Kotlin compiler in a separate process. Otherwise, we can just invoke
             // the K2JVMCompiler class directly
-            if (settings.kobaltCompilerVersion == Constants.KOTLIN_COMPILER_VERSION) {
+            val actualVersion = kotlinConfig(project)?.version ?: settings.kobaltCompilerVersion
+            if (actualVersion == Constants.KOTLIN_COMPILER_VERSION) {
                 return invokeCompilerDirectly(projectName ?: "kobalt-" + Random().nextInt(), outputDir,
                         classpath, info.sourceFiles, info.friendPaths.toTypedArray())
 
             } else {
-                return invokeCompilerInSeparateProcess(classpath, info)
+                return invokeCompilerInSeparateProcess(classpath, info, project)
             }
         }
 
-        private fun invokeCompilerInSeparateProcess(classpath: String, info: CompilerActionInfo): TaskResult {
+        fun kotlinConfig(project: Project?)
+                = (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as KotlinPlugin).configurationFor(project)
+
+        private fun invokeCompilerInSeparateProcess(classpath: String, info: CompilerActionInfo,
+                project: Project?): TaskResult {
             val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable
 
             val compilerClasspath = compilerDep.jarFile.get().path + File.pathSeparator +
                     compilerEmbeddableDependencies(null).map { it.jarFile.get().path }
                             .joinToString(File.pathSeparator)
-            val xFlags = settings.kobaltCompilerFlags?.split(" ")?.toTypedArray() ?: emptyArray()
+            val xFlagsString = kotlinConfig(project)?.flags
+                    ?: settings.kobaltCompilerFlags
+                    ?: ""
+            val xFlagsArray = xFlagsString.split(" ").toTypedArray()
             val newArgs = listOf(
                     "-classpath", compilerClasspath,
                     K2JVMCompiler::class.java.name,
                     "-classpath", classpath,
                     "-d", info.outputDir.absolutePath,
-                    *xFlags,
+                    *xFlagsArray,
                     *info.sourceFiles.toTypedArray())
 
             log(2, "  Invoking separate kotlinc:\n  " + java!!.absolutePath + " " + newArgs.joinToString())
@@ -133,7 +142,7 @@ class KotlinCompiler @Inject constructor(
 
             updateArgsWithCompilerFlags(args, settings)
 
-            fun logk(level: Int, message: CharSequence) = kobaltLog.log(projectName ?: "", level, message)
+            fun logk(level: Int, message: CharSequence) = kobaltLog.log(projectName, level, message)
 
             logk(2, "  Invoking K2JVMCompiler with arguments:"
                     + if (args.skipMetadataVersionCheck) " -Xskip-metadata-version-check" else ""

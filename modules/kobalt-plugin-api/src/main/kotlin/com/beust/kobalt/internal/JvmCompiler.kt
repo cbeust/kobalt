@@ -34,7 +34,7 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
         val addedFlags = contributorFlags + ArrayList(info.compilerArgs)
 
         validateClasspath(allDependencies.map { it.jarFile.get().absolutePath })
-        return action.compile(project?.name, info.copy(dependencies = allDependencies, compilerArgs = addedFlags))
+        return action.compile(project, info.copy(dependencies = allDependencies, compilerArgs = addedFlags))
     }
 
     private fun validateClasspath(cp: List<String>) {
@@ -47,5 +47,5 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
 }
 
 interface ICompilerAction {
-    fun compile(projectName: String?, info: CompilerActionInfo): TaskResult
+    fun compile(project: Project?, info: CompilerActionInfo): TaskResult
 }

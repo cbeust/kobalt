@@ -23,7 +23,8 @@ import javax.tools.ToolProvider
 class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler, val kobaltLog: ParallelLogger,
         val compilerUtils: CompilerUtils) : ICompiler {
     fun compilerAction(executable: File) = object : ICompilerAction {
-        override fun compile(projectName: String?, info: CompilerActionInfo): TaskResult {
+        override fun compile(project: Project?, info: CompilerActionInfo): TaskResult {
+            val projectName = project?.name
             if (info.sourceFiles.isEmpty()) {
                 warn("No source files to compile")
                 return TaskResult()

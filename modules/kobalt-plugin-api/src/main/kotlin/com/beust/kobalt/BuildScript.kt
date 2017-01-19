@@ -11,6 +11,25 @@ import org.eclipse.aether.repository.Proxy
 import java.io.File
 import java.net.InetSocketAddress
 
+var BUILD_SCRIPT_CONFIG : BuildScriptConfig? = null
+
+class BuildScriptConfig {
+//    var repos = listOf<String>()
+//    var plugins = listOf<String>()
+
+    // The following settings are used to modify the compiler used to
+    // compile the build file. Projects should use kotlinCompiler { compilerVersion } to configure
+    // the Kotin compiler for their source files.
+    var kobaltCompilerVersion : String? = null
+    var kobaltCompilerRepo: String? = null
+    var kobaltCompilerFlags: String? = null
+}
+
+@Directive
+fun buildScript(init: BuildScriptConfig.() -> Unit) {
+    BUILD_SCRIPT_CONFIG = BuildScriptConfig().apply { init() }
+}
+
 @Directive
 fun homeDir(vararg dirs: String) : String = SystemProperties.homeDir +
         File.separator + dirs.toMutableList().joinToString(File.separator)
