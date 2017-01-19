@@ -213,8 +213,12 @@ class Aether(localRepo: File, val settings: KobaltSettings, eventBus: EventBus) 
                     }
                 } else {
                     val dependencyRequest = DependencyRequest(collectRequest(artifact, artifactScope), scopeFilter)
-                    system.resolveDependencies(session, dependencyRequest).artifactResults.map {
-                        AetherResult(it.artifact, it.repository)
+                    try {
+                        system.resolveDependencies(session, dependencyRequest).artifactResults.map {
+                            AetherResult(it.artifact, it.repository)
+                        }
+                    } catch(ex: Exception) {
+                        throw KobaltException("Couldn't resolve $artifact", ex)
                     }
                 }
             return result
