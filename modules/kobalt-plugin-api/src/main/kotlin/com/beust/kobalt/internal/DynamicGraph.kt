@@ -6,6 +6,7 @@ import com.beust.kobalt.TaskResult
 import com.beust.kobalt.misc.NamedThreadFactory
 import com.beust.kobalt.misc.error
 import com.beust.kobalt.misc.kobaltLog
+import com.beust.kobalt.misc.warn
 import com.google.common.collect.HashMultimap
 import java.lang.reflect.InvocationTargetException
 import java.util.*
@@ -351,8 +352,13 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
                             if (line.start) {
                                 projectStart[line.name] = line.timestamp
                             } else {
-                                duration = " (" + ((line.timestamp - projectStart[line.name]!!) / 1000)
-                                        .toInt().toString() + ")"
+                                val projectStart = projectStart[line.name]
+                                if (projectStart != null) {
+                                    duration = " (" + ((line.timestamp - projectStart) / 1000)
+                                            .toInt().toString() + ")"
+                                } else {
+                                    warn("Couldn't determine project start: " + line.name)
+                                }
                             }
                             row.add((line.name + duration))
                         } else {
