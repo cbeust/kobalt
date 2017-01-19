@@ -1,7 +1,6 @@
 package com.beust.kobalt.plugin.kotlin
 
-import com.beust.kobalt.KobaltException
-import com.beust.kobalt.TaskResult
+import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.internal.*
 import com.beust.kobalt.maven.DependencyManager
@@ -70,12 +69,44 @@ class KotlinCompiler @Inject constructor(
                 allArgs.add("-no-stdlib")
             }
 
-            return invokeCompilerWithCompilerArgs(projectName ?: "kobalt-" + Random().nextInt(), outputDir, classpath,
-                    info.sourceFiles, info.friendPaths.toTypedArray())
-//            return invokeCompilerWithStringArgs(projectName ?: "kobalt-" + Random().nextInt(), cp, allArgs)
+            // If the Kotlin compiler version in settings.xml is different from the default, we
+            // need to spawn a Kotlin compiler in a separate process. Otherwise, we can just invoke
+            // the K2JVMCompiler class directly
+            if (settings.kobaltCompilerVersion == Constants.KOTLIN_COMPILER_VERSION) {
+                return invokeCompilerDirectly(projectName ?: "kobalt-" + Random().nextInt(), outputDir,
+                        classpath, info.sourceFiles, info.friendPaths.toTypedArray())
+
+            } else {
+                return invokeCompilerInSeparateProcess(classpath, info)
+            }
         }
 
-        private fun invokeCompilerWithCompilerArgs(projectName: String, outputDir: String?, classpathString: String,
+        private fun invokeCompilerInSeparateProcess(classpath: String, info: CompilerActionInfo): TaskResult {
+            val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable
+
+            val compilerClasspath = compilerDep.jarFile.get().path + File.pathSeparator +
+                    compilerEmbeddableDependencies(null).map { it.jarFile.get().path }
+                            .joinToString(File.pathSeparator)
+            val xFlags = settings.kobaltCompilerFlags?.split(" ")?.toTypedArray() ?: emptyArray()
+            val newArgs = listOf(
+                    "-classpath", compilerClasspath,
+                    K2JVMCompiler::class.java.name,
+                    "-classpath", classpath,
+                    "-d", info.outputDir.absolutePath,
+                    *xFlags,
+                    *info.sourceFiles.toTypedArray())
+
+            log(2, "  Invoking separate kotlinc:\n  " + java!!.absolutePath + " " + newArgs.joinToString())
+
+            val result = NewRunCommand(RunCommandInfo().apply {
+                command = java.absolutePath
+                args = newArgs
+                directory = File(".")
+            }).invoke()
+            return TaskResult(result == 0, "Error while compiling")
+        }
+
+        private fun invokeCompilerDirectly(projectName: String, outputDir: String?, classpathString: String,
                 sourceFiles: List<String>, friends: Array<String>): TaskResult {
             val args = K2JVMCompilerArguments().apply {
                 moduleName = projectName
@@ -104,7 +135,8 @@ class KotlinCompiler @Inject constructor(
 
             fun logk(level: Int, message: CharSequence) = kobaltLog.log(projectName ?: "", level, message)
 
-            logk(2, "Invoking K2JVMCompiler with arguments:"
+            logk(2, "  Invoking K2JVMCompiler with arguments:"
+                    + if (args.skipMetadataVersionCheck) " -Xskip-metadata-version-check" else ""
                     + " -moduleName " + args.moduleName
                     + " -d " + args.destination
                     + " -friendPaths " + args.friendPaths.joinToString(";")
@@ -199,6 +231,14 @@ class KotlinCompiler @Inject constructor(
         }
     }
 
+    val compilerVersion = settings.kobaltCompilerVersion
+    val compilerDep = dependencyManager.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$compilerVersion")
+
+    fun compilerEmbeddableDependencies(project: Project?): List<IClasspathDependency> {
+        val deps = dependencyManager.transitiveClosure(listOf(compilerDep), requiredBy = project?.name ?: "")
+        return deps
+    }
+
     /**
      * Create an ICompilerAction based on the parameters and send it to JvmCompiler.doCompile().
      * TODO: This needs to be removed because it doesn't use contributors. Call
@@ -208,12 +248,9 @@ class KotlinCompiler @Inject constructor(
             otherClasspath: List<String>, sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult {
 
         val executor = executors.newExecutor("KotlinCompiler", 10)
-        val compilerVersion = settings.kobaltCompilerVersion
-        val compilerDep = dependencyManager.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$compilerVersion")
-        val deps = dependencyManager.transitiveClosure(listOf(compilerDep), requiredBy = project?.name ?: "")
 
         // Force a download of the compiler dependencies
-        deps.forEach { it.jarFile.get() }
+        compilerEmbeddableDependencies(project).forEach { it.jarFile.get() }
 
         executor.shutdown()
 
