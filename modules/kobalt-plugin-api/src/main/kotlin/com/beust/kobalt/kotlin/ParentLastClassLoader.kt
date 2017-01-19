@@ -32,7 +32,7 @@ class ParentLastClassLoader(val classpath: List<URL>)
     private class ChildURLClassLoader(urls: Array<URL>, val realParent: FindClassClassLoader)
             : URLClassLoader(urls, null) {
 
-        override fun findClass(name: String) : Class<*> {
+        override public fun findClass(name: String) : Class<*> {
             try {
                 // first try to use the URLClassLoader findClass
                 return super.findClass(name)
