@@ -134,7 +134,23 @@ class KotlinCompiler @Inject constructor(
                 val flags = settings.kobaltCompilerFlags?.split(" ")
                 flags?.forEach {
                     if (it.startsWith("-X")) when(it.substring(2)) {
+                        "no-call-assertions" -> args.noCallAssertions = true
+                        "no-param-assertions" -> args.noParamAssertions = true
+                        "no-optimize" -> args.noOptimize = true
+                        "report-perf" -> args.reportPerf = true
+                        "multifile-parts-inherit" -> args.inheritMultifileParts = true
+                        "allow-kotlin-package" -> args.allowKotlinPackage = true
                         "skip-metadata-version-check" -> args.skipMetadataVersionCheck = true
+                        "skip-runtime-version-check" -> args.skipRuntimeVersionCheck = true
+                        "single-module" -> args.singleModule = true
+                        "load-builtins-from-dependencies" -> args.loadBuiltInsFromDependencies = true
+
+                        "coroutines=enable" -> args.coroutinesEnable = true
+                        "coroutines=warn" -> args.coroutinesWarn = true
+                        "coroutines=error" -> args.coroutinesError = true
+                        "no-inline" -> args.noInline = true
+                        "multi-platform" -> args.multiPlatform = true
+                        "no-check-impl" -> args.noCheckImpl = true
                         else -> warn("Unknown Kotlin compiler flag found in config.xml: $it")
                     }
                 }
