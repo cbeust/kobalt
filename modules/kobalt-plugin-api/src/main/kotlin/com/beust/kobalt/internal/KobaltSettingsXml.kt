@@ -10,7 +10,6 @@ import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
 import java.io.FileInputStream
-import java.lang.NumberFormatException
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
@@ -40,6 +39,9 @@ class KobaltSettingsXml {
 
     @XmlElement(name = "kobaltCompilerFlags") @JvmField
     var kobaltCompilerFlags: String? = null
+
+    @XmlElement(name = "kobaltCompilerSeparateProcess") @JvmField
+    var kobaltCompilerSeparateProcess: Boolean = false
 }
 
 class ProxiesXml {
@@ -82,6 +84,12 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
      * Location of the local Maven repo for the task "publishToLocalMaven".
      */
     val localMavenRepo = KFiles.makeDir(xmlFile.localMavenRepo)
+
+    /**
+     * If true, the Kotlin compiler will always be launched in a separate JVM, even if the requested
+     * version is the same as the internal version.
+     */
+    val kobaltCompilerSeparateProcess = xmlFile.kobaltCompilerSeparateProcess
 
     val defaultRepos = xmlFile.defaultRepos?.repo
 

@@ -74,12 +74,12 @@ class KotlinCompiler @Inject constructor(
             // need to spawn a Kotlin compiler in a separate process. Otherwise, we can just invoke
             // the K2JVMCompiler class directly
             val actualVersion = kotlinConfig(project)?.version ?: settings.kobaltCompilerVersion
-            if (actualVersion == Constants.KOTLIN_COMPILER_VERSION) {
-                return invokeCompilerDirectly(projectName ?: "kobalt-" + Random().nextInt(), outputDir,
-                        classpath, info.sourceFiles, info.friendPaths.toTypedArray())
+            if (settings.kobaltCompilerSeparateProcess || actualVersion != Constants.KOTLIN_COMPILER_VERSION) {
+                return invokeCompilerInSeparateProcess(classpath, info, project)
 
             } else {
-                return invokeCompilerInSeparateProcess(classpath, info, project)
+                return invokeCompilerDirectly(projectName ?: "kobalt-" + Random().nextInt(), outputDir,
+                        classpath, info.sourceFiles, info.friendPaths.toTypedArray())
             }
         }
 
@@ -93,7 +93,7 @@ class KotlinCompiler @Inject constructor(
             val compilerClasspath = compilerDep.jarFile.get().path + File.pathSeparator +
                     compilerEmbeddableDependencies(null).map { it.jarFile.get().path }
                             .joinToString(File.pathSeparator)
-            val xFlagsString = kotlinConfig(project)?.flags
+            val xFlagsString = kotlinConfig(project)?.args?.joinToString(" ")
                     ?: settings.kobaltCompilerFlags
                     ?: ""
             val xFlagsArray = xFlagsString.split(" ").toTypedArray()

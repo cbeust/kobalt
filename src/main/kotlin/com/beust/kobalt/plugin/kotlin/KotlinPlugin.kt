@@ -42,7 +42,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
     // ICompilerFlagsContributor
     override fun compilerFlagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
             suffixesBeingCompiled: List<String>) : List<String> {
-        val args = (configurationFor(project)?.compilerArgs ?: listOf<String>()) + "-no-stdlib"
+        val args = (configurationFor(project)?.args ?: listOf<String>()) + "-no-stdlib"
         val result = maybeCompilerArgs(compiler.sourceSuffixes, suffixesBeingCompiled, args)
         return result
     }
@@ -145,14 +145,11 @@ fun kotlinProject(vararg projects: Project, init: Project.() -> Unit): Project {
 }
 
 class KotlinConfig(val project: Project) {
-    val compilerArgs = arrayListOf<String>()
-    fun args(vararg options: String) = compilerArgs.addAll(options)
+    val args = arrayListOf<String>()
+    fun args(vararg options: String) = args.addAll(options)
 
     /** The version of the Kotlin compiler */
     var version: String? = null
-
-    /** The flags to pass to the Kotlin compiler */
-    var flags: String? = null
 }
 
 @Directive
