@@ -37,8 +37,7 @@ open class MainModule(val args: Args, val settings: KobaltSettings) : AbstractMo
                 Pom.IFactory::class.java,
                 BuildFileCompiler.IFactory::class.java,
                 IncrementalManager.IFactory::class.java,
-                KobaltServer.IFactory::class.java,
-                ProcessedBuildFile.IFactory::class.java)
+                KobaltServer.IFactory::class.java)
             .forEach {
                 install(builder.build(it))
             }
