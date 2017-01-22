@@ -76,7 +76,7 @@ class Logger(val dev: Boolean) {
         val docUrl = if (e is KobaltException && e.docUrl != null) e.docUrl else null
         val text = if (! message.isBlank()) message
             else if (e != null && (! e.message.isNullOrBlank())) e.message
-            else { "<unknown error>" }
+            else { e?.toString() }
         val shortMessage = "***** E $text " + if (docUrl != null) " Documentation: $docUrl" else ""
         val longMessage = "*****\n***** ERROR $text\n*****"
 
