@@ -52,7 +52,6 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
             }
 
             if (foundKeyword && foundClosing && count == 0) {
-                println("Done extracting: @$result@")
                 return result.toString()
             }
         }
