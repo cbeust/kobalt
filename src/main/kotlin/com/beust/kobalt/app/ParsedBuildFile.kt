@@ -8,6 +8,7 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.internal.build.VersionFile
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.misc.BlockExtractor
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.countChar
 import com.beust.kobalt.misc.kobaltLog
@@ -17,6 +18,7 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.Paths
 import java.util.*
+import java.util.regex.Pattern
 
 class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val buildScriptUtil: BuildScriptUtil,
         val dependencyManager: DependencyManager, val files: KFiles) {
@@ -44,6 +46,36 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
     private fun parseBuildFile() {
         var parenCount = 0
         var current: ArrayList<String>? = null
+
+        /**
+         * If the current line matches one of the profiles, turn the declaration into
+         * val profile = true, otherwise return the same line
+         */
+        fun correctProfileLine(line: String) : String {
+            (context.profiles as List<String>).forEach {
+                if (line.matches(Regex("[ \\t]*val[ \\t]+$it[ \\t]*=.*"))) {
+                    with("val $it = true") {
+                        kobaltLog(2, "Activating profile $it in build file")
+                        activeProfiles.add(it)
+                        profileLines.add(this)
+                        return this
+                    }
+                }
+            }
+            return line
+        }
+
+        fun applyProfiles(lines: List<String>) : List<String> {
+            val result = arrayListOf<String>()
+            lines.forEach { line ->
+                result.add(correctProfileLine(line))
+            }
+            return result
+        }
+
+        val buildWithCorrectProfiles = applyProfiles(buildFile.path.toFile().readLines())
+        val bs = BlockExtractor(Pattern.compile("^val.*buildScript.*\\{"), '{', '}').extractBlock(buildWithCorrectProfiles)
+
         buildFile.path.toFile().forEachLine(Charset.defaultCharset()) { line ->
             var index = line.indexOf("plugins(")
             if (current == null) {
@@ -77,30 +109,16 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
                 current = null
             }
 
-            /**
-             * If the current line matches one of the profiles, turn the declaration into
-             * val profile = true, otherwise return the same line
-             */
-            fun correctProfileLine(line: String) : String {
-                (context.profiles as List<String>).forEach {
-                    if (line.matches(Regex("[ \\t]*val[ \\t]+$it[ \\t]*=.*"))) {
-                        with("val $it = true") {
-                            kobaltLog(2, "Activating profile $it in build file")
-                            activeProfiles.add(it)
-                            profileLines.add(this)
-                            return this
-                        }
-                    }
-                }
-                return line
-            }
-
             buildScript.add(correctProfileLine(line))
         }
 
-        repos.forEach { preBuildScript.add(it) }
-        pluginList.forEach { preBuildScript.add(it) }
-        buildFileClasspath.forEach { preBuildScript.add(it) }
+        if (bs != null) {
+            preBuildScript.add(bs)
+        } else {
+            repos.forEach { preBuildScript.add(it) }
+            pluginList.forEach { preBuildScript.add(it) }
+            buildFileClasspath.forEach { preBuildScript.add(it) }
+        }
     }
 
     private fun initPluginUrls() {

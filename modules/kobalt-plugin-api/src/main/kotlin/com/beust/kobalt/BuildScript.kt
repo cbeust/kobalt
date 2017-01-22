@@ -7,6 +7,7 @@ import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
+import com.beust.kobalt.misc.KobaltLogger
 import org.eclipse.aether.repository.Proxy
 import java.io.File
 import java.net.InetSocketAddress
@@ -14,12 +15,17 @@ import java.net.InetSocketAddress
 var BUILD_SCRIPT_CONFIG : BuildScriptConfig? = null
 
 class BuildScriptConfig {
-//    var repos = listOf<String>()
-//    var plugins = listOf<String>()
+    /** The list of repos used to locate plug-ins. */
+    fun repos(vararg r: String) = newRepos(*r)
 
-    // The following settings are used to modify the compiler used to
-    // compile the build file. Projects should use kotlinCompiler { compilerVersion } to configure
-    // the Kotin compiler for their source files.
+    /** The list of plug-ins to use for this build file. */
+    fun plugins(vararg pl: String) = newPlugins(*pl)
+
+    /** The build file classpath. */
+    fun buildFileClasspath(vararg bfc: String) = newBuildFileClasspath(*bfc)
+
+    // The following settings modify the compiler used to compile the build file.
+    // Projects should use kotlinCompiler { compilerVersion } to configure the Kotin compiler for their source files.
     var kobaltCompilerVersion : String? = null
     var kobaltCompilerRepo: String? = null
     var kobaltCompilerFlags: String? = null
@@ -37,13 +43,18 @@ fun homeDir(vararg dirs: String) : String = SystemProperties.homeDir +
 @Directive
 fun file(file: String) : String = FileDependency.PREFIX_FILE + file
 
-@Directive
 fun plugins(vararg dependency : IClasspathDependency) {
     dependency.forEach { Plugins.addDynamicPlugin(it) }
 }
 
-@Directive
 fun plugins(vararg dependencies : String) {
+    KobaltLogger.logger.warn("Build.kt",
+            "Invoking plugins() directly is deprecated, use the buildScript{} directive")
+    newPlugins(*dependencies)
+}
+
+@Directive
+fun newPlugins(vararg dependencies : String) {
     val factory = Kobalt.INJECTOR.getInstance(DependencyManager::class.java)
     dependencies.forEach {
         Plugins.addDynamicPlugin(factory.create(it))
@@ -70,13 +81,23 @@ data class HostConfig(var url: String = "", var username: String? = null, var pa
     }
 }
 
-@Directive
 fun repos(vararg repos : String) {
+    KobaltLogger.logger.warn("Build.kt",
+            "Invoking repos() directly is deprecated, use the buildScript{} directive")
+    newRepos(*repos)
+}
+
+fun newRepos(vararg repos: String) {
     repos.forEach { Kobalt.addRepo(HostConfig(it)) }
 }
 
-@Directive
 fun buildFileClasspath(vararg deps: String) {
+    KobaltLogger.logger.warn("Build.kt",
+            "Invoking buildFileClasspath() directly is deprecated, use the buildScript{} directive")
+    newBuildFileClasspath(*deps)
+}
+
+fun newBuildFileClasspath(vararg deps: String) {
     deps.forEach { Kobalt.addBuildFileClasspath(it) }
 }
 
@@ -103,3 +124,4 @@ fun localMaven() : String {
     }
     return result.toURI().toString()
 }
+

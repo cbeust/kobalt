@@ -2,59 +2,65 @@ package com.beust.kobalt.misc
 
 import com.beust.kobalt.homeDir
 import java.io.File
+import java.util.regex.Pattern
 
 fun main(argv: Array<String>) {
     val lines = File(homeDir("kotlin/kobalt/kobalt/src/Build.kt")).readLines()
-    val result = BlockExtractor("buildScript", '{', '}').extractBlock(lines)
+    val result = BlockExtractor(Pattern.compile("val.*buildScript.*\\{"), '{', '}').extractBlock(lines)
 
-    BlockExtractor("plugins", '(', ')').extractBlock(lines)
+//    BlockExtractor("plugins", '(', ')').extractBlock(lines)
 }
 
-class BlockExtractor(val keyword: String, val opening: Char, val closing: Char) {
-
+/**
+ * Used to extract a keyword followed by opening and closing tags out of a list of strings,
+ * e.g. buildScript { ... }.
+ */
+class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) {
     fun extractBlock(lines: List<String>): String? {
         var foundKeyword = false
-        var foundOpening = false
         var foundClosing = false
         var count = 0
         val result = StringBuffer()
 
         fun updateCount(line: String) {
-            val onlyBlanks = foundKeyword && ! foundOpening
-            var blanks = true
+            val currentLine = StringBuffer()
             line.toCharArray().forEach { c ->
                 if (c == opening) {
                     count++
-                    if (onlyBlanks && blanks) foundOpening = true
                 }
                 if (c == closing) {
                     count--
-                    foundClosing = true
+                    if (count == 0) {
+                        currentLine.append(closing).append("\n")
+                        foundClosing = true
+                    }
                 }
-                if (c != ' ' && c != '\t' && c != '\n') blanks = false
-                result.append(c)
+                if (foundKeyword && count > 0) currentLine.append(c)
             }
-            result.append("\n")
+
+            if (currentLine.isNotEmpty()) result.append(currentLine.toString()).append("\n")
         }
 
         lines.forEach { line ->
-            if (! foundKeyword) {
-                val index = line.indexOf(keyword)
-                if (index >= 0) {
-                    foundKeyword = true
-                    result.append(keyword)
-                    updateCount(line.substring(index + keyword.length))
-                }
+            val found = regexp.matcher(line).matches()
+            if (found) {
+                foundKeyword = true
+                count = 1
+                result.append(line).append("\n")
             } else {
                 updateCount(line)
             }
 
-            if (foundKeyword && foundOpening && foundClosing && count == 0) {
+            if (foundKeyword && foundClosing && count == 0) {
                 println("Done extracting: @$result@")
                 return result.toString()
             }
         }
 
-        return null
+        if (foundKeyword && foundClosing && count == 0) {
+            return result.toString()
+        } else {
+            return null
+        }
     }
 }
