@@ -110,6 +110,8 @@ class KotlinCompiler @Inject constructor(
                 command = java.absolutePath
                 args = newArgs
                 directory = File(".")
+                // The Kotlin compiler issues warnings on stderr :-(
+                useErrorStreamAsErrorIndicator = false
             }).invoke()
             return TaskResult(result == 0, "Error while compiling")
         }
