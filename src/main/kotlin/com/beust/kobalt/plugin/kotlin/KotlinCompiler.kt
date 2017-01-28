@@ -95,8 +95,7 @@ class KotlinCompiler @Inject constructor(
                             .joinToString(File.pathSeparator)
             val xFlagsString = kotlinConfig(project)?.args?.joinToString(" ")
                     ?: settings.kobaltCompilerFlags
-                    ?: ""
-            val xFlagsArray = xFlagsString.split(" ").toTypedArray()
+            val xFlagsArray = xFlagsString?.split(" ")?.toTypedArray() ?: emptyArray()
             val newArgs = listOf(
                     "-classpath", compilerClasspath,
                     K2JVMCompiler::class.java.name,
