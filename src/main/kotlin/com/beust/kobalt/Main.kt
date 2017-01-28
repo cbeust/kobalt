@@ -182,7 +182,7 @@ private class Main @Inject constructor(
                     if (args.projectInfo) {
                         // --projectInfo
                         allProjects.forEach {
-                            it.compileDependencies.forEach {
+                            it.compileDependencies.filter { it.isMaven }.forEach {
                                 resolveDependency.run(it.id)
                             }
                         }
