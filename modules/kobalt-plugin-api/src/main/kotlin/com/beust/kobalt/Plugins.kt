@@ -4,11 +4,14 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.IncrementalManager
+import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.LocalRepo
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.JarUtils
+import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.kobaltLog
 import com.google.inject.Provider
 import java.io.File
 import java.lang.reflect.Method
@@ -23,7 +26,7 @@ import javax.inject.Singleton
 class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManager>,
         val files: KFiles,
         val depManager: DependencyManager,
-        val localRepo: LocalRepo,
+        val settings: KobaltSettings,
         val executors: KobaltExecutors,
         val pluginInfo: PluginInfo,
         val incrementalManagerFactory: IncrementalManager.IFactory,
