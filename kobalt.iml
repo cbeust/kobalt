@@ -14,6 +14,51 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="kobalt-plugin-api" />
+    <orderEntry type="module-library" scope="TEST">
+      <library name="Kobalt: org.eclipse.aether:aether-api:jar:1.1.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-api/1.1.0/aether-api-1.1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.aether:aether-api:jar:1.1.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-api/1.1.0/aether-api-1.1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library name="Kobalt: org.eclipse.aether:aether-util:jar:1.1.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-util/1.1.0/aether-util-1.1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library name="Kobalt: org.eclipse.aether:aether-spi:jar:1.1.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-spi/1.1.0/aether-spi-1.1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.eclipse.aether:aether-spi:jar:1.1.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-spi/1.1.0/aether-spi-1.1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="module-library">
       <library name="Kobalt: org.eclipse.jetty.websocket:websocket-api:jar:9.3.6.v20151106">
         <CLASSES>
@@ -213,6 +258,15 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+      <library name="Kobalt: com.squareup.okhttp3:okhttp:jar:3.2.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okhttp3/okhttp/3.2.0/okhttp-3.2.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
       <library name="Kobalt: com.google.code.gson:gson:jar:2.7">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/com/google/code/gson/gson/2.7/gson-2.7.jar!/" />
@@ -297,15 +351,6 @@
       <library name="Kobalt: com.squareup.okhttp3:logging-interceptor:jar:3.2.0">
         <CLASSES>
           <root url="jar://$USER_HOME$/.kobalt/cache/com/squareup/okhttp3/logging-interceptor/3.2.0/logging-interceptor-3.2.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.sonatype.aether:aether-api:jar:1.13.1">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/sonatype/aether/aether-api/1.13.1/aether-api-1.13.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -419,33 +464,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Kobalt: org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:1.1.0-beta-17">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.1.0-beta-17/kotlin-compiler-embeddable-1.1.0-beta-17.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="kobalt-wrapper" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-api/1.0.0.v20140518/aether-api-1.0.0.v20140518.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.kobalt/cache/org/eclipse/aether/aether-util/1.0.0.v20140518/aether-util-1.0.0.v20140518.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="kobalt.jar" level="project" />
   </component>
 </module>
