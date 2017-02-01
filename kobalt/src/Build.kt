@@ -26,8 +26,7 @@ object Versions {
     val okio = "1.6.0"
     val retrofit = "2.1.0"
     val gson = "2.6.2"
-    val aether = "1.0.2.v20150114"
-    val sonatypeAether = "1.13.1"
+    val aether = "1.1.0"
     val maven = "3.3.9"
 }
 
@@ -107,9 +106,7 @@ val kobaltPluginApi = project {
                 "org.eclipse.aether:aether-connector-basic:${Versions.aether}",
                 "org.eclipse.aether:aether-transport-file:${Versions.aether}",
                 "org.eclipse.aether:aether-transport-http:${Versions.aether}",
-                "org.sonatype.aether:aether-api:${Versions.sonatypeAether}",
-                "org.sonatype.aether:aether-connector-wagon:1.13.1",
-                "org.apache.maven:maven-aether-provider:${Versions.maven}"
+                "org.apache.maven:maven-aether-provider:3.3.9"
         )
     }
 
@@ -144,7 +141,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
     dependencies {
         // Used by the plugins
-        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.1.0-beta-17")
+        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.1.0-beta-22")
 
         // Used by the main app
         compile("com.github.spullara.mustache.java:compiler:0.9.1",
@@ -159,7 +156,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "com.squareup.okhttp3:okhttp-ws:${Versions.okhttp}",
                 "biz.aQute.bnd:bndlib:2.4.0",
-                "org.sonatype.aether:aether-api:${Versions.sonatypeAether}",
+                "org.eclipse.aether:aether-spi:${Versions.aether}",
 
                 "com.squareup.okhttp3:logging-interceptor:3.2.0",
 
