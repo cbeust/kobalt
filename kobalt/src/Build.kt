@@ -26,7 +26,7 @@ object Versions {
     val okio = "1.6.0"
     val retrofit = "2.1.0"
     val gson = "2.6.2"
-    val aether = "1.0.0.v20140518"
+    val aether = "1.0.2.v20150114"
     val sonatypeAether = "1.13.1"
     val maven = "3.3.9"
 }
