@@ -1,9 +1,13 @@
 package com.beust.kobalt.misc
 
 import com.beust.kobalt.TestModule
+import com.beust.kobalt.internal.KobaltSettings
+import com.beust.kobalt.internal.KobaltSettingsXml
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.aether.Booter
 import com.beust.kobalt.maven.aether.KobaltAether
+import com.google.common.eventbus.EventBus
 import com.google.inject.Inject
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.aether.artifact.DefaultArtifact
@@ -23,10 +27,14 @@ class AetherTest {
     @Inject
     lateinit var dependencyManager: DependencyManager
 
+    @Inject
+    lateinit var localRepo: LocalRepo
+
     @Test
     fun aetherShouldNotIncludeOptionalDependencies() {
         val system = Booter.newRepositorySystem()
-        val session = Booter.newRepositorySystemSession(system)
+        val session = Booter.newRepositorySystemSession(system,
+                localRepo.localRepo, KobaltSettings(KobaltSettingsXml()), EventBus())
         val artifact = DefaultArtifact("com.squareup.retrofit2:converter-jackson:jar:2.1.0")
 
         val collectRequest = CollectRequest().apply {

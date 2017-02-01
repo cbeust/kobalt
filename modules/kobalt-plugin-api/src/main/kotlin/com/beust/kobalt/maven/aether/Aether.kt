@@ -31,6 +31,7 @@ import org.eclipse.aether.resolution.VersionRangeResult
 import org.eclipse.aether.transfer.ArtifactNotFoundException
 import org.eclipse.aether.util.artifact.JavaScopes
 import java.io.File
+import java.util.*
 import java.util.concurrent.Future
 
 enum class Scope(val scope: String, val dependencyLambda: (Project) -> List<IClasspathDependency>) {
@@ -300,81 +301,81 @@ class AetherDependency(val artifact: Artifact, override val optional: Boolean = 
     override fun toString() = id
 }
 
-fun f(argv: Array<String>) {
-    val collectRequest = CollectRequest().apply {
-        root = Dependency(DefaultArtifact("com.squareup.retrofit2:converter-jackson:jar:2.1.0"), JavaScopes.COMPILE)
-        repositories = listOf(
-//                RemoteRepository.Builder("Maven", "default", "http://repo1.maven.org/maven2/").build()
-                RemoteRepository.Builder("JCenter", "default", "https://jcenter.bintray.com").build()
-        )
-    }
-//    val dependencyRequest = DependencyRequest().apply {
-//        collectRequest = request
-//        filter = object: DependencyFilter {
-//            override fun accept(p0: DependencyNode, p1: MutableList<DependencyNode>?): Boolean {
-//                if (p0.artifact.artifactId.contains("android")) {
-//                    println("ANDROID")
-//                }
-//                return p0.dependency.scope == JavaScopes.COMPILE
-//            }
-//
-//        }
+//fun f(argv: Array<String>) {
+//    val collectRequest = CollectRequest().apply {
+//        root = Dependency(DefaultArtifact("com.squareup.retrofit2:converter-jackson:jar:2.1.0"), JavaScopes.COMPILE)
+//        repositories = listOf(
+////                RemoteRepository.Builder("Maven", "default", "http://repo1.maven.org/maven2/").build()
+//                RemoteRepository.Builder("JCenter", "default", "https://jcenter.bintray.com").build()
+//        )
 //    }
-    val dr2 = DependencyRequest(collectRequest, null).apply {}
-
-
-//    val system = ManualRepositorySystemFactory.newRepositorySystem()
-//    val session = DefaultRepositorySystemSession()
-//    val localRepo = LocalRepository(File("/Users/cedricbeust/t/localAether").absolutePath)
-//    session.localRepositoryManager = system.newLocalRepositoryManager(session, localRepo)
-
-    val system = Booter.newRepositorySystem()
-    val session = Booter.newRepositorySystemSession(system)
-
-    val result = system.resolveDependencies(session, dr2).artifactResults
-    println("RESULT: " + result)
-
-//    KobaltLogger.LOG_LEVEL = 1
-//    val id = "org.testng:testng:6.9.11"
-//    val aether = KobaltAether(KobaltSettings(KobaltSettingsXml()), Aether(File(homeDir(".aether")),
-//            KobaltSettings(KobaltSettingsXml()), EventBus()))
-//    val r = aether.resolve(id)
-//    val r2 = aether.resolve(id)
-//    val d = org.eclipse.aether.artifact.DefaultArtifact("org.testng:testng:6.9")
+////    val dependencyRequest = DependencyRequest().apply {
+////        collectRequest = request
+////        filter = object: DependencyFilter {
+////            override fun accept(p0: DependencyNode, p1: MutableList<DependencyNode>?): Boolean {
+////                if (p0.artifact.artifactId.contains("android")) {
+////                    println("ANDROID")
+////                }
+////                return p0.dependency.scope == JavaScopes.COMPILE
+////            }
+////
+////        }
+////    }
+//    val dr2 = DependencyRequest(collectRequest, null).apply {}
 //
-//    println("Artifact: " + d)
-}
+//
+////    val system = ManualRepositorySystemFactory.newRepositorySystem()
+////    val session = DefaultRepositorySystemSession()
+////    val localRepo = LocalRepository(File("/Users/cedricbeust/t/localAether").absolutePath)
+////    session.localRepositoryManager = system.newLocalRepositoryManager(session, localRepo)
+//
+//    val system = Booter.newRepositorySystem()
+//    val session = Booter.newRepositorySystemSession(system)
+//
+//    val result = system.resolveDependencies(session, dr2).artifactResults
+//    println("RESULT: " + result)
+//
+////    KobaltLogger.LOG_LEVEL = 1
+////    val id = "org.testng:testng:6.9.11"
+////    val aether = KobaltAether(KobaltSettings(KobaltSettingsXml()), Aether(File(homeDir(".aether")),
+////            KobaltSettings(KobaltSettingsXml()), EventBus()))
+////    val r = aether.resolve(id)
+////    val r2 = aether.resolve(id)
+////    val d = org.eclipse.aether.artifact.DefaultArtifact("org.testng:testng:6.9")
+////
+////    println("Artifact: " + d)
+//}
 
-fun f2() {
-    val system = Booter.newRepositorySystem()
-
-    val session = Booter.newRepositorySystemSession(system)
-
-    val artifact = DefaultArtifact("com.squareup.retrofit2:converter-jackson:jar:2.1.0")
-
-//        DependencyFilter classpathFlter = DependencyFilterUtils.classpathFilter( JavaScopes.COMPILE );
-    val f2 = DependencyFilter { dependencyNode, list ->
-        println("ACCEPTING " + dependencyNode)
-        true
-    }
-
-    val collectRequest = CollectRequest()
-    collectRequest.root = Dependency(artifact, JavaScopes.COMPILE)
-    collectRequest.repositories = listOf(
-        RemoteRepository.Builder("Maven", "default", "http://repo1.maven.org/maven2/").build()
-    )
-
-    val dependencyRequest = DependencyRequest(collectRequest, null)
-
-    val artifactResults = system.resolveDependencies(session, dependencyRequest).artifactResults
-
-    for (artifactResult in artifactResults) {
-        println(artifactResult.artifact.toString() + " resolved to " + artifactResult.artifact.file)
-    }
-}
-
-
-fun main(args: Array<String>) {
-    f2()
-}
+//fun f2() {
+//    val system = Booter.newRepositorySystem()
+//
+//    val session = Booter.newRepositorySystemSession(system)
+//
+//    val artifact = DefaultArtifact("com.squareup.retrofit2:converter-jackson:jar:2.1.0")
+//
+////        DependencyFilter classpathFlter = DependencyFilterUtils.classpathFilter( JavaScopes.COMPILE );
+//    val f2 = DependencyFilter { dependencyNode, list ->
+//        println("ACCEPTING " + dependencyNode)
+//        true
+//    }
+//
+//    val collectRequest = CollectRequest()
+//    collectRequest.root = Dependency(artifact, JavaScopes.COMPILE)
+//    collectRequest.repositories = listOf(
+//        RemoteRepository.Builder("Maven", "default", "http://repo1.maven.org/maven2/").build()
+//    )
+//
+//    val dependencyRequest = DependencyRequest(collectRequest, null)
+//
+//    val artifactResults = system.resolveDependencies(session, dependencyRequest).artifactResults
+//
+//    for (artifactResult in artifactResults) {
+//        println(artifactResult.artifact.toString() + " resolved to " + artifactResult.artifact.file)
+//    }
+//}
+//
+//
+//fun main(args: Array<String>) {
+//    f2()
+//}
 
