@@ -147,7 +147,7 @@ class DownloadTest @Inject constructor(
 
     @Test
     fun parentPomTest() {
-        // Resolve com.squareup.retrofit2:converter-moshi:2.0.0
+        // Resolve com.squareup.retrofit2:converter-moshi:1.1.0
         // This id has a parent pom which defines moshi version to be 1.1.0. Make sure that this
         // version is being fetched instead of moshi:1.2.0-SNAPSHOT (which gets discarded anyway
         // since snapshots are not allowed to be returned when looking up a versionless id)

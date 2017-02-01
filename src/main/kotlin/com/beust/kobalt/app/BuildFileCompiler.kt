@@ -46,7 +46,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
 
     private val SCRIPT_JAR = "buildScript.jar"
 
-    fun compileBuildFiles(args: Args): FindProjectResult {
+    fun compileBuildFiles(args: Args, forceRecompile: Boolean = false): FindProjectResult {
         //
         // Create the KobaltContext
         // Note: can't use apply{} here or each field will refer to itself instead of the constructor field
@@ -66,7 +66,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
         //
         // Find all the projects in the build file, possibly compiling them
         //
-        val projectResult = findProjects(context)
+        val projectResult = findProjects(context, forceRecompile)
 
         return projectResult
     }
@@ -76,7 +76,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
     class FindProjectResult(val context: KobaltContext, val projects: List<Project>, val pluginUrls: List<URL>,
             val taskResult: TaskResult)
 
-    private fun findProjects(context: KobaltContext): FindProjectResult {
+    private fun findProjects(context: KobaltContext, forceRecompile: Boolean): FindProjectResult {
         var errorTaskResult: TaskResult? = null
         val projects = arrayListOf<Project>()
         buildFiles.forEach { buildFile ->
@@ -105,7 +105,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
             KFiles.saveFile(modifiedBuildFile, parsedBuildFile.buildScriptCode)
             val taskResult = maybeCompileBuildFile(context, BuildFile(Paths.get(modifiedBuildFile.path),
                     "Modified ${Constants.BUILD_FILE_NAME}", buildFile.realPath),
-                    buildScriptJarFile, pluginUrls)
+                    buildScriptJarFile, pluginUrls, forceRecompile)
             if (taskResult.success) {
                 projects.addAll(buildScriptUtil.runBuildScriptJarFile(buildScriptJarFile, pluginUrls, context))
             } else {
@@ -124,7 +124,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
     }
 
     private fun maybeCompileBuildFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File,
-            pluginUrls: List<URL>) : TaskResult {
+            pluginUrls: List<URL>, forceRecompile: Boolean) : TaskResult {
         kobaltLog(2, "Running build file ${buildFile.name} jar: $buildScriptJarFile")
 
         // If the user specifed --profiles, always recompile the build file since we don't know if
@@ -135,8 +135,8 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
         // compiled with.
         val bs = BuildScriptJarFile(buildScriptJarFile)
         val same = bs.sameProfiles(args.profiles)
-        if (same && buildScriptUtil.isUpToDate(buildFile, buildScriptJarFile)) {
-            kobaltLog(2, "  Build file is up to date")
+        if (same && ! forceRecompile && buildScriptUtil.isUpToDate(buildFile, buildScriptJarFile)) {
+            kobaltLog(2, "  Build file $buildScriptJarFile is up to date")
             return TaskResult()
         } else {
             kobaltLog(2, "  Need to recompile ${buildFile.name}")

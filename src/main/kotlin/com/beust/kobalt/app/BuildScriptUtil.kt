@@ -13,6 +13,7 @@ import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Topological
 import com.beust.kobalt.misc.kobaltLog
+import com.beust.kobalt.misc.warn
 import com.beust.kobalt.plugin.KobaltPlugin
 import com.google.inject.Inject
 import java.io.File
@@ -63,11 +64,15 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
                 val name = entry.name;
                 if (name.endsWith(".class")) {
                     val className = name.substring(0, name.length - 6).replace("/", ".")
-                    val cl : Class<*>? = classLoader.loadClass(className)
-                    if (cl != null) {
-                        classes.add(cl)
-                    } else {
-                        throw KobaltException("Couldn't instantiate $className")
+                    try {
+                        val cl: Class<*>? = classLoader.loadClass(className)
+                        if (cl != null) {
+                            classes.add(cl)
+                        } else {
+                            throw KobaltException("Couldn't instantiate $className")
+                        }
+                    } catch(ex: ClassNotFoundException) {
+                        warn("Couldn't find class $className")
                     }
                 }
                 entry = stream.nextJarEntry;

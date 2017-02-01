@@ -1,6 +1,8 @@
 package com.beust.kobalt.api
 
+import com.beust.kobalt.maven.aether.Filters
 import com.beust.kobalt.maven.aether.Scope
+import org.eclipse.aether.graph.DependencyFilter
 
 /**
  * Manage the creation of dependencies and also provide dependencies for projects.
@@ -36,6 +38,7 @@ interface IDependencyManager {
      * allDependencies is typically either compileDependencies or testDependencies
      */
     fun calculateDependencies(project: Project?, context: KobaltContext,
-            scopeFilters: Collection<Scope> = listOf(Scope.COMPILE),
+            dependencyFilter: DependencyFilter = Filters.EXCLUDE_OPTIONAL_FILTER,
+            scopes: List<Scope> = listOf(Scope.COMPILE),
             vararg passedDependencies: List<IClasspathDependency>): List<IClasspathDependency>
 }

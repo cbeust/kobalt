@@ -112,7 +112,7 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
             val allDependencies = project.compileDependencies + project.compileRuntimeDependencies
             val allTheDependencies =
                     dependencyManager.calculateDependencies(project, context,
-                            listOf(Scope.COMPILE, Scope.RUNTIME),
+                            scopes = listOf(Scope.COMPILE, Scope.RUNTIME),
                             passedDependencies = allDependencies)
                             .map { it.jarFile.get().path }
             allDeps.addAll(allTheDependencies)

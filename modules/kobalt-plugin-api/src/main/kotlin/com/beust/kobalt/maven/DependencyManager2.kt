@@ -9,6 +9,7 @@ import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.google.common.collect.ArrayListMultimap
 import com.google.inject.Inject
+import org.eclipse.aether.graph.DependencyFilter
 import java.io.File
 import java.util.*
 
@@ -59,18 +60,18 @@ class DependencyManager2 @Inject constructor(val aether: KobaltAether) {
      * Resolve the dependencies for the give project based on the scope filters.
      */
     fun resolve(project: Project, context: KobaltContext, isTest: Boolean,
-            passedScopeFilters : List<Scope> = emptyList(),
+            passedScopes : List<Scope> = emptyList(),
             passedIds: List<IClasspathDependency> = emptyList()): List<IClasspathDependency> {
         val result = hashSetOf<IClasspathDependency>()
         val nonMavenDependencies = hashSetOf<IClasspathDependency>()
 
-        val scopeFilters =
-            if (passedScopeFilters.isEmpty())
-                if (isTest) listOf(Scope.TEST)
+        val actualScopes =
+            if (passedScopes.isEmpty())
+                if (isTest) listOf(Scope.TEST, Scope.COMPILE)
                 else listOf(Scope.COMPILE)
-            else passedScopeFilters
+            else passedScopes
 
-        val toDependencies = Scope.toDependencyLambda(scopeFilters)
+        val toDependencies = Scope.toDependencyLambda(actualScopes)
 
         // Make sure that classes/ and test-classes/ are always at the top of this classpath,
         // so that older versions of that project on the classpath don't shadow them
@@ -82,7 +83,7 @@ class DependencyManager2 @Inject constructor(val aether: KobaltAether) {
         // Passed and direct ids
         val ids = hashSetOf<IClasspathDependency>().apply {
             addAll(passedIds)
-            addAll(toDependencies(project))
+            addAll(toDependencies(project).filter { ! it.optional })
         }
 
         // Contributed id's
@@ -105,8 +106,9 @@ class DependencyManager2 @Inject constructor(val aether: KobaltAether) {
         var i = 0
         ids.forEach {
             if (it.isMaven) {
-                val resolved = aether.resolveAll(it.id, filterScopes = scopeFilters)
-                        .map { create(it.toString(), false, project.directory) }
+                result.add(it)
+                val resolved = aether.resolveAll(it.id, dependencyFilter = scopesToDependencyFilter(actualScopes))
+                        .map { create(it, false, project.directory) }
                 i++
                 result.addAll(resolved)
             } else {
@@ -117,6 +119,18 @@ class DependencyManager2 @Inject constructor(val aether: KobaltAether) {
         result.addAll(nonMavenDependencies)
 
         return reorderDependencies(result)
+    }
+
+    private fun scopesToDependencyFilter(scopes: List<Scope>, includeOptional: Boolean = false): DependencyFilter {
+        return DependencyFilter { p0, p1 ->
+            if (p0.dependency.optional && ! includeOptional) return@DependencyFilter false
+
+            val result = scopes.any {
+                p0.dependency.scope == "" && scopes.contains(Scope.COMPILE) ||
+                        p0.dependency.scope == it.scope
+            }
+            result
+        }
     }
 
     /**

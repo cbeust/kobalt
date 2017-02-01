@@ -162,8 +162,8 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         //
         // Compile the jar file
         //
-        val kotlintDeps = dependencyManager.calculateDependencies(null, context)
-        val deps: List<String> = kotlintDeps.map { it.jarFile.get().absolutePath }
+        val kotlinDeps = dependencyManager.calculateDependencies(null, context)
+        val deps: List<String> = kotlinDeps.map { it.jarFile.get().absolutePath }
         val outputJar = File(buildScriptJarFile.absolutePath)
         val result = kotlinCompilePrivate {
             classpath(files.kobaltJar)

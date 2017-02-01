@@ -5,7 +5,6 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.KobaltSettings
-import com.beust.kobalt.internal.KobaltSettingsXml
 import com.beust.kobalt.internal.getProxy
 import com.beust.kobalt.maven.CompletedFuture
 import com.beust.kobalt.maven.LocalDep
@@ -23,7 +22,6 @@ import org.eclipse.aether.collection.CollectRequest
 import org.eclipse.aether.collection.CollectResult
 import org.eclipse.aether.graph.Dependency
 import org.eclipse.aether.graph.DependencyFilter
-import org.eclipse.aether.graph.DependencyNode
 import org.eclipse.aether.repository.ArtifactRepository
 import org.eclipse.aether.repository.RemoteRepository
 import org.eclipse.aether.resolution.DependencyRequest
@@ -32,10 +30,7 @@ import org.eclipse.aether.resolution.VersionRangeRequest
 import org.eclipse.aether.resolution.VersionRangeResult
 import org.eclipse.aether.transfer.ArtifactNotFoundException
 import org.eclipse.aether.util.artifact.JavaScopes
-import org.eclipse.aether.util.filter.AndDependencyFilter
-import org.eclipse.aether.util.filter.DependencyFilterUtils
 import java.io.File
-import java.util.*
 import java.util.concurrent.Future
 
 enum class Scope(val scope: String, val dependencyLambda: (Project) -> List<IClasspathDependency>) {
@@ -47,26 +42,22 @@ enum class Scope(val scope: String, val dependencyLambda: (Project) -> List<ICla
     ;
 
     companion object {
-        /**
-         * @return a filter that excludes optional dependencies and allows all the scopes passed in parameter.
-         */
-        fun toFilter(scopes: Collection<Scope>): DependencyFilter {
-            val javaScopes = scopes.map { DependencyFilterUtils.classpathFilter(it.scope) }.toTypedArray()
-            return AndDependencyFilter(KobaltAether.ExcludeOptionalDependencyFilter(), *javaScopes)
-        }
+        fun toScopes(isTest: Boolean) = if (isTest) listOf(Scope.TEST, Scope.COMPILE) else listOf(Scope.COMPILE)
 
         /**
          * @return a lambda that extracts the correct dependencies from a project based on the scope
-         * filters passed.
+         * filters passed (excludes optional dependencies).
          */
         fun toDependencyLambda(scopes: Collection<Scope>) : (Project) -> List<IClasspathDependency> {
             val result = { project : Project ->
-                scopes.fold(arrayListOf<IClasspathDependency>(),
+                val deps = scopes.fold(arrayListOf<IClasspathDependency>(),
                     { list: ArrayList<IClasspathDependency>, scope: Scope ->
-                        list.addAll(scope.dependencyLambda(project))
+                        list.addAll(scope.dependencyLambda(project).filter { ! it.optional })
                         list
                     })
-                }
+                deps
+            }
+
             return result
         }
     }
@@ -94,16 +85,16 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
         DependencyResult(AetherDependency(it.artifact), it.repository.toString())
     }
 
-    fun resolveAll(id: String, artifactScope: Scope? = null, filterScopes: Collection<Scope> = emptyList())
+    fun resolveAll(id: String, artifactScope: Scope? = null, dependencyFilter: DependencyFilter?)
             : List<String> {
-        val results = aether.resolve(DefaultArtifact(id), artifactScope, filterScopes)
+        val results = aether.resolve(DefaultArtifact(id), artifactScope, dependencyFilter)
         return results.map { it.artifact.toString() }
     }
 
-    fun resolve(id: String, artifactScope: Scope? = null, filterScopes: Collection<Scope> = emptyList())
+    fun resolve(id: String, artifactScope: Scope? = null, dependencyFilter: DependencyFilter = Filters.COMPILE_FILTER)
             : DependencyResult {
         kobaltLog(ConsoleRepositoryListener.LOG_LEVEL, "Resolving $id")
-        val result = resolveToArtifact(id, artifactScope, filterScopes)
+        val result = resolveToArtifact(id, artifactScope, dependencyFilter)
         if (result != null) {
             return DependencyResult(AetherDependency(result.artifact), result.repository.toString())
         } else {
@@ -111,24 +102,15 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
         }
     }
 
-    fun resolveToArtifact(id: String, artifactScope: Scope? = null, filterScopes: Collection<Scope> = emptyList())
+    fun resolveToArtifact(id: String, artifactScope: Scope? = null,
+            dependencyFilter: DependencyFilter? = null)
             : AetherResult? {
         kobaltLog(ConsoleRepositoryListener.LOG_LEVEL, "Resolving $id")
-        val results = aether.resolve(DefaultArtifact(MavenId.toKobaltId(id)), artifactScope, filterScopes)
+        val results = aether.resolve(DefaultArtifact(MavenId.toKobaltId(id)), artifactScope, dependencyFilter)
         if (results.size > 0) {
             return results[0]
         } else {
             return null
-        }
-    }
-
-    class ExcludeOptionalDependencyFilter : DependencyFilter {
-        override fun accept(node: DependencyNode?, p1: MutableList<DependencyNode>?): Boolean {
-//        val result = node != null && ! node.dependency.isOptional
-            val accept1 = node == null || node.artifact.artifactId != "srczip"
-            val accept2 = node != null && !node.dependency.isOptional
-            val result = accept1 && accept2
-            return result
         }
     }
 }
@@ -137,8 +119,6 @@ class KobaltAether @Inject constructor (val settings: KobaltSettings, val aether
 class Aether(localRepo: File, val settings: KobaltSettings, eventBus: EventBus) {
     private val system = Booter.newRepositorySystem()
     private val session = Booter.newRepositorySystemSession(system, localRepo, settings, eventBus)
-//    private val classpathFilter = Scopes.toFilter(Scopes.COMPILE, Scopes.TEST)
-//    private val testClasspathFilter = Scopes.toFilter(Scopes.TEST)
 
     private val kobaltRepositories: List<RemoteRepository>
         get() = Kobalt.repos.map {
@@ -170,7 +150,7 @@ class Aether(localRepo: File, val settings: KobaltSettings, eventBus: EventBus) 
         if (resolved != null) {
             val newArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.extension,
                     resolved.highestVersion.toString())
-            val artifactResult = resolve(newArtifact, null, emptyList())
+            val artifactResult = resolve(newArtifact, null)
             if (artifactResult.any()) {
                 return artifactResult[0]
             } else {
@@ -187,7 +167,9 @@ class Aether(localRepo: File, val settings: KobaltSettings, eventBus: EventBus) 
         return result
     }
 
-    fun resolve(artifact: Artifact, artifactScope: Scope?, filterScopes: Collection<Scope>): List<AetherResult> {
+    fun resolve(artifact: Artifact, artifactScope: Scope?,
+            dependencyFilter: DependencyFilter? = null)
+            : List<AetherResult> {
         fun manageException(ex: Exception, artifact: Artifact): List<AetherResult> {
             if (artifact.extension == "pom") {
                 // Only display a warning for .pom files. Not resolving a .jar or other artifact
@@ -198,7 +180,6 @@ class Aether(localRepo: File, val settings: KobaltSettings, eventBus: EventBus) 
         }
 
         try {
-            val scopeFilter = Scope.toFilter(filterScopes)
             val result =
                 if (KobaltAether.isRangeVersion(artifact.version)) {
                     val request = rangeRequest(artifact)
@@ -212,7 +193,8 @@ class Aether(localRepo: File, val settings: KobaltSettings, eventBus: EventBus) 
                         throw KobaltException("Couldn't resolve range artifact " + artifact)
                     }
                 } else {
-                    val dependencyRequest = DependencyRequest(collectRequest(artifact, artifactScope), scopeFilter)
+                    val dependencyRequest = DependencyRequest(collectRequest(artifact, artifactScope), dependencyFilter)
+
                     try {
                         system.resolveDependencies(session, dependencyRequest).artifactResults.map {
                             AetherResult(it.artifact, it.repository)
@@ -256,7 +238,7 @@ class AetherDependency(val artifact: Artifact, override val optional: Boolean = 
             if (file.exists()) {
                 CompletedFuture(file)
             } else {
-                val td = aether.resolve(artifact, null, emptyList())
+                val td = aether.resolve(artifact, null)
                 if (td.any()) {
                     val newFile = td[0].artifact.file
                     if (newFile != null) {
@@ -318,21 +300,38 @@ class AetherDependency(val artifact: Artifact, override val optional: Boolean = 
     override fun toString() = id
 }
 
-fun main(argv: Array<String>) {
-    val request = CollectRequest().apply {
-        root = Dependency(DefaultArtifact("org.testng:testng:6.9.11"), JavaScopes.COMPILE)
+fun f(argv: Array<String>) {
+    val collectRequest = CollectRequest().apply {
+        root = Dependency(DefaultArtifact("com.squareup.retrofit2:converter-jackson:jar:2.1.0"), JavaScopes.COMPILE)
         repositories = listOf(
-                RemoteRepository.Builder("Maven", "default", "http://repo1.maven.org/maven2/").build(),
-                RemoteRepository.Builder("JCenter", "default", "https://jcenter.bintray.com").build())
+//                RemoteRepository.Builder("Maven", "default", "http://repo1.maven.org/maven2/").build()
+                RemoteRepository.Builder("JCenter", "default", "https://jcenter.bintray.com").build()
+        )
     }
-    val dependencyRequest = DependencyRequest().apply {
-        collectRequest = request
-    }
+//    val dependencyRequest = DependencyRequest().apply {
+//        collectRequest = request
+//        filter = object: DependencyFilter {
+//            override fun accept(p0: DependencyNode, p1: MutableList<DependencyNode>?): Boolean {
+//                if (p0.artifact.artifactId.contains("android")) {
+//                    println("ANDROID")
+//                }
+//                return p0.dependency.scope == JavaScopes.COMPILE
+//            }
+//
+//        }
+//    }
+    val dr2 = DependencyRequest(collectRequest, null).apply {}
+
+
+//    val system = ManualRepositorySystemFactory.newRepositorySystem()
+//    val session = DefaultRepositorySystemSession()
+//    val localRepo = LocalRepository(File("/Users/cedricbeust/t/localAether").absolutePath)
+//    session.localRepositoryManager = system.newLocalRepositoryManager(session, localRepo)
+
     val system = Booter.newRepositorySystem()
-    val session = Booter.newRepositorySystemSession(system, File("/tmp"), KobaltSettings(KobaltSettingsXml()),
-            EventBus())
-//    val session = MavenRepositorySystemUtils.newSession(KobaltSettings(KobaltSettingsXml()))
-    val result = system.resolveDependencies(session, dependencyRequest).artifactResults
+    val session = Booter.newRepositorySystemSession(system)
+
+    val result = system.resolveDependencies(session, dr2).artifactResults
     println("RESULT: " + result)
 
 //    KobaltLogger.LOG_LEVEL = 1
@@ -346,4 +345,36 @@ fun main(argv: Array<String>) {
 //    println("Artifact: " + d)
 }
 
+fun f2() {
+    val system = Booter.newRepositorySystem()
+
+    val session = Booter.newRepositorySystemSession(system)
+
+    val artifact = DefaultArtifact("com.squareup.retrofit2:converter-jackson:jar:2.1.0")
+
+//        DependencyFilter classpathFlter = DependencyFilterUtils.classpathFilter( JavaScopes.COMPILE );
+    val f2 = DependencyFilter { dependencyNode, list ->
+        println("ACCEPTING " + dependencyNode)
+        true
+    }
+
+    val collectRequest = CollectRequest()
+    collectRequest.root = Dependency(artifact, JavaScopes.COMPILE)
+    collectRequest.repositories = listOf(
+        RemoteRepository.Builder("Maven", "default", "http://repo1.maven.org/maven2/").build()
+    )
+
+    val dependencyRequest = DependencyRequest(collectRequest, null)
+
+    val artifactResults = system.resolveDependencies(session, dependencyRequest).artifactResults
+
+    for (artifactResult in artifactResults) {
+        println(artifactResult.artifact.toString() + " resolved to " + artifactResult.artifact.file)
+    }
+}
+
+
+fun main(args: Array<String>) {
+    f2()
+}
 

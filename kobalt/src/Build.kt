@@ -26,7 +26,7 @@ object Versions {
     val okio = "1.6.0"
     val retrofit = "2.1.0"
     val gson = "2.6.2"
-    val aether = "1.1.0"
+    val aether = "1.0.0.v20140518"
     val sonatypeAether = "1.13.1"
     val maven = "3.3.9"
 }
@@ -102,6 +102,7 @@ val kobaltPluginApi = project {
 
                 "org.slf4j:slf4j-nop:1.6.0",
                 "org.eclipse.aether:aether-spi:${Versions.aether}",
+                "org.eclipse.aether:aether-util:${Versions.aether}",
                 "org.eclipse.aether:aether-impl:${Versions.aether}",
                 "org.eclipse.aether:aether-connector-basic:${Versions.aether}",
                 "org.eclipse.aether:aether-transport-file:${Versions.aether}",
@@ -158,6 +159,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "com.squareup.okhttp3:okhttp-ws:${Versions.okhttp}",
                 "biz.aQute.bnd:bndlib:2.4.0",
+                "org.sonatype.aether:aether-api:${Versions.sonatypeAether}",
 
                 "com.squareup.okhttp3:logging-interceptor:3.2.0",
 
@@ -176,7 +178,10 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
     dependenciesTest {
         compile("org.testng:testng:6.9.11",
-                "org.assertj:assertj-core:3.4.1")
+                "org.assertj:assertj-core:3.4.1",
+                "org.eclipse.aether:aether-spi:${Versions.aether}",
+                "org.eclipse.aether:aether-util:${Versions.aether}"
+                )
     }
 
     assemble {
