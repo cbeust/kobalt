@@ -3,7 +3,6 @@ package com.beust.kobalt.internal
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.DependencyManager2
 import com.beust.kobalt.maven.aether.Scope
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
@@ -15,9 +14,7 @@ import java.util.*
 /**
  * Central place to compile files, used by plug-ins and non plug-ins.
  */
-class CompilerUtils @Inject constructor(val files: KFiles,
-        val dependencyManager: DependencyManager,
-        val dependencyManager2: DependencyManager2) {
+class CompilerUtils @Inject constructor(val files: KFiles, val dependencyManager: DependencyManager) {
 
     class CompilerResult(val successResults: List<TaskResult>, val failedResult: TaskResult?)
 
@@ -72,17 +69,8 @@ class CompilerUtils @Inject constructor(val files: KFiles,
             : CompilerActionInfo {
         copyResources(project, context, SourceSet.of(isTest))
 
-        val fullClasspath = dependencyManager2.resolve(project, context, isTest, listOf(Scope.COMPILE, Scope.TEST))
-
-//        if (project.name == "ktor-core" && isTest) {
-//            val contains = fullClasspath.filter{it.id.contains("json")}
-//            val fc1 =
-//                if (isTest) dependencyManager.testDependencies(project, context)
-//                else dependencyManager.dependencies(project, context)
-//
-//            println("DONOTCOMMIT")
-//            val d2 = dependencyManager2.resolve(project, context, isTest, listOf(Scope.COMPILE, Scope.TEST))
-//        }
+        val fullClasspath = dependencyManager.calculateDependencies(project, context,
+                scopes = listOf(Scope.COMPILE, Scope.TEST))
 
         File(project.directory, buildDirectory.path).mkdirs()
 

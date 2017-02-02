@@ -115,18 +115,25 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
                     addAll(project.testDependencies)
                 }
             }
-            return result
+            return result.filter { ! it.optional }
         }
 
         val allDependencies : Array<out List<IClasspathDependency>> =
             if (project == null || passedDependencies.any()) passedDependencies
             else arrayOf(filtersToDependencies(project, scopes))
 
+        // Make sure that classes/ and test-classes/ are always at the top of this classpath,
+        // so that older versions of that project on the classpath don't shadow them
+        if (project != null && scopes.contains(Scope.TEST)) {
+            result.add(FileDependency(KFiles.makeOutputDir(project).path))
+            result.add(FileDependency(KFiles.makeOutputTestDir(project).path))
+        }
+
         allDependencies.forEach { dependencies ->
             result.addAll(transitiveClosure(dependencies, dependencyFilter, project?.name))
         }
         result.addAll(runClasspathContributors(project, context))
-        result.addAll(dependentProjectDependencies(project, context, dependencyFilter, scopes.contains(Scope.TEST)))
+        result.addAll(dependentProjectDependencies(project, context, dependencyFilter, scopes))
 
         // Dependencies get reordered by transitiveClosure() but since we just added a bunch of new ones,
         // we need to reorder them again in case we're adding dependencies that are already present
@@ -188,7 +195,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      * their own dependencies
      */
     private fun dependentProjectDependencies(project: Project?, context: KobaltContext,
-            dependencyFilter: DependencyFilter, isTest: Boolean): List<IClasspathDependency> {
+            dependencyFilter: DependencyFilter, scopes: List<Scope>): List<IClasspathDependency> {
         if (project == null) {
             return emptyList()
         } else {
@@ -204,8 +211,9 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
 
             project.dependsOn.forEach { p ->
                 maybeAddClassDir(KFiles.joinDir(p.directory, p.classesDir(context)))
+                val isTest = scopes.contains(Scope.TEST)
                 if (isTest) maybeAddClassDir(KFiles.makeOutputTestDir(project).path)
-                val otherDependencies = calculateDependencies(p, context, dependencyFilter, Scope.toScopes(isTest))
+                val otherDependencies = calculateDependencies(p, context, dependencyFilter, scopes)
                 result.addAll(otherDependencies)
 
             }

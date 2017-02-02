@@ -16,7 +16,6 @@ import org.testng.annotations.Test
 
 @Guice(modules = arrayOf(TestModule::class))
 class DependencyManagerTest @Inject constructor(val dependencyManager: DependencyManager,
-        val dependencyManager2: DependencyManager2,
         val compilerFactory: BuildFileCompiler.IFactory) : BaseTest() {
 
     private fun assertContains(dependencies: List<IClasspathDependency>, vararg ids: String) {
@@ -127,24 +126,24 @@ class DependencyManagerTest @Inject constructor(val dependencyManager: Dependenc
         val project2 = compileResult.projects[1]
 
         Kobalt.context!!.let { context ->
-            dependencyManager2.resolve(project2, context, isTest = false,
-                    passedScopes = listOf(Scope.COMPILE)).let { dependencies ->
+            dependencyManager.calculateDependencies(project2, context,
+                    scopes = listOf(Scope.COMPILE)).let { dependencies ->
                 assertContains(dependencies, ":klaxon:jar:0.27")
                 assertContains(dependencies, ":guice:")
                 assertDoesNotContain(dependencies, ":jcommander:")
                 assertDoesNotContain(dependencies, ":junit:")
             }
 
-            dependencyManager2.resolve(project2, context, isTest = false,
-                    passedScopes = listOf(Scope.RUNTIME)).let { dependencies ->
+            dependencyManager.calculateDependencies(project2, context,
+                    scopes = listOf(Scope.RUNTIME)).let { dependencies ->
                 assertContains(dependencies, ":jcommander:")
                 assertDoesNotContain(dependencies, ":klaxon:jar:0.27")
                 assertDoesNotContain(dependencies, ":guice:")
                 assertDoesNotContain(dependencies, ":junit:")
             }
 
-            dependencyManager2.resolve(project2, context, isTest = false,
-                    passedScopes = listOf(Scope.COMPILE, Scope.RUNTIME)).let { dependencies ->
+            dependencyManager.calculateDependencies(project2, context,
+                    scopes  = listOf(Scope.COMPILE, Scope.RUNTIME)).let { dependencies ->
                 assertContains(dependencies, ":klaxon:")
                 assertContains(dependencies, ":jcommander:")
                 assertContains(dependencies, ":guice:")
