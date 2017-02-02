@@ -12,6 +12,7 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import java.io.File
 import java.nio.file.Paths
@@ -116,6 +117,23 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
                     sources.second.toSet(), tests.second.toSet(), sources.first.toSet(), tests.first.toSet(),
                     projectTasks))
         }
+
+        //
+        // Debugging
+        //
+        log(2, "Returning dependencies:")
+
+        fun displayDependencies(header: String, dd: List<DependencyData>) {
+            log(2, "    $header:")
+            if (dd.any()) log(2, "      " + dd.map { it.id }.toSortedSet().joinToString("\n      "))
+        }
+
+        projectDatas.forEach {
+            log(2, "  Project: " + it.name)
+            displayDependencies("compileDependencies", it.compileDependencies)
+            displayDependencies("testDependencies", it.testDependencies)
+        }
+
         return GetDependenciesData(projectDatas, allTasks, projectResult.taskResult.errorMessage)
     }
 
