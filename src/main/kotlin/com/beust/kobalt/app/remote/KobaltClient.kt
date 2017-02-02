@@ -47,7 +47,7 @@ interface Api {
 
     @Deprecated(message = "Replaced with /v1/getDependencies")
     @POST("/v0/getDependencies")
-    fun getDependencies(@Query("buildFile") buildFile: String) : Call<List<DependencyData.GetDependenciesData>>
+    fun getDependencies(@Query("buildFile") buildFile: String) : Call<List<RemoteDependencyData.GetDependenciesData>>
 }
 
 class KobaltWebSocketClient : Runnable {
@@ -82,8 +82,8 @@ class KobaltWebSocketClient : Runnable {
                 if (wsCommand.errorMessage != null) {
                     warn("Received error message from server: " + wsCommand.errorMessage)
                 } else {
-                    if (wsCommand.commandName == DependencyData.GetDependenciesData.NAME) {
-                        val dd = Gson().fromJson(wsCommand.payload, DependencyData.GetDependenciesData::class.java)
+                    if (wsCommand.commandName == RemoteDependencyData.GetDependenciesData.NAME) {
+                        val dd = Gson().fromJson(wsCommand.payload, RemoteDependencyData.GetDependenciesData::class.java)
                         println("Received dependency data: " + dd.projects.size + " projects"
                                 + " error: " + dd.errorMessage)
                     } else if (wsCommand.commandName == ProgressCommand.NAME) {

@@ -61,7 +61,7 @@ class GetDependencyGraphHandler : WebSocketListener {
                 // Get the dependencies for the requested build file and send progress to the web
                 // socket for each project
                 try {
-                    val dependencyData = getInstance(DependencyData::class.java)
+                    val dependencyData = getInstance(RemoteDependencyData::class.java)
                     val args = getInstance(Args::class.java)
 
                     val allProjects = projectFinder.initForBuildFile(BuildFile(Paths.get(buildFile), buildFile),
@@ -75,16 +75,16 @@ class GetDependencyGraphHandler : WebSocketListener {
                 } catch(ex: Throwable) {
                     Exceptions.printStackTrace(ex)
                     val errorMessage = ex.stackTrace.map { it.toString() }.joinToString("\n<p>")
-                    DependencyData.GetDependenciesData(errorMessage = errorMessage)
+                    RemoteDependencyData.GetDependenciesData(errorMessage = errorMessage)
                 } finally {
                     SparkServer.cleanUpCallback()
                     eventBus.unregister(busListener)
                 }
             } else {
-                DependencyData.GetDependenciesData(
+                RemoteDependencyData.GetDependenciesData(
                         errorMessage = "buildFile wasn't passed in the query parameter")
             }
-            sendWebsocketCommand(s.remote, DependencyData.GetDependenciesData.NAME, result)
+            sendWebsocketCommand(s.remote, RemoteDependencyData.GetDependenciesData.NAME, result)
             s.close()
         }
     }

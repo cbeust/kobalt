@@ -15,7 +15,7 @@ import com.google.gson.Gson
 //    }
 //}
 
-class KobaltHub(val dependencyData: DependencyData) {
+class KobaltHub(val dependencyData: RemoteDependencyData) {
     val args = Args()
 
     fun runCommand(n: Int) : String {
@@ -35,8 +35,8 @@ class KobaltHub(val dependencyData: DependencyData) {
 
 fun main(argv: Array<String>) {
     Kobalt.init(MainModule(Args(), KobaltSettings.readSettingsXml()))
-    val dependencyData = Kobalt.INJECTOR.getInstance(DependencyData::class.java)
+    val dependencyData = Kobalt.INJECTOR.getInstance(RemoteDependencyData::class.java)
     val json = KobaltHub(dependencyData).runCommand(1)
-    val dd = Gson().fromJson(json, DependencyData.GetDependenciesData::class.java)
+    val dd = Gson().fromJson(json, RemoteDependencyData.GetDependenciesData::class.java)
     println("Data2: $dd")
 }

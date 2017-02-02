@@ -5,7 +5,7 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.app.*
-import com.beust.kobalt.app.remote.DependencyData
+import com.beust.kobalt.app.remote.RemoteDependencyData
 import com.beust.kobalt.app.remote.KobaltClient
 import com.beust.kobalt.app.remote.KobaltServer
 import com.beust.kobalt.internal.Gc
@@ -69,7 +69,7 @@ private class Main @Inject constructor(
         val projectGenerator: ProjectGenerator,
         val serverFactory: KobaltServer.IFactory,
         val projectFinder: ProjectFinder,
-        val dependencyData: DependencyData,
+        val dependencyData: RemoteDependencyData,
         val resolveDependency: ResolveDependency) {
 
     data class RunInfo(val jc: JCommander, val args: Args)

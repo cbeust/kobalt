@@ -5,13 +5,16 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.BuildFileCompiler
 import com.beust.kobalt.internal.DynamicGraph
+import com.beust.kobalt.internal.GraphUtil
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.Versions
 import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import java.io.File
@@ -24,7 +27,7 @@ interface IProgressListener {
     fun onProgress(progress: Int? = null, message: String? = null)
 }
 
-class DependencyData @Inject constructor(val executors: KobaltExecutors, val dependencyManager: DependencyManager,
+class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, val dependencyManager: DependencyManager,
         val buildFileCompilerFactory: BuildFileCompiler.IFactory, val pluginInfo: PluginInfo,
         val taskManager: TaskManager) {
 
@@ -61,16 +64,47 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
             val d = node.value
             val dep = dependencyManager.create(d.id)
             return DependencyData(d.id, scope, dep.jarFile.get().absolutePath,
-                    node.children.map { toDependencyData2(scope, it) })
+                    children = node.children.map { toDependencyData2(scope, it) })
         }
 
         fun compileDependenciesGraph(project: Project, name: String): List<DependencyData> {
-            val depLambda = { dep : IClasspathDependency -> dep.directDependencies() }
+            val depLambda = IClasspathDependency::directDependencies
             val result =
                     (DynamicGraph.Companion.transitiveClosureGraph(pluginDependencies, depLambda) +
                     DynamicGraph.Companion.transitiveClosureGraph(project.compileDependencies, depLambda) +
                     DynamicGraph.Companion.transitiveClosureGraph(project.compileProvidedDependencies, depLambda))
                 .map { toDependencyData2("compile", it)}
+
+            fun mapOfLatestVersions(l: List<DependencyData>) : Map<String, String> {
+                fun p(l: List<DependencyData>, latestVersions: HashMap<String, String>) {
+                    l.forEach {
+                        if (it.id.contains("squareup:okio")) {
+                            println("DONOTCOMMIT")
+                        }
+                        val mid = MavenId.create(it.id)
+                        val shortId = mid.artifactId + ":" + mid.artifactId
+                        val currentLatest = latestVersions[shortId]
+                        if (currentLatest == null) latestVersions[shortId] = mid.version!!
+                        else mid.version?.let { v ->
+                            if (Versions.toLongVersion(currentLatest) < Versions.toLongVersion(v)) {
+                                latestVersions[shortId] = v
+                            }
+                        }
+                        p(it.children, latestVersions)
+                    }
+                }
+                val result = hashMapOf<String, String>()
+                p(l, result)
+                return result
+            }
+            val map = mapOfLatestVersions(result)
+            GraphUtil.map(result, { d: DependencyData -> d.children },
+                    {d: DependencyData ->
+                        val mid = MavenId.create(d.id)
+                        val shortId = mid.artifactId + ":" + mid.artifactId
+                        val version = map[shortId]
+                        d.isLatest = version == mid.version
+                    })
             return result
         }
 
@@ -123,15 +157,13 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
         //
         log(2, "Returning dependencies:")
 
-        fun displayDependencies(header: String, dd: List<DependencyData>) {
-            log(2, "    $header:")
-            if (dd.any()) log(2, "      " + dd.map { it.id }.toSortedSet().joinToString("\n      "))
-        }
-
         projectDatas.forEach {
             log(2, "  Project: " + it.name)
-            displayDependencies("compileDependencies", it.compileDependencies)
-            displayDependencies("testDependencies", it.testDependencies)
+            GraphUtil.displayGraph(it.compileDependencies,
+                    {dd: DependencyData -> dd.children },
+                    {dd: DependencyData, indent: String ->
+                        println(indent + dd.id + " " + (if (! dd.isLatest) "(old)" else ""))
+                    })
         }
 
         return GetDependenciesData(projectDatas, allTasks, projectResult.taskResult.errorMessage)
@@ -142,8 +174,9 @@ class DependencyData @Inject constructor(val executors: KobaltExecutors, val dep
     // use these same classes.
     //
 
-    class DependencyData(val id: String, val scope: String, val path: String,
+    class DependencyData(val id: String, val scope: String, val path: String, var isLatest: Boolean = true,
             val children: List<DependencyData> = emptyList())
+
     data class TaskData(val name: String, val description: String, val group: String) {
         override fun toString() = name
     }

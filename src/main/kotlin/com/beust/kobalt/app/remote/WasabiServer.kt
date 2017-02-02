@@ -15,7 +15,7 @@
 //
 //                            val projects = initCallback(buildFile)
 //                            val result = try {
-//                                val dependencyData = Kobalt.INJECTOR.getInstance(DependencyData::class.java)
+//                                val dependencyData = Kobalt.INJECTOR.getInstance(RemoteDependencyData::class.java)
 //                                val args = Kobalt.INJECTOR.getInstance(Args::class.java)
 //
 //                                val dd = dependencyData.dependenciesDataFor(buildFile, args)

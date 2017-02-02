@@ -72,17 +72,17 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
             val result =
                 if (buildFile != null) {
                     try {
-                        val dependencyData = Kobalt.INJECTOR.getInstance(DependencyData::class.java)
+                        val dependencyData = Kobalt.INJECTOR.getInstance(RemoteDependencyData::class.java)
                         val args = Kobalt.INJECTOR.getInstance(Args::class.java)
 
                         dependencyData.dependenciesDataFor(buildFile, args)
                     } catch(ex: Exception) {
-                        DependencyData.GetDependenciesData(errorMessage = ex.message)
+                        RemoteDependencyData.GetDependenciesData(errorMessage = ex.message)
                     } finally {
                         cleanUpCallback()
                     }
                 } else {
-                    DependencyData.GetDependenciesData(
+                    RemoteDependencyData.GetDependenciesData(
                             errorMessage = "buildFile wasn't passed in the query parameter")
                 }
             cleanUpCallback()
@@ -143,7 +143,7 @@ class GetDependenciesHandler : WebSocketListener {
                 // Get the dependencies for the requested build file and send progress to the web
                 // socket for each project
                 try {
-                    val dependencyData = getInstance(DependencyData::class.java)
+                    val dependencyData = getInstance(RemoteDependencyData::class.java)
                     val args = getInstance(Args::class.java)
 
                     val allProjects = projectFinder.initForBuildFile(BuildFile(Paths.get(buildFile), buildFile),
@@ -157,16 +157,16 @@ class GetDependenciesHandler : WebSocketListener {
                 } catch(ex: Throwable) {
                     ex.printStackTrace()
                     val errorMessage = ex.stackTrace.map { it.toString() }.joinToString("\n<p>")
-                    DependencyData.GetDependenciesData(errorMessage = errorMessage)
+                    RemoteDependencyData.GetDependenciesData(errorMessage = errorMessage)
                 } finally {
                     SparkServer.cleanUpCallback()
                     eventBus.unregister(busListener)
                 }
             } else {
-                DependencyData.GetDependenciesData(
+                RemoteDependencyData.GetDependenciesData(
                         errorMessage = "buildFile wasn't passed in the query parameter")
             }
-            sendWebsocketCommand(s.remote, DependencyData.GetDependenciesData.NAME, result)
+            sendWebsocketCommand(s.remote, RemoteDependencyData.GetDependenciesData.NAME, result)
             s.close()
         }
     }

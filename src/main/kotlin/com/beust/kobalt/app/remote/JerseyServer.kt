@@ -58,7 +58,7 @@
 //    @Produces(MediaType.APPLICATION_JSON)
 //    fun getDependencies(@QueryParam("buildFile") buildFile: String) : String {
 //        try {
-//            val dependencyData = Kobalt.INJECTOR.getInstance(DependencyData::class.java)
+//            val dependencyData = Kobalt.INJECTOR.getInstance(RemoteDependencyData::class.java)
 //            val args = Kobalt.INJECTOR.getInstance(Args::class.java)
 //
 //            val projects = JerseyServer.initCallback(buildFile)
