@@ -465,6 +465,14 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="kobalt-wrapper" />
-    <orderEntry type="library" name="kobalt.jar" level="project" />
+    <orderEntry type="module-library">
+      <library name="Kobalt: org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:1.1.0-beta-22">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.kobalt/cache/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.1.0-beta-22/kotlin-compiler-embeddable-1.1.0-beta-22.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
