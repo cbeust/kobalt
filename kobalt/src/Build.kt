@@ -26,9 +26,13 @@ object Versions {
     val okio = "1.6.0"
     val retrofit = "2.1.0"
     val gson = "2.6.2"
-    val aether = "1.1.0"
     val maven = "3.3.9"
+    val mavenResolver = "1.0.3"
 }
+
+fun mavenResolver(vararg m: String)
+        = m.map { "org.apache.maven.resolver:maven-resolver-$it:${Versions.mavenResolver}" }
+    .toTypedArray()
 
 val wrapper = project {
     name = "kobalt-wrapper"
@@ -100,12 +104,7 @@ val kobaltPluginApi = project {
                 "org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r",
 
                 "org.slf4j:slf4j-nop:1.6.0",
-                "org.eclipse.aether:aether-spi:${Versions.aether}",
-                "org.eclipse.aether:aether-util:${Versions.aether}",
-                "org.eclipse.aether:aether-impl:${Versions.aether}",
-                "org.eclipse.aether:aether-connector-basic:${Versions.aether}",
-                "org.eclipse.aether:aether-transport-file:${Versions.aether}",
-                "org.eclipse.aether:aether-transport-http:${Versions.aether}",
+                *mavenResolver("spi", "util", "impl", "connector-basic", "transport-http", "transport-file"),
                 "org.apache.maven:maven-aether-provider:3.3.9"
         )
     }
@@ -156,7 +155,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "com.squareup.okhttp3:okhttp-ws:${Versions.okhttp}",
                 "biz.aQute.bnd:bndlib:2.4.0",
-                "org.eclipse.aether:aether-spi:${Versions.aether}",
+                *mavenResolver("spi"),
 
                 "com.squareup.okhttp3:logging-interceptor:3.2.0",
 
@@ -176,8 +175,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
     dependenciesTest {
         compile("org.testng:testng:6.9.11",
                 "org.assertj:assertj-core:3.4.1",
-                "org.eclipse.aether:aether-spi:${Versions.aether}",
-                "org.eclipse.aether:aether-util:${Versions.aether}"
+                *mavenResolver("util")
                 )
     }
 
