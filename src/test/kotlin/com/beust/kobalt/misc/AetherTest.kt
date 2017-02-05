@@ -14,8 +14,10 @@ import org.eclipse.aether.artifact.DefaultArtifact
 import org.eclipse.aether.collection.CollectRequest
 import org.eclipse.aether.graph.Dependency
 import org.eclipse.aether.repository.RemoteRepository
+import org.eclipse.aether.resolution.ArtifactResult
 import org.eclipse.aether.resolution.DependencyRequest
 import org.eclipse.aether.util.artifact.JavaScopes
+import org.testng.annotations.DataProvider
 import org.testng.annotations.Guice
 import org.testng.annotations.Test
 
@@ -30,23 +32,29 @@ class AetherTest {
     @Inject
     lateinit var localRepo: LocalRepo
 
+    @DataProvider
+    fun rangeProvider() = arrayOf(
+            arrayOf("org.sql2o:sql2o:[1.5.0,1.5.1]", "1.5.1"),
+            arrayOf("org.sql2o:sql2o:[1.5.0,)", "1.6.0-RC3"), // can potentially fail
+            arrayOf("org.sql2o:sql2o:[1.5.0,1.5.1)", "1.5.0")
+    )
+
+    @Test(dataProvider = "rangeProvider")
+    fun rangeVersion(id: String, expectedVersion: String) {
+        val result = resolve(id)
+        assertThat(result.size).isGreaterThan(0)
+        assertThat(result[0].artifact.version).isEqualTo(expectedVersion)
+    }
+
+    @Test(dataProvider = "rangeProvider")
+    fun kobaltRangeVersion(id: String, expectedVersion: String) {
+        val result = kobaltAether.resolve(id)
+        assertThat(result.dependency.version).isEqualTo(expectedVersion)
+    }
+
     @Test
     fun aetherShouldNotIncludeOptionalDependencies() {
-        val system = Booter.newRepositorySystem()
-        val session = Booter.newRepositorySystemSession(system,
-                localRepo.localRepo, KobaltSettings(KobaltSettingsXml()), EventBus())
-        val artifact = DefaultArtifact("com.squareup.retrofit2:converter-jackson:jar:2.1.0")
-
-        val collectRequest = CollectRequest().apply {
-            root = Dependency(artifact, JavaScopes.COMPILE)
-            repositories = listOf(
-                    RemoteRepository.Builder("Maven", "default", "http://repo1.maven.org/maven2/").build()
-            )
-        }
-
-        val dependencyRequest = DependencyRequest(collectRequest, null)
-
-        val artifactResults = system.resolveDependencies(session, dependencyRequest).artifactResults
+        val artifactResults = resolve("com.squareup.retrofit2:converter-jackson:jar:2.1.0")
 
         // Make sure that com.google.android is not included (it's an optional dependency of retrofit2)
         assertThat(artifactResults.none { it.toString().contains("android") })
@@ -59,5 +67,26 @@ class AetherTest {
 
         // Make sure that com.google.android is not included (it's an optional dependency of retrofit2)
         assertThat(closure.none { it.toString().contains("android") })
+    }
+
+
+    private fun resolve(id: String): List<ArtifactResult> {
+        val system = Booter.newRepositorySystem()
+        val session = Booter.newRepositorySystemSession(system,
+                localRepo.localRepo, KobaltSettings(KobaltSettingsXml()), EventBus())
+        val artifact = DefaultArtifact(id)
+
+        val collectRequest = CollectRequest().apply {
+            root = Dependency(artifact, JavaScopes.COMPILE)
+            repositories = listOf(
+                    RemoteRepository.Builder("Maven", "default", "http://repo1.maven.org/maven2/").build()
+            )
+        }
+
+        val dependencyRequest = DependencyRequest(collectRequest, null)
+
+        val result = system.resolveDependencies(session, dependencyRequest).artifactResults
+        return result
+
     }
 }
