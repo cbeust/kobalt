@@ -14,7 +14,7 @@ object Constants {
             //            "https://maven-central.storage.googleapis.com/",
             "http://repo1.maven.org/maven2/",
             "https://jcenter.bintray.com/",
-            "http://repository.jetbrains.com/all/",
+//            "http://repository.jetbrains.com/all/", // <-- contains snapshots
             "https://dl.bintray.com/kotlin/kotlin-eap",
             "https://dl.bintray.com/kotlin/kotlin-eap-1.1"
 
