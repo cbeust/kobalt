@@ -36,7 +36,7 @@ val p = {{directive}} {
     }
 
     dependenciesTest {
-        compile("org.testng:testng:")
+        compile("org.testng:testng:6.10")
         {{#testDependencies}}
         compile("{{groupId}}:{{artifactId}}:{{version}}")
         {{/testDependencies}}
