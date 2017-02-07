@@ -3,7 +3,6 @@ package com.beust.kobalt.maven
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.*
 import com.beust.kobalt.maven.aether.Filters
-import com.beust.kobalt.maven.aether.KobaltAether
 import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import com.beust.kobalt.maven.aether.Scope
 import com.beust.kobalt.maven.dependency.FileDependency
@@ -18,8 +17,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DependencyManager @Inject constructor(val executors: KobaltExecutors, val aether: KobaltMavenResolver)
-        : IDependencyManager {
+class DependencyManager @Inject constructor(val executors: KobaltExecutors,
+        val resolver: KobaltMavenResolver) : IDependencyManager {
 
     companion object {
         fun create(id: String, optional: Boolean = false, projectDirectory: String? = null) =
@@ -62,10 +61,10 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
      * Create an IClasspathDependency from a Maven id.
      */
     override fun createMaven(id: String, optional: Boolean) : IClasspathDependency=
-        if (KobaltAether.isRangeVersion(id)) {
-            Kobalt.INJECTOR.getInstance(KobaltAether::class.java).resolve(id).dependency
+        if (KobaltMavenResolver.isRangeVersion(id)) {
+            Kobalt.INJECTOR.getInstance(KobaltMavenResolver::class.java).resolveToDependencies(id)[0]
         } else {
-            aether.create(id, optional)
+            resolver.create(id, optional)
         }
 
     /**
@@ -163,7 +162,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
         dependencies.forEach {
             result.add(it)
             if (it.isMaven) {
-                val resolved = aether.resolveToIds(it.id, null, dependencyFilter)
+                val resolved = resolver.resolveToIds(it.id, null, dependencyFilter)
                 result.addAll(resolved.map { create(it) })
             }
         }

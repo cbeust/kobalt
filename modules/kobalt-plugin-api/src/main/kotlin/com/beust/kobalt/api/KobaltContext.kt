@@ -12,7 +12,7 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.maven.SimpleDep
-import com.beust.kobalt.maven.aether.KobaltAether
+import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import com.beust.kobalt.misc.KobaltExecutors
 import java.io.File
 
@@ -53,9 +53,9 @@ class KobaltContext(val args: Args) {
                 FileType.JAVADOC -> toQualifier(dep, "", "javadoc")
                 FileType.OTHER -> id
             }
-        val resolved = aether.resolveToArtifact(fullId)
+        val resolved = resolver.resolve(fullId).artifact
         if (resolved != null) {
-            return resolved.artifact.file
+            return resolved.file
         } else {
             throw KobaltException("Couldn't resolve $id")
         }
@@ -81,7 +81,7 @@ class KobaltContext(val args: Args) {
     lateinit var executors: KobaltExecutors
     lateinit var settings: KobaltSettings
     lateinit var incrementalManager: IncrementalManager
-    lateinit var aether: KobaltAether
+    lateinit var resolver: KobaltMavenResolver
     lateinit var pomGeneratorFactory: PomGenerator.IFactory
     lateinit var logger: ILogger
 }

@@ -2,7 +2,7 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.HostConfig
 import com.beust.kobalt.KobaltTest
-import com.beust.kobalt.maven.aether.KobaltAether
+import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.warn
 import org.testng.Assert
@@ -16,9 +16,8 @@ import kotlin.properties.Delegates
 @Test
 class DownloadTest @Inject constructor(
         val localRepo: LocalRepo,
-        val pomFactory: Pom.IFactory,
         val dependencyManager: DependencyManager,
-        val aether: KobaltAether,
+        val resolver: KobaltMavenResolver,
         val executors: KobaltExecutors) : KobaltTest() {
     private var executor: ExecutorService by Delegates.notNull()
 
@@ -153,8 +152,8 @@ class DownloadTest @Inject constructor(
         // since snapshots are not allowed to be returned when looking up a versionless id)
         val host = HostConfig("http://repository.jetbrains.com/all/")
         val id = "com.squareup.moshi:moshi:1.1.0"
-        val dr = aether.resolve(id)
-        Assert.assertEquals(dr.dependency.version, "1.1.0")
+        val dr = resolver.resolve(id)
+        Assert.assertEquals(dr.dependency.artifact.version, "1.1.0")
     }
 
     @Test

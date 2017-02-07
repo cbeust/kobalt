@@ -24,6 +24,14 @@ import org.eclipse.aether.resolution.VersionRangeResult
 
 class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
         localRepo: LocalRepo, eventBus: EventBus) {
+
+    companion object {
+        fun artifactToId(artifact: Artifact) = artifact.let {
+            MavenId.toId(it.groupId, it.artifactId, it.extension, it.classifier, it.version)
+        }
+        fun isRangeVersion(id: String) = id.contains(",")
+    }
+
     fun resolve(id: String, scope: Scope? = null, filter: DependencyFilter? = null): DependencyNode {
         val dependencyRequest = DependencyRequest(createCollectRequest(id, scope), filter)
         val result = system.resolveDependencies(session, dependencyRequest)
@@ -68,10 +76,6 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
         = artifactToId(artifact).let { id ->
             directDependencies(id, scope)
         }
-
-    fun artifactToId(artifact: Artifact) = artifact.let {
-        MavenId.toId(it.groupId, it.artifactId, it.extension, it.classifier, it.version)
-    }
 
     private fun resolveVersion(artifact: Artifact): VersionRangeResult? {
         val request = VersionRangeRequest(artifact, kobaltRepositories, null)

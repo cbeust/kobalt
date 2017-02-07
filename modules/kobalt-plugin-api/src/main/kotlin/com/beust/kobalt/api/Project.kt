@@ -3,7 +3,7 @@ package com.beust.kobalt.api
 import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.aether.KobaltAether
+import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
 import org.apache.maven.model.Model
@@ -148,8 +148,10 @@ class Dependencies(val project: Project,
             dep: Array<out String>, optional: Boolean = false): List<Future<File>>
         = with(dep.map {
             val resolved =
-                if (KobaltAether.isRangeVersion(it)) {
-                    val result = Kobalt.INJECTOR.getInstance(KobaltAether::class.java).resolve(it).dependency.id
+                if (KobaltMavenResolver.isRangeVersion(it)) {
+                    // Range id
+                    val node = Kobalt.INJECTOR.getInstance(KobaltMavenResolver::class.java).resolve(it)
+                    val result = KobaltMavenResolver.artifactToId(node.artifact)
                     kobaltLog(2, "Resolved range id $it to $result")
                     result
                 } else {
