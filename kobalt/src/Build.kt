@@ -28,6 +28,7 @@ object Versions {
     val gson = "2.6.2"
     val maven = "3.3.9"
     val mavenResolver = "1.0.3"
+    val slf4j = "1.7.3"
 }
 
 fun mavenResolver(vararg m: String)
@@ -103,8 +104,9 @@ val kobaltPluginApi = project {
                 "com.beust:jcommander:1.48",
                 "org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r",
 
-                "org.slf4j:slf4j-nop:1.6.0",
-                *mavenResolver("spi", "util", "impl", "connector-basic", "transport-http", "transport-file"),
+                "org.slf4j:slf4j-nop:${Versions.slf4j}",
+                "org.slf4j:slf4j-api:${Versions.slf4j}",
+                *mavenResolver("api", "spi", "util", "impl", "connector-basic", "transport-http", "transport-file"),
                 "org.apache.maven:maven-aether-provider:3.3.9"
         )
     }
@@ -159,7 +161,8 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
                 "com.squareup.okhttp3:logging-interceptor:3.2.0",
 
-                "com.sparkjava:spark-core:2.5"
+                "com.sparkjava:spark-core:2.5",
+                "org.eclipse.jetty.websocket:websocket-api:9.4.1.v20170120"
 
 //                "org.eclipse.jetty:jetty-server:${Versions.jetty}",
 //                "org.eclipse.jetty:jetty-servlet:${Versions.jetty}",
@@ -173,7 +176,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
     }
 
     dependenciesTest {
-        compile("org.testng:testng:6.9.11",
+        compile("org.testng:testng:6.10",
                 "org.assertj:assertj-core:3.4.1",
                 *mavenResolver("util")
                 )
