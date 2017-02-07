@@ -8,7 +8,6 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.Pom
 import com.beust.kobalt.maven.PomGenerator
-import com.beust.kobalt.maven.aether.Aether
 import com.beust.kobalt.misc.DependencyExecutor
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.plugin.publish.BintrayApi
@@ -52,7 +51,6 @@ open class MainModule(val args: Args, val settings: KobaltSettings) : AbstractMo
         })
         EventBus().let { eventBus ->
             bind(EventBus::class.java).toInstance(eventBus)
-            bind(Aether::class.java).toInstance(Aether(settings.localCache, settings, eventBus))
         }
         bind(PluginInfo::class.java).toProvider(Provider<PluginInfo> {
             PluginInfo.readKobaltPluginXml()

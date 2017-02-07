@@ -77,7 +77,7 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
             directDependencies(id, scope)
         }
 
-    private fun resolveVersion(artifact: Artifact): VersionRangeResult? {
+    fun resolveVersion(artifact: Artifact): VersionRangeResult? {
         val request = VersionRangeRequest(artifact, kobaltRepositories, null)
         val result = system.resolveVersionRange(session, request)
         return result

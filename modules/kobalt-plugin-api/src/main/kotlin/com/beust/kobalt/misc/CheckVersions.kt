@@ -4,15 +4,15 @@ import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.MavenId
-import com.beust.kobalt.maven.aether.Aether
 import com.beust.kobalt.maven.aether.AetherDependency
+import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import javax.inject.Inject
 
 /**
  * Find out if any newer versions of the dependencies are available.
  */
 class CheckVersions @Inject constructor(val depManager: DependencyManager,
-        val executors : KobaltExecutors, val aether: Aether) {
+        val executors : KobaltExecutors, val resolver: KobaltMavenResolver) {
 
     fun run(projects: List<Project>) = projects.forEach { run(it) }
 
@@ -26,7 +26,7 @@ class CheckVersions @Inject constructor(val depManager: DependencyManager,
                     try {
                         val latestDep = depManager.create(dep.shortId, false, project.directory)
                         val artifact = (latestDep as AetherDependency).artifact
-                        val versions = aether.resolveVersion(artifact)
+                        val versions = resolver.resolveVersion(artifact)
                         val releases = versions?.versions?.filter { !it.toString().contains("SNAP")}
                         val highest = if (releases != null && releases.any()) {
                                 releases.last().toString()
