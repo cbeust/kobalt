@@ -21,9 +21,9 @@ import org.testng.annotations.Guice
 import org.testng.annotations.Test
 
 @Guice(modules = arrayOf(TestModule::class))
-class AetherTest {
+class MavenResolverTest {
     @Inject
-    lateinit var kobaltAether: KobaltMavenResolver
+    lateinit var resolver: KobaltMavenResolver
 
     @Inject
     lateinit var dependencyManager: DependencyManager
@@ -47,7 +47,7 @@ class AetherTest {
 
     @Test(dataProvider = "rangeProvider")
     fun kobaltRangeVersion(id: String, expectedVersion: String) {
-        val result = kobaltAether.resolve(id)
+        val result = resolver.resolve(id)
         assertThat(result.dependency.artifact.version).isEqualTo(expectedVersion)
     }
 
@@ -61,7 +61,7 @@ class AetherTest {
 
 //    @Test
     fun kobaltAetherShouldNotIncludeOptionalDependencies() {
-        val dep = kobaltAether.create("com.squareup.retrofit2:converter-jackson:jar:2.1.0", optional = false)
+        val dep = resolver.create("com.squareup.retrofit2:converter-jackson:jar:2.1.0", optional = false)
         val closure = dependencyManager.transitiveClosure(listOf(dep))
 
         // Make sure that com.google.android is not included (it's an optional dependency of retrofit2)
