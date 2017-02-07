@@ -225,7 +225,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
             : List<IClasspathDependency> {
         val transitive = hashSetOf<IClasspathDependency>()
         with(project) {
-            val scopeFilters = arrayListOf(Scope.COMPILE)
+            val scopeFilters : ArrayList<Scope> = arrayListOf(Scope.COMPILE)
             context.variant.let { variant ->
                 val deps = arrayListOf(compileDependencies, compileProvidedDependencies,
                         variant.buildType.compileDependencies,

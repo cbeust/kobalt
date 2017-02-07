@@ -2,7 +2,6 @@ package com.beust.kobalt.maven.aether
 
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.CompletedFuture
 import com.beust.kobalt.maven.LocalDep
 import com.beust.kobalt.maven.LocalRepo
@@ -10,24 +9,8 @@ import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.misc.Versions
 import com.beust.kobalt.misc.warn
 import org.eclipse.aether.artifact.Artifact
-import org.eclipse.aether.util.artifact.JavaScopes
 import java.io.File
 import java.util.concurrent.Future
-
-enum class Scope(val scope: String, val dependencyLambda: (Project) -> List<IClasspathDependency>) {
-    COMPILE(JavaScopes.COMPILE, Project::compileDependencies),
-    PROVIDED(JavaScopes.PROVIDED, Project::compileProvidedDependencies),
-    SYSTEM(JavaScopes.SYSTEM, { project -> emptyList() }),
-    RUNTIME(JavaScopes.RUNTIME, Project::compileRuntimeDependencies),
-    TEST(JavaScopes.TEST, Project::testDependencies)
-    ;
-
-    companion object {
-        fun toScopes(isTest: Boolean) = if (isTest) listOf(Scope.TEST, Scope.COMPILE) else listOf(Scope.COMPILE)
-    }
-}
-
-class DependencyResult(val dependency: IClasspathDependency, val repoUrl: String)
 
 class AetherDependency(val artifact: Artifact, override val optional: Boolean = false)
         : IClasspathDependency, Comparable<AetherDependency> {
