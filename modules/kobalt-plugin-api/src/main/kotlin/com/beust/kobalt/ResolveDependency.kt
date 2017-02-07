@@ -63,7 +63,7 @@ class ResolveDependency @Inject constructor(
                         else leftMiddle
                 val indent = level * increment
                 for(i in 0..indent - 2) {
-                    if (i % increment == 0) print(vertical)
+                    if (i == 0 || ((i + 1) % increment == 0)) print(vertical)
                     else print(" ")
                 }
                 println(left + " " + dep.id + (if (dep.optional) " (optional)" else ""))
