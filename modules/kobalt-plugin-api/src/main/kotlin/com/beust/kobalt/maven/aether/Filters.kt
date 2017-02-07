@@ -10,6 +10,6 @@ object Filters {
     val TEST_FILTER = DependencyFilter { p0, p1 -> p0.dependency.scope == JavaScopes.TEST }
 
     val EXCLUDE_OPTIONAL_FILTER = DependencyFilter { p0, p1 ->
-        ! p0.dependency.optional
+        p0.dependency != null && ! p0.dependency.optional
     }
 }

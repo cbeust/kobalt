@@ -220,7 +220,7 @@ class Aether(localRepo: File, val settings: KobaltSettings, eventBus: EventBus) 
 
 class AetherDependency(val artifact: Artifact, override val optional: Boolean = false)
         : IClasspathDependency, Comparable<AetherDependency> {
-    val aether: Aether get() = Kobalt.INJECTOR.getInstance(Aether::class.java)
+    val aether: KobaltMavenResolver get() = Kobalt.INJECTOR.getInstance(KobaltMavenResolver::class.java)
 
     override val id: String = toId(artifact)
 
@@ -240,16 +240,7 @@ class AetherDependency(val artifact: Artifact, override val optional: Boolean = 
                 CompletedFuture(file)
             } else {
                 val td = aether.resolve(artifact, null)
-                if (td.any()) {
-                    val newFile = td[0].artifact.file
-                    if (newFile != null) {
-                        CompletedFuture(newFile)
-                    } else {
-                        CompletedFuture(File("DOESNOTEXIST $id")) // will be filtered out
-                    }
-                } else {
-                    CompletedFuture(File("DOESNOTEXIST $id"))
-                }
+                CompletedFuture(td.artifact.file)
             }
         }
 
@@ -269,17 +260,8 @@ class AetherDependency(val artifact: Artifact, override val optional: Boolean = 
         val result = arrayListOf<IClasspathDependency>()
         val deps = aether.directDependencies(artifact)
         if (deps != null) {
-            if (!deps.root.dependency.optional) {
-                deps.root.children.forEach {
-                    if (!it.dependency.isOptional) {
-                        result.add(AetherDependency(it.artifact))
-                    } else {
-                        kobaltLog(ConsoleRepositoryListener.LOG_LEVEL,
-                                "Skipping optional dependency " + deps.root.artifact)
-                    }
-                }
-            } else {
-                kobaltLog(ConsoleRepositoryListener.LOG_LEVEL, "Skipping optional dependency " + deps.root.artifact)
+            deps.root.children.forEach {
+                result.add(AetherDependency(it.artifact, it.dependency.optional))
             }
         } else {
             warn("Couldn't resolve $artifact")

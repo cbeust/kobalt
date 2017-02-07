@@ -4,6 +4,7 @@ import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.*
 import com.beust.kobalt.maven.aether.Filters
 import com.beust.kobalt.maven.aether.KobaltAether
+import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import com.beust.kobalt.maven.aether.Scope
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
@@ -17,7 +18,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DependencyManager @Inject constructor(val executors: KobaltExecutors, val aether: KobaltAether)
+class DependencyManager @Inject constructor(val executors: KobaltExecutors, val aether: KobaltMavenResolver)
         : IDependencyManager {
 
     companion object {
@@ -162,7 +163,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors, val 
         dependencies.forEach {
             result.add(it)
             if (it.isMaven) {
-                val resolved = aether.resolveAll(it.id, null, dependencyFilter)
+                val resolved = aether.resolveToIds(it.id, null, dependencyFilter)
                 result.addAll(resolved.map { create(it) })
             }
         }

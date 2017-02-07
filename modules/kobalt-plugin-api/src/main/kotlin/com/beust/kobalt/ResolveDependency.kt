@@ -3,7 +3,9 @@ package com.beust.kobalt
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.MavenId
-import com.beust.kobalt.maven.aether.KobaltAether
+import com.beust.kobalt.maven.aether.DependencyResult
+import com.beust.kobalt.maven.aether.Filters
+import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.Node
 import com.beust.kobalt.misc.kobaltLog
@@ -15,7 +17,7 @@ import java.util.*
  */
 class ResolveDependency @Inject constructor(
         val localRepo: LocalRepo,
-        val aether: KobaltAether,
+        val aether: KobaltMavenResolver,
         val executors: KobaltExecutors) {
     val increment = 8
     val leftFirst = "\u2558"
@@ -29,9 +31,13 @@ class ResolveDependency @Inject constructor(
 
     private fun displayDependenciesFor(id: String) {
         val mavenId = MavenId.create(id)
-        val resolved =
-            if (mavenId.hasVersion) aether.resolve(id)
-            else aether.latestArtifact(mavenId.groupId, mavenId.artifactId)
+        val resolved : DependencyResult =
+            if (mavenId.hasVersion) {
+                val dep = aether.resolveToDependencies(id, filter = Filters.EXCLUDE_OPTIONAL_FILTER)[0]
+                DependencyResult(dep, "")
+            } else {
+                aether.latestArtifact(mavenId.groupId, mavenId.artifactId)
+            }
 
         displayDependencies(resolved.dependency, resolved.repoUrl)
     }
@@ -60,7 +66,7 @@ class ResolveDependency @Inject constructor(
                     if (i % increment == 0) print(vertical)
                     else print(" ")
                 }
-                println(left + " " + dep.id)
+                println(left + " " + dep.id + (if (dep.optional) " (optional)" else ""))
                 display(node.children)
             }
         }
