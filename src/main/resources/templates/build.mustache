@@ -3,7 +3,9 @@ import com.beust.kobalt.plugin.packaging.*
 import com.beust.kobalt.plugin.application.*
 {{imports}}
 
-val repos = repos({{{repositories}}})
+val bs = buildScript {
+    repos({{{repositories}}})
+}
 
 {{#properties}}
 val {{first}} = "{{second}}"
