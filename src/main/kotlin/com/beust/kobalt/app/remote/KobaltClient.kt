@@ -99,8 +99,6 @@ class KobaltWebSocketClient : Runnable {
 }
 
 class KobaltClient : Runnable {
-    var outgoing: PrintWriter? = null
-
     private val service = Retrofit.Builder()
             .client(OkHttpClient.Builder().build())
             .baseUrl("http://localhost:1238")
@@ -176,52 +174,6 @@ class ServerProcess @Inject constructor(val serverFactory: KobaltServer.IFactory
         }
 
         return result
-    }
-
-        private fun launchServer(port: Int) {
-            val kobaltJar = File(KFiles().kobaltJar[0])
-            kobaltLog(1, "Kobalt jar: $kobaltJar")
-            if (! kobaltJar.exists()) {
-                warn("Can't find the jar file " + kobaltJar.absolutePath + " can't be found")
-            } else {
-                val args = listOf("java",
-                        "-classpath", KFiles().kobaltJar.joinToString(File.pathSeparator),
-                        "com.beust.kobalt.MainKt",
-                        "--dev", "--server", "--port", port.toString())
-                val pb = ProcessBuilder(args)
-//                pb.directory(File(directory))
-                pb.inheritIO()
-//                pb.environment().put("JAVA_HOME", ProjectJdkTable.getInstance().allJdks[0].homePath)
-                val tempFile = createTempFile("kobalt")
-                pb.redirectOutput(tempFile)
-                warn("Launching " + args.joinToString(" "))
-                warn("Server output in: $tempFile")
-                val process = pb.start()
-                val errorCode = process.waitFor()
-                if (errorCode == 0) {
-                    kobaltLog(1, "Server exiting")
-                } else {
-                    kobaltLog(1, "Server exiting with error")
-                }
-            }
-        }
-
-    private fun createServerFile(port: Int, force: Boolean) : Boolean {
-        if (File(SERVER_FILE).exists() && ! force) {
-            kobaltLog(1, "Server file $SERVER_FILE already exists, is another server running?")
-            return false
-        } else {
-            Properties().apply {
-                put(KEY_PORT, port.toString())
-            }.store(FileWriter(SERVER_FILE), "")
-            kobaltLog(2, "KobaltServer created $SERVER_FILE")
-            return true
-        }
-    }
-
-    private fun deleteServerFile() {
-        kobaltLog(1, "KobaltServer deleting $SERVER_FILE")
-        File(SERVER_FILE).delete()
     }
 }
 
