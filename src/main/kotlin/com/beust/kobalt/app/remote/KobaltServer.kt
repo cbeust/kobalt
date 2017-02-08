@@ -70,7 +70,8 @@ class KobaltServer @Inject constructor(@Assisted val force: Boolean, @Assisted @
 
     private fun createServerFile(port: Int, force: Boolean) : Boolean {
         if (File(SERVER_FILE).exists() && ! force) {
-            kobaltLog(1, "Server file $SERVER_FILE already exists, is another server running?")
+            kobaltLog(1, "Server file $SERVER_FILE already exists. Another server is probably already running.")
+            kobaltLog(1, "Relaunch this server with --force to run this server anyway and take over the port.")
             return false
         } else {
             val processName = ManagementFactory.getRuntimeMXBean().name
