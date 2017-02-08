@@ -37,6 +37,8 @@ class RunCommandInfo {
 
         ! hasErrors
     }
+
+    var containsErrors: ((List<String>) -> Boolean)? = null
 }
 
 fun runCommand(init: RunCommandInfo.() -> Unit) = NewRunCommand(RunCommandInfo().apply { init() }).invoke()
@@ -84,7 +86,9 @@ open class NewRunCommand(val info: RunCommandInfo) {
         else listOf()
 
         // Check to see if the command succeeded
-        val isSuccess = isSuccess(returnCode, input, error)
+        val isSuccess =
+                if (info.containsErrors != null) ! info.containsErrors!!(error)
+                else isSuccess(returnCode, input, error)
 
         if (isSuccess) {
             info.successCallback(input)

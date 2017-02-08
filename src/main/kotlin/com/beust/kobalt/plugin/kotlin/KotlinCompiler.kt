@@ -111,7 +111,7 @@ class KotlinCompiler @Inject constructor(
                 args = newArgs
                 directory = File(".")
                 // The Kotlin compiler issues warnings on stderr :-(
-                useErrorStreamAsErrorIndicator = false
+                containsErrors = { errors: List<String> -> errors.any { it.contains("rror")} }
             }).invoke()
             return TaskResult(result == 0, "Error while compiling")
         }
