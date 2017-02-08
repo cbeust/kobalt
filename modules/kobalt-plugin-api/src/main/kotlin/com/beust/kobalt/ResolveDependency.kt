@@ -3,13 +3,15 @@ package com.beust.kobalt
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.MavenId
-import com.beust.kobalt.maven.aether.DependencyResult
+import com.beust.kobalt.maven.aether.AetherDependency
 import com.beust.kobalt.maven.aether.Filters
 import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.Node
 import com.beust.kobalt.misc.kobaltLog
 import com.google.inject.Inject
+import org.eclipse.aether.artifact.DefaultArtifact
+import org.eclipse.aether.graph.DependencyNode
 import java.util.*
 
 /**
@@ -29,14 +31,34 @@ class ResolveDependency @Inject constructor(
 
     fun run(id: String) = displayDependenciesFor(id)
 
+    private fun latestMavenArtifact(group: String, artifactId: String, extension: String = "jar"): DependencyNode {
+        val artifact = DefaultArtifact(group, artifactId, extension, "(0,]")
+        val resolved = aether.resolveVersion(artifact)
+        if (resolved != null) {
+            val newArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.extension,
+                    resolved.highestVersion.toString())
+            val artifactResult = aether.resolve(KobaltMavenResolver.artifactToId(newArtifact), null)
+            return artifactResult.root
+        } else {
+            throw KobaltException("Couldn't find latest artifact for $group:$artifactId")
+        }
+    }
+
+    class PairResult(val dependency: IClasspathDependency, val repoUrl: String)
+
+    fun latestArtifact(group: String, artifactId: String, extension: String = "jar"): PairResult
+            = latestMavenArtifact(group, artifactId, extension).let {
+        PairResult(AetherDependency(it.artifact), "(TBD repo)")
+    }
+
     private fun displayDependenciesFor(id: String) {
         val mavenId = MavenId.create(id)
-        val resolved : DependencyResult =
+        val resolved : PairResult =
             if (mavenId.hasVersion) {
-                val dep = aether.resolveToDependencies(id, filter = Filters.EXCLUDE_OPTIONAL_FILTER)[0]
-                DependencyResult(dep, "")
+                val node = aether.resolve(id, filter = Filters.EXCLUDE_OPTIONAL_FILTER)
+                PairResult(AetherDependency(node.root.artifact), node.artifactResults[0].repository.id)
             } else {
-                aether.latestArtifact(mavenId.groupId, mavenId.artifactId)
+                latestArtifact(mavenId.groupId, mavenId.artifactId)
             }
 
         displayDependencies(resolved.dependency, resolved.repoUrl)

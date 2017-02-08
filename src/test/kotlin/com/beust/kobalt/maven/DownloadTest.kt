@@ -5,6 +5,7 @@ import com.beust.kobalt.KobaltTest
 import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.warn
+import org.assertj.core.api.Assertions.assertThat
 import org.testng.Assert
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
@@ -150,10 +151,9 @@ class DownloadTest @Inject constructor(
         // This id has a parent pom which defines moshi version to be 1.1.0. Make sure that this
         // version is being fetched instead of moshi:1.2.0-SNAPSHOT (which gets discarded anyway
         // since snapshots are not allowed to be returned when looking up a versionless id)
-        val host = HostConfig("http://repository.jetbrains.com/all/")
         val id = "com.squareup.moshi:moshi:1.1.0"
-        val dr = resolver.resolve(id)
-        Assert.assertEquals(dr.dependency.artifact.version, "1.1.0")
+        val artifact = resolver.resolveToArtifact(id)
+        assertThat(artifact.version).isEqualTo("1.1.0")
     }
 
     @Test

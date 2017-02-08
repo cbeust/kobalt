@@ -34,7 +34,7 @@ class AetherDependency(val artifact: Artifact, override val optional: Boolean = 
                 CompletedFuture(file)
             } else {
                 val td = aether.resolve(artifact, null)
-                CompletedFuture(td.artifact.file)
+                CompletedFuture(td.root.artifact.file)
             }
         }
 

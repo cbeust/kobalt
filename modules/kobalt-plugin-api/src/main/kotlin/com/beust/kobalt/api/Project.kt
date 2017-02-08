@@ -150,8 +150,8 @@ class Dependencies(val project: Project,
             val resolved =
                 if (KobaltMavenResolver.isRangeVersion(it)) {
                     // Range id
-                    val node = Kobalt.INJECTOR.getInstance(KobaltMavenResolver::class.java).resolve(it)
-                    val result = KobaltMavenResolver.artifactToId(node.artifact)
+                    val node = Kobalt.INJECTOR.getInstance(KobaltMavenResolver::class.java).resolveToArtifact(it)
+                    val result = KobaltMavenResolver.artifactToId(node)
                     kobaltLog(2, "Resolved range id $it to $result")
                     result
                 } else {

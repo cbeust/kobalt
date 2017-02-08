@@ -47,11 +47,11 @@ class MavenResolverTest {
 
     @Test(dataProvider = "rangeProvider")
     fun kobaltRangeVersion(id: String, expectedVersion: String) {
-        val result = resolver.resolve(id)
-        assertThat(result.dependency.artifact.version).isEqualTo(expectedVersion)
+        val artifact = resolver.resolveToArtifact(id)
+        assertThat(artifact.version).isEqualTo(expectedVersion)
     }
 
-//    @Test
+    @Test
     fun aetherShouldNotIncludeOptionalDependencies() {
         val artifactResults = resolve("com.squareup.retrofit2:converter-jackson:jar:2.1.0")
 
@@ -59,7 +59,7 @@ class MavenResolverTest {
         assertThat(artifactResults.none { it.toString().contains("android") })
     }
 
-//    @Test
+    @Test
     fun kobaltAetherShouldNotIncludeOptionalDependencies() {
         val dep = resolver.create("com.squareup.retrofit2:converter-jackson:jar:2.1.0", optional = false)
         val closure = dependencyManager.transitiveClosure(listOf(dep))

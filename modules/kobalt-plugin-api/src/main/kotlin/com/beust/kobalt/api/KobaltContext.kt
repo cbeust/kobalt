@@ -53,7 +53,7 @@ class KobaltContext(val args: Args) {
                 FileType.JAVADOC -> toQualifier(dep, "", "javadoc")
                 FileType.OTHER -> id
             }
-        val resolved = resolver.resolve(fullId).artifact
+        val resolved = resolver.resolveToArtifact(fullId)
         if (resolved != null) {
             return resolved.file
         } else {
