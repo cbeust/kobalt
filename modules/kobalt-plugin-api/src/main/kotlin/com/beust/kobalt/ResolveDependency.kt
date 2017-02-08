@@ -56,7 +56,7 @@ class ResolveDependency @Inject constructor(
         val resolved : PairResult =
             if (mavenId.hasVersion) {
                 val node = aether.resolve(id, filter = Filters.EXCLUDE_OPTIONAL_FILTER)
-                PairResult(AetherDependency(node.root.artifact), node.artifactResults[0].repository.id)
+                PairResult(AetherDependency(node.root.artifact), node.artifactResults[0].repository.toString())
             } else {
                 latestArtifact(mavenId.groupId, mavenId.artifactId)
             }
