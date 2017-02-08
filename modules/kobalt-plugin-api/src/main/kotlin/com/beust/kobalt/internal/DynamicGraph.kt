@@ -341,31 +341,35 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
 
         fun displayRegularLog(table: AsciiTable.Builder) : AsciiTable.Builder {
             if (historyLog.any()) {
-                val start = historyLog[0].timestamp
-                val projectStart = ConcurrentHashMap<String, Long>()
-                historyLog.forEach { line ->
-                    val row = arrayListOf<String>()
-                    row.add(toSeconds(line.timestamp - start))
-                    threadIds.keys.forEach {
-                        if (line.threadId == it) {
-                            var duration = ""
-                            if (line.start) {
-                                projectStart[line.name] = line.timestamp
-                            } else {
-                                val projectStart = projectStart[line.name]
-                                if (projectStart != null) {
-                                    duration = " (" + ((line.timestamp - projectStart) / 1000)
-                                            .toInt().toString() + ")"
+                if (historyLog[0] != null) {
+                    val start = historyLog[0].timestamp
+                    val projectStart = ConcurrentHashMap<String, Long>()
+                    historyLog.forEach { line ->
+                        val row = arrayListOf<String>()
+                        row.add(toSeconds(line.timestamp - start))
+                        threadIds.keys.forEach {
+                            if (line.threadId == it) {
+                                var duration = ""
+                                if (line.start) {
+                                    projectStart[line.name] = line.timestamp
                                 } else {
-                                    warn("Couldn't determine project start: " + line.name)
+                                    val projectStart = projectStart[line.name]
+                                    if (projectStart != null) {
+                                        duration = " (" + ((line.timestamp - projectStart) / 1000)
+                                                .toInt().toString() + ")"
+                                    } else {
+                                        warn("Couldn't determine project start: " + line.name)
+                                    }
                                 }
+                                row.add((line.name + duration))
+                            } else {
+                                row.add("")
                             }
-                            row.add((line.name + duration))
-                        } else {
-                            row.add("")
                         }
+                        table.addRow(row)
                     }
-                    table.addRow(row)
+                } else {
+                    warn("Couldn't find historyLog")
                 }
             }
             return table
