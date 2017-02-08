@@ -1,9 +1,7 @@
 .gradle
 annotations
 .idea/*
-!.idea/modules.xml
-!.idea/libraries
-!.idea/misc.xml
+*.iml
 buildScript
 kobaltBuild
 local.properties
