@@ -29,6 +29,7 @@ object Versions {
     val maven = "3.3.9"
     val mavenResolver = "1.0.3"
     val slf4j = "1.7.3"
+    val kotlin = "1.1.0-beta-22"
 }
 
 fun mavenResolver(vararg m: String)
@@ -142,7 +143,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
     dependencies {
         // Used by the plugins
-        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.1.0-beta-22")
+        compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:${Versions.kotlin}")
 
         // Used by the main app
         compile("com.github.spullara.mustache.java:compiler:0.9.1",
