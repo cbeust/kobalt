@@ -105,8 +105,8 @@ val kobaltPluginApi = project {
                 "com.beust:jcommander:1.48",
                 "org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r",
 
-                "org.slf4j:slf4j-nop:${Versions.slf4j}",
-                "org.slf4j:slf4j-api:${Versions.slf4j}",
+//                "org.slf4j:slf4j-nop:${Versions.slf4j}",
+//                "org.slf4j:slf4j-api:${Versions.slf4j}",
                 *mavenResolver("api", "spi", "util", "impl", "connector-basic", "transport-http", "transport-file"),
                 "org.apache.maven:maven-aether-provider:3.3.9"
         )
