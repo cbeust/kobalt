@@ -47,12 +47,16 @@ class SparkServer(val initCallback: (String) -> List<Project>, val cleanUpCallba
     val log = org.slf4j.LoggerFactory.getLogger("SparkServer")
 
     override fun run(port: Int) {
-        log.debug("RUNNING")
+        log.debug("Server running")
         Spark.port(port)
         Spark.webSocket("/v1/getDependencies", GetDependenciesHandler::class.java)
         Spark.webSocket("/v1/getDependencyGraph", GetDependencyGraphHandler::class.java)
-        Spark.get("/ping", { req, res -> """ { "result" : "ok" } """ })
+        Spark.get("/ping") { req, res ->
+            log.debug("  Received ping")
+            """ { "result" : "ok" } """
+        }
         Spark.get("/quit", { req, res ->
+            log.debug("  Received quit")
             Executors.newFixedThreadPool(1).let { executor ->
                 executor.submit {
                     Thread.sleep(1000)
