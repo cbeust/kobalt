@@ -30,7 +30,12 @@ class ConsoleTransferListener @JvmOverloads constructor(out: PrintStream? = null
         kobaltLog(2, message + ": " + event.resource.repositoryUrl + event.resource.resourceName)
     }
 
+    val PROPERTY_NO_ANIMATIONS = "com.beust.kobalt.noAnimations"
+
     override fun transferProgressed(event: TransferEvent?) {
+        // Not on a terminal: don't display the progress
+        if (System.console() == null || System.getProperty(PROPERTY_NO_ANIMATIONS) != null) return
+
         val resource = event!!.resource
         downloads.put(resource, java.lang.Long.valueOf(event.transferredBytes))
 
@@ -120,7 +125,7 @@ class ConsoleTransferListener @JvmOverloads constructor(out: PrintStream? = null
         Exceptions.printStackTrace(event!!.exception)
     }
 
-    protected fun toKB(bytes: Long): Long {
+    fun toKB(bytes: Long): Long {
         return (bytes + 1023) / 1024
     }
 
