@@ -21,6 +21,10 @@ import javax.annotation.Nullable
  *
  * The callbacks are used to initialize and clean up the state before and after each command, so that Kobalt's state
  * can be properly reset, making the server reentrant.
+ *
+ * To enable websocket debugging, launch with:
+ *   -Dorg.slf4j.simpleLogger.defaultLogLevel=debug
+ * More logging documentation: https://www.slf4j.org/apidocs/org/slf4j/impl/SimpleLogger.html
  */
 class KobaltServer @Inject constructor(@Assisted val force: Boolean, @Assisted @Nullable val givenPort: Int?,
         @Assisted val initCallback: (String) -> List<Project>,
