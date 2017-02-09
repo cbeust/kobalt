@@ -185,8 +185,10 @@ class KotlinCompiler @Inject constructor(
                 override fun report(severity: CompilerMessageSeverity,
                         message: String, location: CompilerMessageLocation) {
                     if (severity.isError) {
-                        System.err.println(location.dump(message))
-                        throw KobaltException("Couldn't compile file: $message")
+                        "Couldn't compile file: ${location.dump(message)}".let { fullMessage ->
+                            System.err.println(fullMessage)
+                            throw KobaltException(fullMessage)
+                        }
                     } else if (severity == CompilerMessageSeverity.WARNING && KobaltLogger.LOG_LEVEL >= 2) {
                         warn(location.dump(message))
                     } else if (severity == CompilerMessageSeverity.INFO && KobaltLogger.LOG_LEVEL >= 2) {

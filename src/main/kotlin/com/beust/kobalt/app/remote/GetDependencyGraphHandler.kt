@@ -33,8 +33,10 @@ class GetDependencyGraphHandler : WebSocketListener {
         throw UnsupportedOperationException()
     }
 
-    fun <T> sendWebsocketCommand(endpoint: RemoteEndpoint, commandName: String, payload: T) {
-        endpoint.sendString(Gson().toJson(WebSocketCommand(commandName, payload = Gson().toJson(payload))))
+    fun <T> sendWebsocketCommand(endpoint: RemoteEndpoint, commandName: String, payload: T,
+            errorMessage: String? = null) {
+        endpoint.sendString(Gson().toJson(WebSocketCommand(commandName, payload = Gson().toJson(payload),
+                errorMessage = errorMessage)))
     }
 
     override fun onWebSocketConnect(s: Session) {
@@ -74,7 +76,7 @@ class GetDependencyGraphHandler : WebSocketListener {
                     }, useGraph = true)
                 } catch(ex: Throwable) {
                     Exceptions.printStackTrace(ex)
-                    val errorMessage = ex.stackTrace.map { it.toString() }.joinToString("\n<p>")
+                    val errorMessage = ex.message
                     RemoteDependencyData.GetDependenciesData(errorMessage = errorMessage)
                 } finally {
                     SparkServer.cleanUpCallback()
@@ -84,7 +86,8 @@ class GetDependencyGraphHandler : WebSocketListener {
                 RemoteDependencyData.GetDependenciesData(
                         errorMessage = "buildFile wasn't passed in the query parameter")
             }
-            sendWebsocketCommand(s.remote, RemoteDependencyData.GetDependenciesData.NAME, result)
+            sendWebsocketCommand(s.remote, RemoteDependencyData.GetDependenciesData.NAME, result,
+                    errorMessage = result.errorMessage)
             s.close()
         }
     }
