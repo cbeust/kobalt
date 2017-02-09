@@ -162,8 +162,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
                 "com.squareup.okhttp3:logging-interceptor:3.2.0",
 
-                "com.sparkjava:spark-core:2.5",
-                "org.eclipse.jetty.websocket:websocket-api:9.4.1.v20170120"
+                "com.sparkjava:spark-core:2.5"
 
 //                "org.eclipse.jetty:jetty-server:${Versions.jetty}",
 //                "org.eclipse.jetty:jetty-servlet:${Versions.jetty}",
