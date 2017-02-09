@@ -38,7 +38,7 @@ class ConsoleTransferListener @JvmOverloads constructor(out: PrintStream? = null
 
         for (entry in downloads.entries) {
             val total = entry.key.contentLength
-            val complete = entry.value.toLong()
+            val complete = entry.value
 
             buffer.append(getStatus(complete, total)).append("  ")
         }
