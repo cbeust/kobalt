@@ -67,20 +67,21 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
                     children = node.children.map { toDependencyData2(scope, it) })
         }
 
+        val OPTIONAL_FILTER = { dep: IClasspathDependency -> ! dep.optional }
+
         fun compileDependenciesGraph(project: Project, name: String): List<DependencyData> {
             val depLambda = IClasspathDependency::directDependencies
             val result =
-                    (DynamicGraph.Companion.transitiveClosureGraph(pluginDependencies, depLambda) +
-                    DynamicGraph.Companion.transitiveClosureGraph(project.compileDependencies, depLambda) +
-                    DynamicGraph.Companion.transitiveClosureGraph(project.compileProvidedDependencies, depLambda))
+                    (DynamicGraph.Companion.transitiveClosureGraph(pluginDependencies, depLambda, OPTIONAL_FILTER) +
+                    DynamicGraph.Companion.transitiveClosureGraph(project.compileDependencies, depLambda,
+                            OPTIONAL_FILTER) +
+                    DynamicGraph.Companion.transitiveClosureGraph(project.compileProvidedDependencies, depLambda,
+                            OPTIONAL_FILTER))
                 .map { toDependencyData2("compile", it)}
 
             fun mapOfLatestVersions(l: List<DependencyData>) : Map<String, String> {
-                fun p(l: List<DependencyData>, latestVersions: HashMap<String, String>) {
+                fun p(l: List<DependencyData>, latestVersions: java.util.HashMap<String, String>) {
                     l.forEach {
-                        if (it.id.contains("squareup:okio")) {
-                            println("DONOTCOMMIT")
-                        }
                         val mid = MavenId.create(it.id)
                         val shortId = mid.artifactId + ":" + mid.artifactId
                         val currentLatest = latestVersions[shortId]
@@ -114,7 +115,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
 
         fun testDependenciesGraph(project: Project, name: String): List<DependencyData> {
             val depLambda = { dep : IClasspathDependency -> dep.directDependencies() }
-            return DynamicGraph.Companion.transitiveClosureGraph(project.testDependencies, depLambda)
+            return DynamicGraph.Companion.transitiveClosureGraph(project.testDependencies, depLambda, OPTIONAL_FILTER)
                     .map { toDependencyData2("testCompile", it)}
         }
 

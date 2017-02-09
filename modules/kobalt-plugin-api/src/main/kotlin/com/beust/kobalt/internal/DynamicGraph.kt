@@ -65,15 +65,18 @@ class DynamicGraph<T> {
             }
         }
 
-        fun <T> transitiveClosureGraph(roots: List<T>, childrenFor: (T) -> List<T>) : List<Node<T>>
-            = roots.map { transitiveClosureGraph(it, childrenFor) }
+        fun <T> transitiveClosureGraph(roots: List<T>, childrenFor: (T) -> List<T>,
+                filter: (T) -> Boolean): List<Node<T>>
+            = roots.map { transitiveClosureGraph(it, childrenFor, filter) }
 
-        fun <T> transitiveClosureGraph(root: T, childrenFor: (T) -> List<T>, seen: HashSet<T> = hashSetOf()) : Node<T> {
+        fun <T> transitiveClosureGraph(root: T, childrenFor: (T) -> List<T>,
+                filter: (T) -> Boolean = { t: T -> true },
+                seen: HashSet<T> = hashSetOf()) : Node<T> {
             val children = arrayListOf<Node<T>>()
-            childrenFor(root).forEach { child ->
+            childrenFor(root).filter(filter).forEach { child ->
                 if (! seen.contains(child)) {
                     seen.add(child)
-                    val c = transitiveClosureGraph(child, childrenFor, seen)
+                    val c = transitiveClosureGraph(child, childrenFor, filter, seen)
                     children.add(c)
                 }
             }
