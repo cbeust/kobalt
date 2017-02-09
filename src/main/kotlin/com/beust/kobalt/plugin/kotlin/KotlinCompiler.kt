@@ -93,9 +93,12 @@ class KotlinCompiler @Inject constructor(
             val compilerClasspath = compilerDep.jarFile.get().path + File.pathSeparator +
                     compilerEmbeddableDependencies(null).map { it.jarFile.get().path }
                             .joinToString(File.pathSeparator)
-            val xFlagsString = kotlinConfig(project)?.args?.joinToString(" ")
-                    ?: settings.kobaltCompilerFlags
-            val xFlagsArray = xFlagsString?.split(" ")?.toTypedArray() ?: emptyArray()
+            val xFlagsString = listOf(kotlinConfig(project)?.args?.joinToString(" "),
+                    settings.kobaltCompilerFlags)
+                .filterNotNull()
+                .joinToString(" ")
+
+            val xFlagsArray = xFlagsString.split(" ").toTypedArray() ?: emptyArray()
             val newArgs = listOf(
                     "-classpath", compilerClasspath,
                     K2JVMCompiler::class.java.name,
