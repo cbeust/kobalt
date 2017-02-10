@@ -60,12 +60,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
     /**
      * Create an IClasspathDependency from a Maven id.
      */
-    override fun createMaven(id: String, optional: Boolean) : IClasspathDependency=
-        if (KobaltMavenResolver.isRangeVersion(id)) {
-            Kobalt.INJECTOR.getInstance(DependencyManager::class.java).create(id, optional)
-        } else {
-            resolver.create(id, optional)
-        }
+    override fun createMaven(id: String, optional: Boolean) : IClasspathDependency = resolver.create(id, optional)
 
     /**
      * Create an IClasspathDependency from a path.

@@ -34,6 +34,12 @@ class DependencyManagerTest @Inject constructor(val dependencyManager: Dependenc
         }
     }
 
+    @Test
+    fun createId() {
+        // Caused a StackOverflowException in 0.923
+        val id = dependencyManager.createMaven("com.beust.kobalt:kobalt-line-count:jar:(0,]")
+    }
+
     @Test(description = "Make sure that COMPILE scope dependencies get resolved properly")
     fun testScopeDependenciesShouldBeDownloaded() {
         val testDeps = listOf(dependencyManager.create("org.testng:testng:6.10"))
