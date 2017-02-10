@@ -431,12 +431,14 @@ public class Main {
         }
     }
 
+    private static String PROPERTY_NO_ANIMATIONS = "com.beust.kobalt.noAnimations";
+
     private void copyToStreamWithProgress(InputStream inputStream, OutputStream outputStream, long contentLength,
             String url) throws IOException {
         int bytesRead;
         long bytesSoFar = 0;
         byte[] buffer = new byte[100_000];
-        boolean hasTerminal = System.console() != null;
+        boolean hasTerminal = System.console() != null && System.getProperty(PROPERTY_NO_ANIMATIONS) == null;
         if (! hasTerminal) {
             log2(1, "\rDownloading " + url);
         }
