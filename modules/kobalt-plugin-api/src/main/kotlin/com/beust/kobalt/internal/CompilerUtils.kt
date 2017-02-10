@@ -204,15 +204,6 @@ class CompilerUtils @Inject constructor(val files: KFiles, val dependencyManager
         }
     }
 
-
-    /**
-     * Naïve implementation: just exclude all dependencies that start with one of the excluded dependencies.
-     * Should probably make exclusion more generic (full on string) or allow exclusion to be specified
-     * formally by groupId or artifactId.
-     */
-    private fun isDependencyExcluded(id: IClasspathDependency, excluded: List<IClasspathDependency>)
-            = excluded.any { id.id.startsWith(it.id) }
-
     fun sourceCompilerFlags(project: Project?, context: KobaltContext, info: CompilerActionInfo) : List<String> {
         val adapters = context.pluginInfo.compilerFlagContributors.map {
             val closure = { project: Project, context: KobaltContext, currentFlags: List<String>,
@@ -233,5 +224,16 @@ class CompilerUtils @Inject constructor(val files: KFiles, val dependencyManager
             }
         }
         return result
+    }
+
+    companion object {
+        /**
+         * Naïve implementation: just exclude all dependencies that start with one of the excluded dependencies.
+         * Should probably make exclusion more generic (full on string) or allow exclusion to be specified
+         * formally by groupId or artifactId.
+         */
+        fun isDependencyExcluded(dep: IClasspathDependency, excluded: List<IClasspathDependency>)
+                = excluded.any { excluded -> dep.id.startsWith(excluded.id) }
+
     }
 }
