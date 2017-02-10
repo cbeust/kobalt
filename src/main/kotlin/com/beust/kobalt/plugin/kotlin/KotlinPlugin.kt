@@ -112,7 +112,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
 
     /** The Kotlin compiler should run before the Java one, hence priority - 5 */
     val compiler = CompilerDescription(PLUGIN_NAME, "kotlin", SOURCE_SUFFIXES, KotlinCompiler(),
-            ICompilerDescription.DEFAULT_PRIORITY - 5, canCompileDirectories = false)
+            ICompilerDescription.DEFAULT_PRIORITY - 5, canCompileDirectories = true)
 
     override fun compilersFor(project: Project, context: KobaltContext)
             = if (sourceFileCount(project) > 0) listOf(compiler) else emptyList()
