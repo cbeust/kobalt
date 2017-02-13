@@ -22,7 +22,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * This plug-in takes care of compilation: it declares a bunch of tasks ("compile", "compileTest") and
+ * This plug-in takes care of compilation: it declares several common tasks ("compile", "compileTest")
  * and picks up all the compiler contributors in order to run them whenever a compilation is requested.
  */
 @Singleton
