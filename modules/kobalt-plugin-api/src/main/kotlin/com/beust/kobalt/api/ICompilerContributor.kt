@@ -55,7 +55,7 @@ class CompilerDescription(override val name: String,  override val sourceDirecto
         override val canCompileDirectories: Boolean = false) : ICompilerDescription {
     override fun compile(project: Project, context: KobaltContext, info: CompilerActionInfo): TaskResult {
         val result =
-            if (info.sourceFiles.size > 0) {
+            if (info.sourceFiles.isNotEmpty()) {
                 compiler.compile(project, context, info)
             } else {
                 warn("Couldn't find any source files to compile")
