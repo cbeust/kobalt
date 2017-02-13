@@ -189,15 +189,15 @@ class CompilerUtils @Inject constructor(val files: KFiles, val dependencyManager
         val outputDir = sourceSet.outputDir
 
         val variantSourceDirs = context.variant.resourceDirectories(project, sourceSet)
-        if (variantSourceDirs.size > 0) {
+        if (variantSourceDirs.isNotEmpty()) {
             context.logger.log(project.name, 2, "Copying $sourceSet resources")
             val absOutputDir = File(KFiles.joinDir(project.directory, project.buildDirectory, outputDir))
             variantSourceDirs
                 .map { File(project.directory, it.path) }
                 .filter(File::exists)
                 .forEach {
-                context.logger.log(project.name, 2, "Copying from $it to $absOutputDir")
-                    KFiles.copyRecursively(it, absOutputDir, deleteFirst = false)
+                    context.logger.log(project.name, 2, "Copying from $it to $absOutputDir")
+                        KFiles.copyRecursively(it, absOutputDir, deleteFirst = false)
                 }
         } else {
             context.logger.log(project.name, 2, "No resources to copy for $sourceSet")
