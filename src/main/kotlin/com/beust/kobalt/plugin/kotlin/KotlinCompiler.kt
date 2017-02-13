@@ -106,6 +106,7 @@ class KotlinCompiler @Inject constructor(
                     "-d", info.outputDir.absolutePath,
                     *xFlagsArray,
                     *info.sourceFiles.toTypedArray())
+                .filter { ! it.isEmpty() }
 
             log(2, "  Invoking separate kotlinc:\n  " + java!!.absolutePath + " " + newArgs.joinToString())
 
