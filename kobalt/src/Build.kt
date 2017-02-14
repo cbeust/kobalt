@@ -27,7 +27,7 @@ object Versions {
     val maven = "3.3.9"
     val mavenResolver = "1.0.3"
     val slf4j = "1.7.3"
-    val kotlin = "1.1.0-beta-22"
+    val kotlin = "1.1.0-beta-38"
 }
 
 fun mavenResolver(vararg m: String)
