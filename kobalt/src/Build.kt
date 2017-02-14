@@ -158,7 +158,8 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
                 "com.squareup.okhttp3:logging-interceptor:3.2.0",
 
-                "com.sparkjava:spark-core:2.5"
+                "com.sparkjava:spark-core:2.5",
+                "org.codehaus.groovy:groovy:2.4.8"
 
 //                "org.eclipse.jetty:jetty-server:${Versions.jetty}",
 //                "org.eclipse.jetty:jetty-servlet:${Versions.jetty}",
