@@ -24,12 +24,14 @@ abstract class BaseJvmPlugin<T>(open val configActor: ConfigActor<T>) :
     override fun accept(project: Project) = sourceFileCount(project) > 0
 
     // IBuildConfigContributor
-
     protected fun sourceFileCount(project: Project)
             = KFiles.findSourceFiles(project.directory, project.sourceDirectories, sourceSuffixes()).size +
             KFiles.findSourceFiles(project.directory, project.sourceDirectoriesTest, sourceSuffixes()).size
 
     fun affinity(project: Project) = sourceFileCount(project)
+
+    // IDocContributor
+    open fun affinity(project: Project, context: KobaltContext) = sourceFileCount(project)
 
     abstract fun sourceSuffixes() : List<String>
 }

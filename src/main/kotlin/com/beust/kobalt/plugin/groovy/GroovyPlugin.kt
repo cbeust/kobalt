@@ -21,9 +21,6 @@ class GroovyPlugin @Inject constructor(val groovyCompiler: GroovyCompiler,
 
     override fun sourceSuffixes() = SOURCE_SUFFIXES
 
-    // IDocContributor
-    override fun affinity(project: Project, context: KobaltContext) = sourceFileCount(project)
-
     // ICompilerFlagsContributor
     override fun compilerFlagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
             suffixesBeingCompiled: List<String>) =

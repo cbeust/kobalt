@@ -33,7 +33,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
 
     // IDocContributor
     override fun affinity(project: Project, context: KobaltContext) =
-            if (project.sourceDirectories.any { it.contains("kotlin") }) 2 else 0
+            if (sourceFileCount(project) > 0) 2 else 0
 
     override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
         return TaskResult()

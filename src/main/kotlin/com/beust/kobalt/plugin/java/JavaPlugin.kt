@@ -23,9 +23,6 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override va
 
     override val name = PLUGIN_NAME
 
-    // IDocContributor
-    override fun affinity(project: Project, context: KobaltContext) = sourceFileCount(project)
-
     override fun sourceSuffixes() = SOURCE_SUFFIXES
 
     override fun generateDoc(project: Project, context: KobaltContext, info: CompilerActionInfo) : TaskResult {
