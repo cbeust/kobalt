@@ -9,10 +9,8 @@ import com.beust.kobalt.internal.ICompilerAction
 import com.beust.kobalt.internal.JvmCompiler
 import com.beust.kobalt.internal.ParallelLogger
 import com.beust.kobalt.misc.Strings
-import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import com.google.inject.Singleton
-import groovy.lang.GroovyClassLoader
 import org.codehaus.groovy.control.CompilerConfiguration
 import java.io.File
 
