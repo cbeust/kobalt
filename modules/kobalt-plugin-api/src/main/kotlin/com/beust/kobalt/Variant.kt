@@ -70,7 +70,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
         val result = arrayListOf<File>()
         val sourceDirectories = sourceSet.correctSourceSet(project)
                 .filter { File(project.directory, it).exists() }
-                .map { File(it) }
+                .map(::File)
 
         if (isDefault) {
             result.addAll(sourceDirectories)
