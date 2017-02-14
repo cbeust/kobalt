@@ -26,7 +26,8 @@ abstract class BaseJvmPlugin<T>(open val configActor: ConfigActor<T>) :
     // IBuildConfigContributor
 
     protected fun sourceFileCount(project: Project)
-            = KFiles.findSourceFiles(project.directory, project.sourceDirectories, sourceSuffixes()).size
+            = KFiles.findSourceFiles(project.directory, project.sourceDirectories, sourceSuffixes()).size +
+            KFiles.findSourceFiles(project.directory, project.sourceDirectoriesTest, sourceSuffixes()).size
 
     fun affinity(project: Project) = sourceFileCount(project)
 
