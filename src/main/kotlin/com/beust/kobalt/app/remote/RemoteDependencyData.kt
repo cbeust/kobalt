@@ -10,7 +10,6 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -82,13 +81,15 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
             fun mapOfLatestVersions(l: List<DependencyData>) : Map<String, String> {
                 fun p(l: List<DependencyData>, latestVersions: java.util.HashMap<String, String>) {
                     l.forEach {
-                        val mid = MavenId.create(it.id)
-                        val shortId = mid.artifactId + ":" + mid.artifactId
-                        val currentLatest = latestVersions[shortId]
-                        if (currentLatest == null) latestVersions[shortId] = mid.version!!
-                        else mid.version?.let { v ->
-                            if (Versions.toLongVersion(currentLatest) < Versions.toLongVersion(v)) {
-                                latestVersions[shortId] = v
+                        val mid = dependencyManager.create(it.id)
+                        if (mid.isMaven) {
+                            val shortId = mid.shortId
+                            val currentLatest = latestVersions[shortId]
+                            if (currentLatest == null) latestVersions[shortId] = mid.version!!
+                            else mid.version?.let { v ->
+                                if (Versions.toLongVersion(currentLatest) < Versions.toLongVersion(v)) {
+                                    latestVersions[shortId] = v
+                                }
                             }
                         }
                         p(it.children, latestVersions)
@@ -101,10 +102,11 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
             val map = mapOfLatestVersions(result)
             GraphUtil.map(result, { d: DependencyData -> d.children },
                     {d: DependencyData ->
-                        val mid = MavenId.create(d.id)
-                        val shortId = mid.artifactId + ":" + mid.artifactId
-                        val version = map[shortId]
-                        d.isLatest = version == mid.version
+                        val mid = dependencyManager.create(d.id)
+                        if (mid.isMaven) {
+                            val version = map[mid.shortId]
+                            d.isLatest = version == mid.version
+                        }
                     })
             return result
         }
