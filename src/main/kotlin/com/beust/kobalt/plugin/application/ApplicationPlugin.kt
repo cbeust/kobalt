@@ -17,15 +17,17 @@ import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
 
-@Directive
 class ApplicationConfig {
+    @Directive
     var mainClass: String? = null
 
-    val jvmArgs = arrayListOf<String>()
+    @Directive
     fun jvmArgs(vararg args: String) = args.forEach { jvmArgs.add(it) }
+    val jvmArgs = arrayListOf<String>()
 
-    val args = arrayListOf<String>()
+    @Directive
     fun args(vararg argv: String) = argv.forEach { args.add(it) }
+    val args = arrayListOf<String>()
 }
 
 @Directive
