@@ -172,9 +172,8 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
             }
 
             val result = loadClass(className, classLoader)
-                    ?: Class.forName(className)
                     ?: loadClass(className, pluginClassLoader)
-                    ?: throw ClassNotFoundException(className)
+                    ?: Class.forName(className)
 
             return result
         }
