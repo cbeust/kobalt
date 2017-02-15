@@ -2,7 +2,6 @@ package com.beust.kobalt.app.remote
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.KobaltException
-import com.beust.kobalt.SystemProperties
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.app.MainModule
 import com.beust.kobalt.homeDir
@@ -32,6 +31,8 @@ import retrofit2.http.POST
 import retrofit2.http.Query
 import java.io.*
 import java.net.Socket
+import java.net.URL
+import java.net.URLClassLoader
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.Executors
@@ -55,7 +56,8 @@ class KobaltWebSocketClient : Runnable {
         val client = OkHttpClient()
         val request = Request.Builder()
 //            .url("ws://echo.websocket.org")
-            .url("ws://localhost:1238/v1/getDependencies?buildFile=/Users/beust/java/testng/kobalt/src/Build.kt")
+            .url("ws://localhost:1239/v1/getDependencyGraph?buildFile=/Users/cedricbeust/t/Kandroid/kobalt/src" +
+                    "/Build.kt")
             .build()
         var webSocket: WebSocket? = null
         val ws = WebSocketCall.create(client, request).enqueue(object: WebSocketListener {
@@ -111,7 +113,8 @@ class KobaltClient : Runnable {
 //        val pong = service.ping().execute()
 //        println("Result from ping: " + pong)
 
-        val buildFile = Paths.get(SystemProperties.homeDir, "kotlin/klaxon/kobalt/src/Build.kt").toString()
+        val buildFile = Paths.get(com.beust.kobalt.SystemProperties.homeDir,
+                "kotlin/klaxon/kobalt/src/Build.kt").toString()
         val dependencies = service.getDependencies(buildFile)
         val response = dependencies.execute()
         if (response.isSuccessful) {
