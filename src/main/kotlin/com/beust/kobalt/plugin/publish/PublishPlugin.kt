@@ -206,12 +206,11 @@ data class GithubConfig(val project: Project) {
 }
 
 @Directive
-fun Project.github(init: GithubConfig.() -> Unit) {
-    with(GithubConfig(this)) {
-        init()
-        (Kobalt.findPlugin(PublishPlugin.PLUGIN_NAME) as PublishPlugin).addGithubConfiguration(name, this)
+fun Project.github(init: GithubConfig.() -> Unit): GithubConfig =
+    GithubConfig(this).also { config ->
+        config.init()
+        (Kobalt.findPlugin(PublishPlugin.PLUGIN_NAME) as PublishPlugin).addGithubConfiguration(name, config)
     }
-}
 
 data class BintrayConfig(val project: Project) {
     /**
@@ -245,9 +244,8 @@ data class BintrayConfig(val project: Project) {
 }
 
 @Directive
-fun Project.bintray(init: BintrayConfig.() -> Unit) {
-    with(BintrayConfig(this)) {
-        init()
-        (Kobalt.findPlugin(PublishPlugin.PLUGIN_NAME) as PublishPlugin).addBintrayConfiguration(name, this)
+fun Project.bintray(init: BintrayConfig.() -> Unit) =
+    BintrayConfig(this).also { config ->
+        config.init()
+        (Kobalt.findPlugin(PublishPlugin.PLUGIN_NAME) as PublishPlugin).addBintrayConfiguration(name, config)
     }
-}
