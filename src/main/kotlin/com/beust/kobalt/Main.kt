@@ -5,9 +5,9 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.PluginTask
 import com.beust.kobalt.app.*
-import com.beust.kobalt.app.remote.RemoteDependencyData
 import com.beust.kobalt.app.remote.KobaltClient
 import com.beust.kobalt.app.remote.KobaltServer
+import com.beust.kobalt.app.remote.RemoteDependencyData
 import com.beust.kobalt.internal.Gc
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
@@ -151,12 +151,6 @@ private class Main @Inject constructor(
             com.beust.kobalt.wrapper.Main.main(arrayOf("--noLaunch") + argv)
         } else if (args.usage) {
             jc.usage()
-        } else if (args.serverMode) {
-            // --server
-            val port = serverFactory.create(args.force, args.port,
-                    { buildFile -> projectFinder.initForBuildFile(BuildFile(Paths.get(buildFile), buildFile), args) },
-                    { cleanUp() })
-                    .call()
         } else {
             // Options that don't need Build.kt to be parsed first
             if (args.gc) {
@@ -179,7 +173,14 @@ private class Main @Inject constructor(
 
                     val allProjects = projectFinder.initForBuildFile(buildFile, args)
 
-                    if (args.projectInfo) {
+                    if (args.serverMode) {
+                        // --server
+                        val port = serverFactory.create(args.force, args.port,
+                            { buildFile -> projectFinder.initForBuildFile(BuildFile(Paths.get(buildFile),
+                                    buildFile), args) },
+                            { cleanUp() })
+                        .call()
+                    } else if (args.projectInfo) {
                         // --projectInfo
                         allProjects.forEach {
                             it.compileDependencies.filter { it.isMaven }.forEach {
