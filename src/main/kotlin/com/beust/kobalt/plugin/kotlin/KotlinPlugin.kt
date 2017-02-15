@@ -149,6 +149,7 @@ class KotlinConfig(val project: Project) {
     fun args(vararg options: String) = args.addAll(options)
 
     /** The version of the Kotlin compiler */
+    @Directive
     var version: String? = null
 }
 
