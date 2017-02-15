@@ -154,11 +154,11 @@ class KotlinConfig(val project: Project) {
 }
 
 @Directive
-fun Project.kotlinCompiler(init: KotlinConfig.() -> Unit) = let {
-    val config = KotlinConfig(it)
-    config.init()
-    (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as KotlinPlugin).addConfiguration(this, config)
-}
+fun Project.kotlinCompiler(init: KotlinConfig.() -> Unit) =
+    KotlinConfig(this).also { config ->
+        config.init()
+        (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as KotlinPlugin).addConfiguration(this, config)
+    }
 
 //class SourceLinkMapItem {
 //    var dir: String = ""

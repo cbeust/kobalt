@@ -44,8 +44,8 @@ class GroovyConfig(val project: Project) {
 }
 
 @Directive
-fun Project.groovyCompiler(init: GroovyConfig.() -> Unit) = let {
-    val config = GroovyConfig(it)
-    config.init()
-    (Kobalt.findPlugin(GroovyPlugin.PLUGIN_NAME) as GroovyPlugin).addConfiguration(this, config)
-}
+fun Project.groovyCompiler(init: GroovyConfig.() -> Unit) =
+    GroovyConfig(this).also { config ->
+        config.init()
+        (Kobalt.findPlugin(GroovyPlugin.PLUGIN_NAME) as GroovyPlugin).addConfiguration(this, config)
+    }
