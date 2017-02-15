@@ -1,6 +1,6 @@
 package com.beust.kobalt
 
-public class SystemProperties {
+class SystemProperties {
     companion object {
         val javaBase = System.getProperty("java.home") ?:
                 (System.getenv("JAVA_HOME") ?: throw IllegalArgumentException("JAVA_HOME not defined"))
