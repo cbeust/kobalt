@@ -14,3 +14,9 @@ fun project(vararg projects: Project, init: Project.() -> Unit): Project {
     }
 }
 
+@Directive
+fun buildScript(init: BuildScriptConfig.() -> Unit): BuildScriptConfig {
+    val buildScriptConfig = BuildScriptConfig().apply { init() }
+    BUILD_SCRIPT_CONFIG = buildScriptConfig
+    return buildScriptConfig
+}

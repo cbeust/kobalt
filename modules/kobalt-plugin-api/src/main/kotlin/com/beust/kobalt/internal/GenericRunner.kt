@@ -142,7 +142,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
      */
     @VisibleForTesting
     fun calculateAllJvmArgs(project: Project, context: KobaltContext,
-            testConfig: TestConfig, classpath: List<IClasspathDependency>, pluginInfo: IPluginInfo) : List<String> {
+                            testConfig: TestConfig, classpath: List<IClasspathDependency>, pluginInfo: IPluginInfo) : List<String> {
         // Default JVM args
         val jvmFlags = arrayListOf<String>().apply {
             addAll(testConfig.jvmArgs)

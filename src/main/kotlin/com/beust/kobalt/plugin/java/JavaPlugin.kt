@@ -84,8 +84,8 @@ class JavaConfig(val project: Project) {
 }
 
 @Directive
-fun Project.javaCompiler(init: JavaConfig.() -> Unit) = let {
-    val config = JavaConfig(it)
-    config.init()
-    (Kobalt.findPlugin(JavaPlugin.PLUGIN_NAME) as JavaPlugin).addConfiguration(this, config)
-}
+fun Project.javaCompiler(init: JavaConfig.() -> Unit) =
+    JavaConfig(this).also { config ->
+        config.init()
+        (Kobalt.findPlugin(JavaPlugin.PLUGIN_NAME) as JavaPlugin).addConfiguration(this, config)
+    }

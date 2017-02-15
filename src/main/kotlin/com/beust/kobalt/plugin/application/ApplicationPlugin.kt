@@ -29,8 +29,8 @@ class ApplicationConfig {
 }
 
 @Directive
-fun Project.application(init: ApplicationConfig.() -> Unit) {
-    ApplicationConfig().let { config ->
+fun Project.application(init: ApplicationConfig.() -> Unit): ApplicationConfig {
+    return ApplicationConfig().also { config ->
         config.init()
         (Plugins.findPlugin(ApplicationPlugin.PLUGIN_NAME) as ApplicationPlugin).addConfiguration(this, config)
     }
