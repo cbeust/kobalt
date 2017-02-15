@@ -171,7 +171,7 @@ fun Project.install(init: InstallConfig.() -> Unit) {
 class InstallConfig(var libDir : String = "libs")
 
 @Directive
-fun Project.assemble(init: PackageConfig.(p: Project) -> Unit) = let {
+fun Project.assemble(init: PackageConfig.(p: Project) -> Unit): PackageConfig = let {
     PackageConfig(this).apply { init(it) }
 }
 
