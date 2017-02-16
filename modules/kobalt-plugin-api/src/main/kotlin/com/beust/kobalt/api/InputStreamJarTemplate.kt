@@ -11,7 +11,7 @@ import java.net.URL
 import java.util.jar.JarInputStream
 
 /**
- * Base class for templates that simply decompress a jar file found on the classpath to generate their project.
+ * Base class for templates that decompress a jar file.
  */
 interface InputStreamJarTemplate : ITemplate {
     val inputStream: JarInputStream
