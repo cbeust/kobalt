@@ -14,25 +14,23 @@ interface InputStreamJarTemplate : ITemplate {
     val inputStream: InputStream
 
     override fun generateTemplate(args: Args, classLoader: ClassLoader) {
-        extractFile(File("."))
-    }
+        val destDir = File(".")
+        JarInputStream(inputStream).use { ins ->
+            var entry = ins.nextEntry
+            while (entry != null) {
+                val f = File(destDir.path + File.separator + entry.name)
+                if (entry.isDirectory) {
+                    f.mkdir()
+                    entry = ins.nextEntry
+                    continue
+                }
 
-    private fun extractFile(destDir: File) {
-        val ins = JarInputStream(inputStream)
-        var entry = ins.nextEntry
-        while (entry != null) {
-            val f = File(destDir.path + File.separator + entry.name)
-            if (entry.isDirectory) {
-                f.mkdir()
+                kobaltLog(2, "  Extracting: $entry to ${f.absolutePath}")
+                FileOutputStream(f).use { fos ->
+                    KFiles.copy(ins, fos)
+                }
                 entry = ins.nextEntry
-                continue
             }
-
-            kobaltLog(2, "  Extracting: $entry to ${f.absolutePath}")
-            FileOutputStream(f).use { fos ->
-                KFiles.copy(ins, fos)
-            }
-            entry = ins.nextEntry
         }
     }
 }
