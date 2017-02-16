@@ -3,10 +3,7 @@ package com.beust.kobalt.api
 import com.beust.kobalt.Args
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.IOException
+import java.io.*
 import java.net.URL
 import java.util.jar.JarInputStream
 
@@ -14,13 +11,14 @@ import java.util.jar.JarInputStream
  * Base class for templates that decompress a jar file.
  */
 interface InputStreamJarTemplate : ITemplate {
-    val inputStream: JarInputStream
+    val inputStream: InputStream
 
     override fun generateTemplate(args: Args, classLoader: ClassLoader) {
-        extractFile(inputStream, File("."))
+        extractFile(File("."))
     }
 
-    private fun extractFile(ins: JarInputStream, destDir: File) {
+    private fun extractFile(destDir: File) {
+        val ins = JarInputStream(inputStream)
         var entry = ins.nextEntry
         while (entry != null) {
             val f = File(destDir.path + File.separator + entry.name)
@@ -39,20 +37,19 @@ interface InputStreamJarTemplate : ITemplate {
     }
 }
 
-abstract class ResourceJarTemplate(val jarName: String, val classLoader: ClassLoader) : InputStreamJarTemplate {
-    override val inputStream = JarInputStream(classLoader.getResource(jarName).openConnection().inputStream)
+abstract class ResourceJarTemplate(jarName: String, val classLoader: ClassLoader) : InputStreamJarTemplate {
+    override val inputStream : InputStream = classLoader.getResource(jarName).openConnection().inputStream
 }
 
 abstract class FileJarTemplate(val fileName: String, val classLoader: ClassLoader) : InputStreamJarTemplate {
-    override val inputStream = JarInputStream(FileInputStream(File(fileName)))
+    override val inputStream = FileInputStream(File(fileName))
 }
 
 abstract class HttpJarTemplate(val url: String, val classLoader: ClassLoader) : InputStreamJarTemplate {
-    override val inputStream : JarInputStream
+    override val inputStream : InputStream
         get() {
             try {
-                val result = URL(url).openConnection().inputStream
-                return JarInputStream(result)
+                return URL(url).openConnection().inputStream
             } catch(ex: IOException) {
                 throw IllegalArgumentException("Couldn't connect to $url")
             }
