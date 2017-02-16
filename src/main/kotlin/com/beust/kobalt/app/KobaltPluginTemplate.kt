@@ -1,7 +1,7 @@
 package com.beust.kobalt.app
 
 import com.beust.kobalt.api.ITemplateContributor
-import com.beust.kobalt.api.JarTemplate
+import com.beust.kobalt.api.ResourceJarTemplate
 import com.beust.kobalt.plugin.KobaltPlugin
 
 /**
@@ -12,7 +12,9 @@ class KobaltPluginTemplate : ITemplateContributor {
         val NAME = "kobaltPlugin"
     }
 
-    val pluginTemplate = object: JarTemplate(ITemplateContributor.DIRECTORY_NAME + "/$NAME/$NAME.jar") {
+    val pluginTemplate = object: ResourceJarTemplate(
+            ITemplateContributor.DIRECTORY_NAME + "/$NAME/$NAME.jar",
+            this::class.java.classLoader) {
         override val templateDescription = "Generate a sample Kobalt plug-in project"
 
         override val templateName = NAME
