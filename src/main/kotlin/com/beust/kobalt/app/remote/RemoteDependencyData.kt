@@ -71,8 +71,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
         fun compileDependenciesGraph(project: Project, name: String): List<DependencyData> {
             val depLambda = IClasspathDependency::directDependencies
             val result =
-                    (DynamicGraph.Companion.transitiveClosureGraph(pluginDependencies, depLambda, OPTIONAL_FILTER) +
-                    DynamicGraph.Companion.transitiveClosureGraph(project.compileDependencies, depLambda,
+                    (DynamicGraph.Companion.transitiveClosureGraph(project.compileDependencies, depLambda,
                             OPTIONAL_FILTER) +
                     DynamicGraph.Companion.transitiveClosureGraph(project.compileProvidedDependencies, depLambda,
                             OPTIONAL_FILTER))
@@ -169,7 +168,9 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
                     })
         }
 
-        return GetDependenciesData(projectDatas, allTasks, projectResult.taskResult.errorMessage)
+        val pluginFileDependencies = pluginDependencies.map { it.jarFile.get() }
+        return GetDependenciesData(projectDatas, allTasks, pluginFileDependencies,
+                projectResult.taskResult.errorMessage)
     }
 
     /////
@@ -193,6 +194,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
 
     class GetDependenciesData(val projects: List<ProjectData> = emptyList(),
             val allTasks: Collection<TaskData> = emptySet(),
+            val pluginDependencies: List<File> = emptyList(),
             val errorMessage: String?) {
         companion object {
             val NAME = "GetDependencies"
