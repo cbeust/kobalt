@@ -116,7 +116,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
         }
 
         fun testDependenciesGraph(project: Project, name: String): List<DependencyData> {
-            val depLambda = { dep : IClasspathDependency -> dep.directDependencies() }
+            val depLambda = IClasspathDependency::directDependencies
             return DynamicGraph.Companion.transitiveClosureGraph(project.testDependencies, depLambda, OPTIONAL_FILTER)
                     .map { toDependencyData2("testCompile", it)}
         }
