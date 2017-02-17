@@ -63,6 +63,11 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
         context.logger = parallelLogger
         Kobalt.context = context
 
+        // The list of dynamic plug-ins has to be a companion since it's modified directly from
+        // the build file, so make sure to reset it so that dynamic plug-ins don't bleed from
+        // one build compilation to the next
+        Plugins.dynamicPlugins.clear()
+
         //
         // Find all the projects in the build file, possibly compiling them
         //
