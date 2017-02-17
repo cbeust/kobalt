@@ -9,6 +9,7 @@ import com.beust.kobalt.misc.kobaltLog
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import java.io.File
+import java.io.FileReader
 import java.io.FileWriter
 import java.lang.management.ManagementFactory
 import java.util.*
@@ -40,6 +41,28 @@ class KobaltServer @Inject constructor(@Assisted val force: Boolean, @Assisted @
          * Default response sent for calls that don't return a payload.
          */
         val OK = "ok"
+
+        /**
+         * Properties in the server file.
+         */
+        val SERVER_FILE = KFiles.joinDir(homeDir(KFiles.KOBALT_DOT_DIR, "kobaltServer.properties"))
+        val KEY_PORT = "port"
+        val KEY_PID = "pid"
+
+        val port : Int? get() {
+            var result: Int? = null
+            File(SERVER_FILE).let {
+                if (it.exists()) {
+                    val properties = Properties().apply {
+                        load(FileReader(it))
+                    }
+                    properties.getProperty(KEY_PORT)?.let {
+                        result = Integer.parseInt(it)
+                    }
+                }
+            }
+            return result
+        }
     }
 
 //    var outgoing: PrintWriter? = null
@@ -65,10 +88,6 @@ class KobaltServer @Inject constructor(@Assisted val force: Boolean, @Assisted @
         }
         return port
     }
-
-    val SERVER_FILE = KFiles.joinDir(homeDir(KFiles.KOBALT_DOT_DIR, "kobaltServer.properties"))
-    val KEY_PORT = "port"
-    val KEY_PID = "pid"
 
     private fun createServerFile(port: Int, force: Boolean) : Boolean {
         if (File(SERVER_FILE).exists() && ! force) {
