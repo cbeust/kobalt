@@ -146,7 +146,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "javax.inject:javax.inject:1",
                 "com.google.inject:guice:4.0",
                 "com.google.inject.extensions:guice-assistedinject:4.0",
-                "com.beust:jcommander:1.48",
+                "com.beust:jcommander:1.65",
                 "org.apache.maven:maven-model:${Versions.maven}",
                 "com.google.code.findbugs:jsr305:3.0.1",
                 "com.google.code.gson:gson:${Versions.gson}",
