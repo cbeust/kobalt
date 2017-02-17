@@ -8,6 +8,7 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.BuildFileCompiler
 import com.google.inject.Inject
 import org.assertj.core.api.Assertions.assertThat
+import org.testng.annotations.DataProvider
 import org.testng.annotations.Guice
 import org.testng.annotations.Test
 
@@ -26,24 +27,19 @@ class ProfileTest @Inject constructor(val compilerFactory: BuildFileCompiler.IFa
 
         val args = Args()
         if (enabled) args.profiles = "profile"
-//        val jvmCompilerPlugin = Kobalt.findPlugin("JvmCompiler") as JvmCompilerPlugin
-//        val pluginInfo = PluginInfo(KobaltPluginXml(), null, null).apply {
-//            projectContributors.add(jvmCompilerPlugin)
-//        }
-//        val projects = buildScriptUtil.runBuildScriptJarFile()
         val compileResult = compileBuildFile(buildFileString, args, compilerFactory)
         return compileResult.projects[0]
     }
 
-    @Test
-    fun profilesShouldWork() {
+    @DataProvider
+    fun dp() = arrayOf(
+            arrayOf(false, "profileOff"),
+            arrayOf(true, "profileOn"))
+
+    @Test(dataProvider = "dp")
+    fun profilesShouldWork(enabled: Boolean, expected: String) {
         Kobalt.init(TestModule())
-        assertThat(runTestWithProfile(true).name).isEqualTo("profileOn")
-//        Kobalt.INJECTOR.getInstance(Plugins::class.java).shutdownPlugins()
-//        Kobalt.init(TestModule())
-//        val success = File(KFiles.KOBALT_DOT_DIR).deleteRecursively()
-//        println("DELETING " + File(KFiles.KOBALT_DOT_DIR).absolutePath + ": $success")
-//        assertThat(runTestWithProfile(false).name).isEqualTo("profileOff")
+        assertThat(runTestWithProfile(enabled).name).isEqualTo(expected)
     }
 }
 
