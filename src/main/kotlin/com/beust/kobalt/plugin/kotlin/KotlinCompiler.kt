@@ -181,19 +181,26 @@ class KotlinCompiler @Inject constructor(
                     throw UnsupportedOperationException("not implemented")
                 }
 
-                fun CompilerMessageLocation.dump(s: String) = "$lineContent\n$path:$line:$column $s"
+                fun dump(location: CompilerMessageLocation?, s: String) =
+                    if (location != null && location.lineContent != null) {
+                        with(location) {
+                            "$lineContent\n$path:$line:$column $s"
+                        }
+                    } else {
+                        s
+                    }
 
                 override fun report(severity: CompilerMessageSeverity,
                         message: String, location: CompilerMessageLocation) {
                     if (severity.isError) {
-                        "Couldn't compile file: ${location.dump(message)}".let { fullMessage ->
+                        "Couldn't compile file: ${dump(location, message)}".let { fullMessage ->
                             System.err.println(fullMessage)
                             throw KobaltException(fullMessage)
                         }
                     } else if (severity == CompilerMessageSeverity.WARNING && KobaltLogger.LOG_LEVEL >= 2) {
-                        warn(location.dump(message))
+                        warn(dump(location, message))
                     } else if (severity == CompilerMessageSeverity.INFO && KobaltLogger.LOG_LEVEL >= 2) {
-                        logk(2, location.dump(message))
+                        logk(2, dump(location, message))
                     }
                 }
             }
