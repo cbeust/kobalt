@@ -288,6 +288,18 @@ class KFiles {
                 return it
             }
 
+        fun createTempBuildFileInTempDirectory(deleteOnExit: Boolean = false) : File =
+                File(createTempDirectory("kobalt", deleteOnExit), Constants.BUILD_FILE_NAME).let {
+                if (deleteOnExit) it.deleteOnExit()
+                return it
+            }
+
+        fun createTempDirectory(prefix : String = "kobalt", deleteOnExit: Boolean = false) : File =
+            Files.createTempDirectory(prefix).let {
+                if (deleteOnExit) it.toFile().deleteOnExit()
+                return it.toFile()
+            }
+
         fun src(filePath: String): String = KFiles.joinDir(KOBALT_DIR, SRC, filePath)
 
         fun makeDir(project: Project, suffix: String) : File {
