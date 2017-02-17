@@ -126,7 +126,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         // Compile and run preBuildScriptCode, which contains all the plugins() calls extracted. This
         // will add all the dynamic plugins found in this code to Plugins.dynamicPlugins
         //
-        val pluginSourceFile = KFiles.createTempFile(".kt", deleteOnExit = true)
+        val pluginSourceFile = KFiles.createTempBuildFileInTempDirectory(deleteOnExit = true)
         pluginSourceFile.writeText(preBuildScriptCode, Charset.defaultCharset())
         kobaltLog(2, "Saved ${pluginSourceFile.absolutePath}")
 
