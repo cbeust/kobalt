@@ -165,7 +165,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
             GraphUtil.displayGraph(it.compileDependencies,
                     {dd: DependencyData -> dd.children },
                     {dd: DependencyData, indent: String ->
-                        println(indent + dd.id + " " + (if (! dd.isLatest) "(old)" else ""))
+                        println("    " + indent + dd.id + " " + (if (! dd.isLatest) "(old)" else ""))
                     })
         }
 
