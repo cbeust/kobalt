@@ -65,7 +65,10 @@ class KobaltClient : Runnable {
                         val dd = Gson().fromJson(wsCommand.payload, RemoteDependencyData.GetDependenciesData::class.java)
                         println("Received dependency data for " + dd.projects.size + " projects")
                         dd.projects.forEach {
-                            println("  " + it.name)
+                            println("  === Project: " + it.name)
+                            if (dd.pluginDependencies.any()) {
+                                println("    Plug-in dependencies: " + dd.pluginDependencies.joinToString(" "))
+                            }
                             GraphUtil.displayGraph(it.compileDependencies,
                                     RemoteDependencyData.DependencyData::children,
                                     { d: RemoteDependencyData.DependencyData, indent: String ->
