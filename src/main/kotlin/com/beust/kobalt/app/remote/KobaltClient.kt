@@ -31,7 +31,7 @@ class KobaltClient : Runnable {
         val client = OkHttpClient()
         val port = KobaltServer.port ?: 1240
         val url = "ws://localhost:$port/v1/getDependencyGraph"
-        val buildFile = homeDir("kotlin/klaxon/kobalt/src/Build.kt")
+        val buildFile = homeDir("kotlin/kobalt/kobalt/src/Build.kt").replace("\\", "/")
         val request = Request.Builder()
 //            .url("ws://echo.websocket.org")
             .url("$url?buildFile=$buildFile")
