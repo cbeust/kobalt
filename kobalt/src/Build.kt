@@ -34,6 +34,10 @@ fun mavenResolver(vararg m: String)
         = m.map { "org.apache.maven.resolver:maven-resolver-$it:${Versions.mavenResolver}" }
     .toTypedArray()
 
+fun aether(vararg m: String)
+        = m.map { "org.eclipse.aether:aether-$it:${Versions.mavenResolver}" }
+        .toTypedArray()
+
 val wrapper = project {
     name = "kobalt-wrapper"
     group = "com.beust"
@@ -106,6 +110,7 @@ val kobaltPluginApi = project {
                 *mavenResolver("api", "spi", "util", "impl", "connector-basic", "transport-http", "transport-file"),
                 "org.apache.maven:maven-aether-provider:3.3.9"
         )
+        exclude(*aether("impl", "spi", "util", "api"))
     }
 
 
