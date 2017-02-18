@@ -28,6 +28,7 @@ object Versions {
     val mavenResolver = "1.0.3"
     val slf4j = "1.7.3"
     val kotlin = "1.1.0-rc-91"
+    val aether = "1.0.2.v20150114"
 }
 
 fun mavenResolver(vararg m: String)
@@ -35,8 +36,8 @@ fun mavenResolver(vararg m: String)
     .toTypedArray()
 
 fun aether(vararg m: String)
-        = m.map { "org.eclipse.aether:aether-$it:${Versions.mavenResolver}" }
-        .toTypedArray()
+        = m.map { "org.eclipse.aether:aether-$it:${Versions.aether}" }
+    .toTypedArray()
 
 val wrapper = project {
     name = "kobalt-wrapper"
