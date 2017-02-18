@@ -66,15 +66,21 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
                     children = node.children.map { toDependencyData2(scope, it) })
         }
 
-        val OPTIONAL_FILTER = { dep: IClasspathDependency -> ! dep.optional }
+        fun dependencyFilter(excluded: List<IClasspathDependency>) = { dep: IClasspathDependency ->
+            if (excluded.contains(dep)) {
+                log(2, "  Excluding $dep")
+            }
+            ! excluded.contains(dep) && ! dep.optional
+        }
 
         fun compileDependenciesGraph(project: Project, name: String): List<DependencyData> {
             val depLambda = IClasspathDependency::directDependencies
-            val result =
+            val resultDep =
                     (DynamicGraph.Companion.transitiveClosureGraph(project.compileDependencies, depLambda,
-                            OPTIONAL_FILTER) +
+                            dependencyFilter(project.excludedDependencies)) +
                     DynamicGraph.Companion.transitiveClosureGraph(project.compileProvidedDependencies, depLambda,
-                            OPTIONAL_FILTER))
+                            dependencyFilter(project.excludedDependencies)))
+            val result = resultDep
                 .map { toDependencyData2("compile", it)}
 
             fun mapOfLatestVersions(l: List<DependencyData>) : Map<String, String> {
@@ -116,8 +122,9 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
 
         fun testDependenciesGraph(project: Project, name: String): List<DependencyData> {
             val depLambda = IClasspathDependency::directDependencies
-            return DynamicGraph.Companion.transitiveClosureGraph(project.testDependencies, depLambda, OPTIONAL_FILTER)
-                    .map { toDependencyData2("testCompile", it)}
+            return DynamicGraph.Companion.transitiveClosureGraph(project.testDependencies, depLambda,
+                    dependencyFilter(project.excludedDependencies))
+                .map { toDependencyData2("testCompile", it)}
         }
 
         val allTasks = hashSetOf<TaskData>()
