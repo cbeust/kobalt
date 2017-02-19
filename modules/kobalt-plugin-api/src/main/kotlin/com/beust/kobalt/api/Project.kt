@@ -49,7 +49,7 @@ open class Project(
     val testConfigs = arrayListOf<TestConfig>()
 
     // If one is specified by default, we only generateAndSave a BuildConfig, find a way to fix that
-    override var buildConfig : BuildConfig? = null // BuildConfig()
+    override var buildConfig: BuildConfig? = null // BuildConfig()
 
     val projectProperties = ProjectProperties()
 
@@ -66,33 +66,33 @@ open class Project(
     //
 
     @Directive
-    fun sourceDirectories(init: Sources.() -> Unit) : Sources {
+    fun sourceDirectories(init: Sources.() -> Unit): Sources {
         return Sources(this, sourceDirectories).apply { init() }
     }
 
-    var sourceDirectories = hashSetOf<String>().apply { addAll(DEFAULT_SOURCE_DIRECTORIES)}
+    var sourceDirectories = hashSetOf<String>().apply { addAll(DEFAULT_SOURCE_DIRECTORIES) }
 
     @Directive
-    fun sourceDirectoriesTest(init: Sources.() -> Unit) : Sources {
+    fun sourceDirectoriesTest(init: Sources.() -> Unit): Sources {
         return Sources(this, sourceDirectoriesTest).apply { init() }
     }
 
-    var sourceDirectoriesTest = hashSetOf<String>().apply { addAll(DEFAULT_SOURCE_DIRECTORIES_TEST)}
+    var sourceDirectoriesTest = hashSetOf<String>().apply { addAll(DEFAULT_SOURCE_DIRECTORIES_TEST) }
 
     //
     // Dependencies
     //
 
     @Directive
-    fun dependenciesTest(init: Dependencies.() -> Unit) : Dependencies {
+    fun dependenciesTest(init: Dependencies.() -> Unit): Dependencies {
         dependencies = Dependencies(this, testDependencies, arrayListOf(),
                 testProvidedDependencies, compileRuntimeDependencies, excludedDependencies, nativeDependencies)
         dependencies!!.init()
         return dependencies!!
     }
 
-    val testDependencies : ArrayList<IClasspathDependency> = arrayListOf()
-    val testProvidedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
+    val testDependencies: ArrayList<IClasspathDependency> = arrayListOf()
+    val testProvidedDependencies: ArrayList<IClasspathDependency> = arrayListOf()
 
     /** Used to disambiguate various name properties */
     @Directive
@@ -104,7 +104,7 @@ open class Project(
         productFlavors.put(name, pf)
     }
 
-    var defaultConfig : BuildConfig? = null
+    var defaultConfig: BuildConfig? = null
 
     val buildTypes = hashMapOf<String, BuildTypeConfig>()
 
@@ -121,112 +121,24 @@ open class Project(
     }
 
     override fun toString() = "[Project $name]"
-}
 
-class Sources(val project: Project, val sources: HashSet<String>) {
-    @Directive
-    fun path(vararg paths: String) {
-        sources.addAll(paths)
-    }
-}
-
-class Dependencies(val project: Project,
-        val dependencies: ArrayList<IClasspathDependency>,
-        val optionalDependencies: ArrayList<IClasspathDependency>,
-        val providedDependencies: ArrayList<IClasspathDependency>,
-        val runtimeDependencies: ArrayList<IClasspathDependency>,
-        val excludedDependencies: ArrayList<IClasspathDependency>,
-        val nativeDependencies: ArrayList<IClasspathDependency>) {
-
-    /**
-     * Add the dependencies to the given ArrayList and return a list of future jar files corresponding to
-     * these dependencies. Futures are necessary here since this code is invoked from the build file and
-     * we might not have set up the extra IRepositoryContributors just yet. By the time these
-     * future tasks receive a get(), the repos will be correct.
-     */
-    private fun addToDependencies(project: Project, dependencies: ArrayList<IClasspathDependency>,
-            dep: Array<out String>, optional: Boolean = false): List<Future<File>>
-        = with(dep.map {
-            val resolved =
-                if (KobaltMavenResolver.isRangeVersion(it)) {
-                    // Range id
-                    val node = Kobalt.INJECTOR.getInstance(KobaltMavenResolver::class.java).resolveToArtifact(it)
-                    val result = KobaltMavenResolver.artifactToId(node)
-                    kobaltLog(2, "Resolved range id $it to $result")
-                    result
-                } else {
-                    it
-                }
-            DependencyManager.create(resolved, optional, project.directory)
-        }) {
-            dependencies.addAll(this)
-            this.map { FutureTask { it.jarFile.get() } }
-        }
-
-    @Directive
-    fun compile(vararg dep: String) = addToDependencies(project, dependencies, dep)
-
-    @Directive
-    fun compileOptional(vararg dep: String) {
-        addToDependencies(project, optionalDependencies, dep, optional = true)
-        addToDependencies(project, dependencies, dep, optional = true)
-    }
-
-    @Directive
-    fun provided(vararg dep: String) {
-        addToDependencies(project, providedDependencies, dep)
-        addToDependencies(project, dependencies, dep)
-    }
-
-    @Directive
-    fun runtime(vararg dep: String) = addToDependencies(project, runtimeDependencies, dep)
-
-    @Directive
-    fun exclude(vararg dep: String) = addToDependencies(project, excludedDependencies, dep)
-
-    @Directive
-    fun native(vararg dep: String) = addToDependencies(project, nativeDependencies, dep)
-}
-
-class BuildConfig {
-    class Field(val name: String, val type: String, val value: Any) {
-        override fun hashCode() = name.hashCode()
-        override fun equals(other: Any?) = (other as Field).name == name
-    }
-
-    val fields = arrayListOf<Field>()
-
-    fun field(type: String, name: String, value: Any) {
-        fields.add(Field(name, type, value))
-    }
-}
-
-interface IBuildConfig {
-    var buildConfig: BuildConfig?
-
-    fun buildConfig(init: BuildConfig.() -> Unit) {
-        buildConfig = BuildConfig().apply {
+    fun defaultConfig(init: BuildConfig.() -> Unit) = let { project ->
+        BuildConfig().apply {
             init()
+            project.defaultConfig = this
         }
     }
-}
 
-fun Project.defaultConfig(init: BuildConfig.() -> Unit) = let { project ->
-    BuildConfig().apply {
+    @Directive
+    fun buildType(name: String, init: BuildTypeConfig.() -> Unit) = BuildTypeConfig(name).apply {
         init()
-        project.defaultConfig = this
+        addBuildType(name, this)
     }
-}
-
-@Directive
-fun Project.buildType(name: String, init: BuildTypeConfig.() -> Unit) = BuildTypeConfig(name).apply {
-    init()
-    addBuildType(name, this)
-}
 
 
-@Directive
-fun Project.productFlavor(name: String, init: ProductFlavorConfig.() -> Unit) = ProductFlavorConfig(name).apply {
-    init()
-    addProductFlavor(name, this)
+    @Directive
+    fun productFlavor(name: String, init: ProductFlavorConfig.() -> Unit) = ProductFlavorConfig(name).apply {
+        init()
+        addProductFlavor(name, this)
+    }
 }

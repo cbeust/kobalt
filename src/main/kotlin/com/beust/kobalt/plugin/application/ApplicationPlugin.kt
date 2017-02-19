@@ -17,19 +17,6 @@ import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
 
-class ApplicationConfig {
-    @Directive
-    var mainClass: String? = null
-
-    @Directive
-    fun jvmArgs(vararg args: String) = args.forEach { jvmArgs.add(it) }
-    val jvmArgs = arrayListOf<String>()
-
-    @Directive
-    fun args(vararg argv: String) = argv.forEach { args.add(it) }
-    val args = arrayListOf<String>()
-}
-
 @Directive
 fun Project.application(init: ApplicationConfig.() -> Unit): ApplicationConfig {
     return ApplicationConfig().also { config ->
@@ -40,8 +27,8 @@ fun Project.application(init: ApplicationConfig.() -> Unit): ApplicationConfig {
 
 @Singleton
 class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<ApplicationConfig>,
-        val executors: KobaltExecutors, val nativeManager: NativeManager,
-        val dependencyManager: DependencyManager, val taskContributor : TaskContributor)
+                                            val executors: KobaltExecutors, val nativeManager: NativeManager,
+                                            val dependencyManager: DependencyManager, val taskContributor : TaskContributor)
             : BasePlugin(), IRunnerContributor, ITaskContributor, IConfigActor<ApplicationConfig> by configActor {
 
     companion object {
