@@ -10,7 +10,6 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.Versions
@@ -47,13 +46,12 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
         val projectResult = buildFileCompiler.compileBuildFiles(args)
 
         val pluginDependencies = projectResult.pluginUrls.map { File(it.toURI()) }.map {
-            FileDependency(it.absolutePath)
+            DependencyData(it.name, "compile", it.absolutePath)
         }
 
         fun compileDependencies(project: Project, name: String): List<DependencyData> {
             val result =
-                    (pluginDependencies +
-                    allDeps(project.compileDependencies, name) +
+                    (allDeps(project.compileDependencies, name) +
                     allDeps(project.compileProvidedDependencies, name))
                 .map { toDependencyData(it, "compile") }
             return result
@@ -175,8 +173,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
                     })
         }
 
-        val pluginFileDependencies = pluginDependencies.map { it.jarFile.get() }
-        return GetDependenciesData(projectDatas, allTasks, pluginFileDependencies,
+        return GetDependenciesData(projectDatas, allTasks, pluginDependencies,
                 projectResult.taskResult.errorMessage)
     }
 
@@ -201,7 +198,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
 
     class GetDependenciesData(val projects: List<ProjectData> = emptyList(),
             val allTasks: Collection<TaskData> = emptySet(),
-            val pluginDependencies: List<File> = emptyList(),
+            val pluginDependencies: List<DependencyData> = emptyList(),
             val errorMessage: String?) {
         companion object {
             val NAME = "GetDependencies"
