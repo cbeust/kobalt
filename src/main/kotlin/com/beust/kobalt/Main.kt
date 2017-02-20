@@ -100,12 +100,6 @@ private class Main @Inject constructor(
         //
         val pluginClassLoader = installCommandLinePlugins(args)
 
-        // --listTemplates
-        if (args.listTemplates) {
-            Templates().displayTemplates(pluginInfo)
-            return 0
-        }
-
         if (args.client) {
             client.run()
             return 0
@@ -165,15 +159,12 @@ private class Main @Inject constructor(
                 if (!buildFile.exists()) {
                     error(buildFile.path.toFile().path + " does not exist")
                 } else {
-
-                    // DONOTCOMMIT
-//                    val data = dependencyData.dependenciesDataFor(homeDir("kotlin/ktor/kobalt/src/Build.kt"), Args(),
-//                            useGraph = true)
-//                    println("Data: $data")
-
                     val allProjects = projectFinder.initForBuildFile(buildFile, args)
 
-                    if (args.serverMode) {
+                    if (args.listTemplates) {
+                        // --listTemplates
+                        Templates().displayTemplates(pluginInfo)
+                    } else if (args.serverMode) {
                         // --server
                         val port = serverFactory.create(args.force, args.port,
                             { buildFile -> projectFinder.initForBuildFile(BuildFile(Paths.get(buildFile),
