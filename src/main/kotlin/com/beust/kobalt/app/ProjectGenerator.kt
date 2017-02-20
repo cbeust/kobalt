@@ -28,13 +28,13 @@ class ProjectGenerator @Inject constructor(val pluginInfo: PluginInfo){
             val finalTemplate: ITemplate? = map[templateName]
                 ?: if (File(templateName).exists()) {
                     kobaltLog(2, "Found a template jar file at $templateName, extracting it")
-                    object : FileJarTemplate(templateName, classLoader) {
+                    object : FileJarTemplate(templateName) {
                         override val templateDescription = "Extract jar template from file"
                         override val templateName = "File template"
                         override val pluginName = ""
                     }
                 } else if (templateName.startsWith("http://") || templateName.startsWith("https://")) {
-                    object : HttpJarTemplate(templateName, classLoader) {
+                    object : HttpJarTemplate(templateName) {
                         override val templateDescription = "Extract jar template from HTTP"
                         override val templateName = "HTTP template"
                         override val pluginName = ""

@@ -39,11 +39,11 @@ abstract class ResourceJarTemplate(jarName: String, val classLoader: ClassLoader
     override val inputStream : InputStream = classLoader.getResource(jarName).openConnection().inputStream
 }
 
-abstract class FileJarTemplate(val fileName: String, val classLoader: ClassLoader) : InputStreamJarTemplate {
+abstract class FileJarTemplate(val fileName: String) : InputStreamJarTemplate {
     override val inputStream = FileInputStream(File(fileName))
 }
 
-abstract class HttpJarTemplate(val url: String, val classLoader: ClassLoader) : InputStreamJarTemplate {
+abstract class HttpJarTemplate(val url: String) : InputStreamJarTemplate {
     override val inputStream : InputStream
         get() {
             try {
