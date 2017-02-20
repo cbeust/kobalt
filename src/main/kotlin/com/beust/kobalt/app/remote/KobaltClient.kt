@@ -64,6 +64,9 @@ class KobaltClient : Runnable {
                     if (wsCommand.commandName == RemoteDependencyData.GetDependenciesData.NAME) {
                         val dd = Gson().fromJson(wsCommand.payload, RemoteDependencyData.GetDependenciesData::class.java)
                         println("Received dependency data for " + dd.projects.size + " projects")
+                        if (dd.pluginDependencies.any()) {
+                            println("  Plug-ins: " + dd.pluginDependencies.map { it.path }.joinToString(" "))
+                        }
                         dd.projects.forEach {
                             println("  === Project: " + it.name)
                             if (dd.pluginDependencies.any()) {
