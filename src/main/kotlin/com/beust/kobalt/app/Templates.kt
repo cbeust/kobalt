@@ -14,7 +14,7 @@ class Templates : ITemplateContributor {
 
     fun getTemplates(pluginInfo: PluginInfo): ListMultimap<String, ITemplate> {
         val map = ArrayListMultimap.create<String, ITemplate>()
-        pluginInfo.initContributors.forEach {
+        pluginInfo.templateContributors.forEach {
             it.templates.forEach {
                 map.put(it.pluginName, it)
             }

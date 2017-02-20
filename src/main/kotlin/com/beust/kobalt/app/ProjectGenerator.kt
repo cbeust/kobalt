@@ -17,7 +17,7 @@ class ProjectGenerator @Inject constructor(val pluginInfo: PluginInfo){
     fun run(args: Args, classLoader: ClassLoader) {
         File(args.buildFile).parentFile.mkdirs()
         val map = hashMapOf<String, ITemplate>()
-        pluginInfo.initContributors.forEach {
+        pluginInfo.templateContributors.forEach {
             it.templates.forEach {
                 map.put(it.templateName, it)
             }

@@ -72,7 +72,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
     val plugins = arrayListOf<IPlugin>()
     val projectContributors = arrayListOf<IProjectContributor>()
     val classpathContributors = arrayListOf<IClasspathContributor>()
-    val initContributors = arrayListOf<ITemplateContributor>()
+    val templateContributors = arrayListOf<ITemplateContributor>()
     val repoContributors = arrayListOf<IRepoContributor>()
     val compilerFlagContributors = arrayListOf<ICompilerFlagContributor>()
     val compilerInterceptors = arrayListOf<ICompilerInterceptor>()
@@ -193,7 +193,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
                 if (this is ICompilerFlagContributor) compilerFlagContributors.add(this)
                 if (this is ICompilerInterceptor) compilerInterceptors.add(this)
                 if (this is IDocContributor) docContributors.add(this)
-                if (this is ITemplateContributor) initContributors.add(this)
+                if (this is ITemplateContributor) templateContributors.add(this)
                 if (this is IPlugin) plugins.add(this)
                 if (this is IProjectContributor) projectContributors.add(this)
                 if (this is IRepoContributor) repoContributors.add(this)
@@ -222,7 +222,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
     }
 
     fun cleanUp() {
-        listOf(projectContributors, classpathContributors, initContributors,
+        listOf(projectContributors, classpathContributors, templateContributors,
                 repoContributors, compilerFlagContributors, compilerInterceptors,
                 sourceDirectoriesInterceptors, buildDirectoryInterceptors,
                 runnerContributors, testRunnerContributors, classpathInterceptors,
@@ -246,7 +246,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
         plugins.addAll(pluginInfo.plugins)
         classpathContributors.addAll(pluginInfo.classpathContributors)
         projectContributors.addAll(pluginInfo.projectContributors)
-        initContributors.addAll(pluginInfo.initContributors)
+        templateContributors.addAll(pluginInfo.templateContributors)
         repoContributors.addAll(pluginInfo.repoContributors)
         compilerFlagContributors.addAll(pluginInfo.compilerFlagContributors)
         compilerInterceptors.addAll(pluginInfo.compilerInterceptors)
