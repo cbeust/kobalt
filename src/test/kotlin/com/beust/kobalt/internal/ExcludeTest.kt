@@ -11,6 +11,7 @@ import com.google.inject.Inject
 import org.assertj.core.api.Assertions.assertThat
 import org.testng.annotations.DataProvider
 import org.testng.annotations.Guice
+import org.testng.annotations.Test
 
 @Guice(modules = arrayOf(TestModule::class))
 class ExcludeTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactory,
@@ -24,7 +25,7 @@ class ExcludeTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
             arrayOf("p2", EXCLUDED_DEPENDENCY)
     )
 
-//   @Test(dataProvider = "dp")
+   @Test(dataProvider = "dp")
     fun excludeShouldWork(projectName: String, excludedDependency: String?) {
         val buildFileString = """
             import com.beust.kobalt.*
