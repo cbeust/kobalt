@@ -1,6 +1,5 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.Args
 import com.beust.kobalt.BaseTest
 import com.beust.kobalt.TestModule
 import com.beust.kobalt.api.IClasspathDependency
@@ -16,7 +15,7 @@ import org.testng.annotations.Test
 
 @Guice(modules = arrayOf(TestModule::class))
 class DependencyManagerTest @Inject constructor(val dependencyManager: DependencyManager,
-        val compilerFactory: BuildFileCompiler.IFactory) : BaseTest() {
+        compilerFactory: BuildFileCompiler.IFactory) : BaseTest(compilerFactory) {
 
     private fun assertContains(dependencies: List<IClasspathDependency>, vararg ids: String) {
         ids.forEach { id ->
@@ -81,7 +80,7 @@ class DependencyManagerTest @Inject constructor(val dependencyManager: Dependenc
 //            }
 //        """
 
-        val compileResult = compileBuildFile(sharedBuildFile, Args(), compilerFactory)
+        val compileResult = compileBuildFile(sharedBuildFile)
         val project2 = compileResult.projects[1]
         val dependencies = dependencyManager.calculateDependencies(project2, Kobalt.context!!,
                 Filters.EXCLUDE_OPTIONAL_FILTER)
@@ -129,7 +128,7 @@ class DependencyManagerTest @Inject constructor(val dependencyManager: Dependenc
 //            }
 //        """
 
-        val compileResult = compileBuildFile(sharedBuildFile, Args(), compilerFactory)
+        val compileResult = compileBuildFile(sharedBuildFile)
         val project2 = compileResult.projects[1]
 
         Kobalt.context!!.let { context ->

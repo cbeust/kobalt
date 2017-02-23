@@ -10,24 +10,25 @@ import org.testng.annotations.BeforeClass
 import java.io.File
 import java.nio.file.Paths
 
-open class BaseTest {
+open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
     @BeforeClass
     fun bc() {
         Kobalt.init(TestModule())
     }
 
-    fun compileBuildFile(buildFileText: String, args: Args, compilerFactory: BuildFileCompiler.IFactory)
-            : BuildFileCompiler.FindProjectResult {
+    fun compileBuildFile(buildFileText: String, args: Args = Args()): BuildFileCompiler.FindProjectResult {
         val tmpBuildFile = File.createTempFile("kobaltTest", "").apply {
             deleteOnExit()
             writeText(buildFileText)
         }
         val thisBuildFile = BuildFile(Paths.get(tmpBuildFile.absolutePath), "Build.kt")
-        args.buildFile = tmpBuildFile.absolutePath
+        args.apply {
+            buildFile = tmpBuildFile.absolutePath
+        }
         val jvmCompilerPlugin = Kobalt.findPlugin("JvmCompiler") as JvmCompilerPlugin
         val pluginInfo = PluginInfo(KobaltPluginXml(), null, null).apply {
             projectContributors.add(jvmCompilerPlugin)
         }
-        return compilerFactory.create(listOf(thisBuildFile), pluginInfo).compileBuildFiles(args)
+        return compilerFactory!!.create(listOf(thisBuildFile), pluginInfo).compileBuildFiles(args)
     }
 }
