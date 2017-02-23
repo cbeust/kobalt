@@ -91,9 +91,7 @@ open class JvmCompilerPlugin @Inject constructor(
                     scopes = listOf(Scope.TEST))
             val compileDependencies = dependencyManager.calculateDependencies(project, context,
                     scopes = listOf(Scope.COMPILE))
-            val allDependencies = (compileDependencies + testDependencies)
-                    .toHashSet()
-                    .filter { ! CompilerUtils.isDependencyExcluded(it, project.excludedDependencies) }
+            val allDependencies = (compileDependencies + testDependencies).toHashSet()
             return testContributor.run(project, context, configName, allDependencies.toList())
         } else {
             context.logger.log(project.name, 2,

@@ -85,8 +85,10 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
 //            project.compileDependencies + project.compileRuntimeDependencies)
 
     /**
-     * @return the classpath for this project, including the IClasspathContributors.
-     * allDependencies is typically either compileDependencies or testDependencies. If no dependencies
+     * @return the classpath for this project, including the IClasspathContributors. Excluded dependencies
+     * are removed from the result.
+     *
+     * @param{allDependencies} is typically either compileDependencies or testDependencies. If no dependencies
      * are passed, they are calculated from the scope filters.
      */
     override fun calculateDependencies(project: Project?, context: KobaltContext,
@@ -130,10 +132,24 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
         result.addAll(runClasspathContributors(project, context))
         result.addAll(dependentProjectDependencies(project, context, dependencyFilter, scopes))
 
+        /**
+         * Naïve implementation: just exclude all dependencies that start with one of the excluded dependencies.
+         * Should probably make exclusion more generic (full on string) or allow exclusion to be specified
+         * formally by groupId or artifactId.
+         */
+        fun isDependencyExcluded(dep: IClasspathDependency, excluded: List<IClasspathDependency>)
+                = excluded.any { excluded -> dep.id.startsWith(excluded.id) }
+
         // Dependencies get reordered by transitiveClosure() but since we just added a bunch of new ones,
         // we need to reorder them again in case we're adding dependencies that are already present
         // but with a different version
-        val reordered = reorderDependencies(result)
+        val shortResult =
+            if (project != null) {
+                result.filter { ! isDependencyExcluded(it, project.excludedDependencies) }
+            } else {
+                result
+            }
+        val reordered = reorderDependencies(shortResult)
         return reordered
     }
 

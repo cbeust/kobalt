@@ -75,9 +75,7 @@ class CompilerUtils @Inject constructor(val files: KFiles, val dependencyManager
         File(project.directory, buildDirectory.path).mkdirs()
 
         // Remove all the excluded dependencies from the classpath
-        var classpath = fullClasspath.filter {
-                ! isDependencyExcluded(it, project.excludedDependencies)
-            }
+        var classpath = fullClasspath
 
         // The classpath needs to contain $buildDirectory/classes as well so that projects that contain
         // multiple languages can use classes compiled by the compiler run before them.
@@ -224,16 +222,5 @@ class CompilerUtils @Inject constructor(val files: KFiles, val dependencyManager
             }
         }
         return result
-    }
-
-    companion object {
-        /**
-         * Naïve implementation: just exclude all dependencies that start with one of the excluded dependencies.
-         * Should probably make exclusion more generic (full on string) or allow exclusion to be specified
-         * formally by groupId or artifactId.
-         */
-        fun isDependencyExcluded(dep: IClasspathDependency, excluded: List<IClasspathDependency>)
-                = excluded.any { excluded -> dep.id.startsWith(excluded.id) }
-
     }
 }
