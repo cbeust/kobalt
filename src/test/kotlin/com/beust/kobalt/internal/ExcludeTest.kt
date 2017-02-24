@@ -24,7 +24,7 @@ class ExcludeTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
             arrayOf("p2", EXCLUDED_DEPENDENCY)
     )
 
-//   @Test(dataProvider = "dp")
+   @Test(dataProvider = "dp")
     fun excludeShouldWork(projectName: String, excludedDependency: String?) {
         val projectText = """
                 dependencies {
