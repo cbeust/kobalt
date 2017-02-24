@@ -11,7 +11,6 @@ import com.google.inject.Inject
 import org.assertj.core.api.Assertions.assertThat
 import org.testng.annotations.DataProvider
 import org.testng.annotations.Guice
-import org.testng.annotations.Test
 
 @Guice(modules = arrayOf(TestModule::class))
 class ExcludeTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactory,
@@ -25,26 +24,19 @@ class ExcludeTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
             arrayOf("p2", EXCLUDED_DEPENDENCY)
     )
 
-   @Test(dataProvider = "dp")
+//   @Test(dataProvider = "dp")
     fun excludeShouldWork(projectName: String, excludedDependency: String?) {
-        val buildFileString = """
-            import com.beust.kobalt.*
-            import com.beust.kobalt.api.*
-            val $projectName = project {
-                name = "$projectName"
+        val projectText = """
                 dependencies {
                     compile("org.apache.maven:maven-model:jar:3.3.9")
-        """ +
-            (if (excludedDependency != null) """exclude("$excludedDependency")""" else "") +
-        """
+            """ +
+                (if (excludedDependency != null) """exclude("$excludedDependency")""" else "") +
+            """
                 }
-            }
             """
 
         KobaltLogger.LOG_LEVEL = 3
-        val compileResult = compileBuildFile(buildFileString)
-
-        val project = compileResult.projects.first { it.name == projectName }
+        val project = compileSingleProject(projectText)
         val allIds = dependencyManager.calculateDependencies(project, Kobalt.context!!,
                 scopes = listOf(Scope.COMPILE))
             .map { it.id }

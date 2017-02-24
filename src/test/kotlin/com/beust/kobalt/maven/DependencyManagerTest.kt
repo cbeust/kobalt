@@ -4,6 +4,7 @@ import com.beust.kobalt.BaseTest
 import com.beust.kobalt.TestModule
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.BuildFileCompiler
 import com.beust.kobalt.maven.aether.Filters
 import com.beust.kobalt.maven.aether.Scope
@@ -19,7 +20,7 @@ class DependencyManagerTest @Inject constructor(val dependencyManager: Dependenc
 
     private fun assertContains(dependencies: List<IClasspathDependency>, vararg ids: String) {
         ids.forEach { id ->
-            if (! dependencies.any { it.id.contains(id) }) {
+            if (!dependencies.any { it.id.contains(id) }) {
                 throw AssertionError("Couldn't find $id in $dependencies")
             }
         }
@@ -63,73 +64,18 @@ class DependencyManagerTest @Inject constructor(val dependencyManager: Dependenc
 
     @Test
     fun honorRuntimeDependenciesBetweenProjects() {
-        Kobalt.context = null
-//        val buildFileString = """
-//            import com.beust.kobalt.*
-//
-//            val lib1 = project {
-//                name = "lib1"
-//                dependencies {
-//                    compile("com.beust:klaxon:0.26",
-//                        "com.beust:jcommander:1.48")
-//                }
-//            }
-//
-//            val p = project(lib1) {
-//                name = "transitive1"
-//            }
-//        """
-
-        val compileResult = compileBuildFile(sharedBuildFile)
-        val project2 = compileResult.projects[1]
+        val project2 = findDependentProject()
         val dependencies = dependencyManager.calculateDependencies(project2, Kobalt.context!!,
                 Filters.EXCLUDE_OPTIONAL_FILTER)
         assertContains(dependencies, ":klaxon:")
         assertContains(dependencies, ":guice:")
-        assertDoesNotContain(dependencies, ":guave:")
+        assertContains(dependencies, ":guava:")
+        assertDoesNotContain(dependencies, ":junit:")
     }
-
-    val sharedBuildFile = """
-            import com.beust.kobalt.*
-
-            val lib2 = project {
-                name = "lib2"
-                dependencies {
-                    // pick dependencies that don't have dependencies themselves, to avoid interferences
-                    compile("com.beust:klaxon:0.27",
-                        "com.google.inject:guice:4.0")
-                    runtime("com.beust:jcommander:1.48")
-                    compileOptional("junit:junit:4.12")
-                }
-            }
-
-            val p = project(lib2) {
-                name = "transitive2"
-            }
-        """
 
     @Test
     fun honorRuntimeDependenciesBetweenProjects2() {
-//        val buildFileString = """
-//            import com.beust.kobalt.*
-//
-//            val lib2 = project {
-//                name = "lib2"
-//                dependencies {
-//                    // pick dependencies that don't have dependencies themselves, to avoid interferences
-//                    compile("com.beust:klaxon:0.27",
-//                        "com.google.inject:guice:4.0)
-//                    runtime("com.beust:jcommander:1.48")
-//                }
-//            }
-//
-//            val p = project(lib2) {
-//                name = "transitive2"
-//            }
-//        """
-
-        val compileResult = compileBuildFile(sharedBuildFile)
-        val project2 = compileResult.projects[1]
+        val project2 = findDependentProject()
 
         Kobalt.context!!.let { context ->
             dependencyManager.calculateDependencies(project2, context,
@@ -149,7 +95,7 @@ class DependencyManagerTest @Inject constructor(val dependencyManager: Dependenc
             }
 
             dependencyManager.calculateDependencies(project2, context,
-                    scopes  = listOf(Scope.COMPILE, Scope.RUNTIME)).let { dependencies ->
+                    scopes = listOf(Scope.COMPILE, Scope.RUNTIME)).let { dependencies ->
                 assertContains(dependencies, ":klaxon:")
                 assertContains(dependencies, ":jcommander:")
                 assertContains(dependencies, ":guice:")
@@ -157,6 +103,29 @@ class DependencyManagerTest @Inject constructor(val dependencyManager: Dependenc
             }
 
         }
+    }
 
+    private fun findDependentProject(): Project {
+        val sharedBuildFile = """
+            import com.beust.kobalt.*
+
+            val lib2 = project {
+                name = "lib2"
+                dependencies {
+                    // pick dependencies that don't have dependencies themselves, to avoid interferences
+                    compile("com.beust:klaxon:0.27",
+                        "com.google.inject:guice:4.0")
+                    runtime("com.beust:jcommander:1.48")
+                    compileOptional("junit:junit:4.12")
+                }
+            }
+
+            val p = project(lib2) {
+                name = "transitive2"
+            }
+        """
+        Kobalt.context = null
+        return compileBuildFile(sharedBuildFile).projects.first { it.name == "transitive2" }
     }
 }
+

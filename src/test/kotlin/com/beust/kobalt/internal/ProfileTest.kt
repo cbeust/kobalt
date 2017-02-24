@@ -21,25 +21,19 @@ class ProfileTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
 
         fun buildFileString(): String {
             return """
-                    import com.beust.kobalt.*
-                    import com.beust.kobalt.api.*
-                    val profile = false
-                    val $projectVal = project {
-                        name = if (profile) "profileOn" else "profileOff"
-                    }
+                import com.beust.kobalt.*
+                import com.beust.kobalt.api.*
+                val profile = false
+                val $projectVal = project {
+                    name = if (profile) "profileOn" else "profileOff"
+                }
                 """
         }
 
         val args = Args()
         if (enabled) args.profiles = "profile"
-        val projectName = if (enabled) "profileOn" else "profileOff"
-        val compileResult = compileBuildFile(buildFileString(), args)
-        try {
-            return compileResult.projects.first { it.name == projectName }
-        } catch(ex: Exception) {
-            println("PROBLEM")
-            throw ex
-        }
+        val results = compileBuildFile(buildFileString(), args)
+        return results.projects[0]
     }
 
     @DataProvider
