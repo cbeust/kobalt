@@ -30,7 +30,7 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override va
             if (info.sourceFiles.isNotEmpty()) {
                 javaCompiler.javadoc(project, context, info)
             } else {
-                warn("Couldn't find any source files to run Javadoc on")
+                warn("Couldn't find any source files to run Javadoc on for suffixes " + info.suffixesBeingCompiled)
                 TaskResult()
             }
         return result
