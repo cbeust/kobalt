@@ -167,11 +167,9 @@ public class Main {
 
         log(2, "Wrapper version: " + wrapperVersion);
 
-        boolean isNew = Float.parseFloat(version) * 1000 >= 650;
-
         String toZipOutputDir = DISTRIBUTIONS_DIR;
         Path kobaltJarFile = Paths.get(toZipOutputDir,
-                isNew ? "kobalt-" + wrapperVersion : "",
+                "kobalt-" + wrapperVersion,
                 getWrapperDir().getPath() + "/" + FILE_NAME + "-" + wrapperVersion + ".jar");
         boolean downloadedZipFile = false;
         if (! Files.exists(localZipFile) || ! Files.exists(kobaltJarFile)) {
