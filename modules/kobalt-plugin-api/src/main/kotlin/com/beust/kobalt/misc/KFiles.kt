@@ -96,7 +96,7 @@ class KFiles {
         /**
          * Where assemblies get generated ("kobaltBuild/libs")
          */
-        fun libsDir(project: Project) = KFiles.makeDir(KFiles.buildDir(project).path, "libs").path
+        fun libsDir(project: Project): String = KFiles.makeDir(KFiles.buildDir(project).path, "libs").path
 
         /**
          * The paths elements are expected to be a directory. Make that directory and join the
@@ -120,11 +120,11 @@ class KFiles {
                 (if (s != null) File(dir, s) else File(dir)).apply { mkdirs() }
 
         fun findRecursively(rootDir: File) : List<String> =
-                findRecursively(rootDir, arrayListOf(), { s -> true })
+                findRecursively(rootDir, arrayListOf(), { _ -> true })
 
         fun findRecursively(rootDir: File, directories: List<File>,
                 function: Function1<String, Boolean>): List<String> {
-            var result = arrayListOf<String>()
+            val result = arrayListOf<String>()
 
             val allDirs = arrayListOf<File>()
             if (directories.isEmpty()) {
@@ -156,7 +156,7 @@ class KFiles {
         }
 
         fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {
-            var result = arrayListOf<String>()
+            val result = arrayListOf<String>()
             directory.listFiles().forEach {
                 if (it.isFile && function(it.path)) {
                     result.add(it.path)
@@ -168,7 +168,7 @@ class KFiles {
         }
 
         fun copyRecursively(from: File, to: File, replaceExisting: Boolean = true, deleteFirst: Boolean = false,
-                onError: (File, IOException) -> OnErrorAction = { file, exception -> throw exception }) {
+                onError: (File, IOException) -> OnErrorAction = { _, exception -> throw exception }) {
             // Need to wait until copyRecursively supports an overwrite: Boolean = false parameter
             // Until then, wipe everything first
             if (deleteFirst) to.deleteRecursively()
@@ -184,9 +184,8 @@ class KFiles {
          */
         private fun hackCopyRecursively(from: File, dst: File,
                 replaceExisting: Boolean,
-                checkTimestamp: Boolean = false,
                 onError: (File, IOException) -> OnErrorAction =
-                { file, exception -> throw exception }
+                { _, exception -> throw exception }
         ): Boolean {
             if (!from.exists()) {
                 return onError(from, NoSuchFileException(file = from, reason = "The source file doesn't exist")) !=
@@ -231,13 +230,6 @@ class KFiles {
             }
         }
 
-        private fun findDotDir(buildFile: BuildFile) : File {
-            val result = File(buildFile.directory.parentFile.parentFile, KOBALT_DOT_DIR).apply {
-                mkdirs()
-            }
-            return result
-        }
-
         /**
          * The build location for build scripts is .kobalt/build
          */
@@ -253,7 +245,7 @@ class KFiles {
             kobaltLog(2, "Created $file")
         }
 
-        private fun isWindows() = System.getProperty("os.name").contains("Windows");
+        private fun isWindows() = System.getProperty("os.name").contains("Windows")
 
         fun copy(from: Path?, to: Path?, option: StandardCopyOption = StandardCopyOption.REPLACE_EXISTING) {
             if (isWindows() && to!!.toFile().exists()) {
@@ -283,12 +275,6 @@ class KFiles {
             }
         }
 
-        fun createTempFile(suffix : String = "", deleteOnExit: Boolean = false) : File =
-            File.createTempFile("kobalt", suffix, File(SystemProperties.tmpDir)).let {
-                if (deleteOnExit) it.deleteOnExit()
-                return it
-            }
-
         fun createTempBuildFileInTempDirectory(deleteOnExit: Boolean = false) : File =
                 File(createTempDirectory("kobalt", deleteOnExit), Constants.BUILD_FILE_NAME).let {
                 if (deleteOnExit) it.deleteOnExit()
@@ -312,8 +298,6 @@ class KFiles {
         fun makeOutputTestDir(project: Project) : File = makeDir(project, KFiles.TEST_CLASSES_DIR)
 
         fun isExcluded(file: String, excludes: Glob) = isExcluded(file, listOf(excludes))
-
-        fun isExcluded(file: File, excludes: Glob) = isExcluded(file.path, listOf(excludes))
 
         fun isExcluded(file: File, excludes: List<Glob>) = isExcluded(file.path, excludes)
 
