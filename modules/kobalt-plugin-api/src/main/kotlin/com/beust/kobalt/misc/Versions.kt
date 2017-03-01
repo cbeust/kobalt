@@ -10,16 +10,17 @@ public class Versions {
         /**
          * Turn "6.9.4" into 600090004
          */
-        public fun toLongVersion(version: String) : Long {
+        fun toLongVersion(version: String) : Long {
             val count = version.countChar('.')
-            val normalizedVersion = if (count == 2) version else if (count == 1) version + ".0"
-            else version + ".0.0"
+            val normalizedVersion =
+                if (count == 2) version else if (count == 1) version + ".0"
+                else version + ".0.0"
 
             fun parseLong(s: String, radix: Int) : Long {
                 try {
                     return java.lang.Long.parseLong(s, radix)
                 } catch(ex: NumberFormatException) {
-                    warn("Couldn't parse version \"${version}\"")
+                    warn("Couldn't parse version \"$version\"")
                     return 0L
                 }
             }
