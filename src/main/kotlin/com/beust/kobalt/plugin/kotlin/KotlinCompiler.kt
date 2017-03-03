@@ -224,12 +224,19 @@ class KotlinCompiler @Inject constructor(
 
             val result =
                 if (cliArgs.noIncrementalKotlin) {
-                    log(2, "Kotlin incremental compilation is disabled")
-                    val exitCode = K2JVMCompiler().exec(collector, Services.Builder().build(), args)
-                    TaskResult(exitCode == ExitCode.OK)
+                    log(2, "  Kotlin incremental compilation is disabled")
+                    val duration = benchmarkMillis {
+                        K2JVMCompiler().exec(collector, Services.Builder().build(), args)
+                    }
+                    log(1, "  Regular compilation time: ${duration.first} ms")
+                    TaskResult(duration.second == ExitCode.OK)
                 } else {
-                    log(2, "Kotlin incremental compilation is enabled")
-                    compileIncrementally(filesToCompile, sourceFiles, outputDir, info, args, collector)
+                    log(1, "  Kotlin incremental compilation is enabled")
+                    val start = System.currentTimeMillis()
+                    val duration = benchmarkMillis {
+                        compileIncrementally(filesToCompile, sourceFiles, outputDir, info, args, collector)
+                    }
+                    log(1, "  Incremental compilation time: ${duration.first} ms")
                     TaskResult()
                 }
             return result
