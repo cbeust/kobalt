@@ -138,6 +138,8 @@ class KFiles {
             allDirs.forEach { dir ->
                 if (! dir.exists()) {
                     kobaltLog(2, "Couldn't find directory $dir")
+                } else if (! dir.isDirectory) {
+                    throw IllegalArgumentException("$dir is not a directory")
                 } else {
                     val files = findRecursively(dir, function)
                     files.map { Paths.get(it) }.forEach {
