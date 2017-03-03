@@ -13,7 +13,10 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
+import org.jetbrains.kotlin.incremental.ICReporter
+import org.jetbrains.kotlin.incremental.makeIncrementally
 import java.io.File
+import java.nio.file.Files
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,6 +29,7 @@ import kotlin.properties.Delegates
 @Singleton
 class KotlinCompiler @Inject constructor(
         val files: KFiles,
+        val cliArgs: Args,
         val dependencyManager: DependencyManager,
         val executors: KobaltExecutors,
         val settings: KobaltSettings,
@@ -37,10 +41,17 @@ class KotlinCompiler @Inject constructor(
         override fun compile(project: Project?, info: CompilerActionInfo): TaskResult {
             val projectName = project?.name
             val version = settings.kobaltCompilerVersion
+            var filesToCompile = 0
             if (! info.outputDir.path.endsWith("ript.jar")) {
                 // Don't display the message if compiling Build.kt
-                kobaltLog.log(projectName!!, 1,
-                        "  Kotlin $version compiling " + Strings.pluralizeAll(info.sourceFiles.size, "file"))
+                filesToCompile =
+                        info.sourceFiles.map(::File).map {
+                            if (it.isDirectory) KFiles.findRecursively(it).size else 1
+                        }.reduce { a, b ->
+                            a + b
+                        }
+                kobaltLog.log(projectName ?: "", 1,
+                        "  Kotlin $version compiling " + Strings.pluralizeAll(filesToCompile, "file"))
             }
             val cp = compilerFirst(info.dependencies.map { it.jarFile.get() })
             val infoDir = info.directory
@@ -79,7 +90,7 @@ class KotlinCompiler @Inject constructor(
 
             } else {
                 return invokeCompilerDirectly(projectName ?: "kobalt-" + Random().nextInt(), outputDir,
-                        classpath, info.sourceFiles, info.friendPaths.toTypedArray())
+                        info, classpath, filesToCompile)
             }
         }
 
@@ -120,8 +131,10 @@ class KotlinCompiler @Inject constructor(
             return TaskResult(result == 0, "Error while compiling")
         }
 
-        private fun invokeCompilerDirectly(projectName: String, outputDir: String?, classpathString: String,
-                sourceFiles: List<String>, friends: Array<String>): TaskResult {
+        private fun invokeCompilerDirectly(projectName: String, outputDir: String?, info: CompilerActionInfo,
+                classpathString: String, filesToCompile: Int): TaskResult {
+            val sourceFiles = info.sourceFiles
+            val friends = info.friendPaths.toTypedArray()
             val args = K2JVMCompilerArguments().apply {
                 moduleName = projectName
                 destination = outputDir
@@ -209,9 +222,62 @@ class KotlinCompiler @Inject constructor(
             // TODO: experimental should be removed as soon as it becomes standard
             System.setProperty("kotlin.incremental.compilation.experimental", "true")
 
-            val exitCode = K2JVMCompiler().exec(collector, Services.Builder().build(), args)
-            val result = TaskResult(exitCode == ExitCode.OK)
+            val result =
+                if (cliArgs.noIncrementalKotlin) {
+                    log(2, "Kotlin incremental compilation is disabled")
+                    val exitCode = K2JVMCompiler().exec(collector, Services.Builder().build(), args)
+                    TaskResult(exitCode == ExitCode.OK)
+                } else {
+                    log(2, "Kotlin incremental compilation is enabled")
+                    compileIncrementally(filesToCompile, sourceFiles, outputDir, info, args, collector)
+                    TaskResult()
+                }
             return result
+        }
+
+        private fun compileIncrementally(filesToCompile: Int, sourceFiles: List<String>, outputDir: String?,
+                info: CompilerActionInfo,
+                args: K2JVMCompilerArguments,
+                collector: MessageCollector) {
+            val compiledFiles = arrayListOf<File>()
+            val reporter = object : ICReporter {
+                override fun pathsAsString(files: Iterable<File>): String {
+                    return files.joinToString { it.absolutePath }
+//                    return files.joinToString { it.relativeTo(workingDir).path }
+                }
+
+                override fun report(message: () -> String) {
+                    log(2, "    ICReport: ${message()}")
+                }
+
+                override fun reportCompileIteration(sourceFiles: Collection<File>, exitCode: ExitCode) {
+                    log(2, "    ICCompileIteration Compiled files: ${pathsAsString(sourceFiles)}")
+                    compiledFiles.addAll(sourceFiles)
+                }
+            }
+            incrementalCompile(sourceFiles, File(outputDir), info.forceRecompile, args, collector, reporter)
+            if (filesToCompile > compiledFiles.size) {
+                log(1, "  Actual files that needed to be compiled: " + compiledFiles.size)
+            }
+        }
+
+        /**
+         * Invoke the incremental compiler.
+         */
+        fun incrementalCompile(sourceFiles: List<String>, outputDirectory: File, forceRecompile: Boolean,
+                args: K2JVMCompilerArguments,
+                messageCollector: MessageCollector, reporter: ICReporter) {
+            // If asked to force recompile, create a brand new cachesDir, otherwise reuse the existing one
+            val cachesDir =
+                if (forceRecompile) Files.createTempDirectory("kobalt-").toFile()
+                else File(outputDirectory.parent, outputDirectory.name + "-ic-caches")
+
+            val sourceRoots = sourceFiles.map(::File).map { if (it.isFile) it.parentFile else it }.toSet()
+            try {
+                makeIncrementally(cachesDir, sourceRoots, args, messageCollector, reporter)
+            } catch(ex: Exception) {
+                throw KobaltException(ex.message, ex)
+            }
         }
 
         /**
@@ -310,7 +376,7 @@ class KotlinCompiler @Inject constructor(
                 emptyList<String>()
             }
         val info = CompilerActionInfo(project?.directory, dependencies, sourceFiles, listOf("kt"), outputDir, args,
-                friendPaths)
+                friendPaths, context?.forceRecompile ?: false)
 
         return jvmCompiler.doCompile(project, context, compilerAction, info,
                 if (context != null) compilerUtils.sourceCompilerFlags(project, context, info) else emptyList())

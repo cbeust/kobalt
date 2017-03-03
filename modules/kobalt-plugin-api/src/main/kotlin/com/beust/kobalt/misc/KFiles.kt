@@ -5,14 +5,12 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.maven.Md5
-import java.io.File
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
+import java.util.jar.JarInputStream
 
 class KFiles {
     /**
@@ -168,6 +166,30 @@ class KFiles {
                 }
             }
             return result
+        }
+
+        /**
+         * List the files contained in a directory or a jar file.
+         */
+        fun listFiles(file: File, block: (String) -> Unit) {
+            if (file.isDirectory) {
+                KFiles.findRecursively(file).forEach {
+                    block(it)
+                }
+            } else if (file.name.endsWith(".jar")) {
+                FileInputStream(file).use {
+                    JarInputStream(it).use { stream ->
+                        var entry = stream.nextJarEntry
+                        while (entry != null) {
+                            block(entry.name)
+                            entry = stream.nextJarEntry;
+                        }
+                    }
+                }
+
+            } else {
+                throw KobaltException("Can't list files of a file: " + file)
+            }
         }
 
         fun copyRecursively(from: File, to: File, replaceExisting: Boolean = true, deleteFirst: Boolean = false,

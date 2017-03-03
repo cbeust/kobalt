@@ -19,6 +19,7 @@ import java.io.File
 class KobaltContext(val args: Args) {
     lateinit var variant: Variant
     val profiles = arrayListOf<String>()
+    var forceRecompile: Boolean = false
 
     init {
         args.profiles?.split(',')?.filterNotNull()?.forEach {

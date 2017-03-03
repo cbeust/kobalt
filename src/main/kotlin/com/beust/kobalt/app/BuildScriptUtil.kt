@@ -17,12 +17,9 @@ import com.beust.kobalt.misc.warn
 import com.beust.kobalt.plugin.KobaltPlugin
 import com.google.inject.Inject
 import java.io.File
-import java.io.FileInputStream
-import java.io.InputStream
 import java.lang.reflect.Modifier
 import java.net.URL
 import java.net.URLClassLoader
-import java.util.jar.JarInputStream
 
 class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFiles,
         val taskManager: TaskManager) {
@@ -37,7 +34,6 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
      */
     fun runBuildScriptJarFile(buildScriptJarFile: File, urls: List<URL>,
             context: KobaltContext) : List<Project> {
-        var stream : InputStream? = null
         // The jar files used to load the plug-ins are:
         // - all the plug-ins found in the build file
         // - kobalt's own jar file
@@ -55,13 +51,9 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
         //
         // Classload all the jar files and invoke their methods
         //
-        try {
-            stream = JarInputStream(FileInputStream(buildScriptJarFile))
-            var entry = stream.nextJarEntry
-
+        if (buildScriptJarFile.exists()) {
             val classes = hashSetOf<Class<*>>()
-            while (entry != null) {
-                val name = entry.name;
+            KFiles.listFiles(buildScriptJarFile) { name ->
                 if (name.endsWith(".class")) {
                     val className = name.substring(0, name.length - 6).replace("/", ".")
                     try {
@@ -75,7 +67,6 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
                         warn("Couldn't find class $className")
                     }
                 }
-                entry = stream.nextJarEntry;
             }
 
             // Invoke all the "val" found on the _DefaultPackage class (the Build.kt file)
@@ -103,10 +94,9 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
                             taskManager.addIncrementalTask(defaultPlugin, method, it)
                         }
 
-                    }}
+                    }
+                }
             }
-        } finally {
-            stream?.close()
         }
 
         validateProjectNames(projects)

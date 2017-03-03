@@ -91,7 +91,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
             val dependencies = dependencyManager.calculateDependencies(project, context)
             val info = CompilerActionInfo(sourceDir.absolutePath, dependencies,
                     listOf(javaFile.absolutePath), listOf("java"), File(sourceDir, "generated"),
-                    listOf(), listOf())
+                    listOf(), listOf(), context.forceRecompile)
 
             val results = compilerUtils.invokeCompiler(project, context, javaCompiler, info)
         }

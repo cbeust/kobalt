@@ -11,4 +11,5 @@ data class CompilerActionInfo(val directory: String?,
         val suffixesBeingCompiled: List<String>,
         val outputDir: File,
         val compilerArgs: List<String>,
-        val friendPaths: List<String>)
+        val friendPaths: List<String>,
+        val forceRecompile: Boolean)

@@ -61,6 +61,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
         context.resolver = resolver
         context.pomGeneratorFactory = pomGeneratorFactory
         context.logger = parallelLogger
+        context.forceRecompile = forceRecompile
         Kobalt.context = context
 
         // The list of dynamic plug-ins has to be a companion since it's modified directly from
@@ -71,7 +72,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
         //
         // Find all the projects in the build file, possibly compiling them
         //
-        val projectResult = findProjects(context, forceRecompile)
+        val projectResult = findProjects(context)
 
         return projectResult
     }
@@ -81,7 +82,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
     class FindProjectResult(val context: KobaltContext, val projects: List<Project>, val pluginUrls: List<URL>,
             val taskResult: TaskResult)
 
-    private fun findProjects(context: KobaltContext, forceRecompile: Boolean): FindProjectResult {
+    private fun findProjects(context: KobaltContext): FindProjectResult {
         var errorTaskResult: TaskResult? = null
         val projects = arrayListOf<Project>()
         buildFiles.forEach { buildFile ->
@@ -110,7 +111,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
             KFiles.saveFile(modifiedBuildFile, parsedBuildFile.buildScriptCode)
             val taskResult = maybeCompileBuildFile(context, BuildFile(Paths.get(modifiedBuildFile.path),
                     "Modified ${Constants.BUILD_FILE_NAME}", buildFile.realPath),
-                    buildScriptJarFile, pluginUrls, forceRecompile)
+                    buildScriptJarFile, pluginUrls, context.forceRecompile)
             if (taskResult.success) {
                 projects.addAll(buildScriptUtil.runBuildScriptJarFile(buildScriptJarFile, pluginUrls, context))
             } else {
