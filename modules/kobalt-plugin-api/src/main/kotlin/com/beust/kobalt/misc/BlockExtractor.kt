@@ -21,6 +21,7 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
         var foundClosing = false
         var count = 0
         val result = StringBuffer()
+        val topLines = arrayListOf<String>()
 
         fun updateCount(line: String) {
             val currentLine = StringBuffer()
@@ -46,8 +47,10 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
             if (found) {
                 foundKeyword = true
                 count = 1
+                result.append(topLines.joinToString("\n"))
                 result.append(line).append("\n")
             } else {
+                topLines.add(line)
                 updateCount(line)
             }
 
