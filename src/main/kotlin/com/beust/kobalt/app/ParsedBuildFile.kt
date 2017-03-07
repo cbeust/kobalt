@@ -10,14 +10,12 @@ import com.beust.kobalt.internal.build.VersionFile
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.BlockExtractor
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.countChar
 import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import java.io.File
 import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.Paths
-import java.util.*
 import java.util.regex.Pattern
 
 class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val buildScriptUtil: BuildScriptUtil,
@@ -44,14 +42,11 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
     }
 
     private fun parseBuildFile() {
-        var parenCount = 0
-        var current: ArrayList<String>? = null
-
         /**
          * If the current line matches one of the profiles, turn the declaration into
          * val profile = true, otherwise return the same line
          */
-        fun correctProfileLine(line: String) : String {
+        fun correctProfileLine(line: String): String {
             (context.profiles as List<String>).forEach {
                 if (line.matches(Regex("[ \\t]*val[ \\t]+$it[ \\t]*=.*"))) {
                     with("val $it = true") {
@@ -65,7 +60,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
             return line
         }
 
-        fun applyProfiles(lines: List<String>) : List<String> {
+        fun applyProfiles(lines: List<String>): List<String> {
             val result = arrayListOf<String>()
             lines.forEach { line ->
                 result.add(correctProfileLine(line))
@@ -74,50 +69,27 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         }
 
         val buildWithCorrectProfiles = applyProfiles(buildFile.path.toFile().readLines())
-        val bs = BlockExtractor(Pattern.compile("^val.*buildScript.*\\{"), '{', '}').extractBlock(buildWithCorrectProfiles)
+        val buildScriptInfo = BlockExtractor(Pattern.compile("^val.*buildScript.*\\{"), '{', '}')
+                .extractBlock(buildWithCorrectProfiles)
 
-        buildFile.path.toFile().forEachLine(Charset.defaultCharset()) { line ->
-            var index = line.indexOf("plugins(")
-            if (current == null) {
-                if (index >= 0) {
-                    current = pluginList
-                } else {
-                    index = line.indexOf("repos(")
-                    if (index >= 0) {
-                        current = repos
-                    } else {
-                        index = line.indexOf("buildFileClasspath(")
-                        if (index >= 0) {
-                            current = buildFileClasspath
-                        }
-                    }
-                }
-            }
-
-            if (parenCount > 0 || current != null) {
-                if (index == -1) index = 0
-                with(line.substring(index)) {
-                    parenCount += line countChar '('
-                    if (parenCount > 0) {
-                        current!!.add(line)
-                    }
-                    parenCount -= line countChar ')'
-                }
-            }
-
-            if (parenCount == 0) {
-                current = null
-            }
-
-            buildScript.add(correctProfileLine(line))
-        }
-
-        if (bs != null) {
-            preBuildScript.add(bs)
+        if (buildScriptInfo != null) {
+            preBuildScript.add(buildScriptInfo.content)
         } else {
             repos.forEach { preBuildScript.add(it) }
             pluginList.forEach { preBuildScript.add(it) }
             buildFileClasspath.forEach { preBuildScript.add(it) }
+        }
+
+        //
+        // Write the build file excluding the buildScript{} tag since we already ran it
+        //
+        var lineNumber = 1
+        buildFile.path.toFile().forEachLine { line ->
+            if (buildScriptInfo == null ||
+                    (lineNumber < buildScriptInfo.startLine || lineNumber > buildScriptInfo.endLine)) {
+                buildScript.add(correctProfileLine(line))
+            }
+            lineNumber++
         }
     }
 

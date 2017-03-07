@@ -11,12 +11,19 @@ fun main(argv: Array<String>) {
 //    BlockExtractor("plugins", '(', ')').extractBlock(lines)
 }
 
+class BuildScriptInfo(val content: String, val startLine: Int, val endLine: Int)
+
 /**
  * Used to extract a keyword followed by opening and closing tags out of a list of strings,
  * e.g. buildScript { ... }.
  */
 class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) {
-    fun extractBlock(lines: List<String>): String? {
+    fun extractBlock(lines: List<String>): BuildScriptInfo? {
+        var currentLineNumber = 0
+        // First line of the buildScript block
+        var startLine = 0
+        // Last line of the buildScript block
+        var endLine = 0
         var foundKeyword = false
         var foundClosing = false
         var count = 0
@@ -34,6 +41,7 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
                     if (count == 0) {
                         currentLine.append(closing).append("\n")
                         foundClosing = true
+                        endLine = currentLineNumber
                     }
                 }
                 if (foundKeyword && count > 0) currentLine.append(c)
@@ -43,8 +51,10 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
         }
 
         lines.forEach { line ->
+            currentLineNumber++
             val found = regexp.matcher(line).matches()
             if (found) {
+                startLine = currentLineNumber
                 foundKeyword = true
                 count = 1
                 result.append(topLines.joinToString("\n"))
@@ -55,12 +65,12 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
             }
 
             if (foundKeyword && foundClosing && count == 0) {
-                return result.toString()
+                return BuildScriptInfo(result.toString(), startLine, endLine)
             }
         }
 
         if (foundKeyword && foundClosing && count == 0) {
-            return result.toString()
+            return BuildScriptInfo(result.toString(), startLine, endLine)
         } else {
             return null
         }
