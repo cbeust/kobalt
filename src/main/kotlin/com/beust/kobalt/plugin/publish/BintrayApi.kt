@@ -61,6 +61,14 @@ class BintrayApi @Inject constructor(val http: Http,
                            @Path("name") name: String,
                            @Path("publish") publish: Int,
                            @Body file: File): Call<BintrayResponse>
+
+        class UpdateVersion(val desc: String?, val vcsTag: String?)
+
+        @PATCH("/packages/{owner}/maven/{repo}/versions/{version}")
+        fun updateVersion(@Path("owner") owner: String,
+                          @Path("repo") repo: String,
+                          @Path("version") version: String,
+                          @Body content: UpdateVersion): Call<BintrayResponse>
     }
 
     private val service: Api
@@ -155,13 +163,13 @@ class BintrayApi @Inject constructor(val http: Http,
             }
 
             val results = arrayListOf<Boolean>()
-            filesToUpload.forEachIndexed { i, file ->
-                val owner = org ?: username!!
-                val repo = project.name
-                val group = project.group!!.replace('.', '/')
-                val artifact = project.artifactId!!
-                val version = project.version!!
+            val owner = org ?: username!!
+            val repo = project.name
+            val group = project.group!!.replace('.', '/')
+            val artifact = project.artifactId!!
+            val version = project.version!!
 
+            filesToUpload.forEachIndexed { i, file ->
                 val result = service.uploadArtifact(owner, repo, group, artifact, version, file.name,
                         if (config.publish) 1 else 0, file)
                         .execute()
@@ -181,6 +189,18 @@ class BintrayApi @Inject constructor(val http: Http,
             logger.log(project.name, 1, "    Uploaded $success / $fileCount " + dots(fileCount, results), false)
             logger.log(project.name, 1, "", true)
             if (errorMessages.isEmpty()) {
+                if (config.description != null || config.vcsTag != null) {
+                    //
+                    // Update the version if the user specified some additional version information
+                    //
+                    val versionUpdateResult = service.updateVersion(owner, repo, version,
+                            Api.UpdateVersion(config.description, config.vcsTag))
+                            .execute()
+                    if (!versionUpdateResult.isSuccessful) {
+                        warn("Couldn't update the version description: " + versionUpdateResult.errorBody())
+                    }
+                }
+
                 return TaskResult()
             } else {
                 error(" Errors while uploading:\n" + errorMessages.map { "    $it" }.joinToString("\n"))
@@ -203,13 +223,18 @@ class BintrayApi @Inject constructor(val http: Http,
 }
 
 class ConverterFactory : Converter.Factory() {
-    override fun responseBodyConverter(type: Type, annotations: Array<out Annotation>, retrofit: Retrofit): Converter<ResponseBody, *>? {
+    override fun responseBodyConverter(type: Type, annotations: Array<out Annotation>,
+            retrofit: Retrofit): Converter<ResponseBody, *>? {
         return GsonResponseBodyConverter(Gson(), Gson().getAdapter(TypeToken.get(type)))
     }
 
-    override fun requestBodyConverter(type: Type, parameterAnnotations: Array<out Annotation>, methodAnnotations: Array<out Annotation>,
-                                      retrofit: Retrofit?): Converter<*, RequestBody>? {
-        return RequestBodyConverter()
+    override fun requestBodyConverter(type: Type, parameterAnnotations: Array<out Annotation>,
+            methodAnnotations: Array<out Annotation>,
+            retrofit: Retrofit?): Converter<*, RequestBody>? {
+        val result =
+            if (type.typeName == File::class.java.name) FileBodyConverter()
+            else GsonBodyConverter()
+        return result
     }
 }
 
@@ -224,8 +249,15 @@ class GsonResponseBodyConverter(private val gson: Gson, private val adapter: Typ
     }
 }
 
-class RequestBodyConverter : Converter<File, RequestBody> {
+class FileBodyConverter : Converter<File, RequestBody> {
     override fun convert(value: File): RequestBody {
         return CountingFileRequestBody(value, "application/*", {  })
+    }
+}
+
+class GsonBodyConverter : Converter<Any, RequestBody> {
+    override fun convert(value: Any): RequestBody {
+        val jo = Gson().toJson(value)
+        return  RequestBody.create(MediaType.parse("application/json"), jo.toString())
     }
 }

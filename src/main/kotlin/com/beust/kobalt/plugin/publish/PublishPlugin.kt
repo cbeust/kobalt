@@ -241,6 +241,12 @@ data class BintrayConfig(val project: Project) {
     fun file(filePath: String, url: String) {
         files.add(Pair(filePath, url))
     }
+
+    @Directive
+    var description: String? = null
+
+    @Directive
+    var vcsTag: String? = null
 }
 
 @Directive
