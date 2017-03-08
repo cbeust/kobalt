@@ -265,9 +265,12 @@ class KFiles {
         }
 
         fun saveFile(file: File, text: String) {
-            file.absoluteFile.parentFile.mkdirs()
-            file.writeText(text)
-            kobaltLog(2, "Created $file")
+            if (file.absoluteFile.parentFile.mkdirs()) {
+                file.writeText(text)
+                kobaltLog(2, "Created $file")
+            } else {
+                warn("Couldn't create directory to save $file")
+            }
         }
 
         private fun isWindows() = System.getProperty("os.name").contains("Windows")
