@@ -101,7 +101,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
             buildScriptJarFile.parentFile.let { dir ->
                 if (! VersionFile.isSameVersionFile(dir)) {
                     kobaltLog(1, "Detected new installation, wiping $dir")
-                    dir.listFiles().map { it.delete() }
+                    dir.listFiles().map(File::delete)
                 }
             }
 
