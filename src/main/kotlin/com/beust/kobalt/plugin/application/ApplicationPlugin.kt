@@ -61,7 +61,8 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
         val runContributor = ActorUtils.selectAffinityActor(project, context,
                 context.pluginInfo.runnerContributors)
         if (runContributor != null && runContributor.affinity(project, context) > 0) {
-            return runContributor.run(project, context, dependencyManager.dependencies(project, context))
+            return runContributor.run(project, context,
+                    dependencyManager.dependencies(project, context, listOf(Scope.RUNTIME)))
         } else {
             context.logger.log(project.name, 1,
                     "Couldn't find a runner for project ${project.name}. Please make sure" +

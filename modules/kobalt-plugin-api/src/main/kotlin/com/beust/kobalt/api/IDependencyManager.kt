@@ -26,7 +26,7 @@ interface IDependencyManager {
     /**
      * @return the source dependencies for this project, including the contributors.
      */
-    fun dependencies(project: Project, context: KobaltContext): List<IClasspathDependency>
+    fun dependencies(project: Project, context: KobaltContext, scopes: List<Scope>): List<IClasspathDependency>
 
     /**
      * @return the test dependencies for this project, including the contributors.

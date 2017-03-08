@@ -70,12 +70,14 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
     /**
      * @return the source dependencies for this project, including the contributors.
      */
-    override fun dependencies(project: Project, context: KobaltContext) = dependencies(project, context, false)
+    override fun dependencies(project: Project, context: KobaltContext, scopes: List<Scope>)
+            = privateDependencies(project, context, listOf(Scope.COMPILE))
 
     /**
      * @return the test dependencies for this project, including the contributors.
      */
-    override fun testDependencies(project: Project, context: KobaltContext) = dependencies(project, context, true)
+    override fun testDependencies(project: Project, context: KobaltContext)
+            = privateDependencies(project, context, listOf(Scope.COMPILE, Scope.TEST))
 
     /**
      * Transitive dependencies for the compilation of this project.
@@ -232,18 +234,26 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
         }
     }
 
-    private fun dependencies(project: Project, context: KobaltContext, isTest: Boolean)
+    private fun privateDependencies(project: Project, context: KobaltContext, passedScopes: List<Scope>)
             : List<IClasspathDependency> {
+        val isTest = passedScopes.contains(Scope.TEST)
         val transitive = hashSetOf<IClasspathDependency>()
         with(project) {
             val scopeFilters : ArrayList<Scope> = arrayListOf(Scope.COMPILE)
             context.variant.let { variant ->
-                val deps = arrayListOf(compileDependencies, compileProvidedDependencies,
-                        variant.buildType.compileDependencies,
-                        variant.buildType.compileProvidedDependencies,
-                        variant.productFlavor.compileDependencies,
-                        variant.productFlavor.compileProvidedDependencies
-                )
+                val deps: ArrayList<ArrayList<IClasspathDependency>> =
+                    if (passedScopes.contains(Scope.COMPILE)) {
+                        arrayListOf(compileDependencies, compileProvidedDependencies,
+                                variant.buildType.compileDependencies,
+                                variant.buildType.compileProvidedDependencies,
+                                variant.productFlavor.compileDependencies,
+                                variant.productFlavor.compileProvidedDependencies)
+                    } else if (passedScopes.contains(Scope.RUNTIME)) {
+                        arrayListOf(compileRuntimeDependencies)
+                    } else {
+                        arrayListOf(arrayListOf<IClasspathDependency>())
+                    }
+                val runtimeDeps = arrayListOf(compileRuntimeDependencies)
                 if (isTest) {
                     deps.add(testDependencies)
                     deps.add(testProvidedDependencies)
@@ -252,9 +262,9 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
                 val filter =
                     if (isTest) OrDependencyFilter(Filters.COMPILE_FILTER, Filters.TEST_FILTER)
                     else Filters.COMPILE_FILTER
-                deps.filter { it.any() }.forEach {
+                runtimeDeps.filter { it.any() }.forEach {
                     transitive.addAll(calculateDependencies(project, context, filter,
-                            scopes = Scope.toScopes(isTest),
+                            passedScopes, // scopes = Scope.toScopes(isTest),
                             passedDependencies = it))
                 }
             }
