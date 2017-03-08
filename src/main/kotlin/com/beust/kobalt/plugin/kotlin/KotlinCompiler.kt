@@ -254,11 +254,11 @@ class KotlinCompiler @Inject constructor(
                 }
 
                 override fun report(message: () -> String) {
-                    log(2, "    ICReport: ${message()}")
+                    log(3, "    ICReport: ${message()}")
                 }
 
                 override fun reportCompileIteration(sourceFiles: Collection<File>, exitCode: ExitCode) {
-                    log(2, "    ICCompileIteration Compiled files: ${pathsAsString(sourceFiles)}")
+                    log(3, "    ICCompileIteration Compiled files: ${pathsAsString(sourceFiles)}")
                     compiledFiles.addAll(sourceFiles)
                 }
             }
