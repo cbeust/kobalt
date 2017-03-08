@@ -60,7 +60,9 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
                 result.append(topLines.joinToString("\n"))
                 result.append(line).append("\n")
             } else {
-                topLines.add(line)
+                if (! line.startsWith("import") || (line.startsWith("import") && line.contains("com.beust"))) {
+                    topLines.add(line)
+                }
                 updateCount(line)
             }
 

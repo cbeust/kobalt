@@ -73,6 +73,7 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
                 .extractBlock(buildWithCorrectProfiles)
 
         if (buildScriptInfo != null) {
+            kobaltLog(2, "About to compile build file\n" + buildScriptInfo.content)
             preBuildScript.add(buildScriptInfo.content)
         } else {
             repos.forEach { preBuildScript.add(it) }
