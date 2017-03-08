@@ -7,7 +7,6 @@ import java.util.regex.Pattern
 fun main(argv: Array<String>) {
     val lines = File(homeDir("kotlin/kobalt/kobalt/src/Build.kt")).readLines()
     val result = BlockExtractor(Pattern.compile("val.*buildScript.*\\{"), '{', '}').extractBlock(lines)
-
 //    BlockExtractor("plugins", '(', ')').extractBlock(lines)
 }
 
@@ -60,7 +59,9 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
                 result.append(topLines.joinToString("\n"))
                 result.append(line).append("\n")
             } else {
-                if (! line.startsWith("import") || (line.startsWith("import") && line.contains("com.beust"))) {
+                val allowedImports = listOf("com.beust", "java")
+                if (! line.startsWith("import") ||
+                        (line.startsWith("import") && allowedImports.any { line.contains(it) })) {
                     topLines.add(line)
                 }
                 updateCount(line)
