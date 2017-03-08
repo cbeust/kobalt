@@ -45,7 +45,8 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
     fun resolve(artifact: Artifact, scope: Scope? = null, filter: DependencyFilter? = null)
         = resolve(artifactToId(artifact), scope, filter)
 
-    fun resolveToIds(id: String, scope: Scope? = null, filter: DependencyFilter? = null) : List<String> {
+    fun resolveToIds(id: String, scope: Scope? = null, filter: DependencyFilter? = null,
+            seen: HashSet<String> = hashSetOf<String>()) : List<String> {
         val rr = resolve(id, scope, filter)
         val children =
             rr.root.children.filter {
@@ -55,7 +56,12 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
             }
         val result = listOf(artifactToId(rr.root.artifact)) + children.flatMap {
                 val thisId = artifactToId(it.artifact)
-                resolveToIds(thisId, scope, filter)
+                if (! seen.contains(thisId)) {
+                    seen.add(thisId)
+                    resolveToIds(thisId, scope, filter, seen)
+                } else {
+                    emptyList()
+                }
             }
         return result
     }
