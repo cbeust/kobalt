@@ -191,13 +191,16 @@ class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGener
 
 data class GithubConfig(val project: Project) {
     val files = arrayListOf<File>()
+    var autoGitTag = Triple(true, project.version!!, "")
 
     /**
      * If true, automatically tag this release with the current version number and push that tag to origin when
      * the uploadGithub task is called.
      */
     @Directive
-    var autoGitTag: Boolean = false
+    fun autoGitTag(auto: Boolean = autoGitTag.first, tag: String = project.version!!, message: String = autoGitTag.third) {
+        autoGitTag = Triple(auto, tag, message)
+    }
 
     @Directive
     fun file(filePath: String, url: String) {
@@ -213,6 +216,9 @@ fun Project.github(init: GithubConfig.() -> Unit): GithubConfig =
     }
 
 data class BintrayConfig(val project: Project) {
+    val files = arrayListOf<Pair<String, String>>()
+    var autoGitTag = Triple(true, project.version!!, "")
+
     /**
      * If true, the uploaded file will be published in your personal space (e.g. https://dl.bintray.com/cbeust/maven).
      * Once the file is uploaded there, it can be automatically synchronized to JCenter by linking your project to
@@ -233,9 +239,9 @@ data class BintrayConfig(val project: Project) {
      * the uploadBintray task is called.
      */
     @Directive
-    var autoGitTag: Boolean = true
-
-    val files = arrayListOf<Pair<String, String>>()
+    fun autoGitTag(auto: Boolean = autoGitTag.first, tag: String = project.version!!, message: String = autoGitTag.third) {
+        autoGitTag = Triple(auto, tag, message)
+    }
 
     @Directive
     fun file(filePath: String, url: String) {
