@@ -150,9 +150,9 @@ class AsciiTable {
                 append("\n")
             }
             var lineLength = 0
-            rows.forEachIndexed { index, row ->
+            rows.forEachIndexed { _, row ->
                 val formattedRow = row.mapIndexed { i, s -> col(widths[i], s) }.joinToString(vb)
-                val line = vb + " " + formattedRow + " " + vb
+                val line = "$vb $formattedRow $vb"
                 result.append(line).append("\n")
                 lineLength = line.length
             }
