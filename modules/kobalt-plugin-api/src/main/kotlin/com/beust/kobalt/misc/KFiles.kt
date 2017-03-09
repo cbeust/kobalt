@@ -265,11 +265,19 @@ class KFiles {
         }
 
         fun saveFile(file: File, text: String) {
-            if (file.absoluteFile.parentFile.mkdirs()) {
+            var canCreate = true
+            with(file.absoluteFile.parentFile) {
+                if (!exists()) {
+                    val success = mkdirs()
+                    if (!success) {
+                        warn("Couldn't create directory to save $file")
+                        canCreate = false
+                    }
+                }
+            }
+            if (canCreate) {
                 file.writeText(text)
                 kobaltLog(2, "Created $file")
-            } else {
-                warn("Couldn't create directory to save $file")
             }
         }
 
