@@ -60,8 +60,10 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
                 result.append(line).append("\n")
             } else {
                 val allowedImports = listOf("com.beust", "java")
+                val disallowedImports = listOf("com.beust.kobalt.plugin")
                 if (! line.startsWith("import") ||
-                        (line.startsWith("import") && allowedImports.any { line.contains(it) })) {
+                        (line.startsWith("import") && allowedImports.any { line.contains(it) }
+                            && ! disallowedImports.any { line.contains(it) })) {
                     topLines.add(line)
                 }
                 updateCount(line)
