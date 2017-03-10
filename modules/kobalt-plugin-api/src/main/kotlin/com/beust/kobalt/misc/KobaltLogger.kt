@@ -5,7 +5,6 @@ import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.maven.aether.Exceptions
-import jdk.nashorn.internal.objects.Global.print
 import java.lang.Exception
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
