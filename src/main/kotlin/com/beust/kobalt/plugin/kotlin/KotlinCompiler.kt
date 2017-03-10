@@ -223,7 +223,7 @@ class KotlinCompiler @Inject constructor(
             System.setProperty("kotlin.incremental.compilation.experimental", "true")
 
             val result =
-                if (cliArgs.noIncrementalKotlin) {
+                if (cliArgs.noIncrementalKotlin || Kobalt.context?.internalContext?.noIncrementalKotlin ?: false) {
                     log(2, "  Kotlin incremental compilation is disabled")
                     val duration = benchmarkMillis {
                         K2JVMCompiler().exec(collector, Services.Builder().build(), args)
@@ -383,7 +383,7 @@ class KotlinCompiler @Inject constructor(
                 emptyList<String>()
             }
         val info = CompilerActionInfo(project?.directory, dependencies, sourceFiles, listOf("kt"), outputDir, args,
-                friendPaths, context?.forceRecompile ?: false)
+                friendPaths, context?.internalContext?.forceRecompile ?: false)
 
         return jvmCompiler.doCompile(project, context, compilerAction, info,
                 if (context != null) compilerUtils.sourceCompilerFlags(project, context, info) else emptyList())
@@ -396,6 +396,7 @@ class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
     var source = arrayListOf<String>()
     var output: File by Delegates.notNull()
     val args = arrayListOf<String>()
+    var noIncrementalKotlin = false
 
     fun sourceFiles(s: String) = source.add(s)
 
@@ -408,7 +409,11 @@ class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
     fun compilerArgs(s: List<String>) = args.addAll(s)
 
     fun compile(project: Project? = null, context: KobaltContext? = null) : TaskResult {
-        return compiler.compile(project, context, dependencies, classpath, source, output, args)
+        val saved = context?.internalContext?.noIncrementalKotlin ?: false
+        if (context != null) context.internalContext.noIncrementalKotlin = noIncrementalKotlin
+        val result = compiler.compile(project, context, dependencies, classpath, source, output, args)
+        if (context != null) context.internalContext.noIncrementalKotlin = saved
+        return result
     }
 }
 

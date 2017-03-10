@@ -138,11 +138,13 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         val kotlinDeps = dependencyManager.calculateDependencies(null, context)
         val deps: List<String> = kotlinDeps.map { it.jarFile.get().absolutePath }
         val outputJar = File(buildScriptJarFile.absolutePath)
+        val saved = context.internalContext.noIncrementalKotlin
         val result = kotlinCompilePrivate {
             classpath(files.kobaltJar)
             classpath(deps)
             sourceFiles(buildFile.path.toFile().absolutePath)
             output = outputJar
+            noIncrementalKotlin = true
         }.compile(context = context)
         if (! result.success) {
             throw KobaltException("Couldn't compile ${originalFile.realPath}:\n"

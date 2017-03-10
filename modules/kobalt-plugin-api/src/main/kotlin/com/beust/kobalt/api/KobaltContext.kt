@@ -19,7 +19,6 @@ import java.io.File
 class KobaltContext(val args: Args) {
     lateinit var variant: Variant
     val profiles = arrayListOf<String>()
-    var forceRecompile: Boolean = false
 
     init {
         args.profiles?.split(',')?.filterNotNull()?.forEach {
@@ -106,4 +105,12 @@ class InternalContext {
      * The absolute directory of the current project.
      */
     var absoluteDir: File? = null
+
+    /**
+     * If true, will force a recompile of the files even if using the incremental compile
+     */
+    var forceRecompile: Boolean = false
+
+    var noIncrementalKotlin: Boolean = false
+
 }
