@@ -13,24 +13,10 @@ import java.util.jar.JarFile
 import java.util.jar.JarInputStream
 
 class VerifyKobaltZipTest : KobaltTest() {
-    private fun verifyMainJarFile(ins: InputStream) {
-        assertExistsInJarInputStream(JarInputStream(ins), "com/beust/kobalt/MainKt.class",
-                "templates/kobaltPlugin/kobaltPlugin.jar", "com/beust/kobalt/Args.class",
-                "com/beust/kobalt/wrapper/Main.class")
-    }
     @Test
     fun verifySourceJarFile() {
         assertExistsInJar("kobalt-$KOBALT_VERSION-sources.jar", "com/beust/kobalt/Main.kt")
     }
-
-    // Can't use Kobalt.version since the tests have their own src/test/resources/kobalt.properties
-    val KOBALT_VERSION: String
-        get() {
-            val p = Properties()
-            p.load(FileReader("src/main/resources/kobalt.properties"))
-            val result = p.getProperty("kobalt.version")
-            return result
-        }
 
     @Test
     fun verifyZipFile() {
@@ -57,7 +43,7 @@ class VerifyKobaltZipTest : KobaltTest() {
                 } else if (entry.name.endsWith("kobalt-wrapper.jar")) {
                     val ins = zipFile.getInputStream(entry)
                     foundWrapperJar = true
-                    assertExistsInJarInputStream(JarInputStream(ins), "kobalt.properties")
+                    assertExistsInJar(JarInputStream(ins), "kobalt.properties")
                 }
                 entry = stream.nextEntry
             }
@@ -76,10 +62,38 @@ class VerifyKobaltZipTest : KobaltTest() {
         }
     }
 
-    private fun assertExistsInJarInputStream(ins: JarInputStream, vararg fileNames: String) {
+    // Can't use Kobalt.version since the tests have their own src/test/resources/kobalt.properties
+    val KOBALT_VERSION: String
+        get() {
+            val p = Properties()
+            p.load(FileReader("src/main/resources/kobalt.properties"))
+            val result = p.getProperty("kobalt.version")
+            return result
+        }
+
+    private fun verifyMainJarFile(ins: InputStream) {
+        JarInputStream(ins).let { jar ->
+            assertExistsInJar(jar, "com/beust/kobalt/MainKt.class",
+                    "templates/kobaltPlugin/kobaltPlugin.jar", "com/beust/kobalt/Args.class",
+                    "com/beust/kobalt/wrapper/Main.class")
+            assertDoesNotExistInJar(jar, "BuildKt.class")
+        }
+    }
+
+    private fun assertExistsInJar(ins: JarInputStream, vararg fileNames: String)
+        = assertExistence(ins, true, *fileNames)
+
+    private fun assertDoesNotExistInJar(ins: JarInputStream, vararg fileNames: String)
+        = assertExistence(ins, false, *fileNames)
+
+    private fun assertExistence(ins: JarInputStream, verifyExistence: Boolean, vararg fileNames: String) {
         with(jarContents(ins)) {
             fileNames.forEach { fileName ->
-                Assert.assertTrue(contains(fileName), "Couldn't find $fileName")
+                if (verifyExistence) {
+                    Assert.assertTrue(contains(fileName), "Couldn't find $fileName")
+                } else {
+                    Assert.assertFalse(contains(fileName), "Couldn't find $fileName")
+                }
             }
         }
     }
@@ -88,7 +102,7 @@ class VerifyKobaltZipTest : KobaltTest() {
         val sourceJarPath = KFiles.joinDir("kobaltBuild", "libs", jarName)
         val file = File(sourceJarPath)
         if (file.exists()) {
-            assertExistsInJarInputStream(JarInputStream(FileInputStream(file)), *fileNames)
+            assertExistsInJar(JarInputStream(FileInputStream(file)), *fileNames)
         } else {
             kobaltLog(1, "Couldn't find $file, skipping test")
         }
