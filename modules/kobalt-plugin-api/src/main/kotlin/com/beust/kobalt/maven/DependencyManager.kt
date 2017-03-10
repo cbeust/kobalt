@@ -150,7 +150,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
                 result.filter { ! isDependencyExcluded(it, project.excludedDependencies) }
             } else {
                 result
-            }
+            }.toHashSet()
         val reordered = reorderDependencies(shortResult)
         return reordered
     }
