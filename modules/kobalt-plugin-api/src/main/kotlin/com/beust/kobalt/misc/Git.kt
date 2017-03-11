@@ -6,10 +6,10 @@ import com.google.inject.Inject
 import java.io.File
 
 class Git @Inject constructor() {
-    fun maybeTagRelease(project: Project, uploadResult: TaskResult, autoGitTag: Triple<Boolean, String, String>) : TaskResult {
+    fun maybeTagRelease(project: Project, uploadResult: TaskResult, auto: Boolean, tag: String, message: String) : TaskResult {
         val result =
-                if (uploadResult.success && autoGitTag.first) {
-                    val tagSuccess = tagRelease(project, autoGitTag)
+                if (uploadResult.success && auto) {
+                    val tagSuccess = tagRelease(project, auto, tag, message)
                     if (! tagSuccess) {
                         TaskResult(false, "Couldn't tag the project")
                     } else {
@@ -21,9 +21,9 @@ class Git @Inject constructor() {
         return result
     }
 
-    private fun tagRelease(project: Project, autoGitTag: Triple<Boolean, String, String>) : Boolean {
+    private fun tagRelease(project: Project, auto: Boolean, tag: String, message: String) : Boolean {
+        val version = if (tag.isNullOrBlank()) project.version else tag
         val success = try {
-            val version = if (autoGitTag.second.isNullOrBlank()) project.version else autoGitTag.second
             log(2, "Tagging this release as \"$version\"")
             val repo = org.eclipse.jgit.storage.file.FileRepositoryBuilder()
                     .setGitDir(File(KFiles.joinDir(project.directory, ".git")))
@@ -31,11 +31,11 @@ class Git @Inject constructor() {
                     .findGitDir()
                     .build()
             val git = org.eclipse.jgit.api.Git(repo)
-            val ref = git.tag().setName(version).setMessage(autoGitTag.third).call()
+            val ref = git.tag().setName(version).setMessage(message).call()
             git.push().setPushTags().call()
             true
         } catch(ex: Exception) {
-            warn("Couldn't create tag ${project.version}: ${ex.message}", ex)
+            warn("Couldn't create tag ${version}: ${ex.message}", ex)
             false
         }
 

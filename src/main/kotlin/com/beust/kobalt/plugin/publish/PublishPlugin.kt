@@ -112,6 +112,7 @@ class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGener
         val jcenter = bintrayFactory.create(user, password, org)
         var success = false
         val configuration = bintrayConfigurations[project.name]
+        val autoGitTagConfig = autoGitTagConfigurations[project.name]
         val messages = arrayListOf<String>()
 
         val tmpResult =
@@ -133,7 +134,13 @@ class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGener
                         messages.add(taskResult.errorMessage!!)
                     }
                 }
-                git.maybeTagRelease(project, TaskResult(), configuration.autoGitTag)
+                if (autoGitTagConfig != null) {
+                    with(autoGitTagConfig) {
+                        git.maybeTagRelease(project, TaskResult(), auto, tag, message)
+                    }
+                } else {
+                    TaskResult()
+                }
             } else {
                 context.logger.log(project.name, 2, "Couldn't find any jcenter{} configuration, not uploading anything")
                 TaskResult()
@@ -153,6 +160,7 @@ class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGener
 
     private fun uploadGithub(project: Project) : TaskResult {
         val configuration = githubConfigurations[project.name]
+        val autoGitTagConfig = autoGitTagConfigurations[project.name]
 
         //
         // Upload individual files, if applicable
@@ -163,7 +171,13 @@ class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGener
                     logk(project.name, 2, "Uploading $it tag: ${project.version}")
                     github.uploadRelease(project.name, project.version!!, it)
                 }
-                git.maybeTagRelease(project, TaskResult(), configuration.autoGitTag)
+                if (autoGitTagConfig != null) {
+                    with(autoGitTagConfig) {
+                        git.maybeTagRelease(project, TaskResult(), auto, tag, message)
+                    }
+                } else {
+                    TaskResult()
+                }
             } else {
                 warn("Couldn't find any github{} configuration, not uploading anything")
                 TaskResult()
@@ -187,20 +201,29 @@ class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGener
     fun addGithubConfiguration(projectName: String, config: GithubConfig) {
         githubConfigurations.put(projectName, config)
     }
+
+    /**
+     *  Map of project name -> AutoGitTagConfiguration
+     */
+    private val autoGitTagConfigurations = hashMapOf<String, AutoGitTagConfig>()
+    fun addAutoGitTagConfiguration(projectName: String, config: AutoGitTagConfig) {
+        autoGitTagConfigurations.put(projectName, config)
+    }
+}
+
+data class AutoGitTagConfig(val project: Project) {
+    @Directive
+    var auto: Boolean = true
+
+    @Directive
+    var tag : String = project.version!!
+
+    @Directive
+    var message : String = ""
 }
 
 data class GithubConfig(val project: Project) {
     val files = arrayListOf<File>()
-    var autoGitTag = Triple(true, project.version!!, "")
-
-    /**
-     * If true, automatically tag this release with the current version number and push that tag to origin when
-     * the uploadGithub task is called.
-     */
-    @Directive
-    fun autoGitTag(auto: Boolean = autoGitTag.first, tag: String = project.version!!, message: String = autoGitTag.third) {
-        autoGitTag = Triple(auto, tag, message)
-    }
 
     @Directive
     fun file(filePath: String, url: String) {
@@ -215,9 +238,8 @@ fun Project.github(init: GithubConfig.() -> Unit): GithubConfig =
         (Kobalt.findPlugin(PublishPlugin.PLUGIN_NAME) as PublishPlugin).addGithubConfiguration(name, config)
     }
 
-data class BintrayConfig(val project: Project) {
+data class  BintrayConfig(val project: Project) {
     val files = arrayListOf<Pair<String, String>>()
-    var autoGitTag = Triple(true, project.version!!, "")
 
     /**
      * If true, the uploaded file will be published in your personal space (e.g. https://dl.bintray.com/cbeust/maven).
@@ -233,15 +255,6 @@ data class BintrayConfig(val project: Project) {
      */
     @Directive
     var sign: Boolean = false
-
-    /**
-     * If true, automatically tag this release with the current version number and push that tag to origin when
-     * the uploadBintray task is called.
-     */
-    @Directive
-    fun autoGitTag(auto: Boolean = autoGitTag.first, tag: String = project.version!!, message: String = autoGitTag.third) {
-        autoGitTag = Triple(auto, tag, message)
-    }
 
     @Directive
     fun file(filePath: String, url: String) {
@@ -261,3 +274,10 @@ fun Project.bintray(init: BintrayConfig.() -> Unit) =
         config.init()
         (Kobalt.findPlugin(PublishPlugin.PLUGIN_NAME) as PublishPlugin).addBintrayConfiguration(name, config)
     }
+
+@Directive
+fun Project.autoGitTag(init: AutoGitTagConfig.() -> Unit) =
+        AutoGitTagConfig(this).also { config ->
+            config.init()
+            (Kobalt.findPlugin(PublishPlugin.PLUGIN_NAME) as PublishPlugin).addAutoGitTagConfiguration(name, config)
+        }
