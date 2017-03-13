@@ -36,7 +36,6 @@ class ExcludeTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
                 }
             """
 
-        KobaltLogger.LOG_LEVEL = 3
         val project = compileSingleProject(projectText)
         val allIds = dependencyManager.calculateDependencies(project, Kobalt.context!!,
                 scopes = listOf(Scope.COMPILE))
