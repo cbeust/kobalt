@@ -80,7 +80,7 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
                         try {
                             val r = method.invoke(null)
                             if (r is Project) {
-                                kobaltLog(2, "Found project ${r.name} in class $cls")
+                                kobaltLog(2, "Found project ${r.name} in $cls")
                                 projects.add(r)
                             }
                         } catch(ex: Throwable) {
