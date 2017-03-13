@@ -1,4 +1,4 @@
-# Kobalt [![Build Status](https://travis-ci.org/cbeust/kobalt.svg?branch=master)](https://travis-ci.org/cbeust/kobalt)
+# Kobalt
 
 Kobalt is a universal build system.
  
