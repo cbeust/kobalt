@@ -70,16 +70,21 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
      * skipped.
      */
     override fun assemble(project: Project, context: KobaltContext) : IncrementalTaskInfo {
-        val allArchivers = packages.filter { it.project.name == project.name }
+        val allConfigs = packages.filter { it.project.name == project.name }
 
         if (false) {
             // Work in progress
             val allIncludedFiles = arrayListOf<IncludedFile>()
             val zipToFiles = hashMapOf<String, List<IncludedFile>>()
-            allArchivers.forEach { packageConfig ->
+            val outputArchives = arrayListOf<File>()
+            allConfigs.forEach { packageConfig ->
                 listOf(packageConfig.jars, packageConfig.wars, packageConfig.zips).forEach { archives ->
                     archives.forEach {
                         val files = jarGenerator.findIncludedFiles(packageConfig.project, context, it)
+                        val suffixIndex = it.name.lastIndexOf(".")
+                        val suffix = it.name.substring(suffixIndex)
+                        val outputFile = jarGenerator.fullArchiveName(project, context, it.name, suffix)
+                        outputArchives.add(outputFile)
                         allIncludedFiles.addAll(files)
                         zipToFiles[it.name] = files
                     }
@@ -95,7 +100,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             }
 
             val md5 = Md5.toMd5Directories(allFiles)
-            println("MD5 is: " + md5)
+            val outMd5 = Md5.toMd5Directories(outputArchives)
+            println("Input MD5: $md5 output MD5: $outMd5")
         }
 
         return IncrementalTaskInfo(
@@ -105,7 +111,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                     try {
                         project.projectProperties.put(Archives.JAR_NAME,
                                 context.variant.archiveName(project, null, ".jar"))
-                        allArchivers.forEach { packageConfig ->
+                        allConfigs.forEach { packageConfig ->
                             packageConfig.jars.forEach { jarGenerator.generateJar(packageConfig.project, context, it) }
                             packageConfig.wars.forEach { warGenerator.generateWar(packageConfig.project, context, it) }
                             packageConfig.zips.forEach { zipGenerator.generateZip(packageConfig.project, context, it) }
