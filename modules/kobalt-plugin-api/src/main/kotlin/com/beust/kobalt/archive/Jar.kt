@@ -8,7 +8,7 @@ import com.beust.kobalt.api.annotation.Directive
  */
 open class Jar(override val project: Project,
         override var name : String = Archives.defaultArchiveName(project) + ".jar",
-        var fatJar: Boolean = false) : Zip(project, name), AttributeHolder {
+        override var fatJar: Boolean = false) : Zip(project, name, fatJar), AttributeHolder {
     @Directive
     fun manifest(init: Manifest.(p: Manifest) -> Unit) : Manifest {
         val m = Manifest(this)

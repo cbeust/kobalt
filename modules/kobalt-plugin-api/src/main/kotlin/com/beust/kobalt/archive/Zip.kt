@@ -8,7 +8,8 @@ import com.beust.kobalt.misc.From
 import com.beust.kobalt.misc.IncludedFile
 import com.beust.kobalt.misc.To
 
-open class Zip(open val project: Project, open var name: String = Archives.defaultArchiveName(project) + ".zip") {
+open class Zip(open val project: Project, open var name: String = Archives.defaultArchiveName(project) + ".zip",
+        open var fatJar: Boolean = false) {
     val excludes = arrayListOf<Glob>()
 
     @Directive

@@ -11,7 +11,9 @@ import com.beust.kobalt.internal.IncrementalManager
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.ParallelLogger
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.Md5
 import com.beust.kobalt.maven.PomGenerator
+import com.beust.kobalt.misc.IncludedFile
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import java.io.File
@@ -68,6 +70,34 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
      * skipped.
      */
     override fun assemble(project: Project, context: KobaltContext) : IncrementalTaskInfo {
+        val allArchivers = packages.filter { it.project.name == project.name }
+
+        if (false) {
+            // Work in progress
+            val allIncludedFiles = arrayListOf<IncludedFile>()
+            val zipToFiles = hashMapOf<String, List<IncludedFile>>()
+            allArchivers.forEach { packageConfig ->
+                listOf(packageConfig.jars, packageConfig.wars, packageConfig.zips).forEach { archives ->
+                    archives.forEach {
+                        val files = jarGenerator.findIncludedFiles(packageConfig.project, context, it)
+                        allIncludedFiles.addAll(files)
+                        zipToFiles[it.name] = files
+                    }
+                }
+            }
+            val allFiles = allIncludedFiles.fold(arrayListOf<File>()) { files, includedFile: IncludedFile ->
+                val foundFiles = includedFile.allFromFiles(project.directory)
+                val absFiles = foundFiles.map {
+                    File(KFiles.joinDir(project.directory, includedFile.from, it.path))
+                }
+                files.addAll(absFiles)
+                files
+            }
+
+            val md5 = Md5.toMd5Directories(allFiles)
+            println("MD5 is: " + md5)
+        }
+
         return IncrementalTaskInfo(
                 { null },
                 { null },
@@ -75,7 +105,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                     try {
                         project.projectProperties.put(Archives.JAR_NAME,
                                 context.variant.archiveName(project, null, ".jar"))
-                        packages.filter { it.project.name == project.name }.forEach { packageConfig ->
+                        allArchivers.forEach { packageConfig ->
                             packageConfig.jars.forEach { jarGenerator.generateJar(packageConfig.project, context, it) }
                             packageConfig.wars.forEach { warGenerator.generateWar(packageConfig.project, context, it) }
                             packageConfig.zips.forEach { zipGenerator.generateZip(packageConfig.project, context, it) }

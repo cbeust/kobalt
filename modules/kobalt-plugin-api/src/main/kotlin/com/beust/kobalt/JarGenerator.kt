@@ -4,9 +4,11 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.archive.Jar
+import com.beust.kobalt.archive.Zip
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.aether.Scope
 import com.beust.kobalt.misc.*
+import com.beust.kobalt.plugin.packaging.ArchiveFileFinder
 import com.google.inject.Inject
 import java.io.File
 import java.io.FileInputStream
@@ -15,9 +17,10 @@ import java.nio.file.Paths
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
 
-class JarGenerator @Inject constructor(val dependencyManager: DependencyManager) {
+class JarGenerator @Inject constructor(val dependencyManager: DependencyManager) : ArchiveFileFinder {
     companion object {
-        fun findIncludedFiles(directory: String, files: List<IncludedFile>, excludes: List<Glob>)
+        fun findIncludedFiles(directory: String, files: List<IncludedFile>, excludes: List<Glob>,
+                throwOnError: Boolean = true)
                 : List<IncludedFile> {
             val result = arrayListOf<IncludedFile>()
             files.forEach { includedFile ->
@@ -27,7 +30,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
                     if (File(directory, fromPath).exists()) {
                         spec.toFiles(directory, fromPath).forEach { file ->
                             val fullFile = File(KFiles.joinDir(directory, fromPath, file.path))
-                            if (! fullFile.exists()) {
+                            if (! fullFile.exists() && throwOnError) {
                                 throw AssertionError("File should exist: $fullFile")
                             }
 
@@ -52,7 +55,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         }
     }
 
-    fun findIncludedFiles(project: Project, context: KobaltContext, jar: Jar) : List<IncludedFile> {
+    override fun findIncludedFiles(project: Project, context: KobaltContext, jar: Zip) : List<IncludedFile> {
         //
         // Add all the applicable files for the current project
         //
@@ -86,7 +89,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
             //
             // The user specified an include, just use it verbatim
             //
-            val includedFiles = findIncludedFiles(project.directory, jar.includedFiles, jar.excludes)
+            val includedFiles = findIncludedFiles(project.directory, jar.includedFiles, jar.excludes, false)
             result.addAll(includedFiles)
         }
 
