@@ -67,7 +67,7 @@ class ParallelLogger @Inject constructor(val args: Args) : ILogger {
     }
 
     private fun debug(s: CharSequence) {
-        if (args.log >= 2) {
+        if (args.log >= 3) {
             val time = System.currentTimeMillis() - startTime!!
             println("                    ### [$time] $s")
         }
