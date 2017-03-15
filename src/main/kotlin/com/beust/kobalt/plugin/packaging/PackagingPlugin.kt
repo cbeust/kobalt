@@ -61,52 +61,52 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 runTask = { taskInstall(project) })
     }
 
-    /**
-     * "assemble" is an incremental task but with a twist. Because it can be costly to determine if any
-     * of the class files generated in the previous phase is new or not, we just don't do that and always
-     * return "null" for both input and output checksums, which would cause that task to always be rerun.
-     * However, we are depending on Kobalt's cascading incremental management to skip us whenever appropriate:
-     * whenever a previous incremental task was a success, all following incremental tasks are automatically
-     * skipped.
-     */
     override fun assemble(project: Project, context: KobaltContext) : IncrementalTaskInfo {
         val allConfigs = packages.filter { it.project.name == project.name }
 
-        if (false) {
-            // Work in progress
-            val allIncludedFiles = arrayListOf<IncludedFile>()
-            val zipToFiles = hashMapOf<String, List<IncludedFile>>()
-            val outputArchives = arrayListOf<File>()
-            allConfigs.forEach { packageConfig ->
-                listOf(packageConfig.jars, packageConfig.wars, packageConfig.zips).forEach { archives ->
-                    archives.forEach {
-                        val files = jarGenerator.findIncludedFiles(packageConfig.project, context, it)
-                        val suffixIndex = it.name.lastIndexOf(".")
-                        val suffix = it.name.substring(suffixIndex)
-                        val outputFile = jarGenerator.fullArchiveName(project, context, it.name, suffix)
-                        outputArchives.add(outputFile)
-                        allIncludedFiles.addAll(files)
-                        zipToFiles[it.name] = files
+        val start = System.currentTimeMillis()
+        val checksums =
+            if (true) {
+                val allIncludedFiles = arrayListOf<IncludedFile>()
+                val zipToFiles = hashMapOf<String, List<IncludedFile>>()
+                val outputArchives = arrayListOf<File>()
+                allConfigs.forEach { packageConfig ->
+                    listOf(packageConfig.jars, packageConfig.wars, packageConfig.zips).forEach { archives ->
+                        archives.forEach {
+                            val files = jarGenerator.findIncludedFiles(packageConfig.project, context, it)
+                            val suffixIndex = it.name.lastIndexOf(".")
+                            val suffix = it.name.substring(suffixIndex)
+                            val outputFile = jarGenerator.fullArchiveName(project, context, it.name, suffix)
+                            outputArchives.add(outputFile)
+                            allIncludedFiles.addAll(files)
+                            zipToFiles[it.name] = files
+                        }
                     }
                 }
-            }
-            val allFiles = allIncludedFiles.fold(arrayListOf<File>()) { files, includedFile: IncludedFile ->
-                val foundFiles = includedFile.allFromFiles(project.directory)
-                val absFiles = foundFiles.map {
-                    File(KFiles.joinDir(project.directory, includedFile.from, it.path))
+                val allFiles = allIncludedFiles.fold(arrayListOf<File>()) { files, includedFile: IncludedFile ->
+                    val foundFiles = includedFile.allFromFiles(project.directory)
+                    val absFiles = foundFiles.map {
+                        File(KFiles.joinDir(project.directory, includedFile.from, it.path))
+                    }
+                    files.addAll(absFiles)
+                    files
                 }
-                files.addAll(absFiles)
-                files
+
+                val inMd5 = Md5.toMd5Directories(allFiles)
+                val outMd5 = Md5.toMd5Directories(outputArchives)
+                Pair(inMd5, outMd5)
+            } else {
+                Pair(null, null)
             }
 
-            val md5 = Md5.toMd5Directories(allFiles)
-            val outMd5 = Md5.toMd5Directories(outputArchives)
-            println("Input MD5: $md5 output MD5: $outMd5")
-        }
+        val inMd5 = checksums.first
+        val outMd5 = checksums.second
+        context.logger.log(project.name, 2,
+                "    Time to calculate packaging checksum: " + (System.currentTimeMillis() - start) + " ms")
 
         return IncrementalTaskInfo(
-                { null },
-                { null },
+                { -> inMd5 },
+                { -> outMd5 },
                 { project ->
                     try {
                         project.projectProperties.put(Archives.JAR_NAME,
