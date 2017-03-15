@@ -8,6 +8,7 @@ import com.beust.kobalt.internal.KobaltPluginXml
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.misc.KobaltLogger
+import com.beust.kobalt.misc.log
 import org.testng.annotations.BeforeClass
 import java.io.File
 import java.nio.file.Files
@@ -58,14 +59,24 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
     fun compileBuildFile(projectDirectory: String, buildFileText: String, args: Args = Args())
             : BuildFileCompiler .FindProjectResult {
         KobaltLogger.LOG_LEVEL = 3
-        val path = Paths.get(projectDirectory)
-        val tmpBuildFile = File(path.toFile(), "Build.kt").apply {
+        val actualBuildFilePath = Paths.get(projectDirectory, "kobalt", "src")
+        val actualBuildFile = File(actualBuildFilePath.toFile(), "Build.kt").apply {
+            File(parent).mkdirs()
             deleteOnExit()
             writeText(buildFileText)
         }
-        val thisBuildFile = BuildFile(Paths.get(tmpBuildFile.absolutePath), "Build.kt")
+        val tmpBuildFilePath = Paths.get(Files.createTempDirectory("").toFile().absolutePath, "kobalt", "src")
+        val tmpBuildFile = File(tmpBuildFilePath.toFile(), "Build.kt").apply {
+            File(parent).mkdirs()
+            deleteOnExit()
+            writeText(buildFileText)
+        }
+
+        val thisBuildFile = BuildFile(Paths.get(tmpBuildFile.absolutePath), "Build.kt",
+                Paths.get(actualBuildFile.absolutePath))
+        Kobalt.context?.log(2, "About to compile build file $thisBuildFile .kobaltDir: " + thisBuildFile.dotKobaltDir)
         args.apply {
-            buildFile = tmpBuildFile.absolutePath
+            buildFile = actualBuildFile.absolutePath
             noIncremental = true
             noIncrementalKotlin = true
         }
