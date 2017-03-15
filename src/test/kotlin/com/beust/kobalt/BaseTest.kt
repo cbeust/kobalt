@@ -7,6 +7,7 @@ import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.KobaltPluginXml
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.misc.KobaltLogger
 import org.testng.annotations.BeforeClass
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -51,6 +52,7 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
      * interfering with other tests.
      */
     fun compileBuildFile(buildFileText: String, args: Args = Args()): BuildFileCompiler.FindProjectResult {
+        KobaltLogger.LOG_LEVEL = 3
         val tmpBaseDir = Files.createTempDirectory("kobaltTest")
         val tmpBuildFile = Files.createTempFile(tmpBaseDir, "kobaltTest", "").toFile().apply {
             deleteOnExit()
