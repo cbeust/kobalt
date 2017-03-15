@@ -1,5 +1,6 @@
 package com.beust.kobalt.plugin.packaging
 
+import com.beust.kobalt.ArchiveFileFinder
 import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.JarGenerator
 import com.beust.kobalt.api.IClasspathDependency

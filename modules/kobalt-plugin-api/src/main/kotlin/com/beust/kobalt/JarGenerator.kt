@@ -8,7 +8,6 @@ import com.beust.kobalt.archive.Zip
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.aether.Scope
 import com.beust.kobalt.misc.*
-import com.beust.kobalt.plugin.packaging.ArchiveFileFinder
 import com.google.inject.Inject
 import java.io.File
 import java.io.FileInputStream

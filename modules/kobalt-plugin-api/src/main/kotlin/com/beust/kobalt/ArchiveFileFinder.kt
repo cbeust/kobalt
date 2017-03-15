@@ -1,4 +1,4 @@
-package com.beust.kobalt.plugin.packaging
+package com.beust.kobalt
 
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
