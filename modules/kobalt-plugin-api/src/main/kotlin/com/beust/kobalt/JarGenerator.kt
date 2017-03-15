@@ -43,7 +43,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
 
                         }
                     } else {
-                        kobaltLog(2, "Directory $fromPath doesn't exist, not including it in the jar")
+                        kobaltLog(2, "  Directory $fromPath doesn't exist, not including it in the jar")
                     }
                 }
                 if (includedSpecs.size > 0) {
@@ -97,8 +97,6 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         // If fatJar is true, add all the transitive dependencies as well: compile, runtime and dependent projects
         //
         if (jar.fatJar) {
-            context.logger.log(project.name, 2, "Finding included files for fat jar")
-
             val seen = hashSetOf<String>()
             @Suppress("UNCHECKED_CAST")
             val allDependencies = project.compileDependencies + project.compileRuntimeDependencies +
