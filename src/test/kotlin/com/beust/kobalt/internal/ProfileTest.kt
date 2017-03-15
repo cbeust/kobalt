@@ -11,6 +11,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.testng.annotations.DataProvider
 import org.testng.annotations.Guice
 import org.testng.annotations.Test
+import java.nio.file.Files
 import java.util.*
 
 @Guice(modules = arrayOf(TestModule::class))
@@ -18,6 +19,7 @@ class ProfileTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
 
     private fun runTestWithProfile(enabled: Boolean) : Project {
         val projectVal = "p" + Math.abs(Random().nextInt())
+        val projectDirectory = Files.createTempDirectory("kobaltTest").toFile().path
 
         fun buildFileString(): String {
             return """
@@ -26,13 +28,14 @@ class ProfileTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
                 val profile = false
                 val $projectVal = project {
                     name = if (profile) "profileOn" else "profileOff"
+                    directory = "$projectDirectory"
                 }
-                """
+                """.trim()
         }
 
         val args = Args()
         if (enabled) args.profiles = "profile"
-        val results = compileBuildFile(buildFileString(), args)
+        val results = compileBuildFile(projectDirectory, buildFileString(), args)
         return results.projects[0]
     }
 

@@ -9,6 +9,7 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.misc.KobaltLogger
 import org.testng.annotations.BeforeClass
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
@@ -26,17 +27,20 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
      */
     fun compileSingleProject(projectText: String, args: Args = Args()) : Project {
         val projectName = "p" + Math.abs(Random().nextInt())
+        val projectDirectory = Files.createTempDirectory("kobaltTest").toFile().path
+
         val buildFileText= """
             import com.beust.kobalt.*
             import com.beust.kobalt.api.*
             val $projectName = project {
                 name = "$projectName"
+                directory = "$projectDirectory"
                 $projectText
             }
-        """
+        """.trim()
 
         args.noIncremental = true
-        val projectResults = compileBuildFile(buildFileText, args)
+        val projectResults = compileBuildFile(projectDirectory, buildFileText, args)
         val result = projectResults.projects.firstOrNull { it.name == projectName }
         if (result == null) {
             throw IllegalArgumentException("Couldn't find project named $projectName in "
@@ -51,10 +55,11 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
      * should preferably use random names for the projects defined in their build file to avoid
      * interfering with other tests.
      */
-    fun compileBuildFile(buildFileText: String, args: Args = Args()): BuildFileCompiler.FindProjectResult {
+    fun compileBuildFile(projectDirectory: String, buildFileText: String, args: Args = Args())
+            : BuildFileCompiler .FindProjectResult {
         KobaltLogger.LOG_LEVEL = 3
-        val tmpBaseDir = Files.createTempDirectory("kobaltTest")
-        val tmpBuildFile = Files.createTempFile(tmpBaseDir, "kobaltTest", "").toFile().apply {
+        val path = Paths.get(projectDirectory)
+        val tmpBuildFile = File(path.toFile(), "Build.kt").apply {
             deleteOnExit()
             writeText(buildFileText)
         }

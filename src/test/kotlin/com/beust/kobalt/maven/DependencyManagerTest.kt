@@ -13,6 +13,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.aether.util.filter.AndDependencyFilter
 import org.testng.annotations.Guice
 import org.testng.annotations.Test
+import java.nio.file.Files
 
 @Guice(modules = arrayOf(TestModule::class))
 class DependencyManagerTest @Inject constructor(val dependencyManager: DependencyManager,
@@ -106,11 +107,13 @@ class DependencyManagerTest @Inject constructor(val dependencyManager: Dependenc
     }
 
     private fun findDependentProject(): Project {
+        val projectDirectory = Files.createTempDirectory("kobaltTest").toFile().path
         val sharedBuildFile = """
             import com.beust.kobalt.*
 
             val lib2 = project {
                 name = "lib2"
+                directory = "$projectDirectory"
                 dependencies {
                     // pick dependencies that don't have dependencies themselves, to avoid interferences
                     compile("com.beust:klaxon:0.27",
@@ -125,7 +128,7 @@ class DependencyManagerTest @Inject constructor(val dependencyManager: Dependenc
             }
         """
         Kobalt.context = null
-        return compileBuildFile(sharedBuildFile).projects.first { it.name == "transitive2" }
+        return compileBuildFile(projectDirectory, sharedBuildFile).projects.first { it.name == "transitive2" }
     }
 }
 
