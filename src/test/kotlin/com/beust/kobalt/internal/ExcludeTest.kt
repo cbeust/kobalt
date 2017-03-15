@@ -6,7 +6,6 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.app.BuildFileCompiler
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.aether.Scope
-import com.beust.kobalt.misc.KobaltLogger
 import com.google.inject.Inject
 import org.assertj.core.api.Assertions.assertThat
 import org.testng.annotations.DataProvider
@@ -21,12 +20,12 @@ class ExcludeTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
 
     @DataProvider
     fun dp() = arrayOf<Array<String?>>(
-            arrayOf("p1", null),
-            arrayOf("p2", EXCLUDED_DEPENDENCY)
+            arrayOf(null),
+            arrayOf(EXCLUDED_DEPENDENCY)
     )
 
     @Test(dataProvider = "dp")
-    fun excludeShouldWork(projectName: String, excludedDependency: String?) {
+    fun excludeShouldWork(excludedDependency: String?) {
         val projectText = """
                 dependencies {
                     compile("org.apache.maven:maven-model:jar:3.3.9")
