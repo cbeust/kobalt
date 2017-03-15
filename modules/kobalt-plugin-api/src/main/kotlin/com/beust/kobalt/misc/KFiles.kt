@@ -260,6 +260,7 @@ class KFiles {
          */
         fun findBuildScriptLocation(buildFile: BuildFile, jarFile: String) : String {
             val result = joinDir(buildFile.dotKobaltDir.path, KFiles.SCRIPT_BUILD_DIR, jarFile)
+            kobaltLog(2, "Build file dotKobaltDir: " + buildFile.dotKobaltDir)
             kobaltLog(2, "Script jar file: $result")
             return result
         }
