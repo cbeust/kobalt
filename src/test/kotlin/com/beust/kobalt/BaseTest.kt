@@ -57,18 +57,18 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
      */
     fun compileBuildFile(projectDirectory: String, buildFileText: String, args: Args = Args())
             : BuildFileCompiler .FindProjectResult {
-        val actualBuildFilePath = Paths.get(projectDirectory, "kobalt", "src")
-        val actualBuildFile = File(actualBuildFilePath.toFile(), "Build.kt").apply {
-            File(parent).mkdirs()
-            deleteOnExit()
-            writeText(buildFileText)
+
+        fun createBuildFile(projectDirectory: String) : File {
+            val path = Paths.get(projectDirectory, "kobalt", "src")
+            return File(path.toFile(), "Build.kt").apply {
+                File(parent).mkdirs()
+                deleteOnExit()
+                writeText(buildFileText)
+            }
         }
-        val tmpBuildFilePath = Paths.get(Files.createTempDirectory("").toFile().absolutePath, "kobalt", "src")
-        val tmpBuildFile = File(tmpBuildFilePath.toFile(), "Build.kt").apply {
-            File(parent).mkdirs()
-            deleteOnExit()
-            writeText(buildFileText)
-        }
+
+        val actualBuildFile = createBuildFile(projectDirectory)
+        val tmpBuildFile = createBuildFile(Files.createTempDirectory("").toFile().absolutePath)
 
         val thisBuildFile = BuildFile(Paths.get(tmpBuildFile.absolutePath), "Build.kt",
                 Paths.get(actualBuildFile.absolutePath))
