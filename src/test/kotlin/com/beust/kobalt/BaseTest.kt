@@ -34,8 +34,15 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
             }
         """
 
+        args.noIncremental = true
         val projectResults = compileBuildFile(buildFileText, args)
-        return projectResults.projects.first { it.name == projectName }
+        val result = projectResults.projects.firstOrNull { it.name == projectName }
+        if (result == null) {
+            throw IllegalArgumentException("Couldn't find project named $projectName in "
+                    + projectResults.projects.map { it.name }.joinToString(", ", "[", "]"))
+        } else {
+            return result
+        }
     }
 
     /**
@@ -52,6 +59,8 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
         val thisBuildFile = BuildFile(Paths.get(tmpBuildFile.absolutePath), "Build.kt")
         args.apply {
             buildFile = tmpBuildFile.absolutePath
+            noIncremental = true
+            noIncrementalKotlin = true
         }
         val jvmCompilerPlugin = Kobalt.findPlugin("JvmCompiler") as JvmCompilerPlugin
         val pluginInfo = PluginInfo(KobaltPluginXml(), null, null).apply {
