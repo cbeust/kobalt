@@ -16,6 +16,7 @@ import com.beust.kobalt.maven.PomGenerator
 import com.beust.kobalt.misc.IncludedFile
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.benchmarkMillis
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -64,8 +65,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     override fun assemble(project: Project, context: KobaltContext) : IncrementalTaskInfo {
         val allConfigs = packages.filter { it.project.name == project.name }
 
-        val start = System.currentTimeMillis()
-        val checksums =
+        val benchmark = benchmarkMillis {
             if (true) {
                 val allIncludedFiles = arrayListOf<IncludedFile>()
                 val zipToFiles = hashMapOf<String, List<IncludedFile>>()
@@ -98,11 +98,11 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
             } else {
                 Pair(null, null)
             }
+        }
 
-        val inMd5 = checksums.first
-        val outMd5 = checksums.second
-        context.logger.log(project.name, 2,
-                "    Time to calculate packaging checksum: " + (System.currentTimeMillis() - start) + " ms")
+        context.logger.log(project.name, 2, "    Time to calculate packaging checksum: ${benchmark.first} ms")
+
+        val (inMd5, outMd5) = benchmark.second
 
         return IncrementalTaskInfo(
                 { -> inMd5 },
