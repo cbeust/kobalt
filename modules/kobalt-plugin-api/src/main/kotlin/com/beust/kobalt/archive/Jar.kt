@@ -18,7 +18,7 @@ open class Jar(override val project: Project,
 
     // Need to specify the version or attributes will just be dropped
     @Directive
-    val attributes = arrayListOf(Pair("Manifest-Version", "1.0"))
+    override val attributes = arrayListOf(Pair("Manifest-Version", "1.0"))
 
     override fun addAttribute(k: String, v: String) {
         attributes.add(Pair(k, v))

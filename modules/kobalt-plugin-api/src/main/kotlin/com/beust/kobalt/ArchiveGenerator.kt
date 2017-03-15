@@ -7,12 +7,16 @@ import com.beust.kobalt.misc.IncludedFile
 import com.beust.kobalt.misc.KFiles
 import java.io.File
 
-interface ArchiveFileFinder {
+interface ArchiveGenerator {
     fun findIncludedFiles(project: Project, context: KobaltContext, zip: Zip) : List<IncludedFile>
-    fun fullArchiveName(project: Project, context: KobaltContext, archiveName: String?, suffix: String) : File {
+    val suffix: String
+    fun generateArchive(project: Project, context: KobaltContext, zip: Zip, files: List<IncludedFile>) : File
+
+    fun fullArchiveName(project: Project, context: KobaltContext, archiveName: String?) : File {
         val fullArchiveName = context.variant.archiveName(project, archiveName, suffix)
         val archiveDir = File(KFiles.libsDir(project))
         val result = File(archiveDir.path, fullArchiveName)
         return result
     }
+
 }

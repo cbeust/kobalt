@@ -9,7 +9,7 @@ import com.beust.kobalt.misc.IncludedFile
 import com.beust.kobalt.misc.To
 
 open class Zip(open val project: Project, open var name: String = Archives.defaultArchiveName(project) + ".zip",
-        open var fatJar: Boolean = false) {
+        open var fatJar: Boolean = false): AttributeHolder  {
     val excludes = arrayListOf<Glob>()
 
     @Directive
@@ -48,6 +48,13 @@ open class Zip(open val project: Project, open var name: String = Archives.defau
      * file and the excludePrefix is "build/lib", then "a.jar" will be added at the root of the zip file.
      */
     val includedFiles = arrayListOf<IncludedFile>()
+
+    @Directive
+    open val attributes = arrayListOf(Pair("Manifest-Version", "1.0"))
+
+    override fun addAttribute(k: String, v: String) {
+        attributes.add(Pair(k, v))
+    }
 
 }
 

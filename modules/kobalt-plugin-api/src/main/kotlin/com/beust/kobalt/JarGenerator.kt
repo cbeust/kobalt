@@ -3,7 +3,6 @@ package com.beust.kobalt
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.archive.Archives
-import com.beust.kobalt.archive.Jar
 import com.beust.kobalt.archive.Zip
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.aether.Scope
@@ -16,7 +15,7 @@ import java.nio.file.Paths
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
 
-class JarGenerator @Inject constructor(val dependencyManager: DependencyManager) : ArchiveFileFinder {
+class JarGenerator @Inject constructor(val dependencyManager: DependencyManager) : ArchiveGenerator {
     companion object {
         fun findIncludedFiles(directory: String, files: List<IncludedFile>, excludes: List<Glob>,
                 throwOnError: Boolean = true)
@@ -54,7 +53,9 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         }
     }
 
-    override fun findIncludedFiles(project: Project, context: KobaltContext, jar: Zip) : List<IncludedFile> {
+    override val suffix = ".jar"
+
+    override fun findIncludedFiles(project: Project, context: KobaltContext, zip: Zip) : List<IncludedFile> {
         //
         // Add all the applicable files for the current project
         //
@@ -62,7 +63,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         val result = arrayListOf<IncludedFile>()
         val classesDir = KFiles.makeDir(buildDir.path, "classes")
 
-        if (jar.includedFiles.isEmpty()) {
+        if (zip.includedFiles.isEmpty()) {
             // If no includes were specified, assume the user wants a simple jar file made of the
             // classes of the project, so we specify a From("build/classes/"), To("") and
             // a list of files containing everything under it
@@ -72,7 +73,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
             // Class files
             val files = KFiles.findRecursively(classesDir).map { File(relClassesDir.toFile(), it) }
             val filesNotExcluded : List<File> = files.filter {
-                ! KFiles.Companion.isExcluded(KFiles.joinDir(project.directory, it.path), jar.excludes)
+                ! KFiles.Companion.isExcluded(KFiles.joinDir(project.directory, it.path), zip.excludes)
             }
             val fileSpecs = arrayListOf<IFileSpec>()
             filesNotExcluded.forEach {
@@ -88,14 +89,14 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
             //
             // The user specified an include, just use it verbatim
             //
-            val includedFiles = findIncludedFiles(project.directory, jar.includedFiles, jar.excludes, false)
+            val includedFiles = findIncludedFiles(project.directory, zip.includedFiles, zip.excludes, false)
             result.addAll(includedFiles)
         }
 
         //
         // If fatJar is true, add all the transitive dependencies as well: compile, runtime and dependent projects
         //
-        if (jar.fatJar) {
+        if (zip.fatJar) {
             val seen = hashSetOf<String>()
             @Suppress("UNCHECKED_CAST")
             val allDependencies = project.compileDependencies + project.compileRuntimeDependencies +
@@ -110,7 +111,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
             }.forEach { file : File ->
                 if (! seen.contains(file.path)) {
                     seen.add(file.path)
-                    if (! KFiles.Companion.isExcluded(file, jar.excludes)) {
+                    if (! KFiles.Companion.isExcluded(file, zip.excludes)) {
                         result.add(IncludedFile(specs = arrayListOf(IFileSpec.FileSpec(file.absolutePath)),
                                 expandJarFiles = true))
                     }
@@ -121,19 +122,18 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
         return result
     }
 
-    fun generateJar(project: Project, context: KobaltContext, jar: Jar) : File {
-        val includedFiles = findIncludedFiles(project, context, jar)
-
+    override fun generateArchive(project: Project, context: KobaltContext, zip: Zip,
+            includedFiles: List<IncludedFile>) : File {
         //
         // Generate the manifest
         // If manifest attributes were specified in the build file, use those to generateAndSave the manifest. Otherwise,
         // try to find a META-INF/MANIFEST.MF and use that one if we find any. Otherwise, use the default manifest.
         //
         val manifest =
-            if (jar.attributes.size > 1) {
-                context.logger.log(project.name, 2, "Creating MANIFEST.MF from " + jar.attributes.size + " attributes")
+            if (zip.attributes.size > 1) {
+                context.logger.log(project.name, 2, "Creating MANIFEST.MF from " + zip.attributes.size + " attributes")
                 Manifest().apply {
-                    jar.attributes.forEach { attribute ->
+                    zip.attributes.forEach { attribute ->
                         mainAttributes.putValue(attribute.first, attribute.second)
                     }
                 }
@@ -157,7 +157,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
 
         val jarFactory = { os: OutputStream -> JarOutputStream(os, manifest) }
 
-        return Archives.generateArchive(project, context, jar.name, ".jar", includedFiles,
+        return Archives.generateArchive(project, context, zip.name, ".jar", includedFiles,
                 true /* expandJarFiles */, jarFactory)
     }
 

@@ -62,13 +62,14 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 runTask = { taskInstall(project) })
     }
 
+    val zipToFiles = hashMapOf<String, List<IncludedFile>>()
+
     override fun assemble(project: Project, context: KobaltContext) : IncrementalTaskInfo {
         val allConfigs = packages.filter { it.project.name == project.name }
 
         val benchmark = benchmarkMillis {
             if (true) {
                 val allIncludedFiles = arrayListOf<IncludedFile>()
-                val zipToFiles = hashMapOf<String, List<IncludedFile>>()
                 val outputArchives = arrayListOf<File>()
                 allConfigs.forEach { packageConfig ->
                     listOf(packageConfig.jars, packageConfig.wars, packageConfig.zips).forEach { archives ->
@@ -76,7 +77,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                             val files = jarGenerator.findIncludedFiles(packageConfig.project, context, it)
                             val suffixIndex = it.name.lastIndexOf(".")
                             val suffix = it.name.substring(suffixIndex)
-                            val outputFile = jarGenerator.fullArchiveName(project, context, it.name, suffix)
+                            val outputFile = jarGenerator.fullArchiveName(project, context, it.name)
                             outputArchives.add(outputFile)
                             allIncludedFiles.addAll(files)
                             zipToFiles[it.name] = files
@@ -111,10 +112,27 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                     try {
                         project.projectProperties.put(Archives.JAR_NAME,
                                 context.variant.archiveName(project, null, ".jar"))
+
+                        fun findFiles(ff: ArchiveGenerator, zip: Zip) : List<IncludedFile> {
+                            val archiveName = ff.fullArchiveName(project, context, zip.name).name
+                            return zipToFiles[archiveName]!!
+                        }
+
                         allConfigs.forEach { packageConfig ->
-                            packageConfig.jars.forEach { jarGenerator.generateJar(packageConfig.project, context, it) }
-                            packageConfig.wars.forEach { warGenerator.generateWar(packageConfig.project, context, it) }
-                            packageConfig.zips.forEach { zipGenerator.generateZip(packageConfig.project, context, it) }
+                            val pairs = listOf(
+                                    Pair(packageConfig.jars, jarGenerator),
+                                    Pair(packageConfig.wars, warGenerator),
+                                    Pair(packageConfig.zips, zipGenerator)
+                                    )
+
+                            pairs.forEach { pair ->
+                                val zips = pair.first
+                                val generator = pair.second
+                                zips.forEach {
+                                    generator.generateArchive(packageConfig.project, context, it,
+                                            findFiles(generator, it))
+                                }
+                            }
                             if (packageConfig.generatePom) {
                                 pomFactory.create(project).generateAndSave()
                             }

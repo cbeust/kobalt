@@ -1,13 +1,12 @@
 package com.beust.kobalt.plugin.packaging
 
-import com.beust.kobalt.ArchiveFileFinder
+import com.beust.kobalt.ArchiveGenerator
 import com.beust.kobalt.IFileSpec
 import com.beust.kobalt.JarGenerator
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.archive.Archives
-import com.beust.kobalt.archive.War
 import com.beust.kobalt.archive.Zip
 import com.beust.kobalt.internal.ParallelLogger
 import com.beust.kobalt.maven.DependencyManager
@@ -22,13 +21,15 @@ import java.nio.file.Paths
 import java.util.jar.JarOutputStream
 
 class WarGenerator @Inject constructor(val dependencyManager: DependencyManager, val kobaltLog: ParallelLogger)
-    : ArchiveFileFinder {
+    : ArchiveGenerator {
 
     companion object {
         val WEB_INF = "WEB-INF"
         val CLASSES = "$WEB_INF/classes"
         val LIB = "$WEB_INF/lib"
     }
+
+    override val suffix = ".war"
 
     override fun findIncludedFiles(project: Project, context: KobaltContext, war: Zip) : List<IncludedFile> {
         //
@@ -82,16 +83,16 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager,
         return result
     }
 
-    fun generateWar(project: Project, context: KobaltContext, war: War) : File {
+    override fun generateArchive(project: Project, context: KobaltContext, war: Zip,
+            files: List<IncludedFile>) : File {
 
         val manifest = java.util.jar.Manifest()//FileInputStream(mf))
         war.attributes.forEach { attribute ->
             manifest.mainAttributes.putValue(attribute.first, attribute.second)
         }
 
-        val allFiles = findIncludedFiles(project, context, war)
         val jarFactory = { os: OutputStream -> JarOutputStream(os, manifest) }
-        return Archives.generateArchive(project, context, war.name, ".war", allFiles,
+        return Archives.generateArchive(project, context, war.name, ".war", files,
                 false /* don't expand jar files */, jarFactory)
     }
 
