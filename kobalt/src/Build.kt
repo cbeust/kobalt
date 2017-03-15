@@ -239,7 +239,7 @@ fun taskCopyVersionForWrapper(project: Project) : TaskResult {
         val from = Paths.get("src/main/resources/kobalt.properties")
         val to = Paths.get("$toString/kobalt.properties")
         // Only copy if necessary so we don't break incremental compilation
-        if (from.toFile().readLines() != to.toFile().readLines()) {
+        if (! to.toFile().exists() || (from.toFile().readLines() != to.toFile().readLines())) {
             Files.copy(from,
                     to,
                     StandardCopyOption.REPLACE_EXISTING)
