@@ -139,8 +139,14 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
          * Should probably make exclusion more generic (full on string) or allow exclusion to be specified
          * formally by groupId or artifactId.
          */
-        fun isDependencyExcluded(dep: IClasspathDependency, excluded: List<IClasspathDependency>)
-                = excluded.any { excluded -> dep.id.startsWith(excluded.id) }
+        fun isDependencyExcluded(dep: IClasspathDependency, excluded: List<IClasspathDependency>): Boolean {
+            excluded.any { excluded -> dep.id.startsWith(excluded.id) }.let { result ->
+                if (result) {
+                    context.logger.log(project?.name ?: "", 2, "  Excluding dependency $dep")
+                }
+                return result
+            }
+        }
 
         // Dependencies get reordered by transitiveClosure() but since we just added a bunch of new ones,
         // we need to reorder them again in case we're adding dependencies that are already present
