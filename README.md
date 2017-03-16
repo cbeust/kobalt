@@ -1,6 +1,7 @@
 # Kobalt
 
-<img src="https://teamcity.jetbrains.com/app/rest/builds/buildType:(id:OpenSourceProjects_Kobalt_Build)/statusIcon" />
+[<img src="https://teamcity.jetbrains.com/app/rest/builds/buildType:(id:OpenSourceProjects_Kobalt_Build)/statusIcon">](https://teamcity.jetbrains.com/project.html?projectId=OpenSourceProjects_Kobalt&tab=projectOverview)
+
 
 Kobalt is a universal build system.
  
