@@ -1,6 +1,5 @@
 package com.beust.kobalt.plugin.packaging
 
-import aQute.bnd.osgi.Analyzer
 import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
@@ -73,24 +72,27 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 // assemble task:
                 // - Input: Calculate the list of all the included files for every archive (jar/war/zip) and
                 // store them in the `zipToFiles` map.
-                // - Output: Calculate all the output archive files into `allFiles`
+                // - Output: Calculate all the output archive files into `outputFiles`
                 //
-                // `zipToFiles` is used again so we can pass that list of included files to the actual execution
-                // of the task, so we don't have to look for them a second time
+                // `zipToFiles` is used again after this loop so we can pass the list of included files we just
+                // calculated for all the archives in the actual execution of the task, so we don't have to
+                // look for them a second time.
                 //
                 val allIncludedFiles = arrayListOf<IncludedFile>()
-                val outputArchives = arrayListOf<File>()
+                val outputFiles = arrayListOf<File>()
                 allConfigs.forEach { packageConfig ->
                     listOf(packageConfig.jars, packageConfig.wars, packageConfig.zips).forEach { archives ->
                         archives.forEach {
                             val files = jarGenerator.findIncludedFiles(packageConfig.project, context, it)
                             val outputFile = jarGenerator.fullArchiveName(project, context, it.name)
-                            outputArchives.add(outputFile)
+                            outputFiles.add(outputFile)
                             allIncludedFiles.addAll(files)
                             zipToFiles[it.name] = files
                         }
                     }
                 }
+
+                // Turn the IncludedFiles into actual Files
                 val inputFiles = allIncludedFiles.fold(arrayListOf<File>()) { files, includedFile: IncludedFile ->
                     val foundFiles = includedFile.allFromFiles(project.directory)
                     val absFiles = foundFiles.map {
@@ -101,7 +103,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 }
 
                 val inMd5 = Md5.toMd5Directories(inputFiles)
-                val outMd5 = Md5.toMd5Directories(outputArchives)
+                val outMd5 = Md5.toMd5Directories(outputFiles)
                 Pair(inMd5, outMd5)
             } else {
                 Pair(null, null)
