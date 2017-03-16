@@ -29,7 +29,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     /**
      * for {internal, release}, return [internalRelease, internal, release]
      */
-    fun allDirectories(project: Project): List<String> {
+    fun allDirectories(): List<String> {
         return arrayListOf<String>().apply {
             add(toCamelcaseDir())
             add(productFlavor.name)
@@ -88,7 +88,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
                 result.add(dir)
             }
 
-            result.addAll(allDirectories(project)
+            result.addAll(allDirectories()
                     .map { File(KFiles.joinDir("src", it, suffix)) }
                     .filter(File::exists))
 
@@ -113,8 +113,8 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
             if (isDefault) {
                 archiveName ?: project.name + "-" + project.version + suffix
             } else {
-                val base = if (archiveName != null) archiveName.substring(0, archiveName.length - suffix.length)
-                    else project.name + "-" + project.version
+                val base = archiveName?.substring(0, archiveName.length - suffix.length)
+                        ?: project.name + "-" + project.version
                 val flavor = if (productFlavor.name.isEmpty()) "" else "-" + productFlavor.name
                 val type = if (buildType.name.isEmpty()) "" else "-" + buildType.name
                 val result: String = base + flavor + type + suffix
@@ -124,65 +124,63 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
         return result
     }
 
-    val shortArchiveName = if (isDefault) "" else "-" + productFlavor.name + "-" + buildType.name
-
     var generatedSourceDirectory: File? = null
 
-    private fun findBuildTypeBuildConfig(project: Project, variant: Variant?) : BuildConfig? {
-        val buildTypeName = variant?.buildType?.name
-        return project.buildTypes[buildTypeName]?.buildConfig ?: null
-    }
-
-    private fun findProductFlavorBuildConfig(project: Project, variant: Variant?) : BuildConfig? {
-        val buildTypeName = variant?.productFlavor?.name
-        return project.productFlavors[buildTypeName]?.buildConfig ?: null
-    }
+//    private fun findBuildTypeBuildConfig(project: Project, variant: Variant?) : BuildConfig? {
+//        val buildTypeName = variant?.buildType?.name
+//        return project.buildTypes[buildTypeName]?.buildConfig
+//    }
+//
+//    private fun findProductFlavorBuildConfig(project: Project, variant: Variant?) : BuildConfig? {
+//        val buildTypeName = variant?.productFlavor?.name
+//        return project.productFlavors[buildTypeName]?.buildConfig
+//    }
 
     /**
      * Return a list of the BuildConfigs found on the productFlavor{}, buildType{} and project{} (in that order).
      */
-    private fun findBuildConfigs(project: Project, variant: Variant?) : List<BuildConfig> {
-        val result = listOf(
-                findBuildTypeBuildConfig(project, variant),
-                findProductFlavorBuildConfig(project, variant),
-                project.buildConfig)
-            .filterNotNull()
-
-        return result
-    }
+//    private fun findBuildConfigs(project: Project, variant: Variant?) : List<BuildConfig> {
+//        val result = listOf(
+//                findBuildTypeBuildConfig(project, variant),
+//                findProductFlavorBuildConfig(project, variant),
+//                project.buildConfig)
+//            .filterNotNull()
+//
+//        return result
+//    }
 
     /**
      * Generate BuildConfig.java if requested. Also look up if any BuildConfig is defined on the current build type,
      * product flavor or main project, and use them to generateAndSave any additional field (in that order to
      * respect the priorities). Return the generated file if it was generated, null otherwise.
      */
-    fun maybeGenerateBuildConfig(project: Project, context: KobaltContext) : File? {
-        val buildConfigs = findBuildConfigs(project, this)
-
-        if (buildConfigs.size > 0) {
-            val pkg = project.packageName ?: project.group
-                    ?: throw KobaltException(
-                    "packageName needs to be defined on the project in order to generateAndSave BuildConfig")
-
-            val contributor = ActorUtils.selectAffinityActor(context.pluginInfo.buildConfigContributors, project)
-            if (contributor != null) {
-                val code = contributor.generateBuildConfig(project, context, pkg, this, buildConfigs)
-                val result = KFiles.makeDir(KFiles.generatedSourceDir(project, this, "buildConfig"))
-                // Make sure the generatedSourceDirectory doesn't contain the project.directory since
-                // that directory will be added when trying to find recursively all the sources in it
-                generatedSourceDirectory = result.relativeTo(File(project.directory))
-                val outputGeneratedSourceDirectory = File(result, pkg.replace('.', File.separatorChar))
-                val outputDir = File(outputGeneratedSourceDirectory, "BuildConfig." + contributor.buildConfigSuffix)
-                KFiles.saveFile(outputDir, code)
-                context.logger.log(project.name, 2, "Generated ${outputDir.path}")
-                return result
-            } else {
-                throw KobaltException("Couldn't find a contributor to generateAndSave BuildConfig")
-            }
-        } else {
-            return null
-        }
-    }
+//    fun maybeGenerateBuildConfig(project: Project, context: KobaltContext) : File? {
+//        val buildConfigs = findBuildConfigs(project, this)
+//
+//        if (buildConfigs.size > 0) {
+//            val pkg = project.packageName ?: project.group
+//                    ?: throw KobaltException(
+//                    "packageName needs to be defined on the project in order to generateAndSave BuildConfig")
+//
+//            val contributor = ActorUtils.selectAffinityActor(context.pluginInfo.buildConfigContributors, project)
+//            if (contributor != null) {
+//                val code = contributor.generateBuildConfig(project, context, pkg, this, buildConfigs)
+//                val result = KFiles.makeDir(KFiles.generatedSourceDir(project, this, "buildConfig"))
+//                // Make sure the generatedSourceDirectory doesn't contain the project.directory since
+//                // that directory will be added when trying to find recursively all the sources in it
+//                generatedSourceDirectory = result.relativeTo(File(project.directory))
+//                val outputGeneratedSourceDirectory = File(result, pkg.replace('.', File.separatorChar))
+//                val outputDir = File(outputGeneratedSourceDirectory, "BuildConfig." + contributor.buildConfigSuffix)
+//                KFiles.saveFile(outputDir, code)
+//                context.logger.log(project.name, 2, "Generated ${outputDir.path}")
+//                return result
+//            } else {
+//                throw KobaltException("Couldn't find a contributor to generateAndSave BuildConfig")
+//            }
+//        } else {
+//            return null
+//        }
+//    }
 
     override fun toString() = toTask("")
 
@@ -222,7 +220,7 @@ class Variant(val initialProductFlavor: ProductFlavorConfig? = null,
     }
 
     fun toCamelcaseDir() : String {
-        fun lci(s : String) = if (s.length == 0 || s.length == 1) s else s[0].toLowerCase() + s.substring(1)
+        fun lci(s : String) = if (s.isEmpty() || s.length == 1) s else s[0].toLowerCase() + s.substring(1)
 
         return lci(productFlavor.name) + buildType.name.capitalize()
     }
