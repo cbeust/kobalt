@@ -16,13 +16,14 @@ class TestNgRunner : GenericTestRunner() {
 
     override val annotationPackage = "org.testng"
 
-    fun defaultOutput(project: Project) = KFiles.joinDir(project.buildDirectory, "test-output")
+    fun defaultOutput(project: Project) = KFiles.joinDir(KFiles.KOBALT_BUILD_DIR, project.buildDirectory, "test-output")
 
     override fun args(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             testConfig: TestConfig) = arrayListOf<String>().apply {
-        var addOutput = true
-        testConfig.testArgs.forEach { arg ->
-            if (arg == "-d") addOutput = false
+
+        if (testConfig.testArgs.none { it == "-d" }) {
+            add("-d")
+            add(defaultOutput(project))
         }
 
         if (testConfig.testArgs.size == 0) {
@@ -32,11 +33,7 @@ class TestNgRunner : GenericTestRunner() {
                 add(testngXml.absolutePath)
             } else {
                 val testClasses = findTestClasses(project, context, testConfig)
-                if (testClasses.size > 0) {
-                    if (addOutput) {
-                        add("-d")
-                        add(defaultOutput(project))
-                    }
+                if (testClasses.isNotEmpty()) {
                     addAll(testConfig.testArgs)
 
                     add("-testclass")
@@ -48,10 +45,6 @@ class TestNgRunner : GenericTestRunner() {
                 }
             }
         } else {
-            if (addOutput) {
-                add("-d")
-                add(defaultOutput(project))
-            }
             addAll(testConfig.testArgs)
         }
     }
