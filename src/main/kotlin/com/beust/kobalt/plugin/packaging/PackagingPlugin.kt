@@ -1,6 +1,5 @@
 package com.beust.kobalt.plugin.packaging
 
-import aQute.bnd.osgi.Analyzer
 import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
@@ -62,29 +61,39 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 runTask = { taskInstall(project) })
     }
 
-    val zipToFiles = hashMapOf<String, List<IncludedFile>>()
-
     override fun assemble(project: Project, context: KobaltContext) : IncrementalTaskInfo {
         val allConfigs = packages.filter { it.project.name == project.name }
+        val zipToFiles = hashMapOf<String, List<IncludedFile>>()
 
         val benchmark = benchmarkMillis {
             if (true) {
+                //
+                // This loop prepares the data so we can calculate input and output checksums for the
+                // assemble task:
+                // - Input: Calculate the list of all the included files for every archive (jar/war/zip) and
+                // store them in the `zipToFiles` map.
+                // - Output: Calculate all the output archive files into `outputFiles`
+                //
+                // `zipToFiles` is used again after this loop so we can pass the list of included files we just
+                // calculated for all the archives in the actual execution of the task, so we don't have to
+                // look for them a second time.
+                //
                 val allIncludedFiles = arrayListOf<IncludedFile>()
-                val outputArchives = arrayListOf<File>()
+                val outputFiles = arrayListOf<File>()
                 allConfigs.forEach { packageConfig ->
                     listOf(packageConfig.jars, packageConfig.wars, packageConfig.zips).forEach { archives ->
                         archives.forEach {
                             val files = jarGenerator.findIncludedFiles(packageConfig.project, context, it)
-                            val suffixIndex = it.name.lastIndexOf(".")
-                            val suffix = it.name.substring(suffixIndex)
                             val outputFile = jarGenerator.fullArchiveName(project, context, it.name)
-                            outputArchives.add(outputFile)
+                            outputFiles.add(outputFile)
                             allIncludedFiles.addAll(files)
                             zipToFiles[it.name] = files
                         }
                     }
                 }
-                val allFiles = allIncludedFiles.fold(arrayListOf<File>()) { files, includedFile: IncludedFile ->
+
+                // Turn the IncludedFiles into actual Files
+                val inputFiles = allIncludedFiles.fold(arrayListOf<File>()) { files, includedFile: IncludedFile ->
                     val foundFiles = includedFile.allFromFiles(project.directory)
                     val absFiles = foundFiles.map {
                         File(KFiles.joinDir(project.directory, includedFile.from, it.path))
@@ -93,8 +102,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                     files
                 }
 
-                val inMd5 = Md5.toMd5Directories(allFiles)
-                val outMd5 = Md5.toMd5Directories(outputArchives)
+                val inMd5 = Md5.toMd5Directories(inputFiles)
+                val outMd5 = Md5.toMd5Directories(outputFiles)
                 Pair(inMd5, outMd5)
             } else {
                 Pair(null, null)
@@ -150,7 +159,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         context.pluginInfo.incrementalAssemblyContributors.forEach {
             val taskInfo = it.assemble(project, context)
             val closure = incrementalManagerFactory.create().toIncrementalTaskClosure(TASK_ASSEMBLE, {
-                p: Project -> taskInfo }, context.variant)
+                _: Project -> taskInfo }, context.variant)
             val thisResult = closure.invoke(project)
             if (! thisResult.success) {
                 // Abort at the first failure
@@ -174,24 +183,24 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
     }
 
 //    @Task(name = "generateOsgiManifest", alwaysRunAfter = arrayOf(TASK_ASSEMBLE))
-    fun generateManifest(project: Project): TaskResult {
-        val analyzer = Analyzer().apply {
-            jar = aQute.bnd.osgi.Jar(project.projectProperties.get(Archives.JAR_NAME) as String)
-            val dependencies = project.compileDependencies + project.compileRuntimeDependencies
-            dependencyManager.calculateDependencies(project, context, passedDependencies = dependencies).forEach {
-                addClasspath(it.jarFile.get())
-            }
-            setProperty(Analyzer.BUNDLE_VERSION, project.version)
-            setProperty(Analyzer.BUNDLE_NAME, project.group)
-            setProperty(Analyzer.BUNDLE_DESCRIPTION, project.description)
-            setProperty(Analyzer.IMPORT_PACKAGE, "*")
-            setProperty(Analyzer.EXPORT_PACKAGE, "*;-noimport:=false;version=" + project.version)
-        }
-
-        val manifest = analyzer.calcManifest()
-        manifest.write(System.out)
-        return TaskResult()
-    }
+//    fun generateManifest(project: Project): TaskResult {
+//        val analyzer = Analyzer().apply {
+//            jar = aQute.bnd.osgi.Jar(project.projectProperties.get(Archives.JAR_NAME) as String)
+//            val dependencies = project.compileDependencies + project.compileRuntimeDependencies
+//            dependencyManager.calculateDependencies(project, context, passedDependencies = dependencies).forEach {
+//                addClasspath(it.jarFile.get())
+//            }
+//            setProperty(Analyzer.BUNDLE_VERSION, project.version)
+//            setProperty(Analyzer.BUNDLE_NAME, project.group)
+//            setProperty(Analyzer.BUNDLE_DESCRIPTION, project.description)
+//            setProperty(Analyzer.IMPORT_PACKAGE, "*")
+//            setProperty(Analyzer.EXPORT_PACKAGE, "*;-noimport:=false;version=" + project.version)
+//        }
+//
+//        val manifest = analyzer.calcManifest()
+//        manifest.write(System.out)
+//        return TaskResult()
+//    }
 
 
     @Task(name = PackagingPlugin.TASK_INSTALL, description = "Install the artifacts",
