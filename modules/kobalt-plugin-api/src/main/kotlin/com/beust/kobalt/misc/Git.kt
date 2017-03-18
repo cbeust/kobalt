@@ -6,10 +6,10 @@ import com.google.inject.Inject
 import java.io.File
 
 class Git @Inject constructor() {
-    fun maybeTagRelease(project: Project, uploadResult: TaskResult, auto: Boolean, annotated: Boolean, tag: String, message: String) : TaskResult {
+    fun maybeTagRelease(project: Project, uploadResult: TaskResult, enabled: Boolean, annotated: Boolean, tag: String, message: String) : TaskResult {
         val result =
-                if (uploadResult.success && auto) {
-                    val tagSuccess = tagRelease(project, auto, annotated, tag, message)
+                if (uploadResult.success && enabled) {
+                    val tagSuccess = tagRelease(project, annotated, tag, message)
                     if (! tagSuccess) {
                         TaskResult(false, "Couldn't tag the project")
                     } else {
@@ -21,7 +21,7 @@ class Git @Inject constructor() {
         return result
     }
 
-    private fun tagRelease(project: Project, auto: Boolean, annotated: Boolean, tag: String, message: String) : Boolean {
+    private fun tagRelease(project: Project, annotated: Boolean, tag: String, message: String) : Boolean {
         val version = if (tag.isNullOrBlank()) project.version else tag
         val success = try {
             log(2, "Tagging this release as \"$version\"")
