@@ -6,6 +6,7 @@ import com.beust.kobalt.plugin.application.application
 import com.beust.kobalt.plugin.java.javaCompiler
 import com.beust.kobalt.plugin.kotlin.kotlinCompiler
 import com.beust.kobalt.plugin.packaging.assemble
+import com.beust.kobalt.plugin.publish.autoGitTag
 import com.beust.kobalt.plugin.publish.bintray
 import com.beust.kobalt.plugin.publish.github
 import com.beust.kobalt.project
@@ -213,11 +214,14 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
     github {
         file("$buildDirectory/libs/$name-$version.zip", "$name/$version/$name-$version.zip")
-        autoGitTag = true
     }
 
     test {
         args("-log", "2", "src/test/resources/testng.xml")
+    }
+
+    autoGitTag {
+        auto = true
     }
 }
 
