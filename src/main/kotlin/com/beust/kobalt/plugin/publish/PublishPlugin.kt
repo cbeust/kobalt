@@ -47,7 +47,7 @@ class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGener
     private fun autoGitTag(project: Project, uploadResult: TaskResult, config: AutoGitTagConfig?) : TaskResult {
         if (config != null) {
             with(config) {
-                return git.maybeTagRelease(project, uploadResult, auto, tag, message)
+                return git.maybeTagRelease(project, uploadResult, auto, annotated, tag, message)
             }
         } else {
             return TaskResult()
@@ -218,6 +218,9 @@ class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGener
 data class AutoGitTagConfig(val project: Project) {
     @Directive
     var auto: Boolean = true
+
+    @Directive
+    var annotated: Boolean = false
 
     @Directive
     var tag : String = project.version!!
