@@ -144,15 +144,6 @@ fun kotlinProject(vararg projects: Project, init: Project.() -> Unit): Project {
     }
 }
 
-class KotlinConfig(val project: Project) {
-    val args = arrayListOf<String>()
-    fun args(vararg options: String) = args.addAll(options)
-
-    /** The version of the Kotlin compiler */
-    @Directive
-    var version: String? = null
-}
-
 @Directive
 fun Project.kotlinCompiler(init: KotlinConfig.() -> Unit) =
     KotlinConfig(this).also { config ->

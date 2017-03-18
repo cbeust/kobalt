@@ -78,11 +78,6 @@ fun javaProject(vararg projects: Project, init: Project.() -> Unit): Project {
     }
 }
 
-class JavaConfig(val project: Project) {
-    val compilerArgs = arrayListOf<String>()
-    fun args(vararg options: String) = compilerArgs.addAll(options)
-}
-
 @Directive
 fun Project.javaCompiler(init: JavaConfig.() -> Unit) =
     JavaConfig(this).also { config ->

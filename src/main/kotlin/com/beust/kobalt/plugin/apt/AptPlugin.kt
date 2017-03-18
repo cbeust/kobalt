@@ -147,15 +147,12 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
     }
 }
 
-class AptConfig(var outputDir: String = "generated/source/apt")
-
 @Directive
-fun Project.apt(init: AptConfig.() -> Unit) {
-    AptConfig().let {
-        it.init()
-        (Kobalt.findPlugin(AptPlugin.PLUGIN_NAME) as AptPlugin).addAptConfig(this, it)
+fun Project.apt(init: AptConfig.() -> Unit) =
+    AptConfig().also { config ->
+        config.init()
+        (Kobalt.findPlugin(AptPlugin.PLUGIN_NAME) as AptPlugin).addAptConfig(this, config)
     }
-}
 
 @Directive
 fun Dependencies.apt(vararg dep: String) {
@@ -164,12 +161,9 @@ fun Dependencies.apt(vararg dep: String) {
     }
 }
 
-class KaptConfig(var outputDir: String = "generated/source/apt")
-
 @Directive
-fun Project.kapt(init: KaptConfig.() -> Unit) {
-    KaptConfig().let {
-        it.init()
-        (Kobalt.findPlugin(AptPlugin.PLUGIN_NAME) as AptPlugin).addKaptConfig(this, it)
+fun Project.kapt(init: KaptConfig.() -> Unit) =
+    KaptConfig().also { config ->
+        config.init()
+        (Kobalt.findPlugin(AptPlugin.PLUGIN_NAME) as AptPlugin).addKaptConfig(this, config)
     }
-}

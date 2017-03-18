@@ -38,11 +38,6 @@ class GroovyPlugin @Inject constructor(val groovyCompiler: GroovyCompiler,
             = if (sourceFileCount(project) > 0) listOf(compiler) else emptyList()
 }
 
-class GroovyConfig(val project: Project) {
-    val compilerArgs = arrayListOf<String>()
-    fun args(vararg options: String) = compilerArgs.addAll(options)
-}
-
 @Directive
 fun Project.groovyCompiler(init: GroovyConfig.() -> Unit) =
     GroovyConfig(this).also { config ->
