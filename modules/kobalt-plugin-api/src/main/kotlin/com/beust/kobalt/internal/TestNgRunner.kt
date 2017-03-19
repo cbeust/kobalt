@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.KobaltContext
@@ -131,4 +132,16 @@ class TestNgRunner : GenericTestRunner() {
         }
         return result
     }
+}
+
+fun main(args: Array<String>) {
+    fun d(n: Int, color: String)
+            = AsciiArt.wrap(String.format("%4d", n), color)
+
+    println("PASSED | FAILED | SKIPPED")
+    repeat(20) { i ->
+        print("\r  " + d(i, AsciiArt.GREEN) + " |   " + d(i * 2, AsciiArt.RED) + " | " + d(i, AsciiArt.YELLOW))
+        Thread.sleep(500)
+    }
+    println("")
 }
