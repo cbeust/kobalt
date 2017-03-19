@@ -1,7 +1,6 @@
 package com.beust.kobalt.api
 
 import com.beust.kobalt.TaskResult
-import com.beust.kobalt.misc.warn
 
 interface ICompilerDescription : Comparable<ICompilerDescription> {
     /**
@@ -58,7 +57,7 @@ class CompilerDescription(override val name: String,  override val sourceDirecto
             if (info.sourceFiles.isNotEmpty()) {
                 compiler.compile(project, context, info)
             } else {
-                log(2, "$name couldn't find any source files to compile")
+                context.logger.log(project.name, 2, "$name couldn't find any source files to compile")
                 TaskResult()
             }
         return result
