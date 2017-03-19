@@ -30,7 +30,7 @@ class CompilerUtils @Inject constructor(val files: KFiles, val dependencyManager
                 }
         val sourceFiles = KFiles.findSourceFiles(project.directory,
                 contributedSourceDirs.map { it.path }, compiler.sourceSuffixes)
-        if (sourceFiles.size > 0) {
+        if (sourceFiles.isNotEmpty()) {
             // TODO: createCompilerActionInfo recalculates the source files, only compute them
             // once and pass them
             val info = createCompilerActionInfo(project, context, compiler, isTest,
