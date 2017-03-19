@@ -94,7 +94,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
     /**
      * @return true if all the tests passed
      */
-    fun runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
+    open fun runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             configName: String) : Boolean {
         var result = false
 
