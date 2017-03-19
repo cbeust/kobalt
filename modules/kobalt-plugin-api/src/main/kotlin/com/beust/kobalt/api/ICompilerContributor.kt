@@ -58,7 +58,7 @@ class CompilerDescription(override val name: String,  override val sourceDirecto
             if (info.sourceFiles.isNotEmpty()) {
                 compiler.compile(project, context, info)
             } else {
-                warn("$name cdouldn't find any source files to compile")
+                log(2, "$name couldn't find any source files to compile")
                 TaskResult()
             }
         return result
