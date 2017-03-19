@@ -27,8 +27,7 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
      */
     fun compileSingleProject(projectText: String, args: Args = Args()) : Project {
         val projectName = "p" + Math.abs(Random().nextInt())
-        val projectDirectory = Files.createTempDirectory("kobaltTest").toFile().path
-
+        val projectDirectory = Files.createTempDirectory("kobaltTest").toFile().path.replace("\\", "/")
         val buildFileText= """
             import com.beust.kobalt.*
             import com.beust.kobalt.api.*
