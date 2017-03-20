@@ -9,6 +9,7 @@ import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.Node
 import com.beust.kobalt.misc.kobaltLog
+import com.beust.kobalt.misc.warn
 import com.google.inject.Inject
 import org.eclipse.aether.artifact.DefaultArtifact
 import org.eclipse.aether.graph.DependencyNode
@@ -104,7 +105,12 @@ class ResolveDependency @Inject constructor(
                 kobaltLog(2, "Found dependency ${dep.dep.id} level: ${dep.level}")
                 result.add(node)
                 seen.add(it.id)
-                node.addChildren(findChildren(node, seen))
+                try {
+                    node.addChildren(findChildren(node, seen))
+                } catch(ex: Exception) {
+                    if (! it.optional) warn("Couldn't resolve " + node)
+                    // else don't warn about missing optional dependencies
+                }
             }
         }
         kobaltLog(2, "Children for ${root.value.dep.id}: ${result.size}")
