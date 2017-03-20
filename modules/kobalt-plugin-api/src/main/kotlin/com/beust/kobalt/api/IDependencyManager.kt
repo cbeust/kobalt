@@ -3,6 +3,7 @@ package com.beust.kobalt.api
 import com.beust.kobalt.maven.aether.Filters.EXCLUDE_OPTIONAL_FILTER
 import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import com.beust.kobalt.maven.aether.Scope
+import com.beust.kobalt.misc.kobaltLog
 import org.eclipse.aether.graph.DependencyFilter
 import org.eclipse.aether.graph.DependencyNode
 
@@ -77,7 +78,7 @@ interface IDependencyManager {
             }
 
             if (! accept) {
-                println("  FOUND EXCLUDED DEP: " + p0)
+                kobaltLog(2, "Excluding $p0")
             }
 
             if (accept) EXCLUDE_OPTIONAL_FILTER.accept(p0, p1)
