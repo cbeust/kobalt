@@ -221,7 +221,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
     }
 
     autoGitTag {
-        auto = true
+        enabled = true
     }
 }
 
