@@ -58,7 +58,7 @@ class TestNgRunner : GenericTestRunner() {
         }
     }
 
-    fun _runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
+    override fun runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             configName: String): Boolean {
         var result = false
         val port = 2345
@@ -106,9 +106,17 @@ class TestNgRunner : GenericTestRunner() {
         data class FailedTest(val method: String, val cls: String, val stackTrace: String)
         val failed = arrayListOf<FailedTest>()
         var skipped = arrayListOf<String>()
+
+        fun d(n: Int, color: String)
+                = AsciiArt.wrap(String.format("%4d", n), color)
+        fun red(s: String) = AsciiArt.wrap(s, AsciiArt.RED)
+        fun green(s: String) = AsciiArt.wrap(s, AsciiArt.GREEN)
+        fun yellow(s: String) = AsciiArt.wrap(s, AsciiArt.YELLOW)
+
         try {
             var message = mh.receiveMessage()
             println("")
+            println(green("PASSED") + " | " + red("FAILED") + " | " + yellow("SKIPPED"))
             while (message != null) {
                 message = mh.receiveMessage()
                 if (message is TestResultMessage) {
@@ -119,7 +127,11 @@ class TestNgRunner : GenericTestRunner() {
                         MessageHelper.SKIPPED_TEST -> skipped.add(message.name)
                     }
                 }
-                print("\r" + String.format("%4d / %4d / %4d", passed.size, failed.size, skipped.size))
+                print("\r  " + d(passed.size, AsciiArt.GREEN)
+                        + " |   " + d(failed.size, AsciiArt.RED)
+                        + " |   " + d(skipped.size, AsciiArt.YELLOW))
+//                Thread.sleep(500)
+//                print("\r" + String.format("%4d / %4d / %4d", passed.size, failed.size, skipped.size))
 //                Thread.sleep(200)
             }
         } catch(ex: IOException) {
