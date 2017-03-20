@@ -1,5 +1,6 @@
 package com.beust.kobalt.maven.dependency
 
+import com.beust.kobalt.api.Dependencies
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.CompletedFuture
 import org.apache.maven.model.Dependency
@@ -30,6 +31,8 @@ open class FileDependency(open val fileName: String, override val optional: Bool
     override val shortId = fileName
 
     override fun directDependencies() = arrayListOf<IClasspathDependency>()
+
+    override val excluded = arrayListOf<Dependencies.ExcludeConfig>()
 
     override fun compareTo(other: FileDependency) = fileName.compareTo(other.fileName)
 

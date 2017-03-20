@@ -36,4 +36,6 @@ interface IClasspathDependency {
 
     /** Used to only keep the most recent version for an artifact if no version was specified */
     val shortId: String
+
+    val excluded: ArrayList<Dependencies.ExcludeConfig>
 }

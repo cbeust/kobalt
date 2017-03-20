@@ -178,11 +178,11 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
             dependencyFilter: DependencyFilter? = null,
             requiredBy: String? = null): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
-        dependencies.forEach {
-            result.add(it)
-            if (it.isMaven) {
-                val resolved = resolver.resolveToIds(it.id, null, dependencyFilter)
-                result.addAll(resolved.map { create(it) })
+        dependencies.forEach { dependency ->
+            result.add(dependency)
+            if (dependency.isMaven) {
+                val resolved = resolver.resolveToIds(dependency.id, null, dependencyFilter).map { create(it) }
+                result.addAll(resolved)
             }
         }
         val reordered = reorderDependencies(result)

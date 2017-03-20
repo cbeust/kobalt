@@ -88,6 +88,7 @@ open class JvmCompilerPlugin @Inject constructor(
         if (testContributor != null && testContributor.affinity(project, context) > 0) {
 //            val td1 = dependencyManager.testDependencies(project, context)
             val testDependencies = dependencyManager.calculateDependencies(project, context,
+                    dependencyFilter = dependencyManager.createDependencyFilter(project.testDependencies),
                     scopes = listOf(Scope.TEST))
             val compileDependencies = dependencyManager.calculateDependencies(project, context,
                     scopes = listOf(Scope.COMPILE))

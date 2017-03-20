@@ -145,7 +145,7 @@ class Dependencies(val project: Project,
      * future tasks receive a get(), the repos will be correct.
      */
     private fun addToDependencies(project: Project, dependencies: ArrayList<IClasspathDependency>,
-            dep: Array<out String>, optional: Boolean = false): List<Future<File>>
+            dep: Array<out String>, optional: Boolean = false, excludeConfig: ExcludeConfig? = null): List<Future<File>>
         = with(dep.map {
             val resolved =
                 if (KobaltMavenResolver.isRangeVersion(it)) {
@@ -160,11 +160,35 @@ class Dependencies(val project: Project,
             DependencyManager.create(resolved, optional, project.directory)
         }) {
             dependencies.addAll(this)
+            if (excludeConfig != null) {
+                this.forEach { it.excluded.add(excludeConfig) }
+            }
+
             this.map { FutureTask { it.jarFile.get() } }
         }
 
     @Directive
     fun compile(vararg dep: String) = addToDependencies(project, dependencies, dep)
+
+    class ExcludeConfig {
+        val ids = arrayListOf<String>()
+
+        @Directive
+        fun excludeIds(vararg passedIds: String) = ids.addAll(passedIds)
+
+        fun isExcluded(dep: IClasspathDependency) : Boolean {
+            val result = ids.contains(dep.id)
+            return result
+        }
+    }
+
+    @Directive
+    fun compile(dep: String, init: ExcludeConfig.() -> Unit) {
+        val excludeConfig = ExcludeConfig().apply {
+            init()
+        }
+        addToDependencies(project, dependencies, arrayOf(dep), excludeConfig = excludeConfig)
+    }
 
     @Directive
     fun compileOptional(vararg dep: String) {
