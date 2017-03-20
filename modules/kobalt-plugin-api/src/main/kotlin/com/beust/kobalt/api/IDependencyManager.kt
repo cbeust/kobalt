@@ -40,7 +40,8 @@ interface IDependencyManager {
      * allDependencies is typically either compileDependencies or testDependencies
      */
     fun calculateDependencies(project: Project?, context: KobaltContext,
-            dependencyFilter: DependencyFilter = createDependencyFilter(project?.compileDependencies ?: emptyList()),
+            dependencyFilter: DependencyFilter =
+                createDependencyFilter(project, project?.compileDependencies ?: emptyList()),
             scopes: List<Scope> = listOf(Scope.COMPILE),
             vararg passedDependencies: List<IClasspathDependency>): List<IClasspathDependency>
 
@@ -48,21 +49,25 @@ interface IDependencyManager {
      * Create an Aether dependency filter that uses the dependency configuration included in each
      * IClasspathDependency.
      */
-    fun createDependencyFilter(dependencies: List<IClasspathDependency>) : DependencyFilter {
+    fun createDependencyFilter(project: Project?, dependencies: List<IClasspathDependency>) : DependencyFilter {
         return DependencyFilter { p0, p1 ->
-            fun isNodeExcluded(passedDep: IClasspathDependency, node: DependencyNode) : Boolean {
+            fun isNodeExcluded(node: DependencyNode, passedDep: IClasspathDependency) : Boolean {
                 val dep = create(KobaltMavenResolver.artifactToId(node.artifact))
                 return passedDep.excluded.any { ex -> ex.isExcluded(dep)}
+            }
+            fun isDepExcluded(node: DependencyNode, excluded: List<IClasspathDependency>?) : Boolean {
+                val dep = create(KobaltMavenResolver.artifactToId(node.artifact))
+                return excluded?.map { it.id }?.contains(dep.id) ?: false
             }
 
             val accept = dependencies.any {
                 // Is this dependency excluded?
-                val isExcluded = isNodeExcluded(it, p0)
+                val isExcluded = isNodeExcluded(p0, it) || isDepExcluded(p0, project?.excludedDependencies)
 
                 // Is the parent dependency excluded?
                 val isParentExcluded =
                     if (p1.any()) {
-                        isNodeExcluded(it, p1[0])
+                        isNodeExcluded(p1[0], it) || isDepExcluded(p1[0], project?.excludedDependencies)
                     } else {
                         false
                     }

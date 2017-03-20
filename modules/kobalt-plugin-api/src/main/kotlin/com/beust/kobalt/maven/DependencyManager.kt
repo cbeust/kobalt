@@ -140,7 +140,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
          * formally by groupId or artifactId.
          */
         fun isDependencyExcluded(dep: IClasspathDependency, excluded: List<IClasspathDependency>): Boolean {
-            excluded.any { excluded -> dep.id.startsWith(excluded.id) }.let { result ->
+            excluded.any { excluded -> dep.id == excluded.id }.let { result ->
                 if (result) {
                     context.logger.log(project?.name ?: "", 2, "  Excluding dependency $dep")
                 }
