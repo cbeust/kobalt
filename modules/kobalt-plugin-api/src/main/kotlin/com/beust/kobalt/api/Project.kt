@@ -3,6 +3,7 @@ package com.beust.kobalt.api
 import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.aether.AetherDependency
 import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
@@ -11,6 +12,7 @@ import java.io.File
 import java.util.*
 import java.util.concurrent.Future
 import java.util.concurrent.FutureTask
+import java.util.regex.Pattern
 
 open class Project(
         @Directive open var name: String = "",
@@ -174,10 +176,44 @@ class Dependencies(val project: Project,
         val ids = arrayListOf<String>()
 
         @Directive
-        fun excludeIds(vararg passedIds: String) = ids.addAll(passedIds)
+        fun exclude(vararg passedIds: String) = ids.addAll(passedIds)
 
+        class ArtifactConfig(
+            var groupId: String? = null,
+            var artifactId: String? = null,
+            var version: String? = null
+        )
+
+        val artifacts = arrayListOf<ArtifactConfig>()
+
+        @Directive
+        fun exclude(groupId: String? = null, artifactId: String? = null, version: String? = null)
+            = artifacts.add(ArtifactConfig(groupId, artifactId, version))
+
+        fun match(pattern: String?, id: String) : Boolean {
+            return pattern == null || Pattern.compile(pattern).matcher(id).matches()
+        }
+
+        /**
+         * @return true if the dependency is excluded with any of the exclude() directives. The matches
+         * are performed by a regular expression match against the dependency.
+         */
         fun isExcluded(dep: IClasspathDependency) : Boolean {
-            val result = ids.contains(dep.id)
+            // Straight id match
+            var result = ids.any { match(it, dep.id) }
+
+            // Match on any combination of (groupId, artifactId, version)
+            if (! result && dep.isMaven) {
+                val mavenDep = dep as AetherDependency
+                val artifact = mavenDep.artifact
+                result = artifacts.any {
+                    val match1 = it.groupId == null || match(it.groupId, artifact.groupId)
+                    val match2 = it.artifactId == null || match(it.artifactId, artifact.artifactId)
+                    val match3 = it.version == null || match(it.version, artifact.version)
+                    match1 && match2 && match3
+                }
+            }
+
             return result
         }
     }
