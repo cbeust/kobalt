@@ -5,7 +5,6 @@ import com.beust.kobalt.TestConfig
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.homeDir
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.runCommand
 import com.beust.kobalt.misc.warn
@@ -58,24 +57,25 @@ class TestNgRunner : GenericTestRunner() {
         }
     }
 
-    override fun runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
+    fun _runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             configName: String): Boolean {
-        var result = false
         val port = 2345
 
-        val classpath = listOf(homeDir("java/jcommander/kobaltBuild/classes"),
-                homeDir(".kobalt/cache/org/testng/testng/6.10/testng-6.10.jar"),
-                homeDir(".kobalt/cache/com/beust/jcommander/1.66/jcommander-1.66.jar"),
-                homeDir(".kobalt/cache/org/yaml/snakeyaml/1.17/snakeyaml-1.17.jar"),
-                homeDir(".kobalt/cache/com/google/code/findbugs/jsr305/3.0.1/jsr305-3.0.1.jar"),
-                homeDir("java/jcommander/kobaltBuild/test-classes"),
-                homeDir("java/jcommander/src/test/resources/testng.xml"),
-                homeDir("kotlin/kobalt/lib/testng-remote-1.3.0-SNAPSHOT.jar"),
-                homeDir("kotlin/kobalt/lib/testng-remote6_10-1.3.0-SNAPSHOT.jar")
-            ).joinToString(File.pathSeparator)
+//        val r = context.dependencyManager.create("org.testng.testng-remote:testng-remote:1.3.0-SNAPSHOT")
+//        val jf = r.jarFile.get()
+        val cp = (classpath.map { it.jarFile.get() })// + remote)
+                .joinToString(File.pathSeparator)
+//        val classpath = listOf(homeDir("java/jcommander/kobaltBuild/classes"),
+//                homeDir(".kobalt/cache/org/testng/testng/6.10/testng-6.10.jar"),
+//                homeDir(".kobalt/cache/com/beust/jcommander/1.66/jcommander-1.66.jar"),
+//                homeDir(".kobalt/cache/org/yaml/snakeyaml/1.17/snakeyaml-1.17.jar"),
+//                homeDir(".kobalt/cache/com/google/code/findbugs/jsr305/3.0.1/jsr305-3.0.1.jar"),
+//                homeDir("java/jcommander/kobaltBuild/test-classes"),
+//                homeDir("java/jcommander/src/test/resources/testng.xml"),
+//            ).joinToString(File.pathSeparator)
         val passedArgs = listOf(
                 "-classpath",
-                classpath,
+                cp,
                 "org.testng.remote.RemoteTestNG",
                 "-serport", port.toString(),
                 "-version", "6.10",
@@ -87,7 +87,7 @@ class TestNgRunner : GenericTestRunner() {
         Thread {
             val exitCode = runCommand {
                 command = "java"
-                directory = File(homeDir("java/jcommander"))
+                directory = File(project.directory)
                 args = passedArgs
             }
         }.start()
@@ -142,7 +142,7 @@ class TestNgRunner : GenericTestRunner() {
             val top = it.stackTrace.substring(0, it.stackTrace.indexOf("\n"))
             println("  " + it.cls + "." + it.method + "\n    " + top)
         }
-        return result
+        return failed.isEmpty() && skipped.isEmpty()
     }
 }
 

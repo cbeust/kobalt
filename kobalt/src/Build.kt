@@ -18,6 +18,10 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
+val bs = buildScript {
+    repos("https://oss.jfrog.org/artifactory/oss-snapshot-local", "https://dl.bintray.com/cbeust/maven")
+}
+
 object Versions {
     val okhttp = "3.2.0"
     val okio = "1.6.0"
@@ -110,6 +114,7 @@ val kobaltPluginApi = project {
                 *mavenResolver("api", "spi", "util", "impl", "connector-basic", "transport-http", "transport-file"),
                 "org.apache.maven:maven-aether-provider:3.3.9",
                 "org.testng:testng:6.10",
+//                "org.testng.testng-remote:testng-remote:1.3.0-SNAPSHOT"
                 file("lib/testng-remote-1.3.0-SNAPSHOT.jar"),
                 file("lib/testng-remote6_10-1.3.0-SNAPSHOT.jar")
         )
