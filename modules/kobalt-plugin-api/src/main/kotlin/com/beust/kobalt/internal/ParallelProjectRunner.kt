@@ -94,7 +94,7 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
         val projectGraph = DynamicGraph<ProjectTask>().apply {
             projects.forEach { project ->
                 addNode(ProjectTask(project, args.dryRun))
-                project.dependsOn.forEach {
+                project.allProjectDependedOn().forEach {
                     addEdge(ProjectTask(project, args.dryRun), ProjectTask(it, args.dryRun))
                 }
             }

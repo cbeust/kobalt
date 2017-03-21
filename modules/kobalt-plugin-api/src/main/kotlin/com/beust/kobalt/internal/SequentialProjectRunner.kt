@@ -39,7 +39,7 @@ class SequentialProjectRunner(val tasksByNames: (Project) -> ListMultimap<String
             klog(1, AsciiArt.logBox("Building $projectName", indent = 5))
 
             // Does the current project depend on any failed projects?
-            val fp = project.dependsOn.filter { failedProjects.contains(it.name) }.map(Project::name)
+            val fp = project.allProjectDependedOn().filter { failedProjects.contains(it.name) }.map(Project::name)
 
             if (fp.size > 0) {
                 klog(2, "Marking project $projectName as skipped")

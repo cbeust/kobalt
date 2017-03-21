@@ -145,7 +145,7 @@ class TaskManager @Inject constructor(val args: Args,
             val topological = Topological<Project>().apply {
                 projects.forEach { project ->
                     addNode(project)
-                    project.dependsOn.forEach {
+                    project.allProjectDependedOn().forEach {
                         addEdge(project, it)
                     }
                 }
@@ -160,7 +160,7 @@ class TaskManager @Inject constructor(val args: Args,
             return result
         } else {
             val rootProject = projects.find { it.name == ti.project }!!
-            val allProjects = DynamicGraph.transitiveClosure(rootProject, { p -> p.dependsOn })
+            val allProjects = DynamicGraph.transitiveClosure(rootProject, Project::allProjectDependedOn)
             val sortedProjects = sortProjectsTopologically(allProjects)
             val sortedMaps = sortedProjects.map { TaskInfo(it.name, "compile")}
             val result = sortedMaps.subList(0, sortedMaps.size - 1) + listOf(ti)
