@@ -1,5 +1,6 @@
 package com.beust.kobalt.maven.aether
 
+import com.beust.kobalt.api.Dependencies
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.maven.CompletedFuture
@@ -64,6 +65,8 @@ class AetherDependency(val artifact: Artifact, override val optional: Boolean = 
     }
 
     override val shortId = artifact.groupId + ":" + artifact.artifactId + ":" + artifact.classifier
+
+    override val excluded = arrayListOf<Dependencies.ExcludeConfig>()
 
     override fun compareTo(other: AetherDependency): Int {
         return Versions.toLongVersion(artifact.version).compareTo(Versions.toLongVersion(

@@ -23,8 +23,8 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
             flags: List<String>): TaskResult {
 
         // Dependencies
-        val allDependencies = (info.dependencies
-                + dependencyManager.calculateDependencies(project, context!!, passedDependencies = info.dependencies))
+        val allDependencies = (info.dependencies + dependencyManager.calculateDependencies(project, context!!,
+                passedDependencies = info.dependencies))
             .distinct()
 
         // Plugins that add flags to the compiler

@@ -24,8 +24,8 @@ class ExcludeTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
             arrayOf(EXCLUDED_DEPENDENCY)
     )
 
-    @Test(dataProvider = "dp")
-    fun excludeShouldWork(excludedDependency: String?) {
+    @Test(dataProvider = "dp", description = "Text exclusions that apply to the whole project")
+    fun globalExcludeShouldWork(excludedDependency: String?) {
         val projectText = """
                 dependencies {
                     compile("org.apache.maven:maven-model:jar:3.3.9")
@@ -44,7 +44,43 @@ class ExcludeTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
         } else {
             assertThat(allIds).contains(EXCLUDED_DEPENDENCY)
         }
+    }
 
+    @DataProvider
+    fun dp2() = arrayOf<Array<Any?>>(
+        arrayOf(null, 8, ""),
+        arrayOf("{ exclude(\".*org.apache.*\") }", 4, "org.apache"),
+        arrayOf("{ exclude(groupId    = \"org.apache.*\") }", 4, "org.apache"),
+        arrayOf("{ exclude(artifactId = \".*core.*\") }", 7, "core"),
+        arrayOf("{ exclude(artifactId = \"httpcore\", version = \"4.3.3\") }", 7, "httpcore"),
+        arrayOf("{ exclude(version = \"4.3.3\") }", 7, "httpcore"),
+        arrayOf("{ exclude(artifactId = \"commons.codec\") }", 7, "commons-codec")
+    )
+
+    @Test(dataProvider = "dp2", description = "Text exclusions tied to a specific dependency")
+    fun localExcludeShouldWork(excludedDependency: String?, expectedCount: Int, excludedString: String) {
+        val projectText = """
+                dependencies {
+                    compile("org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r")
+            """ +
+                (if (excludedDependency != null) """$excludedDependency""" else "") +
+                """
+                }
+            """
+
+        val project = compileSingleProject(projectText)
+        val allIds = dependencyManager.calculateDependencies(project, Kobalt.context!!,
+                scopes = listOf(Scope.COMPILE))
+                .map { it.id }
+
+        assertThat(allIds.size).isEqualTo(expectedCount)
+        if (excludedDependency != null) {
+            if (allIds.any { it.contains(excludedString) }) {
+                throw AssertionError("id's should not contain any string \"$excludedString\": $allIds")
+            }
+        } else {
+            assertThat(allIds.filter { it.contains("org.apache") }.size).isEqualTo(2)
+        }
     }
 }
 

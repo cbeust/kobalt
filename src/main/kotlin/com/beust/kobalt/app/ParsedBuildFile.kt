@@ -8,6 +8,7 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.internal.build.VersionFile
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.aether.Filters.EXCLUDE_OPTIONAL_FILTER
 import com.beust.kobalt.misc.BlockExtractor
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
@@ -129,8 +130,8 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         }
     }
 
-    private fun generateJarFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File,
-            originalFile: BuildFile) {
+    private fun generateJarFile(context: KobaltContext, buildFile: BuildFile,
+            buildScriptJarFile: File, originalFile: BuildFile) {
 
         //
         // Compile the jar file
