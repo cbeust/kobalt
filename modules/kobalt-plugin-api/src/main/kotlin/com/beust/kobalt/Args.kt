@@ -82,7 +82,11 @@ class Args {
     @Parameter(names = arrayOf("--noIncrementalKotlin"), description = "Disable incremental Kotlin compilation")
     var noIncrementalKotlin: Boolean = false
 
-    @Parameter(names = arrayOf("--sequential"), description = "Build all the projects in sequence")
+    companion object {
+        const val SEQUENTIAL = "--sequential"
+    }
+
+    @Parameter(names = arrayOf(Args.SEQUENTIAL), description = "Build all the projects in sequence")
     var sequential: Boolean = false
 
     @Parameter(names = arrayOf("--server"), description = "Run in server mode")

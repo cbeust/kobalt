@@ -161,6 +161,7 @@ private class Main @Inject constructor(
                 } else {
                     val allProjects = projectFinder.initForBuildFile(buildFile, args)
 
+                    addOptionsFromBuild(args, Kobalt.optionsFromBuild)
                     if (args.listTemplates) {
                         // --listTemplates
                         Templates().displayTemplates(pluginInfo)
@@ -211,6 +212,15 @@ private class Main @Inject constructor(
             }
         }
         return result
+    }
+
+    private fun addOptionsFromBuild(args: Args, optionsFromBuild: ArrayList<String>) {
+        optionsFromBuild.forEach {
+            when(it) {
+                Args.SEQUENTIAL -> args.sequential = true
+                else -> throw IllegalArgumentException("Unsupported option found in kobaltOptions(): " + it)
+            }
+        }
     }
 
     private fun findBuildFile(): File {

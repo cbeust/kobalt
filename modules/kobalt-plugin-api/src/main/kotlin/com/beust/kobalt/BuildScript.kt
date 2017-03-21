@@ -27,8 +27,13 @@ class BuildScriptConfig {
     @Directive
     fun buildFileClasspath(vararg bfc: String) = newBuildFileClasspath(*bfc)
 
-    // The following settings modify the compiler used to compile the build file.
-    // Projects should use kotlinCompiler { compilerVersion } to configure the Kotin compiler for their source files.
+    /** Options passed to Kobalt */
+    @Directive
+    fun kobaltOptions(vararg options: String) = Kobalt.addKobaltOptions(options)
+
+    // The following settings modify the compiler used to compile the build file, which regular users should
+    // probably never need to do. Projects should use kotlinCompiler { compilerVersion } to configure the
+    // Kotin compiler for their source files.
     var kobaltCompilerVersion : String? = null
     var kobaltCompilerRepo: String? = null
     var kobaltCompilerFlags: String? = null
