@@ -64,6 +64,8 @@ class TestNgRunner : GenericTestRunner() {
     override fun runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             configName: String): Boolean {
 
+        context.logger.log(project.name, 1, "Running enhanced TestNG runner")
+
         val testngDependency = (project.testDependencies.filter { it.id.contains("testng") }
                 .firstOrNull() as AetherDependency).version
         val testngDependencyVersion = Versions.toLongVersion(testngDependency)
