@@ -31,7 +31,12 @@ class Git @Inject constructor() {
                     .findGitDir()
                     .build()
             val git = org.eclipse.jgit.api.Git(repo)
-            val ref = git.tag().setAnnotated(annotated).setName(version).setMessage(message).call()
+            // jGit library will complain and not tag if setAnnotated(false)
+            var ref = if (annotated) {
+                git.tag().setAnnotated(annotated).setName(version).setMessage(message).call()
+            } else {
+                git.tag().setName(version).setMessage(message).call()
+            }
             git.push().setPushTags().call()
             true
         } catch(ex: Exception) {
