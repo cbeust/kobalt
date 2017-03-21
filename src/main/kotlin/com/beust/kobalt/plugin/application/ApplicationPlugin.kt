@@ -117,7 +117,7 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
                     dependencyManager.calculateDependencies(project, context,
                             scopes = listOf(Scope.COMPILE, Scope.RUNTIME),
                             passedDependencies = allDependencies)
-                            .map { it.jarFile.get().path }
+                        .map { it.jarFile.get().path }
             allDeps.addAll(allTheDependencies)
         }
         val allDepsJoined = allDeps.joinToString(File.pathSeparator)
