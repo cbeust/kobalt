@@ -45,7 +45,7 @@ class MavenResolverTest {
         assertThat(result[0].artifact.version).isEqualTo(expectedVersion)
     }
 
-    @Test(dataProvider = "rangeProvider")
+    @Test(dataProvider = "rangeProvider", groups = arrayOf("mavenResolverBug"))
     fun kobaltRangeVersion(id: String, expectedVersion: String) {
         val artifact = resolver.resolveToArtifact(id)
         assertThat(artifact.version).isEqualTo(expectedVersion)
