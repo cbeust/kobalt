@@ -69,8 +69,10 @@ class TestNgRunner : GenericTestRunner() {
         val testngDependencyVersion = Versions.toLongVersion(testngDependency)
         val result =
                 if (testngDependencyVersion >= VERSION_6_10) {
+                    context.logger.log(project.name, 1, "Modern TestNG, displaying colors")
                     displayPrettyColors(project, context, classpath)
                 } else {
+                    context.logger.log(project.name, 1, "Older TestNG ($testngDependencyVersion), using the old runner")
                     super.runTests(project, context, classpath, configName)
                 }
         return result
@@ -80,13 +82,15 @@ class TestNgRunner : GenericTestRunner() {
             : Boolean {
         val port = 2345
 
-        val jf = context.dependencyManager.create("org.testng.testng-remote:testng-remote:1.3.0")
-        val tr = context.dependencyManager.create("org.testng.testng-remote:testng-remote6_10:1.3.0")
-        val testng = context.dependencyManager.create("org.testng:testng:6.10")
-        val dep1 = context.dependencyManager.transitiveClosure(listOf(jf, tr, testng))
+        val dep = with(context.dependencyManager) {
+            val jf = create("org.testng.testng-remote:testng-remote:1.3.0")
+            val tr = create("org.testng.testng-remote:testng-remote6_10:1.3.0")
+            val testng = create("org.testng:testng:6.10")
+            transitiveClosure(listOf(jf, tr, testng))
+        }
 
         val v = Versions.toLongVersion("6.10")
-        val cp = (classpath + dep1).map { it.jarFile.get() }
+        val cp = (classpath + dep).map { it.jarFile.get() }
                 .joinToString(File.pathSeparator)
         val passedArgs = listOf(
                 "-classpath",
