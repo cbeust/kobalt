@@ -26,7 +26,7 @@ class TestNgRunner : GenericTestRunner() {
 
     override val annotationPackage = "org.testng"
 
-    fun defaultOutput(project: Project) = KFiles.joinDir(KFiles.KOBALT_BUILD_DIR, project.buildDirectory, "test-output")
+    fun defaultOutput(project: Project) = KFiles.joinDir(project.buildDirectory, "test-output")
 
     override fun args(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             testConfig: TestConfig) = arrayListOf<String>().apply {
@@ -61,61 +61,73 @@ class TestNgRunner : GenericTestRunner() {
 
     val VERSION_6_10 = StringVersion("6.10")
 
-    override fun runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
+    fun _runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             configName: String): Boolean {
 
-        context.logger.log(project.name, 1, "Running enhanced TestNG runner")
+        val testConfig = project.testConfigs.firstOrNull { it.name == configName }
 
-        val testngDependency = (project.testDependencies.filter { it.id.contains("testng") }
-                .firstOrNull() as AetherDependency).version
-        val remoteRunnerVersion = findRemoteRunnerVersion(testngDependency)
-        val result =
-                if (remoteRunnerVersion != null) {
+        if (testConfig != null) {
+            context.logger.log(project.name, 1, "Running enhanced TestNG runner")
+
+            val testngDependency = (project.testDependencies.filter { it.id.contains("testng") }
+                    .firstOrNull() as AetherDependency).version
+            val versions = findRemoteRunnerVersion(testngDependency)
+            val result =
+                if (versions != null) {
                     context.logger.log(project.name, 1, "Modern TestNG, displaying colors")
-                    displayPrettyColors(project, context, classpath, remoteRunnerVersion)
+                    displayPrettyColors(project, context, classpath, testConfig, versions)
                 } else {
                     context.logger.log(project.name, 1, "Older TestNG ($testngDependency), using the old runner")
                     super.runTests(project, context, classpath, configName)
                 }
-        return result
+            return result
+        } else {
+            return true
+        }
     }
 
-    private fun findRemoteRunnerVersion(testngVersion: String) : String? {
+    private fun findRemoteRunnerVersion(testngVersion: String) : Pair<String, String>? {
         val tng = StringVersion(testngVersion)
         val result =
-            if (tng >= VERSION_6_10) "testng-remote6_10"
-            else if (tng >= StringVersion("6.9.10")) "testng-remote6_9_10"
-            else if (tng >= StringVersion("6.9.7")) "testng-remote6_9_7"
-            else if (tng >= StringVersion("6.5.1")) "testng-remote6_5_0"
-            else if (tng >= StringVersion("6.0")) "testng-remote6_0"
+            if (tng >= VERSION_6_10) Pair(testngVersion, "testng-remote6_10")
+            else if (tng >= StringVersion("6.9.10")) Pair("6.9.10", "testng-remote6_9_10")
+            else if (tng >= StringVersion("6.9.7")) Pair("6.9.7", "testng-remote6_9_7")
+            else if (tng >= StringVersion("6.5.1")) Pair("6.5.1", "testng-remote6_5_0")
+            else if (tng >= StringVersion("6.0")) Pair("6.0", "testng-remote6_0")
             else null
         return result
     }
 
-    fun displayPrettyColors(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
-            remoteRunnerVersion: String?)
-            : Boolean {
+    private fun displayPrettyColors(project: Project, context: KobaltContext,
+            classpath: List<IClasspathDependency>, testConfig: TestConfig, versions: Pair<String, String>): Boolean {
         val port = 2345
 
+        val testngVersion = versions.first
+        val remoteRunnerVersion = versions.second
         val dep = with(context.dependencyManager) {
             val jf = create("org.testng.testng-remote:testng-remote:1.3.0")
             val tr = create("org.testng.testng-remote:$remoteRunnerVersion:1.3.0")
             val testng = create("org.testng:testng:6.10")
-            transitiveClosure(listOf(jf, tr, testng))
+            transitiveClosure(listOf(jf, tr /*, testng */))
         }
 
         val cp = (classpath + dep).distinct().map { it.jarFile.get() }
                 .joinToString(File.pathSeparator)
-        val passedArgs = listOf(
-                "-classpath",
-                cp,
+        val calculatedArgs = args(project, context, classpath, testConfig)
+
+        val jvmArgs = arrayListOf("-classpath", cp)
+        if (testConfig.jvmArgs.any()) {
+            jvmArgs.addAll(testConfig.jvmArgs)
+        }
+        val remoteArgs = listOf(
                 "org.testng.remote.RemoteTestNG",
                 "-serport", port.toString(),
-                "-version", "6.10",
+                "-version", testngVersion,
                 "-dontexit",
                 RemoteArgs.PROTOCOL,
-                "json",
-                "src/test/resources/testng.xml")
+                "json")
+
+        val passedArgs = jvmArgs +  remoteArgs + calculatedArgs
 
         Thread {
             runCommand {
@@ -125,12 +137,12 @@ class TestNgRunner : GenericTestRunner() {
             }
         }.start()
 
-        //        Thread {
-        //            val args2 = arrayOf("-serport", port.toString(), "-dontexit", RemoteArgs.PROTOCOL, "json",
-        //                    "-version", "6.10",
-        //                    "src/test/resources/testng.xml")
-        //            RemoteTestNG.main(args2)
-        //        }.start()
+//        Thread {
+//            val args2 = arrayOf("-serport", port.toString(), "-dontexit", RemoteArgs.PROTOCOL, "json",
+//                    "-version", "6.10",
+//                    "src/test/resources/testng.xml")
+//            RemoteTestNG.main(args2)
+//        }.start()
 
         val mh = MessageHub(JsonMessageSender("localhost", port, true))
         mh.setDebug(true)
