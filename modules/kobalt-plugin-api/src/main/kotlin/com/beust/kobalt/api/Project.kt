@@ -26,6 +26,7 @@ open class Project(
         @Directive open var url: String? = null,
         @Directive open var pom: Model? = null,
         @Directive open var dependsOn: ArrayList<Project> = arrayListOf<Project>(),
+        @Directive open var testsDependOnProjects: ArrayList<Project> = arrayListOf<Project>(),
         @Directive open var packageName: String? = group)
     : IBuildConfig, IDependencyHolder by DependencyHolder() {
 
@@ -33,13 +34,15 @@ open class Project(
         this.project = this
     }
 
+    fun allProjectDependedOn() = project.dependsOn + project.testsDependOnProjects
+
     class ProjectExtra(project: Project) {
         var isDirty = false
 
         /**
          * @return true if any of the projects we depend on is dirty.
          */
-        fun dependsOnDirtyProjects(project: Project) = project.dependsOn.any { it.projectExtra.isDirty }
+        fun dependsOnDirtyProjects(project: Project) = project.allProjectDependedOn().any { it.projectExtra.isDirty }
     }
 
     /**
@@ -95,6 +98,8 @@ open class Project(
 
     val testDependencies : ArrayList<IClasspathDependency> = arrayListOf()
     val testProvidedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
+
+    fun testsDependOnProjects(vararg projects: Project) = testsDependOnProjects.addAll(projects)
 
     /** Used to disambiguate various name properties */
     @Directive

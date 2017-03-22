@@ -5,7 +5,6 @@ import com.beust.kobalt.Variant
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.BaseJvmPlugin
-import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.misc.warn
 import java.io.File
 import javax.inject.Inject
@@ -66,16 +65,6 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override va
     }
 
 
-}
-
-@Directive
-fun javaProject(vararg projects: Project, init: Project.() -> Unit): Project {
-    return Project().apply {
-        warn("javaProject{} is deprecated, please use project{}")
-        init()
-        (Kobalt.findPlugin(JvmCompilerPlugin.PLUGIN_NAME) as JvmCompilerPlugin)
-                .addDependentProjects(this, projects.toList())
-    }
 }
 
 class JavaConfig(val project: Project) {

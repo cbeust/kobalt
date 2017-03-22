@@ -17,16 +17,16 @@ class AsciiArt {
     companion object {
         private val BANNERS = arrayOf(
                 "              __ __           __              __   __ \n" +
-                "             / //_/  ____    / /_   ____ _   / /  / /_\n" +
-                "            / ,<    / __ \\  / __ \\ / __ `/  / /  / __/\n" +
-                "           / /| |  / /_/ / / /_/ // /_/ /  / /  / /_  \n" +
-                "          /_/ |_|  \\____/ /_.___/ \\__,_/  /_/   \\__/  ",
+                        "             / //_/  ____    / /_   ____ _   / /  / /_\n" +
+                        "            / ,<    / __ \\  / __ \\ / __ `/  / /  / __/\n" +
+                        "           / /| |  / /_/ / / /_/ // /_/ /  / /  / /_  \n" +
+                        "          /_/ |_|  \\____/ /_.___/ \\__,_/  /_/   \\__/  ",
 
                 "            _  __          _               _   _   \n" +
-                "           | |/ /   ___   | |__     __ _  | | | |_ \n" +
-                "           | ' /   / _ \\  | '_ \\   / _` | | | | __|\n" +
-                "           | . \\  | (_) | | |_) | | (_| | | | | |_ \n" +
-                "           |_|\\_\\  \\___/  |_.__/   \\__,_| |_|  \\__|  "
+                        "           | |/ /   ___   | |__     __ _  | | | |_ \n" +
+                        "           | ' /   / _ \\  | '_ \\   / _` | | | | __|\n" +
+                        "           | . \\  | (_) | | |_) | | (_| | | | | |_ \n" +
+                        "           |_|\\_\\  \\___/  |_.__/   \\__,_| |_|  \\__|  "
         )
 
         val banner : String get() = BANNERS[Random().nextInt(BANNERS.size)]
@@ -85,7 +85,7 @@ class AsciiArt {
         }
 
         fun logBox(s: String, bl: String = bottomLeft, br: String = bottomRight, indent: Int = 0)
-            = logBox(listOf(s), bl, br, indent)
+                = logBox(listOf(s), bl, br, indent)
 
         fun fill(n: Int) = buildString { repeat(n, { append(" ")})}.toString()
 
@@ -105,7 +105,7 @@ class AsciiArt {
         const val CYAN = "\u001B[36m"
         const val WHITE = "\u001B[37m"
 
-        private fun wrap(s: CharSequence, color: String) = color + s + RESET
+        fun wrap(s: CharSequence, color: String) = color + s + RESET
         private fun blue(s: CharSequence) = wrap(s, BLUE)
         private fun red(s: CharSequence) = wrap(s, RED)
         private fun yellow(s: CharSequence) = wrap(s, YELLOW)
@@ -141,10 +141,10 @@ class AsciiTable {
 
         fun build() : String {
             val formattedHeaders =
-                headers.mapIndexed { index, s ->
-                    val s2 = col(widths[index], s)
-                    s2
-                }.joinToString(vb)
+                    headers.mapIndexed { index, s ->
+                        val s2 = col(widths[index], s)
+                        s2
+                    }.joinToString(vb)
             val result = StringBuffer().apply {
                 append(AsciiArt.logBox(formattedHeaders, AsciiArt.bottomLeft2, AsciiArt.bottomRight2))
                 append("\n")

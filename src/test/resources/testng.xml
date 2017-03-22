@@ -1,12 +1,15 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="Kobalt" verbose="2">
-
-  <test name="Main">
-      <packages>
-          <package name="com.beust.kobalt.*"/>
-      </packages>
-  </test>
-
+    <test name="Main">
+        <groups>
+            <run>
+                <exclude name="mavenResolverBug"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.beust.kobalt.*"/>
+        </packages>
+    </test>
 </suite>
 

@@ -5,13 +5,11 @@ import com.beust.kobalt.Variant
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.internal.BaseJvmPlugin
-import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.KotlinJarFiles
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.warn
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -128,19 +126,6 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
     override fun generateBuildConfig(project: Project, context: KobaltContext, packageName: String,
             variant: Variant, buildConfigs: List<BuildConfig>): String {
         return KotlinBuildConfig().generateBuildConfig(project, context, packageName, variant, buildConfigs)
-    }
-}
-
-/**
- * @param projects: the list of projects that need to be built before this one.
- */
-@Directive
-fun kotlinProject(vararg projects: Project, init: Project.() -> Unit): Project {
-    return Project().apply {
-        warn("kotlinProject{} is deprecated, please use project{}")
-        init()
-        (Kobalt.findPlugin(JvmCompilerPlugin.PLUGIN_NAME) as JvmCompilerPlugin)
-                .addDependentProjects(this, projects.toList())
     }
 }
 

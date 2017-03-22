@@ -118,5 +118,11 @@ class Kobalt {
             get() = Duration.parse( kobaltProperties.getProperty(PROPERTY_KOBALT_VERSION_CHECK_TIMEOUT) ?: "P1D")
 
         fun findPlugin(name: String) = Plugins.findPlugin(name)
+
+        val optionsFromBuild = arrayListOf<String>()
+
+        fun addKobaltOptions(options: Array<out String>) {
+            optionsFromBuild.addAll(options)
+        }
     }
 }

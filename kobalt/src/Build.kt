@@ -1,7 +1,6 @@
-import com.beust.kobalt.TaskResult
+import com.beust.kobalt.*
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Task
-import com.beust.kobalt.homeDir
 import com.beust.kobalt.plugin.application.application
 import com.beust.kobalt.plugin.java.javaCompiler
 import com.beust.kobalt.plugin.kotlin.kotlinCompiler
@@ -9,8 +8,6 @@ import com.beust.kobalt.plugin.packaging.assemble
 import com.beust.kobalt.plugin.publish.autoGitTag
 import com.beust.kobalt.plugin.publish.bintray
 import com.beust.kobalt.plugin.publish.github
-import com.beust.kobalt.project
-import com.beust.kobalt.test
 import org.apache.maven.model.Developer
 import org.apache.maven.model.License
 import org.apache.maven.model.Model
@@ -19,6 +16,10 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
+
+val bs = buildScript {
+    repos("http://dl.bintray.com/cbeust/maven")
+}
 
 object Versions {
     val okhttp = "3.2.0"
@@ -110,7 +111,8 @@ val kobaltPluginApi = project {
                 "org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r",
                 "org.slf4j:slf4j-simple:${Versions.slf4j}",
                 *mavenResolver("api", "spi", "util", "impl", "connector-basic", "transport-http", "transport-file"),
-                "org.apache.maven:maven-aether-provider:3.3.9"
+                "org.apache.maven:maven-aether-provider:3.3.9",
+                "org.testng.testng-remote:testng-remote:1.3.0"
         )
         exclude(*aether("impl", "spi", "util", "api"))
     }

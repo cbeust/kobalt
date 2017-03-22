@@ -98,6 +98,8 @@ abstract class GenericTestRunner: ITestRunnerContributor {
             configName: String) : Boolean {
         var result = false
 
+        context.logger.log(project.name, 1, "Running default TestNG runner")
+
         val testConfig = project.testConfigs.firstOrNull { it.name == configName }
 
         if (testConfig != null) {
