@@ -112,7 +112,8 @@ val kobaltPluginApi = project {
                 "org.slf4j:slf4j-simple:${Versions.slf4j}",
                 *mavenResolver("api", "spi", "util", "impl", "connector-basic", "transport-http", "transport-file"),
                 "org.apache.maven:maven-aether-provider:3.3.9",
-                "org.testng.testng-remote:testng-remote:1.3.0"
+                "org.testng.testng-remote:testng-remote:1.3.0",
+                "org.testng:testng:6.10"
         )
         exclude(*aether("impl", "spi", "util", "api"))
     }
