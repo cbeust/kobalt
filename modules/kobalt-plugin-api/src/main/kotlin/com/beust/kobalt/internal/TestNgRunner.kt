@@ -92,7 +92,7 @@ class TestNgRunner : GenericTestRunner() {
         }
 
         val v = Versions.toLongVersion("6.10")
-        val cp = (classpath + dep).map { it.jarFile.get() }
+        val cp = (classpath + dep).distinct().map { it.jarFile.get() }
                 .joinToString(File.pathSeparator)
         val passedArgs = listOf(
                 "-classpath",

@@ -2,10 +2,47 @@ package com.beust.kobalt.misc
 
 import com.beust.kobalt.maven.MavenId
 import com.google.common.base.CharMatcher
+import java.lang.Character
+import java.lang.IllegalStateException
+import java.lang.Integer
+import java.lang.Math
+import java.lang.NumberFormatException
 import java.math.BigInteger
 import java.util.*
 
-public class Versions {
+/**
+ * Allow to compare string versions.
+ */
+class StringVersion(val version: String) {
+    val array = version.split('.')
+
+    enum class Compare { LT, EQ, GT }
+
+    fun compareTo(other: String) : Compare {
+        val s1 = arrayListOf<String>().apply { addAll(version.split('.')) }
+        val s2 = arrayListOf<String>().apply { addAll(other.split('.')) }
+        val max = Math.max(s1.size, s2.size)
+        val shorterList : ArrayList<String> = if (s1.size == max) s2 else s1
+        repeat(max - shorterList.size) {
+            shorterList.add("0")
+        }
+
+        repeat(max) { index ->
+            try {
+                val v1 = Integer.parseInt(s1[index])
+                val v2 = Integer.parseInt(s2[index])
+                if (v1 < v2) return Compare.LT
+                else if (v1 > v2) return Compare.GT
+            } catch(ex: NumberFormatException) {
+                warn("Couldn't parse version $version or $other")
+                return Compare.LT
+            }
+        }
+        return Compare.EQ
+    }
+}
+
+class Versions {
     companion object {
         /**
          * Turn "6.9.4" into 600090004
