@@ -68,25 +68,38 @@ class TestNgRunner : GenericTestRunner() {
 
         val testngDependency = (project.testDependencies.filter { it.id.contains("testng") }
                 .firstOrNull() as AetherDependency).version
-        val testngDependencyVersion = StringVersion(testngDependency)
+        val remoteRunnerVersion = findRemoteRunnerVersion(testngDependency)
         val result =
-                if (testngDependencyVersion >= VERSION_6_10) {
+                if (remoteRunnerVersion != null) {
                     context.logger.log(project.name, 1, "Modern TestNG, displaying colors")
-                    displayPrettyColors(project, context, classpath)
+                    displayPrettyColors(project, context, classpath, remoteRunnerVersion)
                 } else {
-                    context.logger.log(project.name, 1, "Older TestNG ($testngDependencyVersion), using the old runner")
+                    context.logger.log(project.name, 1, "Older TestNG ($testngDependency), using the old runner")
                     super.runTests(project, context, classpath, configName)
                 }
         return result
     }
 
-    fun displayPrettyColors(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>)
+    private fun findRemoteRunnerVersion(testngVersion: String) : String? {
+        val tng = StringVersion(testngVersion)
+        val result =
+            if (tng >= VERSION_6_10) "testng-remote6_10"
+            else if (tng >= StringVersion("6.9.10")) "testng-remote6_9_10"
+            else if (tng >= StringVersion("6.9.7")) "testng-remote6_9_7"
+            else if (tng >= StringVersion("6.5.1")) "testng-remote6_5_0"
+            else if (tng >= StringVersion("6.0")) "testng-remote6_0"
+            else null
+        return result
+    }
+
+    fun displayPrettyColors(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
+            remoteRunnerVersion: String?)
             : Boolean {
         val port = 2345
 
         val dep = with(context.dependencyManager) {
             val jf = create("org.testng.testng-remote:testng-remote:1.3.0")
-            val tr = create("org.testng.testng-remote:testng-remote6_10:1.3.0")
+            val tr = create("org.testng.testng-remote:$remoteRunnerVersion:1.3.0")
             val testng = create("org.testng:testng:6.10")
             transitiveClosure(listOf(jf, tr, testng))
         }
@@ -105,7 +118,7 @@ class TestNgRunner : GenericTestRunner() {
                 "src/test/resources/testng.xml")
 
         Thread {
-            val exitCode = runCommand {
+            runCommand {
                 command = "java"
                 directory = File(project.directory)
                 args = passedArgs
@@ -127,7 +140,7 @@ class TestNgRunner : GenericTestRunner() {
         data class FailedTest(val method: String, val cls: String, val stackTrace: String)
 
         val failed = arrayListOf<FailedTest>()
-        var skipped = arrayListOf<String>()
+        val skipped = arrayListOf<String>()
 
         fun d(n: Int, color: String)
                 = AsciiArt.wrap(String.format("%4d", n), color)
@@ -153,9 +166,6 @@ class TestNgRunner : GenericTestRunner() {
                 print("\r  " + d(passed.size, AsciiArt.GREEN)
                         + " |   " + d(failed.size, AsciiArt.RED)
                         + " |   " + d(skipped.size, AsciiArt.YELLOW))
-                //                Thread.sleep(500)
-                //                print("\r" + String.format("%4d / %4d / %4d", passed.size, failed.size, skipped.size))
-                //                Thread.sleep(200)
             }
         } catch(ex: IOException) {
             println("Exception: ${ex.message}")
