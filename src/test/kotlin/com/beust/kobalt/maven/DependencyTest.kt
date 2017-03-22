@@ -2,7 +2,7 @@ package com.beust.kobalt.maven
 
 import com.beust.kobalt.TestModule
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.Versions
+import com.beust.kobalt.misc.StringVersion
 import org.testng.Assert
 import org.testng.annotations.*
 import java.util.concurrent.ExecutorService
@@ -40,10 +40,10 @@ class DependencyTest @Inject constructor(val executors: KobaltExecutors) {
 
     @Test(dataProvider = "dpVersions")
     fun versionSorting(k: String, v: String) {
-        val dep1 = Versions.toLongVersion(k)
-        val dep2 = Versions.toLongVersion(v)
-        Assert.assertTrue(dep1.compareTo(dep2) < 0)
-        Assert.assertTrue(dep2.compareTo(dep1) > 0)
+        val dep1 = StringVersion(k)
+        val dep2 = StringVersion(v)
+        Assert.assertTrue(dep1 < dep2)
+        Assert.assertTrue(dep2 > dep1)
     }
 }
 

@@ -34,7 +34,7 @@ class CheckVersions @Inject constructor(val depManager: DependencyManager,
                                 versions?.highestVersion.toString()
                             }
                         if (highest != dep.id
-                                && Versions.toLongVersion(highest) > Versions.toLongVersion(dep.version)) {
+                                && StringVersion(highest) > StringVersion(dep.version)) {
                             newVersions.add(artifact.groupId + ":" + artifact.artifactId + ":" + highest)
                         }
                     } catch(e: KobaltException) {

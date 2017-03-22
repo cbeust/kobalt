@@ -39,8 +39,8 @@ class UpdateKobalt @Inject constructor(val github: GithubApi2, val wrapperProper
 
         try {
             val latestVersionString = latestVersionFuture.get()
-            val latestVersion = Versions.toLongVersion(latestVersionString)
-            val current = Versions.toLongVersion(Kobalt.version)
+            val latestVersion = StringVersion(latestVersionString)
+            val current = StringVersion(Kobalt.version)
             val distFile = File(KFiles.distributionsDir)
             if (latestVersion > current) {
                 if (distFile.exists()) {

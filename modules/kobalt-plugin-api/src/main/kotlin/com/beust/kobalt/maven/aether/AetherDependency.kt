@@ -7,7 +7,7 @@ import com.beust.kobalt.maven.CompletedFuture
 import com.beust.kobalt.maven.LocalDep
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.MavenId
-import com.beust.kobalt.misc.Versions
+import com.beust.kobalt.misc.StringVersion
 import com.beust.kobalt.misc.warn
 import org.eclipse.aether.artifact.Artifact
 import java.io.File
@@ -69,8 +69,7 @@ class AetherDependency(val artifact: Artifact, override val optional: Boolean = 
     override val excluded = arrayListOf<Dependencies.ExcludeConfig>()
 
     override fun compareTo(other: AetherDependency): Int {
-        return Versions.toLongVersion(artifact.version).compareTo(Versions.toLongVersion(
-                other.artifact.version))
+        return StringVersion(artifact.version).compareTo(StringVersion(other.artifact.version))
     }
 
     override fun hashCode() = id.hashCode()

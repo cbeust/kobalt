@@ -12,7 +12,7 @@ import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.Versions
+import com.beust.kobalt.misc.StringVersion
 import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import java.io.File
@@ -90,7 +90,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
                             val currentLatest = latestVersions[shortId]
                             if (currentLatest == null) latestVersions[shortId] = mid.version!!
                             else mid.version?.let { v ->
-                                if (Versions.toLongVersion(currentLatest) < Versions.toLongVersion(v)) {
+                                if (StringVersion(currentLatest) < StringVersion(v)) {
                                     latestVersions[shortId] = v
                                 }
                             }

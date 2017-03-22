@@ -7,7 +7,7 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.aether.AetherDependency
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.Versions
+import com.beust.kobalt.misc.StringVersion
 import com.beust.kobalt.misc.runCommand
 import com.beust.kobalt.misc.warn
 import org.testng.remote.RemoteArgs
@@ -59,7 +59,7 @@ class TestNgRunner : GenericTestRunner() {
         }
     }
 
-    val VERSION_6_10 = 600100000L
+    val VERSION_6_10 = StringVersion("6.10")
 
     override fun runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             configName: String): Boolean {
@@ -68,7 +68,7 @@ class TestNgRunner : GenericTestRunner() {
 
         val testngDependency = (project.testDependencies.filter { it.id.contains("testng") }
                 .firstOrNull() as AetherDependency).version
-        val testngDependencyVersion = Versions.toLongVersion(testngDependency)
+        val testngDependencyVersion = StringVersion(testngDependency)
         val result =
                 if (testngDependencyVersion >= VERSION_6_10) {
                     context.logger.log(project.name, 1, "Modern TestNG, displaying colors")
@@ -91,7 +91,6 @@ class TestNgRunner : GenericTestRunner() {
             transitiveClosure(listOf(jf, tr, testng))
         }
 
-        val v = Versions.toLongVersion("6.10")
         val cp = (classpath + dep).distinct().map { it.jarFile.get() }
                 .joinToString(File.pathSeparator)
         val passedArgs = listOf(
