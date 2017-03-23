@@ -4,6 +4,7 @@ import com.beust.kobalt.misc.StringVersion
 import org.assertj.core.api.Assertions.assertThat
 import org.testng.annotations.DataProvider
 import org.testng.annotations.Test
+import java.util.*
 
 
 /**
@@ -52,5 +53,12 @@ class StringVersionTest {
         assertThat(sv1).isLessThan(sv2)
         assertThat(sv2).isGreaterThan(sv1)
         assertThat(sv1).isNotEqualTo(sv2)
+    }
+
+    @Test
+    fun sortVersions() {
+        val versions = listOf("1", "1.2", "0.9", "1.1", "1.1.1", "1.0.2").map(::StringVersion)
+        Collections.sort(versions)
+        assertThat(versions.map { it.version }).isEqualTo(listOf("0.9", "1", "1.0.2", "1.1", "1.1.1", "1.2"))
     }
 }
