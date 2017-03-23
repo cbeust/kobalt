@@ -1,2 +1,7 @@
 #!/usr/bin/env sh
-java -jar "`dirname "$(readlink -f "$0")"`/../kobalt/wrapper/kobalt-wrapper.jar" $*
+
+DIRNAME=`dirname $(readlink -f "$0")`
+if [[ "$(uname)" == "CYGWIN"* ]]; then
+    DIRNAME=`cygpath -d "$DIRNAME"`
+fi
+java -jar "${DIRNAME}/../kobalt/wrapper/kobalt-wrapper.jar" $*
