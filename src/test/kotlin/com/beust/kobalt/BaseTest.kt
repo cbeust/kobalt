@@ -86,4 +86,8 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
         return compilerFactory!!.create(listOf(thisBuildFile), pluginInfo).compileBuildFiles(args,
                 forceRecompile = true)
     }
+
+    fun createTemporaryProjectDirectory() = Files.createTempDirectory("kobaltTest").toFile().path
+            .replace("\\", "/")
+
 }

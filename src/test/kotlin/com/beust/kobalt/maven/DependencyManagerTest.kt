@@ -13,7 +13,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.aether.util.filter.AndDependencyFilter
 import org.testng.annotations.Guice
 import org.testng.annotations.Test
-import java.nio.file.Files
 
 @Guice(modules = arrayOf(TestModule::class))
 class DependencyManagerTest @Inject constructor(val dependencyManager: DependencyManager,
@@ -107,7 +106,7 @@ class DependencyManagerTest @Inject constructor(val dependencyManager: Dependenc
     }
 
     private fun findDependentProject(): Project {
-        val projectDirectory = Files.createTempDirectory("kobaltTest").toFile().path
+        val projectDirectory = createTemporaryProjectDirectory()
         val sharedBuildFile = """
             import com.beust.kobalt.*
 
