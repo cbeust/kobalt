@@ -2,16 +2,19 @@ package com.beust.kobalt
 
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
-import org.testng.Assert
 import org.testng.annotations.Test
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileReader
 import java.io.InputStream
 import java.util.*
+import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarInputStream
 
+/**
+ * Make sure the distribution zip file contains all the right files and no bad files.
+ */
 class VerifyKobaltZipTest : KobaltTest() {
     @Test
     fun verifySourceJarFile() {
@@ -43,7 +46,7 @@ class VerifyKobaltZipTest : KobaltTest() {
                 } else if (entry.name.endsWith("kobalt-wrapper.jar")) {
                     val ins = zipFile.getInputStream(entry)
                     foundWrapperJar = true
-                    assertExistsInJar(jarContents(JarInputStream(ins)), "kobalt.properties")
+                    assertExistence(ins, listOf("kobalt.properties"))
                 }
                 entry = stream.nextEntry
             }
@@ -72,31 +75,35 @@ class VerifyKobaltZipTest : KobaltTest() {
         }
 
     private fun verifyMainJarFile(ins: InputStream) {
-        JarInputStream(ins).let { jar ->
-            val setContent = jarContents(jar)
-            assertExistsInJar(setContent, "com/beust/kobalt/MainKt.class",
+        assertExistence(ins,
+                listOf("com/beust/kobalt/MainKt.class",
                     "templates/kobaltPlugin/kobaltPlugin.jar", "com/beust/kobalt/Args.class",
-                    "com/beust/kobalt/wrapper/Main.class")
-            assertDoesNotExistInJar(setContent, "BuildKt.class")
-        }
+                    "com/beust/kobalt/wrapper/Main.class"),
+                listOf("BuildKt.class"))
     }
 
-    private fun assertExistsInJar(content: Set<String>, vararg fileNames: String)
-        = assertExistence(content, true, *fileNames)
+    private fun assertExistence(ins: InputStream,
+            included: List<String>,
+            excluded: List<String> = emptyList(),
+            toName: (JarEntry) -> String = JarEntry::toString) {
+        val seq = toSequence(ins)
+        val foundItems = hashSetOf<String>()
+        seq.forEach { entry ->
+            val entryName = toName(entry)
 
-    private fun assertDoesNotExistInJar(content: Set<String>, vararg fileNames: String)
-        = assertExistence(content, false, *fileNames)
-
-    private fun assertExistence(content: Set<String>, verifyExistence: Boolean, vararg fileNames: String) {
-        with(content) {
-            fileNames.forEach { fileName ->
-                if (verifyExistence) {
-                    Assert.assertTrue(contains(fileName), "Couldn't find $fileName")
-                } else {
-                    val exists = content.contains(fileName)
-                    Assert.assertFalse(exists, "The jar file should not contain $fileName")
-                }
+            if (included.contains(entryName)) {
+                foundItems.add(entryName)
             }
+
+            if (excluded.any { entryName.contains(it) }) {
+                throw AssertionError(entryName + " should not be in the jar file")
+            }
+        }
+
+        if (foundItems != included.toSet()) {
+            val missing = arrayListOf<String>().apply { addAll(included) }
+            missing.removeAll(foundItems)
+            throw AssertionError("Didn't find a few items: " + missing)
         }
     }
 
@@ -104,19 +111,38 @@ class VerifyKobaltZipTest : KobaltTest() {
         val sourceJarPath = KFiles.joinDir("kobaltBuild", "libs", jarName)
         val file = File(sourceJarPath)
         if (file.exists()) {
-            assertExistsInJar(jarContents(JarInputStream(FileInputStream(file))), *fileNames)
+            assertExistence(FileInputStream(file), arrayListOf<String>().apply { addAll(fileNames) })
         } else {
             kobaltLog(1, "Couldn't find $file, skipping test")
         }
     }
 
-    private fun jarContents(stream: JarInputStream) : Set<String> {
-        val result = hashSetOf<String>()
-        var entry = stream.nextEntry
-        while (entry != null) {
-            result.add(entry.name)
-            entry = stream.nextEntry
+    private fun toSequence(ins: InputStream) = Sequence<JarEntry> { JarInputStreamIterator(JarInputStream(ins)) }
+}
+
+/**
+ * I don't want to hold the whole content of the jar file in memory to run tests on its content,
+ * so this iterator allows me to create a sequence out of it, so each entry in the jar file can
+ * be verified lazily
+ */
+class JarInputStreamIterator(val ins: JarInputStream) : Iterator<JarEntry> {
+    var next: JarEntry? = null
+
+    override fun next(): JarEntry {
+        if (next != null) {
+            next?.let {
+                val result = it
+                next = null
+                return result
+            }
+        } else {
+            return ins.nextJarEntry
         }
-        return result
+        throw IllegalArgumentException("Should never happen")
+    }
+
+    override fun hasNext(): Boolean {
+        if (next == null) next = ins.nextJarEntry
+        return next != null
     }
 }
