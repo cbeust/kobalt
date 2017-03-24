@@ -117,32 +117,7 @@ class VerifyKobaltZipTest : KobaltTest() {
         }
     }
 
-    private fun toSequence(ins: InputStream) = Sequence<JarEntry> { JarInputStreamIterator(JarInputStream(ins)) }
-}
+    fun JarInputStream.asSequence() = generateSequence { nextJarEntry }
 
-/**
- * I don't want to hold the whole content of the jar file in memory to run tests on its content,
- * so this iterator allows me to create a sequence out of it, so each entry in the jar file can
- * be verified lazily
- */
-class JarInputStreamIterator(val ins: JarInputStream) : Iterator<JarEntry> {
-    var next: JarEntry? = null
-
-    override fun next(): JarEntry {
-        if (next != null) {
-            next?.let {
-                val result = it
-                next = null
-                return result
-            }
-        } else {
-            return ins.nextJarEntry
-        }
-        throw IllegalArgumentException("Should never happen")
-    }
-
-    override fun hasNext(): Boolean {
-        if (next == null) next = ins.nextJarEntry
-        return next != null
-    }
+    private fun toSequence(ins: InputStream): Sequence<JarEntry> = JarInputStream(ins).asSequence()
 }
