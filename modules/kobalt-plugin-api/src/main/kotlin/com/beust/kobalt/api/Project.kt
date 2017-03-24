@@ -100,6 +100,7 @@ open class Project(
     val testProvidedDependencies : ArrayList<IClasspathDependency> = arrayListOf()
 
     fun testsDependOn(vararg projects: Project) = testsDependOn.addAll(projects)
+    fun dependsOn(vararg projects: Project) = dependsOn.addAll(projects)
 
     /** Used to disambiguate various name properties */
     @Directive
