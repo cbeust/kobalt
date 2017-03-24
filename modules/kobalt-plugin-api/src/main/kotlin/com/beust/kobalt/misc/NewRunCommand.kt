@@ -50,9 +50,8 @@ open class NewRunCommand(val info: RunCommandInfo) {
         //    val DEFAULT_SUCCESS_VERBOSE = { output: List<String> -> kobaltLog(2, "Success:\n " + output.joinToString
         // ("\n"))}
         //        val defaultSuccess = DEFAULT_SUCCESS
-        val DEFAULT_ERROR = {
-            output: List<String> ->
-            kotlin.error(output.joinToString("\n       "))
+        val DEFAULT_ERROR = { output: List<String> ->
+            kobaltError(output.joinToString("\n       "))
         }
     }
 
