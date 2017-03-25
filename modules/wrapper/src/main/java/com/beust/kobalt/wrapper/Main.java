@@ -221,17 +221,17 @@ public class Main {
             }
 
             //
-            // Install the launcher if not already found.
+            // Install the launcher(s) if not already found.
             //
             File kobaltw = new File(KOBALTW);
-            File kobaltw_bat = new File(KOBALTW_BAT);
+            File kobaltwBat = new File(KOBALTW_BAT);
 
             if (!kobaltw.exists()) {
                 generateKobaltW(kobaltw.toPath());
             }
 
-            if (!kobaltw_bat.exists()) {
-                generateKobaltWBat(kobaltw_bat.toPath());
+            if (!kobaltwBat.exists()) {
+                generateKobaltWBat(kobaltwBat.toPath());
             }
         }
 
