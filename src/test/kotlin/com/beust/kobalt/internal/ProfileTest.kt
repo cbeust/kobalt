@@ -35,7 +35,7 @@ class ProfileTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
         }
 
         val args = Args()
-        if (enabled) args.profiles = "profile"
+        if (enabled) args.profiles = "debug"
         val results = compileBuildFile(projectDirectory, buildFileString(), args)
         return results.projects[0]
     }
