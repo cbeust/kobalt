@@ -15,6 +15,7 @@ import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.File
 import java.io.PrintWriter
+import java.nio.file.Files
 import javax.tools.DiagnosticCollector
 import javax.tools.JavaFileObject
 import javax.tools.ToolProvider
@@ -77,11 +78,13 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler, val kobaltL
                     allArgs.addAll(info.compilerArgs)
                     allArgs.addAll(info.sourceFiles.filter { File(it).isFile })
 
-                    val pb = ProcessBuilder(allArgs)
+                    val dir = Files.createTempDirectory("kobalt").toFile()
+                    val atFile = File(dir, "javac-" + project?.name + ".txt")
+                    atFile.writeText(KFiles.fixSlashes(allArgs.subList(1, allArgs.size).joinToString(" ")))
+                    val pb = ProcessBuilder(executable.absolutePath, "@" + KFiles.fixSlashes(atFile))
                     pb.inheritIO()
-                    val line = allArgs.joinToString(" ")
                     logk(1, "  Java compiling " + Strings.pluralizeAll(info.sourceFiles.size, "file"))
-                    logk(2, "  Java compiling $line")
+                    logk(2, "  Java compiling file: " + KFiles.fixSlashes(atFile))
 
                     command = allArgs.joinToString(" ") + " " + info.sourceFiles.joinToString(" ")
                     val process = pb.start()

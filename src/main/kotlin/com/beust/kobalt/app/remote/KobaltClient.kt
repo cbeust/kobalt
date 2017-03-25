@@ -8,6 +8,7 @@ import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.GraphUtil
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.maven.aether.Exceptions
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.warn
 import com.google.gson.Gson
 import com.google.inject.Guice
@@ -31,7 +32,7 @@ class KobaltClient : Runnable {
         val client = OkHttpClient()
         val port = KobaltServer.port ?: 1240
         val url = "ws://localhost:$port/v1/getDependencyGraph"
-        val buildFile = homeDir("kotlin/kobalt/kobalt/src/Build.kt").replace("\\", "/")
+        val buildFile = KFiles.fixSlashes(homeDir("kotlin/kobalt/kobalt/src/Build.kt"))
         val request = Request.Builder()
 //            .url("ws://echo.websocket.org")
             .url("$url?buildFile=$buildFile")

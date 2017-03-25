@@ -7,6 +7,7 @@ import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.KobaltPluginXml
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import org.testng.annotations.BeforeClass
 import java.io.File
@@ -27,7 +28,7 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
      */
     fun compileSingleProject(projectText: String, args: Args = Args()) : Project {
         val projectName = "p" + Math.abs(Random().nextInt())
-        val projectDirectory = Files.createTempDirectory("kobaltTest").toFile().path.replace("\\", "/")
+        val projectDirectory = KFiles.fixSlashes(Files.createTempDirectory("kobaltTest").toFile())
         val buildFileText= """
             import com.beust.kobalt.*
             import com.beust.kobalt.api.*
@@ -87,7 +88,6 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
                 forceRecompile = true)
     }
 
-    fun createTemporaryProjectDirectory() = Files.createTempDirectory("kobaltTest").toFile().path
-            .replace("\\", "/")
+    fun createTemporaryProjectDirectory() = KFiles.fixSlashes(Files.createTempDirectory("kobaltTest").toFile())
 
 }
