@@ -56,7 +56,7 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
                 startLine = currentLineNumber
                 foundKeyword = true
                 count = 1
-                result.append(topLines.joinToString("\n"))
+                result.append(topLines.joinToString("\n")).append("\n")
                 result.append(line).append("\n")
             } else {
                 val allowedImports = listOf("com.beust", "java")

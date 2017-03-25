@@ -24,7 +24,7 @@ class ProfileTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
             return """
                 import com.beust.kobalt.*
                 import com.beust.kobalt.api.*
-                val profile = false
+                val profile by profile()
                 val $projectVal = project {
                     name = if (profile) "profileOn" else "profileOff"
                     directory = "$projectDirectory"

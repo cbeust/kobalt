@@ -111,7 +111,8 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
             KFiles.saveFile(modifiedBuildFile, parsedBuildFile.buildScriptCode)
             val taskResult = maybeCompileBuildFile(context, BuildFile(Paths.get(modifiedBuildFile.path),
                     "Modified ${Constants.BUILD_FILE_NAME}", buildFile.realPath),
-                    buildScriptJarFile, pluginUrls, context.internalContext.forceRecompile)
+                    buildScriptJarFile, pluginUrls, context.internalContext.forceRecompile,
+                    parsedBuildFile.containsProfiles)
             if (taskResult.success) {
                 projects.addAll(buildScriptUtil.runBuildScriptJarFile(buildScriptJarFile, pluginUrls, context))
             } else {
@@ -130,7 +131,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
     }
 
     private fun maybeCompileBuildFile(context: KobaltContext, buildFile: BuildFile, buildScriptJarFile: File,
-            pluginUrls: List<URL>, forceRecompile: Boolean) : TaskResult {
+            pluginUrls: List<URL>, forceRecompile: Boolean, containsProfiles: Boolean) : TaskResult {
         kobaltLog(2, "Running build file ${buildFile.name} jar: $buildScriptJarFile")
 
         // If the user specifed --profiles, always recompile the build file since we don't know if
@@ -140,12 +141,15 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildFiles") val buildFil
         // to have a side file that describes which profiles the current buildScript.jar was
         // compiled with.
         val bs = BuildScriptJarFile(buildScriptJarFile)
-        val same = bs.sameProfiles(args.profiles)
-        if (same && ! forceRecompile && buildScriptUtil.isUpToDate(buildFile, buildScriptJarFile)) {
+        if (! containsProfiles && !forceRecompile && buildScriptUtil.isUpToDate(buildFile, buildScriptJarFile)) {
             kobaltLog(2, "  Build file $buildScriptJarFile is up to date")
             return TaskResult()
         } else {
-            kobaltLog(2, "  Need to recompile ${buildFile.name}")
+            val reason =
+                if (containsProfiles) "it contains profiles"
+                else if (forceRecompile) "forceRecompile is true"
+                else "it is not up to date"
+            kobaltLog(2, "  Need to recompile ${buildFile.name} because $reason")
 
             buildScriptJarFile.deleteRecursively()
             val buildFileClasspath = Kobalt.buildFileClasspath.map { it.jarFile.get() }.map { it.absolutePath }

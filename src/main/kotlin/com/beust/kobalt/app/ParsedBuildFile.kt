@@ -8,7 +8,6 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.internal.build.VersionFile
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.maven.aether.Filters.EXCLUDE_OPTIONAL_FILTER
 import com.beust.kobalt.misc.BlockExtractor
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
@@ -29,6 +28,8 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
     val projects = arrayListOf<Project>()
     val activeProfiles = arrayListOf<String>()
 
+    var containsProfiles = false
+
     private val preBuildScript = arrayListOf(
             "import com.beust.kobalt.*",
             "import com.beust.kobalt.api.*")
@@ -48,13 +49,19 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
          * val profile = true, otherwise return the same line
          */
         fun correctProfileLine(line: String): String {
-            (context.profiles as List<String>).forEach {
-                if (line.matches(Regex("[ \\t]*val[ \\t]+$it[ \\t]*=.*"))) {
-                    with("val $it = true") {
-                        kobaltLog(2, "Activating profile $it in build file")
-                        activeProfiles.add(it)
-                        profileLines.add(this)
-                        return this
+            (context.profiles as List<String>).forEach { profile ->
+                val re = Regex(".*va[rl][ \\t]+([a-zA-Z0-9_]+)[ \\t]*.*profile\\(\\).*")
+                val matcher = re.matchEntire(line)
+                if (matcher != null && matcher.groups.size > 0) {
+                    containsProfiles = true
+                    val variable = matcher.groups[1]?.value
+                    if (profile == variable) {
+                        with("val $variable = true") {
+                            kobaltLog(2, "Activating profile $profile in build file")
+                            activeProfiles.add(profile)
+                            profileLines.add(this)
+                            return this
+                        }
                     }
                 }
             }
@@ -102,20 +109,23 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         //
         val pluginSourceFile = KFiles.createTempBuildFileInTempDirectory(deleteOnExit = true)
         pluginSourceFile.writeText(preBuildScriptCode, Charset.defaultCharset())
-        kobaltLog(2, "Saved ${pluginSourceFile.absolutePath}")
+        kobaltLog(2, "Saved " + KFiles.fixSlashes(pluginSourceFile.absolutePath))
 
         //
         // Compile to preBuildScript.jar
         //
         val buildScriptJar = KFiles.findBuildScriptLocation(buildFile, "preBuildScript.jar")
         val buildScriptJarFile = File(buildScriptJar)
-        if (! buildScriptUtil.isUpToDate(buildFile, File(buildScriptJar))) {
+
+        // Because of profiles, it's not possible to find out if a preBuildScript.jar is up to date
+        // or not so recompile it every time.
+//        if (! buildScriptUtil.isUpToDate(buildFile, File(buildScriptJar))) {
             buildScriptJarFile.parentFile.mkdirs()
             generateJarFile(context, BuildFile(Paths.get(pluginSourceFile.path), "Plugins",
                     Paths.get(buildScriptJar)), buildScriptJarFile, buildFile)
             VersionFile.generateVersionFile(buildScriptJarFile.parentFile)
             Kobalt.context!!.internalContext.buildFileOutOfDate = true
-        }
+//        }
 
         //
         // Run preBuildScript.jar to initialize plugins and repos
