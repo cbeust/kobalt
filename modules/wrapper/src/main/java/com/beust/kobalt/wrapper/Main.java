@@ -219,6 +219,20 @@ public class Main {
                 log(2, "  Couldn't find $VERSION_TEXT, overwriting the installed wrapper");
                 installWrapperFiles(version, wrapperVersion);
             }
+
+            //
+            // Install the launcher(s) if not already found.
+            //
+            File kobaltw = new File(KOBALTW);
+            File kobaltwBat = new File(KOBALTW_BAT);
+
+            if (!kobaltw.exists()) {
+                generateKobaltW(kobaltw.toPath());
+            }
+
+            if (!kobaltwBat.exists()) {
+                generateKobaltWBat(kobaltwBat.toPath());
+            }
         }
 
         return kobaltJarFile;
