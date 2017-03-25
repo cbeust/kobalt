@@ -119,7 +119,8 @@ class CompilerUtils @Inject constructor(val files: KFiles, val dependencyManager
         // depending on the compiler's ability, sourceFiles can actually contain a list of directories
         // instead of individual source files.
         val projectDirectory = File(project.directory)
-        val sourceFiles = if (compiler.canCompileDirectories) {
+        val sourceFiles =
+            if (compiler.canCompileDirectories) {
                 allSourceDirectories.map { File(projectDirectory, it.path).path }
             } else {
                 files.findRecursively(projectDirectory, allSourceDirectories,
