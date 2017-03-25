@@ -16,7 +16,7 @@ import java.util.*
 @Guice(modules = arrayOf(TestModule::class))
 class ProfileTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactory) : BaseTest(compilerFactory) {
 
-    private fun runTestWithProfile(enabled: Boolean) : Project {
+    private fun runTestWithProfile(enabled: Boolean, oldSyntax: Boolean) : Project {
         val projectVal = "p" + Math.abs(Random().nextInt())
         val projectDirectory = createTemporaryProjectDirectory()
 
@@ -24,7 +24,9 @@ class ProfileTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
             return """
                 import com.beust.kobalt.*
                 import com.beust.kobalt.api.*
-                val profile by profile()
+                val profile""" +
+                    (if (oldSyntax) " = false\n" else " by profile()\n") +
+            """
                 val $projectVal = project {
                     name = if (profile) "profileOn" else "profileOff"
                     directory = "$projectDirectory"
@@ -46,7 +48,13 @@ class ProfileTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
     @Test(dataProvider = "dp")
     fun profilesShouldWork(enabled: Boolean, expected: String) {
         Kobalt.init(TestModule())
-        assertThat(runTestWithProfile(enabled).name).isEqualTo(expected)
+        assertThat(runTestWithProfile(enabled, oldSyntax = false).name).isEqualTo(expected)
+    }
+
+    @Test(dataProvider = "dp")
+    fun profilesShouldWorkOldSyntax(enabled: Boolean, expected: String) {
+        Kobalt.init(TestModule())
+        assertThat(runTestWithProfile(enabled, oldSyntax = true).name).isEqualTo(expected)
     }
 }
 

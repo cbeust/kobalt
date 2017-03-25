@@ -11,6 +11,7 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.BlockExtractor
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
+import com.beust.kobalt.misc.warn
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import java.io.File
 import java.net.URL
@@ -51,11 +52,27 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         fun correctProfileLine(line: String): String {
             (context.profiles as List<String>).forEach { profile ->
                 val re = Regex(".*va[rl][ \\t]+([a-zA-Z0-9_]+)[ \\t]*.*profile\\(\\).*")
+                val oldRe = Regex(".*va[rl][ \\t]+([a-zA-Z0-9_]+)[ \\t]*=[ \\t]*[tf][ra][ul][es].*")
                 val matcher = re.matchEntire(line)
-                if (matcher != null && matcher.groups.size > 0) {
+                val oldMatcher = oldRe.matchEntire(line)
+
+                fun profileMatch(matcher: MatchResult?) : Pair<Boolean, String?> {
+                    val variable = if (matcher != null) matcher.groups[1]?.value else null
+                    return Pair(profile == variable, variable)
+                }
+
+                if ((matcher != null && matcher.groups.size > 0) || (oldMatcher != null && oldMatcher.groups.size> 0)) {
                     containsProfiles = true
-                    val variable = matcher.groups[1]?.value
-                    if (profile == variable) {
+                    val match = profileMatch(matcher)
+                    val oldMatch = profileMatch(oldMatcher)
+                    if (match.first || oldMatch.first) {
+                        val variable = if (match.first) match.second else oldMatch.second
+
+                        if (oldMatch.first) {
+                            warn("Old profile syntax detected for \"$line\"," +
+                                    " please update to \"val $variable by profile()\"")
+                        }
+
                         with("val $variable = true") {
                             kobaltLog(2, "Activating profile $profile in build file")
                             activeProfiles.add(profile)
