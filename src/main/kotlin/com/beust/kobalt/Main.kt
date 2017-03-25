@@ -152,6 +152,9 @@ private class Main @Inject constructor(
             } else if (args.update) {
                 // --update
                 updateKobalt.updateKobalt()
+            } else if (args.serverMode) {
+                // --server
+                val port = serverFactory.create(args.force, args.port, { cleanUp() }).call()
             } else {
                 //
                 // Everything below requires to parse the build file first
@@ -165,13 +168,6 @@ private class Main @Inject constructor(
                     if (args.listTemplates) {
                         // --listTemplates
                         Templates().displayTemplates(pluginInfo)
-                    } else if (args.serverMode) {
-                        // --server
-                        val port = serverFactory.create(args.force, args.port,
-                            { buildFile -> projectFinder.initForBuildFile(BuildFile(Paths.get(buildFile),
-                                    buildFile), args) },
-                            { cleanUp() })
-                        .call()
                     } else if (args.projectInfo) {
                         // --projectInfo
                         allProjects.forEach {

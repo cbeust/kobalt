@@ -26,13 +26,11 @@ import javax.annotation.Nullable
  * To enable websocket debugging, uncomment the "debug" <root> tag in logback.xml.
  */
 class KobaltServer @Inject constructor(@Assisted val force: Boolean, @Assisted @Nullable val givenPort: Int?,
-        @Assisted val initCallback: (String) -> List<Project>,
         @Assisted val cleanUpCallback: () -> Unit,
         val pluginInfo : PluginInfo) : Callable<Int> {
 
     interface IFactory {
         fun create(force: Boolean, givenPort: Int? = null,
-                initCallback: (String) -> List<Project>,
                 cleanUpCallback: () -> Unit) : KobaltServer
     }
 
@@ -78,7 +76,7 @@ class KobaltServer @Inject constructor(@Assisted val force: Boolean, @Assisted @
                 kobaltLog(1, "KobaltServer listening on port $port")
 //                OldServer(initCallback, cleanUpCallback).run(port)
 //                JerseyServer(initCallback, cleanUpCallback).run(port)
-                SparkServer(initCallback, cleanUpCallback, pluginInfo).run(port)
+                SparkServer(cleanUpCallback, pluginInfo).run(port)
 //                WasabiServer(initCallback, cleanUpCallback).run(port)
             }
         } catch(ex: Exception) {
