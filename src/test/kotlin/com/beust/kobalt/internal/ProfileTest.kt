@@ -24,7 +24,7 @@ class ProfileTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
             return """
                 import com.beust.kobalt.*
                 import com.beust.kobalt.api.*
-                val profile""" +
+                val debug""" +
                     (if (oldSyntax) " = false\n" else " by profile()\n") +
             """
                 val $projectVal = project {
