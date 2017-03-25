@@ -28,7 +28,7 @@ class ProfileTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
                     (if (oldSyntax) " = false\n" else " by profile()\n") +
             """
                 val $projectVal = project {
-                    name = if (profile) "profileOn" else "profileOff"
+                    name = if (debug) "profileOn" else "profileOff"
                     directory = "$projectDirectory"
                 }
                 """.trim()
