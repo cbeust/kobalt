@@ -238,7 +238,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
             }
 
             if (isTest) {
-                project.testsDependOnProjects.forEach { p ->
+                project.testsDependOn.forEach { p ->
                     val otherDependencies = calculateDependencies(p, context, dependencyFilter, scopes)
                     result.addAll(otherDependencies)
                 }

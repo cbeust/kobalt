@@ -93,7 +93,7 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler, val kobaltL
             return if (result) {
                     TaskResult(true, "Compilation succeeded")
                 } else {
-                    val message = "Compilation errors, command:\n$command" + errorMessage
+                    val message = "Compilation errors, command:\n$command\n" + errorMessage
                     logk(1, message)
                     TaskResult(false, message)
                 }

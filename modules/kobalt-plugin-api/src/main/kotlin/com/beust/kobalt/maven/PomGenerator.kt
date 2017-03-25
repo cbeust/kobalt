@@ -23,6 +23,10 @@ class PomGenerator @Inject constructor(@Assisted val project: Project) {
      * Generate the POM file and save it.
      */
     fun generateAndSave() {
+        requireNotNull(project.version, { "version is mandatory on project ${project.name}" })
+        requireNotNull(project.group, { "group is mandatory on project ${project.name}" })
+        requireNotNull(project.artifactId, { "artifactId is mandatory on project ${project.name}" })
+
         val buildDir = KFiles.makeDir(project.directory, project.buildDirectory)
         val outputDir = KFiles.makeDir(buildDir.path, "libs")
         val NO_CLASSIFIER = null
@@ -38,10 +42,6 @@ class PomGenerator @Inject constructor(@Assisted val project: Project) {
      * @return the text content of the POM file.
      */
     fun generate() : String {
-        requireNotNull(project.version, { "version mandatory on project ${project.name}" })
-        requireNotNull(project.group, { "group mandatory on project ${project.name}" })
-        requireNotNull(project.artifactId, { "artifactId mandatory on project ${project.name}" })
-
         val pom = (project.pom ?: Model()).apply {
             // Make sure the pom has reasonable default values
             if (name == null) name = project.name

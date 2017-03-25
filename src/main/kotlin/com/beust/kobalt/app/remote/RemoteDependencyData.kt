@@ -125,6 +125,8 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
                 .map { toDependencyData2("testCompile", it)}
         }
 
+        val projectRoot = File(buildFilePath).parentFile.parentFile.parentFile
+
         val allTasks = hashSetOf<TaskData>()
         projectResult.projects.withIndex().forEach { wi ->
             val project = wi.value
@@ -136,7 +138,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
 
             // Separate resource from source directories
             fun partition(project: Project, dirs: Collection<String>)
-                    = dirs.filter { File(project.directory, it).exists() }
+                    = dirs.filter { File(KFiles.joinDir(projectRoot.absolutePath, project.directory, it)).exists() }
                     .partition { KFiles.isResource(it) }
             val sources = partition(project, project.sourceDirectories)
             val tests = partition(project, project.sourceDirectoriesTest)
