@@ -6,6 +6,7 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.aether.AetherDependency
 import com.beust.kobalt.maven.aether.KobaltMavenResolver
+import java.util.*
 import javax.inject.Inject
 
 /**
@@ -28,13 +29,21 @@ class CheckVersions @Inject constructor(val depManager: DependencyManager,
                         val artifact = (latestDep as AetherDependency).artifact
                         val versions = resolver.resolveVersion(artifact)
                         val releases = versions?.versions?.filter { !it.toString().contains("SNAP")}
-                        val highest = if (releases != null && releases.any()) {
-                                releases.last().toString()
+                        val highestRelease =
+                            if (releases != null) {
+                                val strings = releases.map { it.toString() }
+                                val c = strings.contains("1.0.8")
+                                val sv = releases.map { StringVersion(it.toString()) }
+                                Collections.sort(sv, Collections.reverseOrder())
+                                if (sv.any()) sv[0] else null
                             } else {
-                                versions?.highestVersion.toString()
+                                null
                             }
+
+                        val highest = highestRelease ?: versions?.highestVersion.toString()
+
                         if (highest != dep.id
-                                && StringVersion(highest) > StringVersion(dep.version)) {
+                                && StringVersion(highest.toString()) > StringVersion(dep.version)) {
                             newVersions.add(artifact.groupId + ":" + artifact.artifactId + ":" + highest)
                         }
                     } catch(e: KobaltException) {
