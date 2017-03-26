@@ -158,7 +158,7 @@ class TestNgRunner : GenericTestRunner() {
         val dep = with(context.dependencyManager) {
             val jf = create("org.testng.testng-remote:testng-remote:1.3.0")
             val tr = create("org.testng.testng-remote:$remoteRunnerVersion:1.3.0")
-            val testng = create("org.testng:testng:6.10")
+            val testng = create("org.testng:testng:6.11")
             transitiveClosure(kotlin.collections.listOf(jf, tr /*, testng */))
         }
 
