@@ -51,11 +51,14 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager)
     override fun apply(project: Project, context: KobaltContext) {
         listOf(aptConfigs[project.name]?.outputDir, aptConfigs[project.name]?.outputDir)
             .filterNotNull()
+            .distinct()
             .map { generatedDir(project, it) }
             .forEach {
-                context.logger.log(project.name, 1, "Deleting " + it.absolutePath)
-                val success = it.deleteRecursively()
-                if (! success) warn("  Couldn't delete " + it.absolutePath)
+                it.normalize().absolutePath.let { path ->
+                    context.logger.log(project.name, 1, "  Deleting " + path)
+                    val success = it.deleteRecursively()
+                    if (!success) warn("  Couldn't delete " + path)
+                }
             }
     }
 
