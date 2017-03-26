@@ -34,7 +34,7 @@ class ResolveDependency @Inject constructor(
 
     private fun latestMavenArtifact(group: String, artifactId: String, extension: String = "jar"): DependencyNode {
         val artifact = DefaultArtifact(group, artifactId, extension, "(0,]")
-        val resolved = aether.resolveVersion(artifact)
+        val resolved = aether.resolveRange(artifact)
         if (resolved != null) {
             val newArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.extension,
                     resolved.highestVersion.toString())

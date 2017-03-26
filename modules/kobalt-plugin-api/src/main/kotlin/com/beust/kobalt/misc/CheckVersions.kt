@@ -6,7 +6,6 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.MavenId
 import com.beust.kobalt.maven.aether.AetherDependency
 import com.beust.kobalt.maven.aether.KobaltMavenResolver
-import java.util.*
 import javax.inject.Inject
 
 /**
@@ -27,24 +26,14 @@ class CheckVersions @Inject constructor(val depManager: DependencyManager,
                     try {
                         val latestDep = depManager.create(dep.shortId, false, project.directory)
                         val artifact = (latestDep as AetherDependency).artifact
-                        val versions = resolver.resolveVersion(artifact)
-                        val releases = versions?.versions?.filter { !it.toString().contains("SNAP")}
-                        val highestRelease =
-                            if (releases != null) {
-                                val strings = releases.map { it.toString() }
-                                val c = strings.contains("1.0.8")
-                                val sv = releases.map { StringVersion(it.toString()) }
-                                Collections.sort(sv, Collections.reverseOrder())
-                                if (sv.any()) sv[0] else null
-                            } else {
-                                null
+                        val rangeResult = resolver.resolveRange(artifact)
+
+                        if (rangeResult != null) {
+                            val highest = rangeResult.highestVersion?.toString()
+                            if (highest != null && highest != dep.id
+                                    && StringVersion(highest) > StringVersion(dep.version)) {
+                                newVersions.add(artifact.groupId + ":" + artifact.artifactId + ":" + highest)
                             }
-
-                        val highest = highestRelease ?: versions?.highestVersion.toString()
-
-                        if (highest != dep.id
-                                && StringVersion(highest.toString()) > StringVersion(dep.version)) {
-                            newVersions.add(artifact.groupId + ":" + artifact.artifactId + ":" + highest)
                         }
                     } catch(e: KobaltException) {
                         kobaltLog(1, "  Cannot resolve ${dep.shortId}. ignoring")
