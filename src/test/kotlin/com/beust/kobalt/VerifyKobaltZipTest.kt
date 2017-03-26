@@ -79,7 +79,7 @@ class VerifyKobaltZipTest : KobaltTest() {
                 listOf("com/beust/kobalt/MainKt.class",
                     "templates/kobaltPlugin/kobaltPlugin.jar", "com/beust/kobalt/Args.class",
                     "com/beust/kobalt/wrapper/Main.class"),
-                listOf("BuildKt.class"))
+                listOf("BuildKt.class", "Versions.class"))
     }
 
     private fun assertExistence(ins: InputStream,
@@ -95,7 +95,7 @@ class VerifyKobaltZipTest : KobaltTest() {
                 foundItems.add(entryName)
             }
 
-            if (excluded.any { entryName.contains(it) }) {
+            if (excluded.any { entryName == it }) {
                 throw AssertionError(entryName + " should not be in the jar file")
             }
         }
