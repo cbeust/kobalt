@@ -2,14 +2,12 @@ package com.beust.kobalt.plugin.apt
 
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.internal.ActorUtils
-import com.beust.kobalt.internal.CompilerUtils
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.warn
 import com.google.common.collect.ArrayListMultimap
 import com.google.inject.Inject
 import java.io.File
-import java.nio.file.Files
 import java.util.*
 import javax.inject.Singleton
 
@@ -21,25 +19,22 @@ import javax.inject.Singleton
  * (outputDir, etc...).
  */
 @Singleton
-class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, val compilerUtils: CompilerUtils)
-    : BasePlugin(), ICompilerFlagContributor, ISourceDirectoryContributor, ITaskContributor {
+class AptPlugin @Inject constructor(val dependencyManager: DependencyManager)
+    : BasePlugin(), ICompilerFlagContributor, ISourceDirectoryContributor {
 
     // ISourceDirectoryContributor
+
+    private fun generatedDir(project: Project, outputDir: String) : File
+        = File(KFiles.joinDir(project.directory, KFiles.KOBALT_BUILD_DIR, outputDir))
 
     override fun sourceDirectoriesFor(project: Project, context: KobaltContext): List<File> {
         val result = arrayListOf<File>()
         aptConfigs[project.name]?.let { config ->
-            result.add(File(
-                    KFiles.joinDir(project.directory,
-                            KFiles.KOBALT_BUILD_DIR,
-                            config.outputDir)))
+            result.add(generatedDir(project, config.outputDir))
         }
 
         kaptConfigs[project.name]?.let { config ->
-            result.add(File(
-                    KFiles.joinDir(project.directory,
-                            KFiles.KOBALT_BUILD_DIR,
-                            config.outputDir)))
+            result.add(generatedDir(project, config.outputDir))
         }
 
         return result
@@ -54,47 +49,14 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
     override val name = PLUGIN_NAME
 
     override fun apply(project: Project, context: KobaltContext) {
-    }
-
-    // ITaskContributor
-    override fun tasksFor(project: Project, context: KobaltContext) : List<DynamicTask> {
-//        val kapt = kaptConfigs[project.name]
-//        if (kapt != null) {
-//            return listOf(DynamicTask(this, "kapt", "Run kapt", project = project,
-//                    reverseDependsOn = listOf(JvmCompilerPlugin.TASK_COMPILE),
-//                    group = AnnotationDefault.GROUP,
-//                    closure = { project ->
-//                        runApt(project, context)
-//                        TaskResult()
-//                    }))
-//        } else {
-            return emptyList()
-//        }
-//
-    }
-
-    private fun runApt(project: Project, context: KobaltContext) {
-        val kapt = kaptConfigs[project.name]
-        if (kapt != null) {
-
-            val sourceDir = Files.createTempDirectory("kobalt").toFile()
-            val javaFile = File(sourceDir, "A.java").apply {
-                appendText("class A {}")
+        listOf(aptConfigs[project.name]?.outputDir, aptConfigs[project.name]?.outputDir)
+            .filterNotNull()
+            .map { generatedDir(project, it) }
+            .forEach {
+                context.logger.log(project.name, 1, "Deleting " + it.absolutePath)
+                val success = it.deleteRecursively()
+                if (! success) warn("  Couldn't delete " + it.absolutePath)
             }
-            val compilerContributors = context.pluginInfo.compilerContributors
-            ActorUtils.selectAffinityActors(project, context,
-                    context.pluginInfo.compilerContributors)
-
-            val allCompilers = compilerContributors.flatMap { it.compilersFor(project, context) }.sorted()
-            val javaCompiler = allCompilers.filter { it.sourceSuffixes.contains("java") }[0]
-
-            val dependencies = dependencyManager.calculateDependencies(project, context)
-            val info = CompilerActionInfo(sourceDir.absolutePath, dependencies,
-                    listOf(javaFile.absolutePath), listOf("java"), File(sourceDir, "generated"),
-                    listOf(), listOf(), context.internalContext.forceRecompile)
-
-            val results = compilerUtils.invokeCompiler(project, context, javaCompiler, info)
-        }
     }
 
     private fun generated(project: Project, context: KobaltContext, outputDir: String) =
@@ -109,7 +71,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
         val result = arrayListOf<String>()
 
         fun addFlags(outputDir: String) {
-            aptDependencies[project.name]?.let { aptDependencies ->
+            aptDependencies[project.name]?.let {
                 result.add("-s")
                 result.add(generated(project, context, outputDir))
             }
