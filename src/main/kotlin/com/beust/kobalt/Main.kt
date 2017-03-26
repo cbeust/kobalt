@@ -236,11 +236,7 @@ private class Main @Inject constructor(
         tasksByPlugins.keySet().forEach { name ->
             sb.append("\n  " + AsciiArt.horizontalDoubleLine + " $name "
                     + AsciiArt.horizontalDoubleLine + "\n")
-            tasksByPlugins[name].distinctBy {
-                it.name
-            }.sortedBy {
-                it.name
-            }.forEach { task ->
+            tasksByPlugins[name].distinctBy(PluginTask::name).sortedBy(PluginTask::name).forEach { task ->
                 sb.append("    ${task.name}\t\t${task.doc}\n")
             }
         }
