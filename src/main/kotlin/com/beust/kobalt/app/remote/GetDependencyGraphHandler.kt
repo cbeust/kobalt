@@ -6,6 +6,7 @@ import com.beust.kobalt.app.ProjectFinder
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.internal.eventbus.ArtifactDownloadedEvent
 import com.beust.kobalt.maven.aether.Exceptions
+import com.beust.kobalt.misc.KFiles
 import com.google.common.eventbus.EventBus
 import com.google.common.eventbus.Subscribe
 import com.google.gson.Gson
@@ -21,6 +22,9 @@ class GetDependencyGraphHandler : WebSocketListener {
     // The SparkJava project refused to merge https://github.com/perwendel/spark/pull/383
     // so I have to do dependency injections manually :-(
     val projectFinder = Kobalt.INJECTOR.getInstance(ProjectFinder::class.java)
+
+    val PARAMETER_PROJECT_ROOT = "projectRoot"
+    val PARAMETER_BUILD_FILE = "buildFile"
 
     var session: Session? = null
 
@@ -39,15 +43,29 @@ class GetDependencyGraphHandler : WebSocketListener {
                 errorMessage = errorMessage)))
     }
 
+    private fun findBuildFile(map: Map<String, List<String>>) : String? {
+        val projectRoot = map[PARAMETER_PROJECT_ROOT]
+        val buildFile = map[PARAMETER_BUILD_FILE]
+        val result =
+            if (projectRoot != null) {
+                KFiles.findBuildFile(projectRoot[0]).absolutePath
+            } else if (buildFile != null) {
+                buildFile[0]
+            } else {
+                null
+            }
+        return result
+    }
+
     override fun onWebSocketConnect(s: Session) {
         session = s
-        val buildFileParams = s.upgradeRequest.parameterMap["buildFile"]
-        if (buildFileParams != null) {
-            val buildFile = buildFileParams[0]
+        val buildFile = findBuildFile(s.upgradeRequest.parameterMap)
 
-            fun <T> getInstance(cls: Class<T>) : T = Kobalt.INJECTOR.getInstance(cls)
+        fun <T> getInstance(cls: Class<T>) : T = Kobalt.INJECTOR.getInstance(cls)
 
-            val result = if (buildFile != null) {
+        // Parse the request
+        val result =
+            if (buildFile != null) {
                 // Track all the downloads that this dependency call might trigger and
                 // send them as a progress message to the web socket
                 val eventBus = getInstance(EventBus::class.java)
@@ -76,8 +94,7 @@ class GetDependencyGraphHandler : WebSocketListener {
                     }, useGraph = true)
                 } catch(ex: Throwable) {
                     Exceptions.printStackTrace(ex)
-                    val errorMessage = ex.message
-                    RemoteDependencyData.GetDependenciesData(errorMessage = errorMessage)
+                    RemoteDependencyData.GetDependenciesData(errorMessage = ex.message)
                 } finally {
                     SparkServer.cleanUpCallback()
                     eventBus.unregister(busListener)
@@ -86,10 +103,11 @@ class GetDependencyGraphHandler : WebSocketListener {
                 RemoteDependencyData.GetDependenciesData(
                         errorMessage = "buildFile wasn't passed in the query parameter")
             }
-            sendWebsocketCommand(s.remote, RemoteDependencyData.GetDependenciesData.NAME, result,
-                    errorMessage = result.errorMessage)
-            s.close()
-        }
+
+        // Respond to the request
+        sendWebsocketCommand(s.remote, RemoteDependencyData.GetDependenciesData.NAME, result,
+                errorMessage = result.errorMessage)
+        s.close()
     }
 
     override fun onWebSocketText(message: String?) {

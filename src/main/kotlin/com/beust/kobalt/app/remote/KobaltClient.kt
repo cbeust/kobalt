@@ -32,10 +32,11 @@ class KobaltClient : Runnable {
         val client = OkHttpClient()
         val port = KobaltServer.port ?: 1240
         val url = "ws://localhost:$port/v1/getDependencyGraph"
-        val buildFile = KFiles.fixSlashes(homeDir("kotlin/kobalt/kobalt/src/Build.kt"))
+        val buildFile = KFiles.fixSlashes(homeDir("java/testng/kobalt/src/Build.kt"))
+        val projectRoot = KFiles.fixSlashes(homeDir("java/testng"))
         val request = Request.Builder()
 //            .url("ws://echo.websocket.org")
-            .url("$url?buildFile=$buildFile")
+            .url("$url?projectRoot=$projectRoot&buildFile=$buildFile")
                 .build()
         var webSocket: WebSocket? = null
         val ws = WebSocketCall.create(client, request).enqueue(object: WebSocketListener {

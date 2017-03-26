@@ -386,6 +386,19 @@ class KFiles {
                 return false
             }
         }
+
+        fun findBuildFile(projectRoot: String = "."): File {
+            val deprecatedLocation = File(Constants.BUILD_FILE_NAME)
+            val result: File =
+                    if (deprecatedLocation.exists()) {
+                        warn(Constants.BUILD_FILE_NAME + " is in a deprecated location, please move it to "
+                                + Constants.BUILD_FILE_DIRECTORY)
+                        deprecatedLocation
+                    } else {
+                        File(KFiles.joinDir(projectRoot, Constants.BUILD_FILE_DIRECTORY, Constants.BUILD_FILE_NAME))
+                    }
+            return result
+        }
     }
 
     fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {

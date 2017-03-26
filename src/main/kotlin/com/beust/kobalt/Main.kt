@@ -126,7 +126,7 @@ private class Main @Inject constructor(
 //        val md5 = Md5.toMd5(file)
 //        val md52 = MessageDigest.getInstance("MD5").digest(file.readBytes()).toHexString()
         var result = 0
-        val p = if (args.buildFile != null) File(args.buildFile) else findBuildFile()
+        val p = if (args.buildFile != null) File(args.buildFile) else KFiles.findBuildFile()
         args.buildFile = p.absolutePath
         val buildFile = BuildFile(Paths.get(p.absolutePath), p.name)
 
@@ -217,19 +217,6 @@ private class Main @Inject constructor(
                 else -> throw IllegalArgumentException("Unsupported option found in kobaltOptions(): " + it)
             }
         }
-    }
-
-    private fun findBuildFile(): File {
-        val deprecatedLocation = File(Constants.BUILD_FILE_NAME)
-        val result: File =
-                if (deprecatedLocation.exists()) {
-                    warn(Constants.BUILD_FILE_NAME + " is in a deprecated location, please move it to "
-                            + Constants.BUILD_FILE_DIRECTORY)
-                    deprecatedLocation
-                } else {
-                    File(KFiles.joinDir(Constants.BUILD_FILE_DIRECTORY, Constants.BUILD_FILE_NAME))
-                }
-        return result
     }
 
     private fun cleanUp() {
