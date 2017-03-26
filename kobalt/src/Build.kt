@@ -31,6 +31,7 @@ object Versions {
     val slf4j = "1.7.3"
     val kotlin = "1.1.1"
     val aether = "1.0.2.v20150114"
+    val testng = "6.11"
 }
 
 fun mavenResolver(vararg m: String)
@@ -113,7 +114,7 @@ val kobaltPluginApi = project {
                 *mavenResolver("api", "spi", "util", "impl", "connector-basic", "transport-http", "transport-file"),
                 "org.apache.maven:maven-aether-provider:3.3.9",
                 "org.testng.testng-remote:testng-remote:1.3.0",
-                "org.testng:testng:6.10"
+                "org.testng:testng:${Versions.testng}"
         )
         exclude(*aether("impl", "spi", "util", "api"))
     }
@@ -183,7 +184,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
     }
 
     dependenciesTest {
-        compile("org.testng:testng:6.10",
+        compile("org.testng:testng:${Versions.testng}",
                 "org.assertj:assertj-core:3.4.1",
                 *mavenResolver("util")
                 )
