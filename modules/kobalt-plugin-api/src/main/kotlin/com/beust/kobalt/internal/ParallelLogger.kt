@@ -32,17 +32,15 @@ class ParallelLogger @Inject constructor(val args: Args) : ILogger {
             val newLine: Boolean)
     private val logLines = ConcurrentHashMap<CharSequence, ArrayList<LogLine>>()
 
-    private val runningProjects = ConcurrentLinkedQueue<CharSequence>()
+    private val runningProjects = ConcurrentLinkedQueue<String>()
     var startTime: Long? = null
 
     fun onProjectStarted(name: String) {
         if (startTime == null) {
             startTime = System.currentTimeMillis()
         }
-        if (! runningProjects.contains(name)) {
-            runningProjects.add(name)
-            logLines[name] = arrayListOf()
-        }
+        runningProjects.add(name)
+        logLines[name] = arrayListOf()
         if (currentName == null) {
             currentName = name
         }
@@ -76,7 +74,7 @@ class ParallelLogger @Inject constructor(val args: Args) : ILogger {
     }
 
     val LOCK = Any()
-    var currentName: CharSequence? = null
+    var currentName: String? = null
         set(newName) {
             field = newName
         }
@@ -121,9 +119,6 @@ class ParallelLogger @Inject constructor(val args: Args) : ILogger {
         if (args.sequential) {
             kobaltLog(level, message, newLine)
         } else {
-            if (! runningProjects.contains(tag)) {
-                runningProjects.add(tag)
-            }
             addLogLine(tag, LogLine(tag, level, message, Type.LOG, newLine))
         }
     }
