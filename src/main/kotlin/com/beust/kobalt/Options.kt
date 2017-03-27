@@ -8,6 +8,7 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.wrapper.Main
 import com.google.inject.Inject
 import java.io.File
 import java.nio.file.Paths
@@ -38,7 +39,7 @@ class Options @Inject constructor(
                     projectGenerator.run(args, pluginClassLoader)
                     // The wrapper has to call System.exit() in order to set the exit code,
                     // so make sure we call it last (or possibly launch it in a separate JVM).
-                    com.beust.kobalt.wrapper.Main.main(arrayOf("--noLaunch") + argv)
+                    Main.main(arrayOf("--noLaunch") + argv)
                 }),
                 OptionalBuildOption( { -> args.usage }, { jc.usage() }),
                 OptionalBuildOption( { -> args.update }, {
