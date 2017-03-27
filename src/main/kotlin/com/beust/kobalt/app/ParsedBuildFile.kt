@@ -145,15 +145,10 @@ class ParsedBuildFile(val buildSources: IBuildSources, val context: KobaltContex
         //
         // Compile to preBuildScript.jar
         //
-
-        // Because of profiles, it's not possible to find out if a preBuildScript.jar is up to date
-        // or not so recompile it every time.
-//        if (! buildScriptUtil.isUpToDate(buildFile, File(buildScriptJar))) {
-            preBuildScriptJarFile.parentFile.mkdirs()
-            generateJarFile(context, listOf(buildScriptSourceFile.path), preBuildScriptJarFile)
-            VersionFile.generateVersionFile(preBuildScriptJarFile.parentFile)
-            Kobalt.context!!.internalContext.buildFileOutOfDate = true
-//        }
+        preBuildScriptJarFile.parentFile.mkdirs()
+        generateJarFile(context, listOf(buildScriptSourceFile.path), preBuildScriptJarFile)
+        VersionFile.generateVersionFile(preBuildScriptJarFile.parentFile)
+        Kobalt.context!!.internalContext.buildFileOutOfDate = true
 
         //
         // Run preBuildScript.jar to initialize plugins and repos
