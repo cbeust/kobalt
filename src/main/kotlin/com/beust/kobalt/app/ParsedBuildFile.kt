@@ -6,6 +6,8 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.internal.build.BuildSources
+import com.beust.kobalt.internal.build.IBuildSources
 import com.beust.kobalt.internal.build.VersionFile
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.BlockExtractor
@@ -16,10 +18,9 @@ import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import java.io.File
 import java.net.URL
 import java.nio.charset.Charset
-import java.nio.file.Paths
 import java.util.regex.Pattern
 
-class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val buildScriptUtil: BuildScriptUtil,
+class ParsedBuildFile(val buildSources: IBuildSources, val context: KobaltContext, val buildScriptUtil: BuildScriptUtil,
         val dependencyManager: DependencyManager, val files: KFiles) {
     val pluginList = arrayListOf<String>()
     val repos = arrayListOf<String>()
@@ -36,8 +37,8 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
             "import com.beust.kobalt.api.*")
     val preBuildScriptCode : String get() = preBuildScript.joinToString("\n")
 
-    private val buildScript = arrayListOf<String>()
-    val buildScriptCode : String get() = buildScript.joinToString("\n")
+    private val nonBuildScript = arrayListOf<String>()
+    val buildScriptCode : String get() = nonBuildScript.joinToString("\n")
 
     init {
         parseBuildFile()
@@ -93,12 +94,16 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
             return result
         }
 
-        val buildWithCorrectProfiles = applyProfiles(buildFile.path.toFile().readLines())
+        val buildWithCorrectProfiles = arrayListOf<String>()
+        buildSources.findSourceFiles().forEach {
+            buildWithCorrectProfiles.addAll(applyProfiles(it.readLines()))
+        }
+
         val buildScriptInfo = BlockExtractor(Pattern.compile("^val.*buildScript.*\\{"), '{', '}')
                 .extractBlock(buildWithCorrectProfiles)
 
         if (buildScriptInfo != null) {
-            kobaltLog(3, "About to compile build file:\n=====\n" + buildScriptInfo.content + "\n=====")
+            kobaltLog(2, "About to compile build file:\n=====\n" + buildScriptInfo.content + "\n=====")
             preBuildScript.add(buildScriptInfo.content)
         } else {
             repos.forEach { preBuildScript.add(it) }
@@ -107,15 +112,18 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         }
 
         //
-        // Write the build file excluding the buildScript{} tag since we already ran it
+        // Write the build file excluding the nonBuildScript{} tag since we already ran it
         //
         var lineNumber = 1
-        buildFile.path.toFile().forEachLine { line ->
-            if (buildScriptInfo == null ||
-                    (lineNumber < buildScriptInfo.startLine || lineNumber > buildScriptInfo.endLine)) {
-                buildScript.add(correctProfileLine(line))
+        buildSources.findSourceFiles().forEach { buildFile ->
+            buildFile.forEachLine() { line ->
+                if (buildScriptInfo == null || ! buildScriptInfo.isInSection(lineNumber)) {
+                    val cpl = correctProfileLine(line)
+                    if (cpl.startsWith("import")) nonBuildScript.add(0, cpl)
+                    else nonBuildScript.add(cpl)
+                }
+                lineNumber++
             }
-            lineNumber++
         }
     }
 
@@ -131,15 +139,14 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         //
         // Compile to preBuildScript.jar
         //
-        val buildScriptJar = KFiles.findBuildScriptLocation(buildFile, "preBuildScript.jar")
+        val buildScriptJar = KFiles.findBuildScriptLocation(buildSources, "preBuildScript.jar")
         val buildScriptJarFile = File(buildScriptJar)
 
         // Because of profiles, it's not possible to find out if a preBuildScript.jar is up to date
         // or not so recompile it every time.
 //        if (! buildScriptUtil.isUpToDate(buildFile, File(buildScriptJar))) {
             buildScriptJarFile.parentFile.mkdirs()
-            generateJarFile(context, BuildFile(Paths.get(pluginSourceFile.path), "Plugins",
-                    Paths.get(buildScriptJar)), buildScriptJarFile, buildFile)
+            generateJarFile(context, listOf(pluginSourceFile.path), buildScriptJarFile)
             VersionFile.generateVersionFile(buildScriptJarFile.parentFile)
             Kobalt.context!!.internalContext.buildFileOutOfDate = true
 //        }
@@ -157,9 +164,8 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         }
     }
 
-    private fun generateJarFile(context: KobaltContext, buildFile: BuildFile,
-            buildScriptJarFile: File, originalFile: BuildFile) {
-
+    private fun generateJarFile(context: KobaltContext, sourceFiles: List<String>,
+            buildScriptJarFile: File, originalFile: BuildFile? = null) {
         //
         // Compile the jar file
         //
@@ -170,14 +176,18 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         val result = kotlinCompilePrivate {
             classpath(files.kobaltJar)
             classpath(deps)
-            sourceFiles(buildFile.path.toFile().absolutePath)
+            sourceFiles(sourceFiles)
             output = outputJar
             noIncrementalKotlin = true
         }.compile(context = context)
         if (! result.success) {
-            throw KobaltException("Couldn't compile ${originalFile.realPath}:\n"
-                    + result.errorMessage)
+            val org = originalFile?.realPath ?: sourceFiles.joinToString(",")
+            throw KobaltException("Couldn't compile $org:\n" + result.errorMessage)
         }
     }
+
+    private fun generateJarFile(context: KobaltContext, buildSources: BuildSources,
+            buildScriptJarFile: File)
+        = generateJarFile(context, buildSources.findSourceFiles().map { it.path }, buildScriptJarFile)
 }
 

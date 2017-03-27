@@ -108,7 +108,7 @@ private class Main @Inject constructor(
     }
 
     private fun runWithArgs(jc: JCommander, args: Args, argv: Array<String>): Int {
-        val p = if (args.buildFile != null) File(args.buildFile) else KFiles.findBuildFile()
+        val p = if (args.buildFile != null) File(args.buildFile) else File(".")
         args.buildFile = p.absolutePath
 
         if (!args.update) {

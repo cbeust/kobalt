@@ -9,7 +9,7 @@ import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.IncrementalTask
 import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.internal.TaskManager
-import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.internal.build.IBuildSources
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.Topological
 import com.beust.kobalt.misc.kobaltLog
@@ -123,9 +123,9 @@ class BuildScriptUtil @Inject constructor(val plugins: Plugins, val files: KFile
         }
     }
 
-    fun isUpToDate(buildFile: BuildFile, jarFile: File) =
-            buildFile.exists() && jarFile.exists()
-                    && buildFile.lastModified < jarFile.lastModified()
+    fun isUpToDate(buildSources: IBuildSources, jarFile: File) =
+            buildSources.exists() && jarFile.exists()
+                    && buildSources.findSourceFiles().all { it.lastModified() < jarFile.lastModified() }
 
     /**
      * Make sure all the projects have a unique name.

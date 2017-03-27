@@ -6,7 +6,7 @@ import com.beust.kobalt.app.BuildFileCompiler
 import com.beust.kobalt.internal.JvmCompilerPlugin
 import com.beust.kobalt.internal.KobaltPluginXml
 import com.beust.kobalt.internal.PluginInfo
-import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.internal.build.SingleFileBuildSources
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import org.testng.annotations.BeforeClass
@@ -70,11 +70,11 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
         val actualBuildFile = createBuildFile(projectDirectory)
         val tmpBuildFile = createBuildFile(Files.createTempDirectory("").toFile().absolutePath)
 
-        val thisBuildFile = BuildFile(Paths.get(tmpBuildFile.absolutePath), "Build.kt",
-                Paths.get(actualBuildFile.absolutePath))
-        Kobalt.context?.log(2, "About to compile build file "
-                + thisBuildFile.path + " " + thisBuildFile.realPath
-                + ".kobaltDir: " + thisBuildFile.dotKobaltDir)
+        val thisBuildFile = SingleFileBuildSources(tmpBuildFile)
+//            , "Build.kt",
+//                Paths.get(actualBuildFile.absolutePath))
+        Kobalt.context?.log(2, "About to compile build file $thisBuildFile"
+                + ".kobaltDir: " + KFiles.dotKobaltDir)
         args.apply {
             buildFile = actualBuildFile.absolutePath
             noIncremental = true
@@ -84,7 +84,7 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
         val pluginInfo = PluginInfo(KobaltPluginXml(), null, null).apply {
             projectContributors.add(jvmCompilerPlugin)
         }
-        return compilerFactory!!.create(listOf(thisBuildFile), pluginInfo).compileBuildFiles(args,
+        return compilerFactory!!.create(thisBuildFile, pluginInfo).compileBuildFiles(args,
                 forceRecompile = true)
     }
 

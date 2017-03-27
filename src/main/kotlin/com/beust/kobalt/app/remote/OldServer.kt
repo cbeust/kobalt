@@ -70,7 +70,7 @@ class OldServer(val initCallback: (String) -> List<Project>, val cleanUpCallback
         }
     }
 
-    private val COMMAND_CLASSES = listOf(GetDependenciesCommand::class.java, PingCommand::class.java)
+    private val COMMAND_CLASSES = listOf(PingCommand::class.java)
     private val COMMANDS = COMMAND_CLASSES.map {
         Kobalt.INJECTOR.getInstance(it).let { Pair(it.name, it) }
     }.toMap()

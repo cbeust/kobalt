@@ -3,7 +3,7 @@ package com.beust.kobalt.app.remote
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.app.ProjectFinder
-import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.internal.build.BuildSources
 import com.beust.kobalt.internal.eventbus.ArtifactDownloadedEvent
 import com.beust.kobalt.maven.aether.Exceptions
 import com.beust.kobalt.misc.KFiles
@@ -13,6 +13,7 @@ import com.google.gson.Gson
 import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.WebSocketListener
+import java.io.File
 import java.nio.file.Paths
 
 /**
@@ -43,14 +44,14 @@ class GetDependencyGraphHandler : WebSocketListener {
                 errorMessage = errorMessage)))
     }
 
-    private fun findBuildFile(map: Map<String, List<String>>) : String? {
+    private fun findBuildFile(map: Map<String, List<String>>) : BuildSources? {
         val projectRoot = map[PARAMETER_PROJECT_ROOT]
         val buildFile = map[PARAMETER_BUILD_FILE]
         val result =
             if (projectRoot != null) {
-                KFiles.findBuildFile(projectRoot[0]).absolutePath
+                BuildSources(File(projectRoot[0]))
             } else if (buildFile != null) {
-                buildFile[0]
+                BuildSources(File(buildFile[0]))
             } else {
                 null
             }
@@ -59,13 +60,13 @@ class GetDependencyGraphHandler : WebSocketListener {
 
     override fun onWebSocketConnect(s: Session) {
         session = s
-        val buildFile = findBuildFile(s.upgradeRequest.parameterMap)
+        val buildSources = findBuildFile(s.upgradeRequest.parameterMap)
 
         fun <T> getInstance(cls: Class<T>) : T = Kobalt.INJECTOR.getInstance(cls)
 
         // Parse the request
         val result =
-            if (buildFile != null) {
+            if (buildSources != null) {
                 // Track all the downloads that this dependency call might trigger and
                 // send them as a progress message to the web socket
                 val eventBus = getInstance(EventBus::class.java)
@@ -84,10 +85,9 @@ class GetDependencyGraphHandler : WebSocketListener {
                     val dependencyData = getInstance(RemoteDependencyData::class.java)
                     val args = getInstance(Args::class.java)
 
-                    val allProjects = projectFinder.initForBuildFile(BuildFile(Paths.get(buildFile), buildFile),
-                            args)
+                    val allProjects = projectFinder.initForBuildFile(buildSources, args)
 
-                    dependencyData.dependenciesDataFor(buildFile, args, object : IProgressListener {
+                    dependencyData.dependenciesDataFor(buildSources, args, object : IProgressListener {
                         override fun onProgress(progress: Int?, message: String?) {
                             sendWebsocketCommand(s.remote, ProgressCommand.NAME, ProgressCommand(progress, message))
                         }

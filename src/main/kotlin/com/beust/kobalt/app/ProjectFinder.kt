@@ -7,7 +7,7 @@ import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.PluginInfo
-import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.internal.build.BuildSources
 import com.beust.kobalt.misc.kobaltLog
 import com.google.inject.Inject
 import java.util.*
@@ -15,8 +15,8 @@ import java.util.*
 class ProjectFinder @Inject constructor(val buildFileCompilerFactory: BuildFileCompiler.IFactory,
         val pluginInfo: PluginInfo, val plugins: Plugins) {
 
-    fun initForBuildFile(buildFile: BuildFile, args: Args): List<Project> {
-        val findProjectResult = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
+    fun initForBuildFile(buildSources: BuildSources, args: Args): List<Project> {
+        val findProjectResult = buildFileCompilerFactory.create(buildSources, pluginInfo)
                 .compileBuildFiles(args)
         if (! findProjectResult.taskResult.success) {
             throw KobaltException("Couldn't compile build file: " + findProjectResult.taskResult.errorMessage)
