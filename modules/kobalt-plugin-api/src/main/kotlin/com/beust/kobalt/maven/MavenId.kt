@@ -1,7 +1,7 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.api.Kobalt
-import org.eclipse.aether.artifact.DefaultArtifact
+import com.beust.kobalt.api.*
+import org.eclipse.aether.artifact.*
 
 /**
  * Encapsulate a Maven id captured in one string, as used by Gradle or Ivy, e.g. "org.testng:testng:6.9.9".
@@ -17,8 +17,12 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
         val classifier: String?, val version: String?) {
 
     companion object {
-        fun isMavenId(id: String) = with(id.split(':')) {
-            size >= 3 && size <= 5
+        fun isMavenId(id: String) = if (id.startsWith("file://")) {
+            false
+        } else {
+            with(id.split(':')) {
+                size >= 3 && size <= 5
+            }
         }
 
         fun isRangedVersion(s: String): Boolean {
