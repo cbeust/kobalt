@@ -18,28 +18,33 @@ import java.util.regex.Pattern
 
 class ParsedBuildFile(val buildSources: IBuildSources, val context: KobaltContext, val buildScriptUtil: BuildScriptUtil,
         val dependencyManager: DependencyManager, val files: KFiles) {
-    val pluginList = arrayListOf<String>()
-    val repos = arrayListOf<String>()
-    val buildFileClasspath = arrayListOf<String>()
-    val profileLines = arrayListOf<String>()
-    val pluginUrls = arrayListOf<URL>()
-    val projects = arrayListOf<Project>()
-    val activeProfiles = arrayListOf<String>()
+    private val profileLines = arrayListOf<String>()
+    private val projects = arrayListOf<Project>()
+    private val activeProfiles = arrayListOf<String>()
+    private val preBuildScriptJar = KFiles.findBuildScriptLocation(buildSources, "preBuildScript.jar")
+    private val preBuildScriptJarFile = File(preBuildScriptJar)
+    private val nonBuildScript = arrayListOf<String>()
 
     var containsProfiles = false
+    val pluginUrls = arrayListOf<URL>()
 
-    private val preBuildScript = arrayListOf(
-            "import com.beust.kobalt.*",
-            "import com.beust.kobalt.api.*")
-    val preBuildScriptCode : String get() = preBuildScript.joinToString("\n")
-
-    private val nonBuildScript = arrayListOf<String>()
-    val buildScriptCode : String get() = nonBuildScript.joinToString("\n")
+    /**
+     * Contains the addition of all the build files corrected with the active profiles and with
+     * the buildScripts{} sections removed.
+     */
+    val nonBuildScriptCode : String get() = nonBuildScript.joinToString("\n")
 
     init {
+        // Because profiles may have changed between two builds, we have to delete preBuildScript.jar file
+        // every time and then generate a new one (or skip that phase if no buildScript{} was found in the
+        // buid files)
+        preBuildScriptJarFile.delete()
+
         val buildScriptInfo = parseBuildFile()
+
+        // Only generate preBuildScript.jar if we found at least one buildScript{}
         if (buildScriptInfo != null) {
-            initPluginUrls(buildScriptInfo)
+            parseBuildScriptInfo(buildScriptInfo)
         }
     }
 
@@ -107,18 +112,8 @@ class ParsedBuildFile(val buildSources: IBuildSources, val context: KobaltContex
         val buildScriptInfo = BlockExtractor(Pattern.compile("^val.*buildScript.*\\{"), '{', '}')
                 .extractBlock(buildWithCorrectProfiles)
 
-        if (buildScriptInfo != null) {
-            kobaltLog(2, "About to compile build file:\n=====\n" + buildScriptInfo.content + "\n=====")
-            preBuildScript.add(buildScriptInfo.content)
-        } else {
-            kobaltLog(2, "Didn't find any buildScript{} section, no preBuildScript.jar necessary")
-            repos.forEach { preBuildScript.add(it) }
-            pluginList.forEach { preBuildScript.add(it) }
-            buildFileClasspath.forEach { preBuildScript.add(it) }
-        }
-
         //
-        // Write the build file excluding the buildScript{} tag since we already ran it
+        // Write the build file to `nonBuildScript` excluding the buildScript{} directives since we already ran them
         //
         var lineNumber = 1
         buildSources.findSourceFiles().forEach { buildFile ->
@@ -135,34 +130,35 @@ class ParsedBuildFile(val buildSources: IBuildSources, val context: KobaltContex
         return buildScriptInfo
     }
 
-    private fun initPluginUrls(buildScriptInfo: BuildScriptInfo?) {
+    /**
+     * Generate preBuildScript.jar based on the buildScript{} found in the build files.
+     */
+    private fun parseBuildScriptInfo(buildScriptInfo: BuildScriptInfo) {
         //
         // Compile and run preBuildScriptCode, which contains all the plugins() calls extracted. This
         // will add all the dynamic plugins found in this code to Plugins.dynamicPlugins
         //
         val buildScriptSourceFile = KFiles.createTempBuildFileInTempDirectory(deleteOnExit = true)
-        buildScriptSourceFile.writeText(preBuildScriptCode, Charset.defaultCharset())
+        buildScriptSourceFile.writeText(buildScriptInfo.content, Charset.defaultCharset())
         kobaltLog(2, "Saved " + KFiles.fixSlashes(buildScriptSourceFile.absolutePath))
 
         //
         // Compile to preBuildScript.jar
         //
-        val buildScriptJar = KFiles.findBuildScriptLocation(buildSources, "preBuildScript.jar")
-        val buildScriptJarFile = File(buildScriptJar)
 
         // Because of profiles, it's not possible to find out if a preBuildScript.jar is up to date
         // or not so recompile it every time.
 //        if (! buildScriptUtil.isUpToDate(buildFile, File(buildScriptJar))) {
-            buildScriptJarFile.parentFile.mkdirs()
-            generateJarFile(context, listOf(buildScriptSourceFile.path), buildScriptJarFile)
-            VersionFile.generateVersionFile(buildScriptJarFile.parentFile)
+            preBuildScriptJarFile.parentFile.mkdirs()
+            generateJarFile(context, listOf(buildScriptSourceFile.path), preBuildScriptJarFile)
+            VersionFile.generateVersionFile(preBuildScriptJarFile.parentFile)
             Kobalt.context!!.internalContext.buildFileOutOfDate = true
 //        }
 
         //
         // Run preBuildScript.jar to initialize plugins and repos
         //
-        projects.addAll(buildScriptUtil.runBuildScriptJarFile(buildScriptJarFile, arrayListOf<URL>(), context))
+        projects.addAll(buildScriptUtil.runBuildScriptJarFile(preBuildScriptJarFile, arrayListOf<URL>(), context))
 
         //
         // All the plug-ins are now in Plugins.dynamicPlugins, download them if they're not already
@@ -192,6 +188,8 @@ class ParsedBuildFile(val buildSources: IBuildSources, val context: KobaltContex
             val org = originalFile?.realPath ?: sourceFiles.joinToString(",")
             throw KobaltException("Couldn't compile $org:\n" + result.errorMessage)
         }
+
+        context.internalContext.noIncrementalKotlin = saved
     }
 }
 
