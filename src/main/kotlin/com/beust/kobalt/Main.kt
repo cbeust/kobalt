@@ -3,24 +3,17 @@ package com.beust.kobalt
 import com.beust.jcommander.JCommander
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.PluginTask
-import com.beust.kobalt.app.*
+import com.beust.kobalt.app.MainModule
+import com.beust.kobalt.app.UpdateKobalt
 import com.beust.kobalt.app.remote.KobaltClient
-import com.beust.kobalt.app.remote.KobaltServer
-import com.beust.kobalt.app.remote.RemoteDependencyData
-import com.beust.kobalt.internal.Gc
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.PluginInfo
-import com.beust.kobalt.internal.TaskManager
-import com.beust.kobalt.internal.build.BuildFile
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.*
-import com.google.common.collect.HashMultimap
 import java.io.File
 import java.net.URLClassLoader
-import java.nio.file.Paths
 import javax.inject.Inject
 
 fun main(argv: Array<String>) {
@@ -56,21 +49,15 @@ fun mainNoExit(argv: Array<String>): Int {
 
 private class Main @Inject constructor(
         val plugins: Plugins,
-        val taskManager: TaskManager,
         val http: Http,
         val files: KFiles,
         val executors: KobaltExecutors,
         val dependencyManager: DependencyManager,
-        val checkVersions: CheckVersions,
         val github: GithubApi2,
         val updateKobalt: UpdateKobalt,
         val client: KobaltClient,
         val pluginInfo: PluginInfo,
-        val projectGenerator: ProjectGenerator,
-        val serverFactory: KobaltServer.IFactory,
-        val projectFinder: ProjectFinder,
-        val dependencyData: RemoteDependencyData,
-        val resolveDependency: ResolveDependency) {
+        val options: Options) {
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
@@ -98,21 +85,20 @@ private class Main @Inject constructor(
         //
         // Install plug-ins requested from the command line
         //
-        val pluginClassLoader = installCommandLinePlugins(args)
+        installCommandLinePlugins(args)
 
         if (args.client) {
             client.run()
             return 0
         }
 
-        var result = 0
+        var result = 1
         val latestVersionFuture = github.latestKobaltVersion
 
         try {
-            result = runWithArgs(jc, args, argv, pluginClassLoader)
+            result = runWithArgs(jc, args, argv)
         } catch(ex: Throwable) {
             error("", ex.cause ?: ex)
-            result = 1
         }
 
         if (!args.update) {
@@ -121,126 +107,16 @@ private class Main @Inject constructor(
         return result
     }
 
-    private fun runWithArgs(jc: JCommander, args: Args, argv: Array<String>, pluginClassLoader: ClassLoader): Int {
-//        val file = File("/Users/beust/.kobalt/repository/com/google/guava/guava/19.0-rc2/guava-19.0-rc2.pom")
-//        val md5 = Md5.toMd5(file)
-//        val md52 = MessageDigest.getInstance("MD5").digest(file.readBytes()).toHexString()
-        var result = 0
+    private fun runWithArgs(jc: JCommander, args: Args, argv: Array<String>): Int {
         val p = if (args.buildFile != null) File(args.buildFile) else KFiles.findBuildFile()
         args.buildFile = p.absolutePath
-        val buildFile = BuildFile(Paths.get(p.absolutePath), p.name)
 
         if (!args.update) {
             println(AsciiArt.banner + Kobalt.version + "\n")
         }
 
-        if (args.templates != null) {
-            //
-            // --init: create a new build project and install the wrapper
-            // Make sure the wrapper won't call us back with --noLaunch
-            //
-            projectGenerator.run(args, pluginClassLoader)
-            // The wrapper has to call System.exit() in order to set the exit code,
-            // so make sure we call it last (or possibly launch it in a separate JVM).
-            com.beust.kobalt.wrapper.Main.main(arrayOf("--noLaunch") + argv)
-        } else if (args.usage) {
-            jc.usage()
-        } else {
-            // Options that don't need Build.kt to be parsed first
-            if (args.gc) {
-                Gc().run()
-            } else if (args.update) {
-                // --update
-                updateKobalt.updateKobalt()
-            } else if (args.serverMode) {
-                // --server
-                val port = serverFactory.create(args.force, args.port, { cleanUp() }).call()
-            } else {
-                //
-                // Everything below requires to parse the build file first
-                //
-                if (!buildFile.exists()) {
-                    error(buildFile.path.toFile().path + " does not exist")
-                } else {
-                    val allProjects = projectFinder.initForBuildFile(buildFile, args)
-
-                    addOptionsFromBuild(args, Kobalt.optionsFromBuild)
-                    if (args.listTemplates) {
-                        // --listTemplates
-                        Templates().displayTemplates(pluginInfo)
-                    } else if (args.projectInfo) {
-                        // --projectInfo
-                        allProjects.forEach {
-                            it.compileDependencies.filter { it.isMaven }.forEach {
-                                resolveDependency.run(it.id)
-                            }
-                        }
-                    } else if (args.dependency != null) {
-                        // --resolve
-                        args.dependency?.let { resolveDependency.run(it) }
-                    } else if (args.tasks) {
-                        // --tasks
-                        displayTasks()
-                    } else if (args.checkVersions) {
-                        // --checkVersions
-                        checkVersions.run(allProjects)
-                    } else if (args.download) {
-                        // --download
-                        updateKobalt.downloadKobalt()
-                    } else {
-                        //
-                        // Launch the build
-                        //
-                        val runTargetResult = taskManager.runTargets(args.targets, allProjects)
-                        if (result == 0) {
-                            result = if (runTargetResult.taskResult.success) 0 else 1
-                        }
-
-                        // Shutdown all plug-ins
-                        plugins.shutdownPlugins()
-
-                        // Run the build report contributors
-                        pluginInfo.buildReportContributors.forEach {
-                            it.generateReport(Kobalt.context!!)
-                        }
-                    }
-                }
-            }
-        }
-        return result
+        return options.run(jc, args, argv)
     }
 
-    private fun addOptionsFromBuild(args: Args, optionsFromBuild: ArrayList<String>) {
-        optionsFromBuild.forEach {
-            when(it) {
-                Args.SEQUENTIAL -> args.sequential = true
-                else -> throw IllegalArgumentException("Unsupported option found in kobaltOptions(): " + it)
-            }
-        }
-    }
 
-    private fun cleanUp() {
-        pluginInfo.cleanUp()
-        taskManager.cleanUp()
-    }
-
-    private fun displayTasks() {
-        //
-        // List of tasks, --tasks
-        //
-        val tasksByPlugins = HashMultimap.create<String, PluginTask>()
-        taskManager.annotationTasks.forEach {
-            tasksByPlugins.put(it.plugin.name, it)
-        }
-        val sb = StringBuffer("List of tasks\n")
-        tasksByPlugins.keySet().forEach { name ->
-            sb.append("\n  " + AsciiArt.horizontalDoubleLine + " $name "
-                    + AsciiArt.horizontalDoubleLine + "\n")
-            tasksByPlugins[name].distinctBy(PluginTask::name).sortedBy(PluginTask::name).forEach { task ->
-                sb.append("    ${task.name}\t\t${task.doc}\n")
-            }
-        }
-
-        println(sb.toString())
-    }
 }
