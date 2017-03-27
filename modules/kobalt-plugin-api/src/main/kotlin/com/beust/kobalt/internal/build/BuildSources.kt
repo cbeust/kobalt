@@ -29,6 +29,8 @@ class BuildSources(val file: File) : IBuildSources {
 
     override fun exists() = findSourceFiles().isNotEmpty()
 
+    override fun toString() = "{BuildSources " + findSourceFiles()[0] + "...}"
+
     fun _findSourceFiles() : List<File> {
         val result = arrayListOf<File>()
         Files.walkFileTree(Paths.get(file.absolutePath), object : SimpleFileVisitor<Path>() {
