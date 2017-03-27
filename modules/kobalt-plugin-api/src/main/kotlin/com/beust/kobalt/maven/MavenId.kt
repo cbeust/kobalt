@@ -1,7 +1,7 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.api.*
-import org.eclipse.aether.artifact.*
+import com.beust.kobalt.api.Kobalt
+import org.eclipse.aether.artifact.DefaultArtifact
 
 /**
  * Encapsulate a Maven id captured in one string, as used by Gradle or Ivy, e.g. "org.testng:testng:6.9.9".
