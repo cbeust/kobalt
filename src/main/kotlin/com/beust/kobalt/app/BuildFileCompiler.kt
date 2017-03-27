@@ -152,7 +152,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildSources") val buildS
             val reason =
                 if (containsProfiles) "profiles were found"
                 else if (forceRecompile) "forceRecompile is true"
-                else "it is not up to date"
+                else "it's been modified"
             kobaltLog(2, "  Need to recompile $buildSources because $reason")
 
             buildScriptJarFile.deleteRecursively()
@@ -165,7 +165,6 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildSources") val buildS
                 output = buildScriptJarFile
                 noIncrementalKotlin = true
             }.compile(context = context)
-
 
             //
             // Generate the file that contains the list of active profiles for this build file
