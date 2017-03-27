@@ -2,13 +2,12 @@
 annotations
 .idea/*
 *.iml
-buildScript
+nonBuildScript
 kobaltBuild
 local.properties
 classes
 libs
 .kobalt/
-./build/
 out
 .DS_Store
 lib/kotlin-*
