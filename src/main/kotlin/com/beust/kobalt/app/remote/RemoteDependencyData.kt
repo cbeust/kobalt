@@ -8,7 +8,7 @@ import com.beust.kobalt.internal.DynamicGraph
 import com.beust.kobalt.internal.GraphUtil
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
-import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.internal.build.BuildSources
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
@@ -16,7 +16,6 @@ import com.beust.kobalt.misc.StringVersion
 import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import java.io.File
-import java.nio.file.Paths
 
 interface IProgressListener {
     /**
@@ -29,7 +28,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
         val buildFileCompilerFactory: BuildFileCompiler.IFactory, val pluginInfo: PluginInfo,
         val taskManager: TaskManager) {
 
-    fun dependenciesDataFor(buildFilePath: String, args: Args, progressListener: IProgressListener? = null,
+    fun dependenciesDataFor(buildSources: BuildSources, args: Args, progressListener: IProgressListener? = null,
             useGraph : Boolean = false): GetDependenciesData {
         val projectDatas = arrayListOf<ProjectData>()
 
@@ -41,8 +40,8 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
         fun allDeps(l: List<IClasspathDependency>, name: String) = dependencyManager.transitiveClosure(l,
                 requiredBy = name)
 
-        val buildFile = BuildFile(Paths.get(buildFilePath), "GetDependenciesCommand")
-        val buildFileCompiler = buildFileCompilerFactory.create(listOf(buildFile), pluginInfo)
+//        val buildFile = BuildFile(Paths.get(buildFilePath), "GetDependenciesCommand")
+        val buildFileCompiler = buildFileCompilerFactory.create(buildSources, pluginInfo)
         val projectResult = buildFileCompiler.compileBuildFiles(args)
 
         val pluginDependencies = projectResult.pluginUrls.map { File(it.toURI()) }.map {
@@ -125,7 +124,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
                 .map { toDependencyData2("testCompile", it)}
         }
 
-        val projectRoot = File(buildFilePath).parentFile.parentFile.parentFile
+        val projectRoot = buildSources.file
 
         val allTasks = hashSetOf<TaskData>()
         projectResult.projects.withIndex().forEach { wi ->

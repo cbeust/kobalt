@@ -6,45 +6,49 @@ import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.internal.build.IBuildSources
 import com.beust.kobalt.internal.build.VersionFile
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.misc.BlockExtractor
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.kobaltLog
-import com.beust.kobalt.misc.warn
+import com.beust.kobalt.misc.*
 import com.beust.kobalt.plugin.kotlin.kotlinCompilePrivate
 import java.io.File
 import java.net.URL
 import java.nio.charset.Charset
-import java.nio.file.Paths
 import java.util.regex.Pattern
 
-class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val buildScriptUtil: BuildScriptUtil,
+class ParsedBuildFile(val buildSources: IBuildSources, val context: KobaltContext, val buildScriptUtil: BuildScriptUtil,
         val dependencyManager: DependencyManager, val files: KFiles) {
-    val pluginList = arrayListOf<String>()
-    val repos = arrayListOf<String>()
-    val buildFileClasspath = arrayListOf<String>()
-    val profileLines = arrayListOf<String>()
-    val pluginUrls = arrayListOf<URL>()
-    val projects = arrayListOf<Project>()
-    val activeProfiles = arrayListOf<String>()
+    private val profileLines = arrayListOf<String>()
+    private val projects = arrayListOf<Project>()
+    private val activeProfiles = arrayListOf<String>()
+    private val preBuildScriptJar = KFiles.findBuildScriptLocation(buildSources, "preBuildScript.jar")
+    private val preBuildScriptJarFile = File(preBuildScriptJar)
+    private val nonBuildScript = arrayListOf<String>()
 
     var containsProfiles = false
+    val pluginUrls = arrayListOf<URL>()
 
-    private val preBuildScript = arrayListOf(
-            "import com.beust.kobalt.*",
-            "import com.beust.kobalt.api.*")
-    val preBuildScriptCode : String get() = preBuildScript.joinToString("\n")
-
-    private val buildScript = arrayListOf<String>()
-    val buildScriptCode : String get() = buildScript.joinToString("\n")
+    /**
+     * Contains the addition of all the build files corrected with the active profiles and with
+     * the buildScripts{} sections removed.
+     */
+    val nonBuildScriptCode : String get() = nonBuildScript.joinToString("\n")
 
     init {
-        parseBuildFile()
-        initPluginUrls()
+        // Because profiles may have changed between two builds, we have to delete preBuildScript.jar file
+        // every time and then generate a new one (or skip that phase if no buildScript{} was found in the
+        // buid files)
+        preBuildScriptJarFile.delete()
+
+        val buildScriptInfo = parseBuildFile()
+
+        // Only generate preBuildScript.jar if we found at least one buildScript{}
+        if (buildScriptInfo != null) {
+            parseBuildScriptInfo(buildScriptInfo)
+        }
     }
 
-    private fun parseBuildFile() {
+    private fun parseBuildFile() : BuildScriptInfo? {
         /**
          * If the current line matches one of the profiles, turn the declaration into
          * val profile = true, otherwise return the same line
@@ -61,7 +65,8 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
                     return Pair(profile == variable, variable)
                 }
 
-                if ((matcher != null && matcher.groups.size > 0) || (oldMatcher != null && oldMatcher.groups.size> 0)) {
+                if ((matcher != null && matcher.groups.isNotEmpty())
+                        || (oldMatcher != null && oldMatcher.groups.isNotEmpty())) {
                     containsProfiles = true
                     val match = profileMatch(matcher)
                     val oldMatch = profileMatch(oldMatcher)
@@ -93,61 +98,62 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
             return result
         }
 
-        val buildWithCorrectProfiles = applyProfiles(buildFile.path.toFile().readLines())
+        //
+        // Take all the build files and adjust them with the active profiles
+        //
+        val buildWithCorrectProfiles = arrayListOf<String>()
+        buildSources.findSourceFiles().forEach {
+            buildWithCorrectProfiles.addAll(applyProfiles(it.readLines()))
+        }
+
+        //
+        // Now extract all the `buildScript{}` blocks from all these build files
+        //
         val buildScriptInfo = BlockExtractor(Pattern.compile("^val.*buildScript.*\\{"), '{', '}')
                 .extractBlock(buildWithCorrectProfiles)
 
-        if (buildScriptInfo != null) {
-            kobaltLog(3, "About to compile build file:\n=====\n" + buildScriptInfo.content + "\n=====")
-            preBuildScript.add(buildScriptInfo.content)
-        } else {
-            repos.forEach { preBuildScript.add(it) }
-            pluginList.forEach { preBuildScript.add(it) }
-            buildFileClasspath.forEach { preBuildScript.add(it) }
-        }
-
         //
-        // Write the build file excluding the buildScript{} tag since we already ran it
+        // Write the build file to `nonBuildScript` excluding the buildScript{} directives since we already ran them
         //
         var lineNumber = 1
-        buildFile.path.toFile().forEachLine { line ->
-            if (buildScriptInfo == null ||
-                    (lineNumber < buildScriptInfo.startLine || lineNumber > buildScriptInfo.endLine)) {
-                buildScript.add(correctProfileLine(line))
+        buildSources.findSourceFiles().forEach { buildFile ->
+            buildFile.forEachLine() { line ->
+                if (buildScriptInfo == null || ! buildScriptInfo.isInSection(lineNumber)) {
+                    val cpl = correctProfileLine(line)
+                    if (cpl.startsWith("import")) nonBuildScript.add(0, cpl)
+                    else nonBuildScript.add(cpl)
+                }
+                lineNumber++
             }
-            lineNumber++
         }
+
+        return buildScriptInfo
     }
 
-    private fun initPluginUrls() {
+    /**
+     * Generate preBuildScript.jar based on the buildScript{} found in the build files.
+     */
+    private fun parseBuildScriptInfo(buildScriptInfo: BuildScriptInfo) {
         //
         // Compile and run preBuildScriptCode, which contains all the plugins() calls extracted. This
         // will add all the dynamic plugins found in this code to Plugins.dynamicPlugins
         //
-        val pluginSourceFile = KFiles.createTempBuildFileInTempDirectory(deleteOnExit = true)
-        pluginSourceFile.writeText(preBuildScriptCode, Charset.defaultCharset())
-        kobaltLog(2, "Saved " + KFiles.fixSlashes(pluginSourceFile.absolutePath))
+        val buildScriptSourceFile = KFiles.createTempBuildFileInTempDirectory(deleteOnExit = true)
+        buildScriptSourceFile.writeText(buildScriptInfo.content, Charset.defaultCharset())
+        kobaltLog(2, "Saved " + KFiles.fixSlashes(buildScriptSourceFile.absolutePath))
 
         //
         // Compile to preBuildScript.jar
         //
-        val buildScriptJar = KFiles.findBuildScriptLocation(buildFile, "preBuildScript.jar")
-        val buildScriptJarFile = File(buildScriptJar)
-
-        // Because of profiles, it's not possible to find out if a preBuildScript.jar is up to date
-        // or not so recompile it every time.
-//        if (! buildScriptUtil.isUpToDate(buildFile, File(buildScriptJar))) {
-            buildScriptJarFile.parentFile.mkdirs()
-            generateJarFile(context, BuildFile(Paths.get(pluginSourceFile.path), "Plugins",
-                    Paths.get(buildScriptJar)), buildScriptJarFile, buildFile)
-            VersionFile.generateVersionFile(buildScriptJarFile.parentFile)
-            Kobalt.context!!.internalContext.buildFileOutOfDate = true
-//        }
+        preBuildScriptJarFile.parentFile.mkdirs()
+        generateJarFile(context, listOf(buildScriptSourceFile.path), preBuildScriptJarFile)
+        VersionFile.generateVersionFile(preBuildScriptJarFile.parentFile)
+        Kobalt.context!!.internalContext.buildFileOutOfDate = true
 
         //
         // Run preBuildScript.jar to initialize plugins and repos
         //
-        projects.addAll(buildScriptUtil.runBuildScriptJarFile(buildScriptJarFile, arrayListOf<URL>(), context))
+        projects.addAll(buildScriptUtil.runBuildScriptJarFile(preBuildScriptJarFile, arrayListOf<URL>(), context))
 
         //
         // All the plug-ins are now in Plugins.dynamicPlugins, download them if they're not already
@@ -157,9 +163,8 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         }
     }
 
-    private fun generateJarFile(context: KobaltContext, buildFile: BuildFile,
-            buildScriptJarFile: File, originalFile: BuildFile) {
-
+    private fun generateJarFile(context: KobaltContext, sourceFiles: List<String>,
+            buildScriptJarFile: File, originalFile: BuildFile? = null) {
         //
         // Compile the jar file
         //
@@ -170,14 +175,16 @@ class ParsedBuildFile(val buildFile: BuildFile, val context: KobaltContext, val 
         val result = kotlinCompilePrivate {
             classpath(files.kobaltJar)
             classpath(deps)
-            sourceFiles(buildFile.path.toFile().absolutePath)
+            sourceFiles(sourceFiles)
             output = outputJar
             noIncrementalKotlin = true
         }.compile(context = context)
         if (! result.success) {
-            throw KobaltException("Couldn't compile ${originalFile.realPath}:\n"
-                    + result.errorMessage)
+            val org = originalFile?.realPath ?: sourceFiles.joinToString(",")
+            throw KobaltException("Couldn't compile $org:\n" + result.errorMessage)
         }
+
+        context.internalContext.noIncrementalKotlin = saved
     }
 }
 

@@ -3,7 +3,7 @@ package com.beust.kobalt.misc
 import com.beust.kobalt.*
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.internal.build.BuildFile
+import com.beust.kobalt.internal.build.IBuildSources
 import com.beust.kobalt.maven.Md5
 import java.io.*
 import java.nio.file.Files
@@ -261,10 +261,9 @@ class KFiles {
         /**
          * The build location for build scripts is .kobalt/build
          */
-        fun findBuildScriptLocation(buildFile: BuildFile, jarFile: String) : String {
-            val result = joinDir(buildFile.dotKobaltDir.path, KFiles.SCRIPT_BUILD_DIR, jarFile)
-            kobaltLog(2, "Build file dotKobaltDir: " + buildFile.dotKobaltDir)
-            kobaltLog(2, "Script jar file: $result")
+        fun findBuildScriptLocation(buildSources: IBuildSources, jarFile: String) : String {
+            val result = joinDir(buildSources.root.path, KFiles.dotKobaltDir.path, KFiles.SCRIPT_BUILD_DIR, jarFile)
+            kobaltLog(2, "  Script jar file: $result")
             return result
         }
 
@@ -387,18 +386,7 @@ class KFiles {
             }
         }
 
-        fun findBuildFile(projectRoot: String = "."): File {
-            val deprecatedLocation = File(Constants.BUILD_FILE_NAME)
-            val result: File =
-                    if (deprecatedLocation.exists()) {
-                        warn(Constants.BUILD_FILE_NAME + " is in a deprecated location, please move it to "
-                                + Constants.BUILD_FILE_DIRECTORY)
-                        deprecatedLocation
-                    } else {
-                        File(KFiles.joinDir(projectRoot, Constants.BUILD_FILE_DIRECTORY, Constants.BUILD_FILE_NAME))
-                    }
-            return result
-        }
+        val dotKobaltDir = File(KFiles.joinAndMakeDir(KFiles.KOBALT_DOT_DIR))
     }
 
     fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {

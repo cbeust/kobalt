@@ -10,7 +10,18 @@ fun main(argv: Array<String>) {
 //    BlockExtractor("plugins", '(', ')').extractBlock(lines)
 }
 
-class BuildScriptInfo(val content: String, val startLine: Int, val endLine: Int)
+class Section(val start: Int, val end: Int) {
+    override fun toString() = "$start-$end"
+}
+
+class BuildScriptInfo(val content: String, val sections: List<Section>) {
+    fun isInSection(lineNumber: Int): Boolean {
+        sections.forEach {
+            if (lineNumber >= it.start && lineNumber <= it.end) return true
+        }
+        return false
+    }
+}
 
 /**
  * Used to extract a keyword followed by opening and closing tags out of a list of strings,
@@ -26,7 +37,7 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
         var foundKeyword = false
         var foundClosing = false
         var count = 0
-        val result = StringBuffer()
+        val buildScript = arrayListOf<String>()
         val topLines = arrayListOf<String>()
 
         fun updateCount(line: String) {
@@ -46,9 +57,13 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
                 if (foundKeyword && count > 0) currentLine.append(c)
             }
 
-            if (currentLine.isNotEmpty()) result.append(currentLine.toString()).append("\n")
+            if (currentLine.isNotEmpty() && foundKeyword) buildScript.add(currentLine.toString())
         }
 
+        val allowedImports = listOf("com.beust", "java")
+        val disallowedImports = listOf("com.beust.kobalt.plugin")
+        val imports = arrayListOf<String>()
+        val sections = arrayListOf<Section>()
         lines.forEach { line ->
             currentLineNumber++
             val found = regexp.matcher(line).matches()
@@ -56,26 +71,33 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
                 startLine = currentLineNumber
                 foundKeyword = true
                 count = 1
-                result.append(topLines.joinToString("\n")).append("\n")
-                result.append(line).append("\n")
+                buildScript.add(line)
+                topLines.add(line)
             } else {
-                val allowedImports = listOf("com.beust", "java")
-                val disallowedImports = listOf("com.beust.kobalt.plugin")
-                if (! line.startsWith("import") ||
-                        (line.startsWith("import") && allowedImports.any { line.contains(it) }
-                            && ! disallowedImports.any { line.contains(it) })) {
+                if (line.startsWith("import")) {
+                    if (allowedImports.any { line.contains(it) } && !disallowedImports.any { line.contains(it) }) {
+                        imports.add(line)
+                    }
+                } else {
                     topLines.add(line)
                 }
                 updateCount(line)
             }
 
             if (foundKeyword && foundClosing && count == 0) {
-                return BuildScriptInfo(result.toString(), startLine, endLine)
+                sections.add(Section(startLine, endLine))
+                foundKeyword = false
+                foundClosing = false
+                count = 0
+                startLine = 0
+                endLine = 0
             }
         }
 
-        if (foundKeyword && foundClosing && count == 0) {
-            return BuildScriptInfo(result.toString(), startLine, endLine)
+        if (sections.isNotEmpty()) {
+            val result = (imports.distinct() + buildScript).joinToString("\n") + "\n"
+
+            return BuildScriptInfo(result, sections)
         } else {
             return null
         }
