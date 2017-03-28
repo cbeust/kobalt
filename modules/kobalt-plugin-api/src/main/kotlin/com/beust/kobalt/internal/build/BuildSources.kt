@@ -1,5 +1,6 @@
 package com.beust.kobalt.internal.build
 
+import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.homeDir
 import java.io.File
 import java.nio.file.*
@@ -22,31 +23,33 @@ class BuildSources(val file: File) : IBuildSources {
     override val root = file
 
     override fun findSourceFiles() : List<File> {
-        return listOf(/* "kobalt/src/a.kt",  */ "kobalt/src/Build.kt")
-                .map(::File)
-//                .map { BuildFile(Paths.get(it), it)}
+        val result = arrayListOf("kobalt/src/Build.kt")
+        if (Kobalt.buildSourceDirs.isNotEmpty()) result.addAll(findBuildFiles(Kobalt.buildSourceDirs))
+
+        return result.map(::File)
     }
 
     override fun exists() = findSourceFiles().isNotEmpty()
 
-    override fun toString() = "{BuildSources " + findSourceFiles()[0] + "...}"
+    override fun toString() = "{BuildSources " + findSourceFiles().joinToString(", ") + "}"
 
-    fun _findSourceFiles() : List<File> {
-        val result = arrayListOf<File>()
-        Files.walkFileTree(Paths.get(file.absolutePath), object : SimpleFileVisitor<Path>() {
-            override fun preVisitDirectory(dir: Path?, attrs: BasicFileAttributes?): FileVisitResult {
-                if (dir != null) {
-                    val path = dir.toFile()
-                    println(path.name)
-                    if (path.name == "src" && path.parentFile.name == "kobalt") {
-                        val sources = path.listFiles().filter { it.name.endsWith(".kt")}
-                        result.addAll(sources)
+    fun findBuildFiles(roots: List<String>) : List<String> {
+        val result = arrayListOf<String>()
+        roots.forEach { file ->
+            Files.walkFileTree(Paths.get(file), object : SimpleFileVisitor<Path>() {
+                override fun preVisitDirectory(dir: Path?, attrs: BasicFileAttributes?): FileVisitResult {
+                    if (dir != null) {
+                        val path = dir.toFile()
+                        if (path.name == "src" && path.parentFile.name == "kobalt") {
+                            val sources = path.listFiles().filter { it.name.endsWith(".kt") }.map { it.path }
+                            result.addAll(sources)
+                        }
                     }
-                }
 
-                return FileVisitResult.CONTINUE
-            }
-        })
+                    return FileVisitResult.CONTINUE
+                }
+            })
+        }
         return result
     }
 }
