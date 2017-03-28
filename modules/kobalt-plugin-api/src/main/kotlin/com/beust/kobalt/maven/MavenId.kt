@@ -17,8 +17,12 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
         val classifier: String?, val version: String?) {
 
     companion object {
-        fun isMavenId(id: String) = with(id.split(':')) {
-            size >= 3 && size <= 5
+        fun isMavenId(id: String) = if (id.startsWith("file://")) {
+            false
+        } else {
+            with(id.split(':')) {
+                size >= 3 && size <= 5
+            }
         }
 
         fun isRangedVersion(s: String): Boolean {

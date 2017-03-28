@@ -20,6 +20,16 @@ class MavenIdTest {
         )
     }
 
+    @Test
+    fun isMavenId() {
+        Assert.assertFalse(MavenId.isMavenId("file://C:\\foo\\bar"))
+        Assert.assertFalse(MavenId.isMavenId("file:///home/user/foo/bar"))
+        Assert.assertFalse(MavenId.isMavenId("com.example:foo"))
+        Assert.assertTrue(MavenId.isMavenId("com.example:foo:"))
+        Assert.assertTrue(MavenId.isMavenId("com.example:foo:0.5.7"))
+        Assert.assertTrue(MavenId.isMavenId("com.example:foo:jar:0.3.0"))
+    }
+
     @Test(dataProvider = "dp")
     fun parseVersions(id: String, groupId: String, artifactId: String, version: String?,
             packaging: String?, qualifier: String?) {
