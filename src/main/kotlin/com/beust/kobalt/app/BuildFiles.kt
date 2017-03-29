@@ -38,7 +38,7 @@ fun main(argv: Array<String>) {
     context.pluginInfo = PluginInfo(KobaltPluginXml(), null, null)
     Kobalt.init(MainModule(args, KobaltSettings.readSettingsXml()))
     val bf = Kobalt.INJECTOR.getInstance(BuildFiles::class.java)
-    bf.run(homeDir("kotlin/klaxon/"), context)
+    bf.parseBuildFiles(homeDir("kotlin/klaxon/"), context)
 }
 
 class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
@@ -67,7 +67,8 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         val result = arrayListOf<File>()
 
         val sourceDirs = arrayListOf<String>().apply { add(root + File.separator + KOBALT_SRC) }.map(::File)
-        sourceDirs.forEach { dir ->
+        // It's possible for no build file to be present (e.g. testing)
+        sourceDirs.filter { it.exists() }.forEach { dir ->
             result.addAll(findFiles(dir, { it.name.endsWith(".kt") }))
         }
         return result
@@ -76,7 +77,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
     /**
      * @return the new Build.kt
      */
-    fun run(projectDir: String, context: KobaltContext) : File {
+    fun parseBuildFiles(projectDir: String, context: KobaltContext) : File {
         val sourceDirs = arrayListOf<String>().apply { add(projectDir + File.separator + KOBALT_SRC) }
         val map = hashMapOf<File, AnalyzedBuildFile>()
         val newSourceDirs = arrayListOf<IncludedBuildSourceDir>()
