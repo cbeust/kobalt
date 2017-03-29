@@ -26,6 +26,7 @@ class GetDependencyGraphHandler : WebSocketListener {
 
     val PARAMETER_PROJECT_ROOT = "projectRoot"
     val PARAMETER_BUILD_FILE = "buildFile"
+    val PARAMETER_PROFILES = "profiles"
 
     var session: Session? = null
 
@@ -44,6 +45,8 @@ class GetDependencyGraphHandler : WebSocketListener {
                 errorMessage = errorMessage)))
     }
 
+    private fun findProfiles(map: Map<String, List<String>>) = map[PARAMETER_PROFILES]?.getOrNull(0)
+
     private fun findBuildFile(map: Map<String, List<String>>) : BuildSources? {
         val projectRoot = map[PARAMETER_PROJECT_ROOT]
         val buildFile = map[PARAMETER_BUILD_FILE]
@@ -61,6 +64,7 @@ class GetDependencyGraphHandler : WebSocketListener {
     override fun onWebSocketConnect(s: Session) {
         session = s
         val buildSources = findBuildFile(s.upgradeRequest.parameterMap)
+        val profiles = findProfiles(s.upgradeRequest.parameterMap)
 
         fun <T> getInstance(cls: Class<T>) : T = Kobalt.INJECTOR.getInstance(cls)
 
@@ -84,6 +88,7 @@ class GetDependencyGraphHandler : WebSocketListener {
                 try {
                     val dependencyData = getInstance(RemoteDependencyData::class.java)
                     val args = getInstance(Args::class.java)
+                    args.profiles = profiles
 
                     val allProjects = projectFinder.initForBuildFile(buildSources, args)
 
