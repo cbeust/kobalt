@@ -86,6 +86,8 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildSources") val buildS
         val projects = arrayListOf<Project>()
         run {
 //        buildFiles.forEach { buildFile ->
+
+            // Parse kobalt/src/Build.kt
             val parsedBuildFile = parseBuildFile(context, buildSources)
             parsedBuildFiles.add(parsedBuildFile)
             val pluginUrls = parsedBuildFile.pluginUrls
@@ -105,13 +107,19 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildSources") val buildS
                 }
             }
 
+            //
+            // Now that Build.kt has been parsed, we might have additional build files (buildSources will
+            // return additional build files) so we parse again.
+            //
+            val newParsedBuildFile = parseBuildFile(context, buildSources)
+
             // Write the modified Build.kt (e.g. maybe profiles were applied) to a temporary file,
             // compile it, jar it in buildScript.jar and run it
             val modifiedBuildFile = KFiles.createTempBuildFileInTempDirectory(deleteOnExit = true)
-            KFiles.saveFile(modifiedBuildFile, parsedBuildFile.nonBuildScriptCode)
+            KFiles.saveFile(modifiedBuildFile, newParsedBuildFile.nonBuildScriptCode)
             val taskResult = maybeCompileBuildFile(context, listOf(modifiedBuildFile.path),
                     buildScriptJarFile, pluginUrls, context.internalContext.forceRecompile,
-                    parsedBuildFile.containsProfiles)
+                    newParsedBuildFile.containsProfiles)
             if (taskResult.success) {
                 projects.addAll(buildScriptUtil.runBuildScriptJarFile(buildScriptJarFile, pluginUrls, context))
             } else {

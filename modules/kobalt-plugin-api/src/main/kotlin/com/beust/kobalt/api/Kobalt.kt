@@ -120,9 +120,13 @@ class Kobalt {
         fun findPlugin(name: String) = Plugins.findPlugin(name)
 
         val optionsFromBuild = arrayListOf<String>()
-
         fun addKobaltOptions(options: Array<out String>) {
             optionsFromBuild.addAll(options)
+        }
+
+        val buildSourceDirs = arrayListOf<String>()
+        fun addBuildSourceDirs(dirs: Array<out String>) {
+            buildSourceDirs.addAll(dirs)
         }
     }
 }

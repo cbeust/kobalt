@@ -31,6 +31,10 @@ class BuildScriptConfig {
     @Directive
     fun kobaltOptions(vararg options: String) = Kobalt.addKobaltOptions(options)
 
+    /** Where to find additional build files */
+    @Directive
+    fun buildSourceDirs(vararg dirs: String) = Kobalt.addBuildSourceDirs(dirs)
+
     // The following settings modify the compiler used to compile the build file, which regular users should
     // probably never need to do. Projects should use kotlinCompiler { compilerVersion } to configure the
     // Kotin compiler for their source files.
@@ -127,4 +131,3 @@ fun localMaven() : String {
     }
     return result.toURI().toString()
 }
-
