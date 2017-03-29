@@ -1,12 +1,7 @@
 package com.beust.kobalt.internal
 
-import com.beust.kobalt.AsciiTable
-import com.beust.kobalt.KobaltException
-import com.beust.kobalt.TaskResult
-import com.beust.kobalt.misc.NamedThreadFactory
-import com.beust.kobalt.misc.error
-import com.beust.kobalt.misc.kobaltLog
-import com.beust.kobalt.misc.warn
+import com.beust.kobalt.*
+import com.beust.kobalt.misc.*
 import com.google.common.collect.HashMultimap
 import java.lang.reflect.InvocationTargetException
 import java.util.*
@@ -303,14 +298,14 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
                             duration = " (" + ((hl.timestamp - start) / 1000)
                                     .toInt().toString() + ")"
                         } else {
-                            println("DONOTCOMMIT")
+                            kobaltLog(1, "DONOTCOMMIT")
                         }
                     }
                     return hl.name + duration
                 }
 
                 historyLog.forEach { hl ->
-                    println("CURRENT LOG: " + currentLog + " HISTORY LINE: " + hl)
+                    kobaltLog(1, "CURRENT LOG: " + currentLog + " HISTORY LINE: " + hl)
                     if (hl.start) {
                         projectStart[hl.name] = hl.timestamp
                     }
@@ -318,10 +313,10 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
                         currentLog = CompressedLog(hl.timestamp, hashMapOf(hl.threadId to hl.name))
                     } else currentLog?.let { cl ->
                         if (! hl.start || hl.timestamp - cl.timestamp < 1000) {
-                            println("    CURRENT LOG IS WITHING ONE SECOND: $hl")
+                            kobaltLog(1, "    CURRENT LOG IS WITHING ONE SECOND: $hl")
                             cl.threadMap[hl.threadId] = toName(hl)
                         } else {
-                            println("  ADDING COMPRESSED LINE $cl")
+                            kobaltLog(1, "  ADDING COMPRESSED LINE $cl")
                             compressed.add(cl)
                             currentLog = CompressedLog(hl.timestamp, hashMapOf(hl.threadId to toName(hl)))
                         }
@@ -378,7 +373,7 @@ class DynamicGraphExecutor<T>(val graph : DynamicGraph<T>, val factory: IThreadW
             return table
         }
 
-        println(displayRegularLog(table).build())
+        kobaltLog(1, displayRegularLog(table).build())
     }
 }
 

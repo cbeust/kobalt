@@ -1,13 +1,12 @@
 package com.beust.kobalt.maven
 
+import com.beust.kobalt.misc.kobaltLog
 import org.w3c.dom.Element
 import org.xml.sax.InputSource
 import java.io.File
 import java.io.FileReader
 import javax.xml.bind.JAXBContext
-import javax.xml.bind.annotation.XmlAnyElement
-import javax.xml.bind.annotation.XmlElement
-import javax.xml.bind.annotation.XmlRootElement
+import javax.xml.bind.annotation.*
 import javax.xml.parsers.SAXParserFactory
 import javax.xml.transform.sax.SAXSource
 
@@ -147,7 +146,7 @@ class Dependency {
     private fun expandVariable(s: String, pom: Pom2) : String {
         val variable = extractVariable(s)
         if (variable != null) {
-            println("Expanding variable $variable")
+            kobaltLog(2, "Expanding variable $variable")
             val value = pom.pomProject.propertyValue(variable)
             return s
         } else {

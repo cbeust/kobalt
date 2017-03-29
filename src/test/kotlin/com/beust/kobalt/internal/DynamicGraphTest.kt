@@ -61,7 +61,7 @@ class DynamicGraphTest {
             assertThat(transitiveClosure(3)).isEqualTo(listOf(3))
             assertThat(transitiveClosure(6)).isEqualTo(listOf(6, 7))
             assertThat(transitiveClosure(7)).isEqualTo(listOf(7))
-            println("done")
+            kobaltLog(1, "done")
         }
     }
 

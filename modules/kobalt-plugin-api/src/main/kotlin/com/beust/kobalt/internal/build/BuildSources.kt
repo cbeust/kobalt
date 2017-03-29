@@ -1,6 +1,7 @@
 package com.beust.kobalt.internal.build
 
 import com.beust.kobalt.homeDir
+import com.beust.kobalt.misc.kobaltLog
 import java.io.File
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
@@ -37,7 +38,7 @@ class BuildSources(val file: File) : IBuildSources {
             override fun preVisitDirectory(dir: Path?, attrs: BasicFileAttributes?): FileVisitResult {
                 if (dir != null) {
                     val path = dir.toFile()
-                    println(path.name)
+                    kobaltLog(1, path.name)
                     if (path.name == "src" && path.parentFile.name == "kobalt") {
                         val sources = path.listFiles().filter { it.name.endsWith(".kt")}
                         result.addAll(sources)

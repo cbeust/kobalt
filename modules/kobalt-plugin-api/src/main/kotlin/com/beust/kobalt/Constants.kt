@@ -3,6 +3,7 @@ package com.beust.kobalt
 import com.beust.kobalt.misc.KFiles
 
 object Constants {
+    const val LOG_QUIET_LEVEL = 0
     const val LOG_DEFAULT_LEVEL = 1
     const val LOG_MAX_LEVEL = 3
     val BUILD_FILE_NAME = "Build.kt"

@@ -2,11 +2,10 @@ package com.beust.kobalt
 
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.app.MainModule
-import com.beust.kobalt.internal.ILogger
-import com.beust.kobalt.internal.KobaltSettings
-import com.beust.kobalt.internal.KobaltSettingsXml
+import com.beust.kobalt.internal.*
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.aether.KobaltMavenResolver
+import com.beust.kobalt.misc.kobaltLog
 import com.google.common.eventbus.EventBus
 import com.google.inject.Provider
 import com.google.inject.Scopes
@@ -32,7 +31,7 @@ class TestModule : MainModule(Args(), TEST_KOBALT_SETTINGS) {
                 resolver = testResolver
                 logger = object: ILogger {
                     override fun log(tag: CharSequence, level: Int, message: CharSequence, newLine: Boolean) {
-                        println("TestLog: [$tag $level] " + message)
+                        kobaltLog(1, "TestLog: [$tag $level] " + message)
                     }
                 }
             }

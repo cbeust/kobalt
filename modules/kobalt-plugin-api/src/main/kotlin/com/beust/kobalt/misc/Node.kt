@@ -12,7 +12,7 @@ data class Node<T>(val value: T) {
     }
 
     private fun p(s: String) {
-        println(s)
+        kobaltLog(1, s)
     }
 
     fun dump(r: T, children: List<Node<T>>, indent: Int) {

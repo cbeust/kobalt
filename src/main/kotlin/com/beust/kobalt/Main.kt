@@ -27,7 +27,7 @@ private fun parseArgs(argv: Array<String>): Main.RunInfo {
     val args = Args()
     val result = JCommander(args)
     result.parse(*argv)
-    KobaltLogger.LOG_LEVEL = if (args.log < 0) {
+    KobaltLogger.LOG_LEVEL = if (args.log < Constants.LOG_QUIET_LEVEL) {
             Constants.LOG_DEFAULT_LEVEL
         } else if (args.log > Constants.LOG_MAX_LEVEL) {
             Constants.LOG_MAX_LEVEL
@@ -110,9 +110,9 @@ private class Main @Inject constructor(
     private fun runWithArgs(jc: JCommander, args: Args, argv: Array<String>): Int {
         val p = if (args.buildFile != null) File(args.buildFile) else File(".")
         args.buildFile = p.absolutePath
-
+        
         if (!args.update) {
-            println(AsciiArt.banner + Kobalt.version + "\n")
+            kobaltLog(1, AsciiArt.banner + Kobalt.version + "\n")
         }
 
         return options.run(jc, args, argv)

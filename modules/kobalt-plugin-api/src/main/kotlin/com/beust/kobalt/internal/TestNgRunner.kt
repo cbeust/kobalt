@@ -2,19 +2,11 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.TestConfig
-import com.beust.kobalt.api.IClasspathDependency
-import com.beust.kobalt.api.KobaltContext
-import com.beust.kobalt.api.Project
+import com.beust.kobalt.api.*
 import com.beust.kobalt.maven.aether.AetherDependency
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.StringVersion
-import com.beust.kobalt.misc.runCommand
-import com.beust.kobalt.misc.warn
+import com.beust.kobalt.misc.*
 import org.testng.remote.RemoteArgs
-import org.testng.remote.strprotocol.JsonMessageSender
-import org.testng.remote.strprotocol.MessageHelper
-import org.testng.remote.strprotocol.MessageHub
-import org.testng.remote.strprotocol.TestResultMessage
+import org.testng.remote.strprotocol.*
 import java.io.File
 import java.io.IOException
 
@@ -124,8 +116,8 @@ class TestNgRunner : GenericTestRunner() {
 
         try {
             var message = mh.receiveMessage()
-            println("")
-            println(green("PASSED") + " | " + red("FAILED") + " | " + yellow("SKIPPED"))
+            kobaltLog(1, "")
+            kobaltLog(1, green("PASSED") + " | " + red("FAILED") + " | " + yellow("SKIPPED"))
             while (message != null) {
                 message = mh.receiveMessage()
                 if (message is TestResultMessage) {
@@ -136,17 +128,19 @@ class TestNgRunner : GenericTestRunner() {
                         MessageHelper.SKIPPED_TEST -> skipped.add(message.name)
                     }
                 }
-                print("\r  " + d(passed.size, AsciiArt.GREEN)
-                        + " |   " + d(failed.size, AsciiArt.RED)
-                        + " |   " + d(skipped.size, AsciiArt.YELLOW))
+                if (!KobaltLogger.isQuiet) {
+                    print("\r  " + d(passed.size, AsciiArt.GREEN)
+                            + " |   " + d(failed.size, AsciiArt.RED)
+                            + " |   " + d(skipped.size, AsciiArt.YELLOW))
+                }
             }
         } catch(ex: IOException) {
-            println("Exception: ${ex.message}")
+             kobaltLog(1, "Exception: ${ex.message}")
         }
-        println("\nPassed: " + passed.size + ", Failed: " + failed.size + ", Skipped: " + skipped.size)
+        kobaltLog(1, "\nPassed: " + passed.size + ", Failed: " + failed.size + ", Skipped: " + skipped.size)
         failed.forEach {
             val top = it.stackTrace.substring(0, it.stackTrace.indexOf("\n"))
-            println("  " + it.cls + "." + it.method + "\n    " + top)
+             kobaltLog(1, "  " + it.cls + "." + it.method + "\n    " + top)
         }
         return failed.isEmpty() && skipped.isEmpty()
     }
@@ -201,10 +195,12 @@ fun main(args: Array<String>) {
     fun d(n: Int, color: String)
             = AsciiArt.wrap(String.format("%4d", n), color)
 
-    println("PASSED | FAILED | SKIPPED")
-    repeat(20) { i ->
-        print("\r  " + d(i, AsciiArt.GREEN) + " |   " + d(i * 2, AsciiArt.RED) + " | " + d(i, AsciiArt.YELLOW))
-        Thread.sleep(500)
+    if (!KobaltLogger.isQuiet) {
+        println("PASSED | FAILED | SKIPPED")
+        repeat(20) { i ->
+            print("\r  " + d(i, AsciiArt.GREEN) + " |   " + d(i * 2, AsciiArt.RED) + " | " + d(i, AsciiArt.YELLOW))
+            Thread.sleep(500)
+        }
+        println("")
     }
-    println("")
 }

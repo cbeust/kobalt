@@ -1,8 +1,6 @@
 package com.beust.kobalt.misc
 
-import com.beust.kobalt.Args
-import com.beust.kobalt.AsciiArt
-import com.beust.kobalt.KobaltException
+import com.beust.kobalt.*
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.maven.aether.Exceptions
 import java.lang.Exception
@@ -10,7 +8,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 fun Any.log(level: Int, text: CharSequence, newLine : Boolean = true) {
-    if (level <= KobaltLogger.LOG_LEVEL) {
+    if (level <= KobaltLogger.LOG_LEVEL && !KobaltLogger.isQuiet) {
         KobaltLogger.logger.log(javaClass.simpleName, text, newLine)
     }
 }
@@ -25,11 +23,11 @@ fun Any.kobaltLog(tag: String, text: CharSequence, newLine : Boolean = true) {
 }
 
 fun Any.logWrap(level: Int, text1: CharSequence, text2: CharSequence, function: () -> Unit) {
-    if (level <= KobaltLogger.LOG_LEVEL) {
+    if (level <= KobaltLogger.LOG_LEVEL && !KobaltLogger.isQuiet) {
         KobaltLogger.logger.log(javaClass.simpleName, text1, newLine = false)
     }
     function()
-    if (level <= KobaltLogger.LOG_LEVEL) {
+    if (level <= KobaltLogger.LOG_LEVEL && !KobaltLogger.isQuiet) {
         KobaltLogger.logger.log(javaClass.simpleName, text2, newLine = true)
     }
 }
@@ -50,6 +48,8 @@ fun Any.error(text: CharSequence, e: Throwable? = null) {
 
 object KobaltLogger {
     var LOG_LEVEL: Int = 1
+    
+    val isQuiet: Boolean get() = (LOG_LEVEL == Constants.LOG_QUIET_LEVEL)
 
     val logger: Logger get() =
         if (Kobalt.context != null) {

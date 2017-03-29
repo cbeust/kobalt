@@ -3,13 +3,8 @@ package com.beust.kobalt
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.MavenId
-import com.beust.kobalt.maven.aether.AetherDependency
-import com.beust.kobalt.maven.aether.Filters
-import com.beust.kobalt.maven.aether.KobaltMavenResolver
-import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.Node
-import com.beust.kobalt.misc.kobaltLog
-import com.beust.kobalt.misc.warn
+import com.beust.kobalt.maven.aether.*
+import com.beust.kobalt.misc.*
 import com.google.inject.Inject
 import org.eclipse.aether.artifact.DefaultArtifact
 import org.eclipse.aether.graph.DependencyNode
@@ -74,7 +69,7 @@ class ResolveDependency @Inject constructor(
         kobaltLog(1, AsciiArt.logBox(listOf(dep.id, url, dep.jarFile.get()).map { "          $it" }))
 
         display(root.children)
-        println("")
+        kobaltLog(1, "")
     }
 
     private fun display(nodes: List<Node<Dep>>) {
@@ -86,10 +81,12 @@ class ResolveDependency @Inject constructor(
                         else leftMiddle
                 val indent = level * increment
                 for(i in 0..indent - 2) {
-                    if (i == 0 || ((i + 1) % increment == 0)) print(vertical)
-                    else print(" ")
+                    if (!KobaltLogger.isQuiet) {
+                        if (i == 0 || ((i + 1) % increment == 0)) print(vertical)
+                        else print(" ")
+                    }
                 }
-                println(left + " " + dep.id + (if (dep.optional) " (optional)" else ""))
+                kobaltLog(1, left + " " + dep.id + (if (dep.optional) " (optional)" else ""))
                 display(node.children)
             }
         }
