@@ -84,8 +84,8 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
         val pluginInfo = PluginInfo(KobaltPluginXml(), null, null).apply {
             projectContributors.add(jvmCompilerPlugin)
         }
-        return compilerFactory!!.create(thisBuildFile, pluginInfo).compileBuildFiles(args,
-                forceRecompile = true)
+        return compilerFactory!!.create(thisBuildFile, pluginInfo)
+                .compileBuildFiles(args, forceRecompile = true)
     }
 
     fun createTemporaryProjectDirectory() = KFiles.fixSlashes(Files.createTempDirectory("kobaltTest").toFile())
