@@ -36,6 +36,7 @@ public class Main {
 
     private final Properties wrapperProperties = new Properties();
 
+    private static int logQuietLevel = 0;
     private static int logLevel = 1;
     private boolean noOverwrite = false;
 
@@ -487,7 +488,7 @@ public class Main {
     }
 
     private static void p(int level, String s, boolean newLine) {
-        if (level <= logLevel) {
+        if (level != logQuietLevel && level <= logLevel) {
             if (newLine) System.out.println(s);
             else System.out.print(s);
         }

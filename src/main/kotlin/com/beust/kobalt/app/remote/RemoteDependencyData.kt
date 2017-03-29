@@ -4,16 +4,10 @@ import com.beust.kobalt.Args
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.BuildFileCompiler
-import com.beust.kobalt.internal.DynamicGraph
-import com.beust.kobalt.internal.GraphUtil
-import com.beust.kobalt.internal.PluginInfo
-import com.beust.kobalt.internal.TaskManager
+import com.beust.kobalt.internal.*
 import com.beust.kobalt.internal.build.BuildSources
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.StringVersion
-import com.beust.kobalt.misc.log
+import com.beust.kobalt.misc.*
 import com.google.inject.Inject
 import java.io.File
 
@@ -170,7 +164,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
             GraphUtil.displayGraph(it.compileDependencies,
                     {dd: DependencyData -> dd.children },
                     {dd: DependencyData, indent: String ->
-                        println("    " + indent + dd.id + " " + (if (! dd.isLatest) "(old)" else ""))
+                        log(1, "    " + indent + dd.id + " " + (if (! dd.isLatest) "(old)" else ""))
                     })
         }
 

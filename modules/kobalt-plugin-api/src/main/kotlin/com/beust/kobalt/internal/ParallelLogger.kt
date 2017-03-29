@@ -2,9 +2,7 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.KobaltException
-import com.beust.kobalt.misc.kobaltError
-import com.beust.kobalt.misc.kobaltLog
-import com.beust.kobalt.misc.kobaltWarn
+import com.beust.kobalt.misc.*
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.util.*
@@ -69,7 +67,7 @@ class ParallelLogger @Inject constructor(val args: Args) : ILogger {
     private fun debug(s: CharSequence) {
         if (args.log >= 3) {
             val time = System.currentTimeMillis() - startTime!!
-            println("                    ### [$time] $s")
+            kobaltLog(1, "                    ### [$time] $s")
         }
     }
 
@@ -127,6 +125,6 @@ class ParallelLogger @Inject constructor(val args: Args) : ILogger {
         runningProjects.forEach {
             emptyProjectLog(it)
         }
-        println("")
+        kobaltLog(1, "")
     }
 }

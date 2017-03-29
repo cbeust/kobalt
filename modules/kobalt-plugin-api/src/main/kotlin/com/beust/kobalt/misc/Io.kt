@@ -1,9 +1,7 @@
 package com.beust.kobalt.misc
 
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
+import java.nio.file.*
 
 class Io(val dryRun: Boolean = false) {
     fun mkdirs(dir: String) {
@@ -47,8 +45,8 @@ class Io(val dryRun: Boolean = false) {
         if (! dryRun) {
             KFiles.copyRecursively(from, toDir)
             require(from.exists(), { -> "$from should exist" })
-            require(from.isDirectory, { -> println("$from should be a directory")})
-            require(toDir.isDirectory, { -> println("$toDir should be a file")})
+            require(from.isDirectory, { -> kobaltLog(1, "$from should be a directory")})
+            require(toDir.isDirectory, { -> kobaltLog(1, "$toDir should be a file")})
 
         }
     }
@@ -58,7 +56,7 @@ class Io(val dryRun: Boolean = false) {
     private fun rmDir(dir: File, keep: (File) -> Boolean, indent : String) {
         kobaltLog("rm -rf $dir")
 
-        require(dir.isDirectory,  { -> println("$dir should be a directory")})
+        require(dir.isDirectory,  { -> kobaltLog(1, "$dir should be a directory")})
 
         dir.listFiles({ p0 -> ! keep(p0!!) }).forEach {
             if (it.isDirectory) {

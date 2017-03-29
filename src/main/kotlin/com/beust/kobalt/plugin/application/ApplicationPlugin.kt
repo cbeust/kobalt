@@ -8,9 +8,7 @@ import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.internal.ActorUtils
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.aether.Scope
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.RunCommand
+import com.beust.kobalt.misc.*
 import com.beust.kobalt.plugin.packaging.PackageConfig
 import com.beust.kobalt.plugin.packaging.PackagingPlugin
 import com.google.inject.Inject
@@ -128,11 +126,11 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
         val args = contributorFlags + initialArgs + config.args
         val exitCode = RunCommand(java.absolutePath).run(args,
                 successCallback = { output: List<String> ->
-                    println(output.joinToString("\n"))
+                    kobaltLog(1, output.joinToString("\n"))
                 },
                 errorCallback =  { output: List<String> ->
-                    println("ERROR")
-                    println(output.joinToString("\n"))
+                    kobaltLog(1, "ERROR")
+                    kobaltLog(1, output.joinToString("\n"))
                 }
         )
         return TaskResult(exitCode == 0)

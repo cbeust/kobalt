@@ -1,18 +1,14 @@
 package com.beust.kobalt
 
 import com.beust.jcommander.JCommander
-import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.PluginTask
-import com.beust.kobalt.api.Project
-import com.beust.kobalt.app.ProjectFinder
-import com.beust.kobalt.app.ProjectGenerator
-import com.beust.kobalt.app.Templates
-import com.beust.kobalt.app.UpdateKobalt
+import com.beust.kobalt.api.*
+import com.beust.kobalt.app.*
 import com.beust.kobalt.app.remote.KobaltServer
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildSources
 import com.beust.kobalt.misc.CheckVersions
+import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.wrapper.Main
 import com.google.common.collect.HashMultimap
 import com.google.inject.Inject
@@ -165,6 +161,6 @@ class Options @Inject constructor(
             }
         }
 
-        println(sb.toString())
+        kobaltLog(1, sb.toString())
     }
 }

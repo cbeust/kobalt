@@ -2,6 +2,7 @@ package com.beust.kobalt.internal.build
 
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.homeDir
+import com.beust.kobalt.misc.kobaltLog
 import java.io.File
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
@@ -37,18 +38,18 @@ class BuildSources(val file: File) : IBuildSources {
         val result = arrayListOf<String>()
         roots.forEach { file ->
             Files.walkFileTree(Paths.get(file), object : SimpleFileVisitor<Path>() {
-                override fun preVisitDirectory(dir: Path?, attrs: BasicFileAttributes?): FileVisitResult {
-                    if (dir != null) {
-                        val path = dir.toFile()
-                        if (path.name == "src" && path.parentFile.name == "kobalt") {
+            override fun preVisitDirectory(dir: Path?, attrs: BasicFileAttributes?): FileVisitResult {
+                if (dir != null) {
+                    val path = dir.toFile()
+                    if (path.name == "src" && path.parentFile.name == "kobalt") {
                             val sources = path.listFiles().filter { it.name.endsWith(".kt") }.map { it.path }
-                            result.addAll(sources)
-                        }
+                        result.addAll(sources)
                     }
-
-                    return FileVisitResult.CONTINUE
                 }
-            })
+
+                return FileVisitResult.CONTINUE
+            }
+        })
         }
         return result
     }

@@ -43,7 +43,7 @@ class Args {
     var listTemplates: Boolean = false
 
     @Parameter(names = arrayOf("--log"), description = "Define the log level " +
-            "(${Constants.LOG_DEFAULT_LEVEL}-${Constants.LOG_MAX_LEVEL})")
+            "(${Constants.LOG_QUIET_LEVEL}-${Constants.LOG_MAX_LEVEL})")
     var log: Int = Constants.LOG_DEFAULT_LEVEL
 
     @Parameter(names = arrayOf("--logTags"),
