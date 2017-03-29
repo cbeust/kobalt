@@ -22,14 +22,13 @@ import java.util.regex.Pattern
  * save the location where they appear (file, start/end).
 
  * Compile each of these buildScriptInfo separately, note which new build files they add
- * and at which location
+ * and at which location.
 
  * Go back over all the files from kobalt/src/ *kt, insert each new build file in it,
- * save it as a modified, concatenated build file
+ * save it as a modified, concatenated big build file in .kobalt/build/Built.kt.
 
- * Create buildScript.jar out of compiling all these modified build files
-*/
-
+ * Create buildScript.jar out of compiling all these modified build files.
+ */
 fun main(argv: Array<String>) {
     val args = Args().apply {
         noIncrementalKotlin = true
@@ -74,8 +73,11 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         return result
     }
 
-    fun run(projectDir: String, context: KobaltContext) {
-        val sourceDirs = arrayListOf<String>().apply { add(projectDir + KOBALT_SRC) }
+    /**
+     * @return the new Build.kt
+     */
+    fun run(projectDir: String, context: KobaltContext) : File {
+        val sourceDirs = arrayListOf<String>().apply { add(projectDir + File.separator + KOBALT_SRC) }
         val map = hashMapOf<File, AnalyzedBuildFile>()
         val newSourceDirs = arrayListOf<IncludedBuildSourceDir>()
         sourceDirs.forEach {
@@ -88,61 +90,80 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
                     val bsi = af.buildScriptInfo
                     newSourceDirs.addAll(bsi.includedBuildSourceDirs)
                 }
-                println("FOUND buildScriptInfos: " + filesWithBuildScript)
+                log(2, "  Found buildScriptInfos: " + filesWithBuildScript)
             } else {
-                println("No buildScriptInfos")
+                log(2, "  No buildScriptInfos")
             }
         }
 
         //
         // Go through all the build files and insert the content of included directories wherever appropriate
         //
-        val bigFileContent = arrayListOf<String>()
+        val imports = arrayListOf<String>()
+        val code = arrayListOf<String>()
         sourceDirs.forEach { sourceDir ->
             findFiles(File(sourceDir), { it.name.endsWith(".kt") }).forEach { file ->
-                println("Looking at " + file)
-                bigFileContent.add("// $file")
+                code.add("\n// $file")
                 val analyzedFile = map[file]
                 val bsi = analyzedFile?.buildScriptInfo
 
                 file.readLines().forEachIndexed { lineNumber, line ->
                     if (bsi == null || ! bsi.isInSection(lineNumber)) {
-                        bigFileContent.add(correctProfileLine(context, line))
+                        correctProfileLine(context, line).let { cpl ->
+                            (if (cpl.startsWith("import")) imports else code).add(cpl)
+                        }
                     } else {
                         val isd = bsi.includedBuildSourceDirsForLine(lineNumber)
-                        println("Skipping line $lineNumber from file $file")
+                        log(2, "  Skipping line $lineNumber from file $file")
                         if (isd.any()) {
+                            // If we found any new buildSourceDirs, all all the files found in these directories
+                            // to the big Build.kt
                             val allBuildFiles = isd.flatMap { findBuildSourceFiles(projectDir + File.separator + it) }
-                            includeFileContent(context, allBuildFiles, bigFileContent)
+                            val sbf = includeFileContent(context, allBuildFiles)
+                            imports.addAll(sbf.imports)
+                            code.addAll(sbf.code)
                         }
                     }
                 }
             }
         }
 
-        val bigFile = File(homeDir("t/Build.kt"))
-        bigFile.writeText(bigFileContent.joinToString("\n"))
-        println("New included source dirs: " + newSourceDirs)
+        //
+        // Create the big Build.kt out of the imports and code we've found so far
+        //
+        val result = File(KFiles.findBuildScriptDir(), "Build.kt")
+        result.writeText(imports.joinToString("\n"))
+        result.appendText(code.joinToString("\n"))
+
+        return result
     }
 
-    private fun includeFileContent(context: KobaltContext, files: List<File>, out: ArrayList<String>) {
+    class SplitBuildFile(val imports: List<String>, val code: List<String>)
+
+    private fun includeFileContent(context: KobaltContext, files: List<File>) : SplitBuildFile {
+        val imports = arrayListOf<String>()
+        val code = arrayListOf<String>()
+
         files.forEach {
-            out.add("// $it")
-            out.addAll(applyProfiles(context, it.readLines()))
+            code.add("// $it")
+            val sbf = applyProfiles(context, it.readLines())
+            imports.addAll(sbf.imports)
+            code.addAll(sbf.code)
         }
+        return SplitBuildFile(imports, code)
     }
 
     fun parseBuildScriptInfos(projectDir: String, context: KobaltContext) : List<AnalyzedBuildFile> {
-        val root = File(projectDir + KOBALT_SRC)
+        val root = File(projectDir + File.separator + KOBALT_SRC)
         val files = findBuildSourceFiles(projectDir)
         val toProcess = arrayListOf<File>().apply { addAll(files) }
 
         // Parse each build file, associated it with a BuildScriptInfo if any found
         val analyzedFiles = arrayListOf<AnalyzedBuildFile>()
         toProcess.forEach { buildFile ->
-            val lines = applyProfiles(context, buildFile.readLines())
+            val splitBuildFile = applyProfiles(context, buildFile.readLines())
             val bsi = BlockExtractor(Pattern.compile("^val.*buildScript.*\\{"), '{', '}')
-                    .extractBlock(buildFile, lines)
+                    .extractBlock(buildFile, (splitBuildFile.imports + splitBuildFile.code))
             if (bsi != null) analyzedFiles.add(AnalyzedBuildFile(buildFile, bsi))
         }
 
@@ -159,21 +180,23 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
                 val sourceFile = File(homeDir("t", "bf", "a.kt")).apply {
                     writeText(source)
                 }
-                val buildScriptJarFile = File(homeDir("t", "preBuildScript-$counter.jar")).apply {
+
+                val buildScriptJarFile = File(KFiles.findBuildScriptDir(projectDir), "preBuildScript-$counter.jar").apply {
                     delete()
                 }
+
                 counter++
 
                 //
                 // Compile it to preBuildScript-xxx.jar
                 //
-                kobaltLog(1, "Compiling $sourceFile to $buildScriptJarFile")
+                kobaltLog(2, "  Compiling buildScriptInfo $sourceFile to $buildScriptJarFile")
                 val taskResult = factory.create(BuildSources(root), context.pluginInfo).maybeCompileBuildFile(context,
                         listOf(sourceFile.path),
                         buildScriptJarFile, emptyList<URL>(),
                         context.internalContext.forceRecompile,
                         containsProfiles)
-                println("Created $buildScriptJarFile")
+                log(2, "Created $buildScriptJarFile")
 
                 //
                 // Run preBuildScript.jar to initialize plugins and repos
@@ -184,7 +207,6 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
                 newDirs.removeAll(currentDirs)
                 if (newDirs.any()) {
                     af.buildScriptInfo.includedBuildSourceDirs.add(IncludedBuildSourceDir(section.start, newDirs))
-                    println("*** ADDED DIRECTORIES " + newDirs)
                 }
             }
 
@@ -193,13 +215,16 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         return analyzedFiles
     }
 
-    private fun applyProfiles(context: KobaltContext, lines: List<String>): List<String> {
-        val result = arrayListOf<String>()
+    private fun applyProfiles(context: KobaltContext, lines: List<String>): SplitBuildFile {
+        val imports = arrayListOf<String>()
+        val code = arrayListOf<String>()
         lines.forEach { line ->
-            result.add(correctProfileLine(context, line))
-
+            val isImport = line.startsWith("import")
+            val correctLine = correctProfileLine(context, line)
+            if (isImport) imports.add(correctLine)
+            else code.add(correctLine)
         }
-        return result
+        return SplitBuildFile(imports, code)
     }
 
     /**

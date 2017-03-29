@@ -3,7 +3,6 @@ package com.beust.kobalt.misc
 import com.beust.kobalt.*
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
-import com.beust.kobalt.internal.build.IBuildSources
 import com.beust.kobalt.maven.Md5
 import java.io.*
 import java.nio.file.Files
@@ -261,9 +260,9 @@ class KFiles {
         /**
          * The build location for build scripts is .kobalt/build
          */
-        fun findBuildScriptLocation(buildSources: IBuildSources, jarFile: String) : String {
-            val result = joinDir(buildSources.root.path, KFiles.dotKobaltDir.path, KFiles.SCRIPT_BUILD_DIR, jarFile)
-            kobaltLog(2, "  Script jar file: $result")
+        fun findBuildScriptDir(parent: String = ".") : File {
+            val result = File(joinDir(parent, KFiles.dotKobaltDir.path, KFiles.SCRIPT_BUILD_DIR))
+            kobaltLog(2, "  Script jar files in: $result")
             return result
         }
 

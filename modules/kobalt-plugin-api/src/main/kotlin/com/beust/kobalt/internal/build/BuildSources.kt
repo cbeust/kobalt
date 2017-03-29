@@ -1,8 +1,6 @@
 package com.beust.kobalt.internal.build
 
-import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.homeDir
-import com.beust.kobalt.misc.kobaltLog
 import java.io.File
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
@@ -19,30 +17,27 @@ class SingleFileBuildSources(val file: File) : IBuildSources {
     override val root: File = file.parentFile.parentFile
 }
 
-class BuildSources(val file: File) : IBuildSources {
+class BuildSources(val file: File = File("")) : IBuildSources {
 
     override val root = file
 
     override fun findSourceFiles() : List<File> {
-        val result = arrayListOf("kobalt/src/Build.kt")
-        if (Kobalt.buildSourceDirs.isNotEmpty()) result.addAll(findBuildFiles(Kobalt.buildSourceDirs))
-
-        return result.map(::File)
+        return findBuildFiles(listOf(file))
     }
 
     override fun exists() = findSourceFiles().isNotEmpty()
 
     override fun toString() = "{BuildSources " + findSourceFiles().joinToString(", ") + "}"
 
-    fun findBuildFiles(roots: List<String>) : List<String> {
-        val result = arrayListOf<String>()
+    fun findBuildFiles(roots: List<File>) : List<File> {
+        val result = arrayListOf<File>()
         roots.forEach { file ->
-            Files.walkFileTree(Paths.get(file), object : SimpleFileVisitor<Path>() {
+            Files.walkFileTree(Paths.get(file.path), object : SimpleFileVisitor<Path>() {
             override fun preVisitDirectory(dir: Path?, attrs: BasicFileAttributes?): FileVisitResult {
                 if (dir != null) {
                     val path = dir.toFile()
                     if (path.name == "src" && path.parentFile.name == "kobalt") {
-                            val sources = path.listFiles().filter { it.name.endsWith(".kt") }.map { it.path }
+                            val sources = path.listFiles().filter { it.name.endsWith(".kt") }
                         result.addAll(sources)
                     }
                 }
