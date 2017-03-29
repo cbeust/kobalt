@@ -23,6 +23,11 @@ class TestNgRunner : GenericTestRunner() {
     override fun args(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             testConfig: TestConfig) = arrayListOf<String>().apply {
 
+        if (KobaltLogger.isQuiet) {
+            add("-log")
+            add("0")
+        }
+
         if (testConfig.testArgs.none { it == "-d" }) {
             add("-d")
             add(defaultOutput(project))
