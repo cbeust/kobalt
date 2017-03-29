@@ -11,6 +11,7 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildSources
 import com.beust.kobalt.misc.*
 import com.google.inject.Inject
+import jdk.nashorn.internal.objects.NativeArray.forEach
 import java.io.File
 import java.net.URL
 import java.nio.file.*
@@ -52,12 +53,17 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
 
     private fun findFiles(file: File, accept: (File) -> Boolean) : List<File> {
         val result = arrayListOf<File>()
-        Files.walkFileTree(Paths.get(file.path), object : SimpleFileVisitor<Path>() {
-            override fun visitFile(file: Path, attrs: BasicFileAttributes?): FileVisitResult {
-                if (accept(file.toFile())) result.add(file.toFile())
-                return FileVisitResult.CONTINUE
-            }
-        })
+
+        // It's possible for no build file to be present (e.g. testing)
+        if (file.exists()) {
+            Files.walkFileTree(Paths.get(file.path), object : SimpleFileVisitor<Path>() {
+                override fun visitFile(file: Path, attrs: BasicFileAttributes?): FileVisitResult {
+                    if (accept(file.toFile())) result.add(file.toFile())
+                    return FileVisitResult.CONTINUE
+                }
+            })
+        }
+
         return result
     }
 
@@ -67,8 +73,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         val result = arrayListOf<File>()
 
         val sourceDirs = arrayListOf<String>().apply { add(root + File.separator + KOBALT_SRC) }.map(::File)
-        // It's possible for no build file to be present (e.g. testing)
-        sourceDirs.filter { it.exists() }.forEach { dir ->
+        sourceDirs.forEach { dir ->
             result.addAll(findFiles(dir, { it.name.endsWith(".kt") }))
         }
         return result
