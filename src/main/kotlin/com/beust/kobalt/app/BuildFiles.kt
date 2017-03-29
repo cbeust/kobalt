@@ -11,7 +11,6 @@ import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.BuildSources
 import com.beust.kobalt.misc.*
 import com.google.inject.Inject
-import jdk.nashorn.internal.objects.NativeArray.forEach
 import java.io.File
 import java.net.URL
 import java.nio.file.*
@@ -46,10 +45,10 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         val buildScriptUtil: BuildScriptUtil) {
     private val profileLines = arrayListOf<String>()
     private val activeProfiles = arrayListOf<String>()
-    private val KOBALT_SRC = File("kobalt/src/")
-
     var containsProfiles = false
     val projects = arrayListOf<Project>()
+
+    private fun sourceDir(root: String) = File(KFiles.joinDir(root, "kobalt", "src"))
 
     private fun findFiles(file: File, accept: (File) -> Boolean) : List<File> {
         val result = arrayListOf<File>()
@@ -72,10 +71,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
     private fun findBuildSourceFiles(root: String) : List<File> {
         val result = arrayListOf<File>()
 
-        val sourceDirs = arrayListOf<String>().apply { add(root + File.separator + KOBALT_SRC) }.map(::File)
-        sourceDirs.forEach { dir ->
-            result.addAll(findFiles(dir, { it.name.endsWith(".kt") }))
-        }
+        result.addAll(findFiles(sourceDir(root), { it.name.endsWith(".kt") }))
         return result
     }
 
@@ -83,23 +79,20 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
      * @return the new Build.kt
      */
     fun parseBuildFiles(projectDir: String, context: KobaltContext) : File {
-        val sourceDirs = arrayListOf<String>().apply { add(projectDir + File.separator + KOBALT_SRC) }
         val map = hashMapOf<File, AnalyzedBuildFile>()
         val newSourceDirs = arrayListOf<IncludedBuildSourceDir>()
-        sourceDirs.forEach {
-            val filesWithBuildScript = parseBuildScriptInfos(projectDir, context)
-            filesWithBuildScript.forEach {
-                map.put(it.file, it)
+        val filesWithBuildScript = parseBuildScriptInfos(projectDir, context)
+        filesWithBuildScript.forEach {
+            map.put(it.file, it)
+        }
+        if (filesWithBuildScript.any()) {
+            filesWithBuildScript.forEach { af ->
+                val bsi = af.buildScriptInfo
+                newSourceDirs.addAll(bsi.includedBuildSourceDirs)
             }
-            if (filesWithBuildScript.any()) {
-                filesWithBuildScript.forEach { af ->
-                    val bsi = af.buildScriptInfo
-                    newSourceDirs.addAll(bsi.includedBuildSourceDirs)
-                }
-                log(2, "  Found buildScriptInfos: " + filesWithBuildScript)
-            } else {
-                log(2, "  No buildScriptInfos")
-            }
+            log(2, "  Found buildScriptInfos: " + filesWithBuildScript)
+        } else {
+            log(2, "  No buildScriptInfos")
         }
 
         //
@@ -107,28 +100,27 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         //
         val imports = arrayListOf<String>()
         val code = arrayListOf<String>()
-        sourceDirs.forEach { sourceDir ->
-            findFiles(File(sourceDir), { it.name.endsWith(".kt") }).forEach { file ->
-                code.add("\n// $file")
-                val analyzedFile = map[file]
-                val bsi = analyzedFile?.buildScriptInfo
+        val sourceDir = sourceDir(projectDir)
+        findFiles(sourceDir, { it.name.endsWith(".kt") }).forEach { file ->
+            code.add("\n// $file")
+            val analyzedFile = map[file]
+            val bsi = analyzedFile?.buildScriptInfo
 
-                file.readLines().forEachIndexed { lineNumber, line ->
-                    if (bsi == null || ! bsi.isInSection(lineNumber)) {
-                        correctProfileLine(context, line).let { cpl ->
-                            (if (cpl.startsWith("import")) imports else code).add(cpl)
-                        }
-                    } else {
-                        val isd = bsi.includedBuildSourceDirsForLine(lineNumber)
-                        log(2, "  Skipping line $lineNumber from file $file")
-                        if (isd.any()) {
-                            // If we found any new buildSourceDirs, all all the files found in these directories
-                            // to the big Build.kt
-                            val allBuildFiles = isd.flatMap { findBuildSourceFiles(projectDir + File.separator + it) }
-                            val sbf = includeFileContent(context, allBuildFiles)
-                            imports.addAll(sbf.imports)
-                            code.addAll(sbf.code)
-                        }
+            file.readLines().forEachIndexed { lineNumber, line ->
+                if (bsi == null || ! bsi.isInSection(lineNumber)) {
+                    correctProfileLine(context, line).let { cpl ->
+                        (if (cpl.startsWith("import")) imports else code).add(cpl)
+                    }
+                } else {
+                    val isd = bsi.includedBuildSourceDirsForLine(lineNumber)
+                    log(2, "  Skipping line $lineNumber from file $file")
+                    if (isd.any()) {
+                        // If we found any new buildSourceDirs, all all the files found in these directories
+                        // to the big Build.kt
+                        val allBuildFiles = isd.flatMap { findBuildSourceFiles(projectDir + File.separator + it) }
+                        val sbf = includeFileContent(context, allBuildFiles)
+                        imports.addAll(sbf.imports)
+                        code.addAll(sbf.code)
                     }
                 }
             }
@@ -137,7 +129,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         //
         // Create the big Build.kt out of the imports and code we've found so far
         //
-        val result = File(KFiles.findBuildScriptDir(), "Build.kt")
+        val result = File(KFiles.findBuildScriptDir(projectDir), "Build.kt")
         result.writeText(imports.joinToString("\n"))
         result.appendText(code.joinToString("\n"))
 
@@ -160,7 +152,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
     }
 
     fun parseBuildScriptInfos(projectDir: String, context: KobaltContext) : List<AnalyzedBuildFile> {
-        val root = File(projectDir + File.separator + KOBALT_SRC)
+        val root = sourceDir(projectDir)
         val files = findBuildSourceFiles(projectDir)
         val toProcess = arrayListOf<File>().apply { addAll(files) }
 
