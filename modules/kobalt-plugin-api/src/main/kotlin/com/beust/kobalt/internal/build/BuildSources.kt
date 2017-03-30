@@ -5,6 +5,10 @@ import java.io.File
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
 
+/**
+ * The abstraction to represent a directory that contains source files. @param{root} is typically
+ * the root of the project and build files are searched under root/kobalt/src/ *kt.
+ */
 interface IBuildSources {
     fun findSourceFiles() : List<File>
     val root: File
