@@ -138,6 +138,12 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         return SplitBuildFile(imports, code, containsProfiles)
     }
 
+    companion object {
+        val BUILD_SCRIPT_REGEXP: Pattern = Pattern.compile("^val.*buildScript.*\\{")
+        val BLOCK_EXTRACTOR = BlockExtractor(BUILD_SCRIPT_REGEXP, '{', '}')
+
+    }
+
     fun parseBuildScriptInfos(projectDir: String, context: KobaltContext, profiles: Profiles)
             : List<BuildFileWithBuildScript> {
         val root = sourceDir(projectDir)
@@ -149,8 +155,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         toProcess.forEach { buildFile ->
             val splitBuildFile = profiles.applyProfiles(buildFile.readLines())
             containsProfiles = containsProfiles or splitBuildFile.containsProfiles
-            val bsi = BlockExtractor(Pattern.compile("^val.*buildScript.*\\{"), '{', '}')
-                    .extractBlock(buildFile, (splitBuildFile.imports + splitBuildFile.code))
+            val bsi = BLOCK_EXTRACTOR.extractBlock(buildFile, (splitBuildFile.imports + splitBuildFile.code))
             if (bsi != null) analyzedFiles.add(BuildFileWithBuildScript(buildFile, bsi))
         }
 
