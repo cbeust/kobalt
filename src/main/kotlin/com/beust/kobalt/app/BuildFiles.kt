@@ -130,6 +130,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         // Create the big Build.kt out of the imports and code we've found so far
         //
         val result = File(KFiles.findBuildScriptDir(projectDir), "Build.kt")
+        result.parentFile.mkdirs()
         result.writeText(imports.joinToString("\n"))
         result.appendText(code.joinToString("\n"))
 
