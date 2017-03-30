@@ -93,7 +93,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
                     // and if it does, include these build files here
                     //
                     val isd = bsi.includedBuildSourceDirsForLine(lineNumber)
-                    log(2, "  Skipping line $lineNumber from file $file")
+                    log(2, "  Skipping buildScript{} line $lineNumber from file $file")
                     if (isd.any()) {
                         // If we found any new buildSourceDirs, all all the files found in these directories
                         // to the big Build.kt
