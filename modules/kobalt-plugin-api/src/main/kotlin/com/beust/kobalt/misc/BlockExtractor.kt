@@ -10,7 +10,7 @@ class Section(val start: Int, val end: Int) {
 class IncludedBuildSourceDir(val line: Int, val dirs: List<String>)
 
 class BuildScriptInfo(val file: File, val fullBuildFile: List<String>, val sections: List<Section>,
-        val imports: List<String>) {
+        val imports: List<String>, val topLines: List<String>) {
     fun isInSection(lineNumber: Int): Boolean {
         sections.forEach {
             if (lineNumber >= it.start && lineNumber <= it.end) return true
@@ -42,6 +42,7 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
         var count = 0
         val buildScript = arrayListOf<String>()
         val topLines = arrayListOf<String>()
+        val finalTopLines = arrayListOf<String>()
 
         fun updateCount(line: String) {
             val currentLine = StringBuffer()
@@ -72,7 +73,7 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
                 foundKeyword = true
                 count = 1
                 buildScript.add(line)
-                topLines.add(line)
+                finalTopLines.addAll(topLines)
             } else {
                 if (line.startsWith("import")) {
                     if (isAllowedImport(line)) {
@@ -99,7 +100,7 @@ class BlockExtractor(val regexp: Pattern, val opening: Char, val closing: Char) 
         if (sections.isNotEmpty()) {
             val result = (imports.distinct() + buildScript).joinToString("\n") + "\n"
 
-            return BuildScriptInfo(file, lines, sections, imports)
+            return BuildScriptInfo(file, lines, sections, imports, finalTopLines)
         } else {
             return null
         }

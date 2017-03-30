@@ -157,13 +157,14 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         // Run every buildScriptInfo section in its own source file
         var counter = 0
         analyzedFiles.forEach { af ->
-            af.buildScriptInfo.sections.forEach { section ->
+            val buildScriptInfo = af.buildScriptInfo
+            buildScriptInfo.sections.forEach { section ->
 
                 //
                 // Create a source file with just this buildScriptInfo{}
                 //
                 val bs = af.file.readLines().subList(section.start, section.end + 1)
-                val source = (af.buildScriptInfo.imports + bs).joinToString("\n")
+                val source = (buildScriptInfo.imports + buildScriptInfo.topLines + bs).joinToString("\n")
                 val sourceFile = Files.createTempFile(null, ".kt").toFile().apply {
                     writeText(source)
                 }
@@ -197,7 +198,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
                 val newDirs = arrayListOf<String>().apply { addAll(Kobalt.buildSourceDirs) }
                 newDirs.removeAll(currentDirs)
                 if (newDirs.any()) {
-                    af.buildScriptInfo.includedBuildSourceDirs.add(IncludedBuildSourceDir(section.start, newDirs))
+                    buildScriptInfo.includedBuildSourceDirs.add(IncludedBuildSourceDir(section.start, newDirs))
                 }
             }
 
