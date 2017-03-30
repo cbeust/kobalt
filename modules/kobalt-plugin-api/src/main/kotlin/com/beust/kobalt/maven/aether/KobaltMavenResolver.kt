@@ -1,5 +1,6 @@
 package com.beust.kobalt.maven.aether
 
+import com.beust.kobalt.Args
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.getProxy
@@ -21,6 +22,7 @@ import org.eclipse.aether.resolution.VersionRangeRequest
 import org.eclipse.aether.resolution.VersionRangeResult
 
 class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
+        val args: Args,
         localRepo: LocalRepo, eventBus: EventBus) {
 
     companion object {
@@ -101,7 +103,18 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
         }
 
     private fun createCollectRequest(id: String, scope: Scope? = null) = CollectRequest().apply {
-        root = Dependency(DefaultArtifact(MavenId.toKobaltId(id)), scope?.scope)
+        val allIds = arrayListOf(MavenId.toMavenId(id))
+        if (args.downloadSources) {
+            listOf("sources", "javadoc").forEach {
+                val artifact = DefaultArtifact(id)
+                val sourceArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, it, artifact.extension,
+                        artifact.version)
+                allIds.add(sourceArtifact.toString())
+            }
+        }
+        dependencies = allIds.map { Dependency(DefaultArtifact(it), scope?.scope) }
+
+        root = Dependency(DefaultArtifact(MavenId.toMavenId(id)), scope?.scope)
         repositories = kobaltRepositories
     }
 }

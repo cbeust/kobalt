@@ -2,7 +2,9 @@ package com.beust.kobalt
 
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.app.MainModule
-import com.beust.kobalt.internal.*
+import com.beust.kobalt.internal.ILogger
+import com.beust.kobalt.internal.KobaltSettings
+import com.beust.kobalt.internal.KobaltSettingsXml
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import com.beust.kobalt.misc.kobaltLog
@@ -24,7 +26,7 @@ class TestModule : MainModule(Args(), TEST_KOBALT_SETTINGS) {
         val localRepo = TestLocalRepo()
         bind(LocalRepo::class.java).toInstance(localRepo)
 //        val localAether = Aether(LOCAL_CACHE, TEST_KOBALT_SETTINGS, EventBus())
-        val testResolver = KobaltMavenResolver(KobaltSettings(KobaltSettingsXml()), TestLocalRepo(), EventBus())
+        val testResolver = KobaltMavenResolver(KobaltSettings(KobaltSettingsXml()), Args(), TestLocalRepo(), EventBus())
         bind(KobaltMavenResolver::class.java).to(testResolver)
         bind(KobaltContext::class.java).toProvider(Provider<KobaltContext> {
             KobaltContext(args).apply {

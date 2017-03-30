@@ -22,6 +22,10 @@ class Args {
     @Parameter(names = arrayOf("--download"), description = "Force a download from the downloadUrl in the wrapper")
     var download: Boolean = false
 
+    @Parameter(names = arrayOf("--downloadSources"),
+            description = "Force a download of sources and javadocs when resolving dependencies")
+    var downloadSources: Boolean = false
+
     @Parameter(names = arrayOf("--dryRun"), description = "Display all the tasks that will get run without " +
             "actually running them")
     var dryRun: Boolean = false
