@@ -36,14 +36,14 @@ class MavenId private constructor(val groupId: String, val artifactId: String, v
                 MavenId(groupId, artifactId, extension, classifier, version)
             }
 
-        fun toKobaltId(id: String) = if (id.endsWith(":")) id + "(0,]" else id
+        fun toMavenId(id: String) = if (id.endsWith(":")) id + "(0,]" else id
 
         /**
          * The main entry point to create Maven Id's. Id's created by this function
          * will run through IMavenIdInterceptors.
          */
         fun create(originalId: String) : MavenId {
-            val id = toKobaltId(originalId)
+            val id = toMavenId(originalId)
             var originalMavenId = createNoInterceptors(id)
             var interceptedMavenId = originalMavenId
             val interceptors = Kobalt.context?.pluginInfo?.mavenIdInterceptors
