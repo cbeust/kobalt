@@ -16,6 +16,8 @@ class Archives {
     companion object {
         @ExportedProjectProperty(doc = "The name of the jar file", type = "String")
         const val JAR_NAME = "jarName"
+        @ExportedProjectProperty(doc = "The name of the a jar file with a main() method", type = "String")
+        const val JAR_NAME_WITH_MAIN_CLASS = "jarNameWithMainClass"
 
         private val DEFAULT_STREAM_FACTORY = { os : OutputStream -> ZipOutputStream(os) }
 

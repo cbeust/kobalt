@@ -80,7 +80,15 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 //
                 val allIncludedFiles = arrayListOf<IncludedFile>()
                 val outputFiles = arrayListOf<File>()
+                val jarsWithMainClass = arrayListOf<String>()
+
                 allConfigs.forEach { packageConfig ->
+                    packageConfig.jars.forEach {
+                        if (it.attributes.any{ it.first == "Main-Class"}) {
+                            jarsWithMainClass.add(it.name)
+                        }
+                    }
+
                     listOf(packageConfig.jars, packageConfig.wars, packageConfig.zips).forEach { archives ->
                         archives.forEach {
                             val files = jarGenerator.findIncludedFiles(packageConfig.project, context, it)
@@ -91,6 +99,12 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                         }
                     }
                 }
+
+                if (jarsWithMainClass.any()) {
+                    project.projectProperties.put(Archives.JAR_NAME_WITH_MAIN_CLASS, jarsWithMainClass[0])
+                }
+                project.projectProperties.put(Archives.JAR_NAME,
+                        context.variant.archiveName(project, null, ".jar"))
 
                 // Turn the IncludedFiles into actual Files
                 val inputFiles = allIncludedFiles.fold(arrayListOf<File>()) { files, includedFile: IncludedFile ->
@@ -119,9 +133,6 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 { -> outMd5 },
                 { project ->
                     try {
-                        project.projectProperties.put(Archives.JAR_NAME,
-                                context.variant.archiveName(project, null, ".jar"))
-
                         fun findFiles(ff: ArchiveGenerator, zip: Zip) : List<IncludedFile> {
                             val archiveName = ff.fullArchiveName(project, context, zip.name).name
                             return zipToFiles[archiveName]!!

@@ -8,7 +8,10 @@ import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.internal.ActorUtils
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.aether.Scope
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.RunCommand
+import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.plugin.packaging.PackageConfig
 import com.beust.kobalt.plugin.packaging.PackagingPlugin
 import com.google.inject.Inject
@@ -97,7 +100,9 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
     }
 
     private fun runJarFile(project: Project, context: KobaltContext, config: ApplicationConfig) : TaskResult {
-        val fileName = project.projectProperties.get(Archives.JAR_NAME) as String
+        val fileName = project.projectProperties.get(Archives.JAR_NAME_WITH_MAIN_CLASS)?.toString()
+            ?: throw KobaltException("Couldn't find any jar file with a main class in it")
+
         val jarFileName = KFiles.joinDir(KFiles.libsDir(project), fileName)
         val jarName = (jarFileName ?: KFiles.joinDir(KFiles.libsDir(project),
                 context.variant.archiveName(project, null, ".jar")))
