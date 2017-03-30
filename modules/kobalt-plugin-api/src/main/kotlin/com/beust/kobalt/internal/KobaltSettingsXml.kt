@@ -42,6 +42,9 @@ class KobaltSettingsXml {
 
     @XmlElement(name = "kobaltCompilerSeparateProcess") @JvmField
     var kobaltCompilerSeparateProcess: Boolean = false
+
+    @XmlElement(name = "autoUpdate") @JvmField
+    var autoUpdate: Boolean = false
 }
 
 class ProxiesXml {
@@ -84,6 +87,11 @@ class KobaltSettings @Inject constructor(val xmlFile: KobaltSettingsXml) {
      * Location of the local Maven repo for the task "publishToLocalMaven".
      */
     val localMavenRepo = KFiles.makeDir(xmlFile.localMavenRepo)
+
+    /**
+     * If true, Kobalt will automatically update itself if a new version is found.
+     */
+    val autoUpdate = xmlFile.autoUpdate
 
     /**
      * If true, the Kotlin compiler will always be launched in a separate JVM, even if the requested

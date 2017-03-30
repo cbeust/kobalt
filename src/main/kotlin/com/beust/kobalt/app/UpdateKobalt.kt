@@ -1,6 +1,7 @@
 package com.beust.kobalt.app
 
 import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.build.VersionCheckTimestampFile
 import com.beust.kobalt.misc.*
 import com.beust.kobalt.wrapper.Main
@@ -14,7 +15,8 @@ import javax.inject.Inject
 /**
  * Update Kobalt to the latest version.
  */
-class UpdateKobalt @Inject constructor(val github: GithubApi2, val wrapperProperties: KobaltWrapperProperties) {
+class UpdateKobalt @Inject constructor(val github: GithubApi2, val wrapperProperties: KobaltWrapperProperties,
+        val settings: KobaltSettings, val updateKobalt: UpdateKobalt) {
     fun updateKobalt() {
         val newVersion = github.latestKobaltVersion
         wrapperProperties.create(newVersion.get())
@@ -43,7 +45,10 @@ class UpdateKobalt @Inject constructor(val github: GithubApi2, val wrapperProper
             val current = StringVersion(Kobalt.version)
             val distFile = File(KFiles.distributionsDir)
             if (latestVersion > current) {
-                if (distFile.exists()) {
+                if (settings.autoUpdate) {
+                    kobaltLog(1, "**** Automatically updating to $latestVersionString")
+                    updateKobalt.updateKobalt()
+                } else if (distFile.exists()) {
                     kobaltLog(1, "**** Version $latestVersionString is installed, you can switch to it with " +
                             "./kobaltw --update")
                 } else {
