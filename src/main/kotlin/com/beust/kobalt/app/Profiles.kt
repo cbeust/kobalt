@@ -4,6 +4,11 @@ import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.misc.warn
 
+/**
+ * Manage the replacement of profile lines found in build files. Whenever a line matching
+ * "val debug by profile()" is found, look up if the profile "debug" is active for this
+ * build and if it is, replace this line with "val debug = true".
+ */
 class Profiles(val context: KobaltContext) {
     fun applyProfiles(lines: List<String>): BuildFiles.SplitBuildFile {
         val imports = arrayListOf<String>()
