@@ -143,7 +143,6 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildSources") val buildS
         // in this case, we won't recompile the build file. A potential solution for this would be
         // to have a side file that describes which profiles the current buildScript.jar was
         // compiled with.
-        val bs = BuildScriptJarFile(buildScriptJarFile)
         if (! containsProfiles && !forceRecompile && buildScriptUtil.isUpToDate(buildSources, buildScriptJarFile)) {
             kobaltLog(2, "  Build file $buildScriptJarFile is up to date")
             return TaskResult()
