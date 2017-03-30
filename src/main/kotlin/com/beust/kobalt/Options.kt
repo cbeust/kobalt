@@ -1,12 +1,17 @@
 package com.beust.kobalt
 
 import com.beust.jcommander.JCommander
-import com.beust.kobalt.api.*
-import com.beust.kobalt.app.*
+import com.beust.kobalt.api.Kobalt
+import com.beust.kobalt.api.PluginTask
+import com.beust.kobalt.app.ProjectFinder
+import com.beust.kobalt.app.ProjectGenerator
+import com.beust.kobalt.app.Templates
+import com.beust.kobalt.app.UpdateKobalt
 import com.beust.kobalt.app.remote.KobaltServer
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildSources
+import com.beust.kobalt.internal.build.SingleFileBuildSources
 import com.beust.kobalt.misc.CheckVersions
 import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.wrapper.Main
@@ -38,12 +43,10 @@ class Options @Inject constructor(
     fun run(jc: JCommander, args: Args, argv: Array<String>): Int {
         val p = if (args.buildFile != null) File(args.buildFile) else File(".")
 //        val buildFile = BuildFile(Paths.get(p.absolutePath), p.name)
-        val buildSources = BuildSources(File(p.absolutePath))
+        val buildSources = if (p.isDirectory) BuildSources(p.absoluteFile) else SingleFileBuildSources(p)
         var pluginClassLoader = javaClass.classLoader
 
-        val allProjects =
-            if (buildSources.exists()) projectFinder.initForBuildFile(buildSources, args)
-            else emptyList<Project>()
+        val allProjects = projectFinder.initForBuildFile(buildSources, args)
 
         // Modify `args` with options found in buildScript { kobaltOptions(...) }, if any
         addOptionsFromBuild(args, Kobalt.optionsFromBuild)

@@ -7,7 +7,7 @@ class Args {
     var targets: List<String> = arrayListOf()
 
     @Parameter(names = arrayOf("-bf", "--buildFile"), description = "The build file")
-    var buildFile: String? = null
+    var buildFile: String? = "kobalt/src/Build.kt"
 
     @Parameter(names = arrayOf("--checkVersions"), description = "Check if there are any newer versions of the " +
             "dependencies")
