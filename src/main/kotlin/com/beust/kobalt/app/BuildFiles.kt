@@ -164,7 +164,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
                 //
                 val bs = af.file.readLines().subList(section.start, section.end + 1)
                 val source = (af.buildScriptInfo.imports + bs).joinToString("\n")
-                val sourceFile = File(homeDir("t", "bf", "a.kt")).apply {
+                val sourceFile = Files.createTempFile(null, ".kt").toFile().apply {
                     writeText(source)
                 }
 
