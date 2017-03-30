@@ -19,6 +19,7 @@ class SingleFileBuildSources(val file: File) : IBuildSources {
     override fun exists() = file.exists()
     override fun findSourceFiles() = listOf(file)
     override val root: File = file.parentFile.parentFile.parentFile
+    override fun toString() : String = file.path
 }
 
 class BuildSources(val file: File = File("")) : IBuildSources {

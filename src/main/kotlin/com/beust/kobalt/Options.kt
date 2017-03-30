@@ -117,6 +117,9 @@ class Options @Inject constructor(
             //
             // Launch the build
             //
+            if (! buildSources.exists()) {
+                throw KobaltException("Could not find build file: " + buildSources)
+            }
             val runTargetResult = taskManager.runTargets(args.targets, allProjects)
             if (result == 0) {
                 result = if (runTargetResult.taskResult.success) 0 else 1
