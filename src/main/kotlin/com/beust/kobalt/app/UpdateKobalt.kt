@@ -16,7 +16,7 @@ import javax.inject.Inject
  * Update Kobalt to the latest version.
  */
 class UpdateKobalt @Inject constructor(val github: GithubApi2, val wrapperProperties: KobaltWrapperProperties,
-        val settings: KobaltSettings, val updateKobalt: UpdateKobalt) {
+        val settings: KobaltSettings) {
     fun updateKobalt() {
         val newVersion = github.latestKobaltVersion
         wrapperProperties.create(newVersion.get())
@@ -47,7 +47,7 @@ class UpdateKobalt @Inject constructor(val github: GithubApi2, val wrapperProper
             if (latestVersion > current) {
                 if (settings.autoUpdate) {
                     kobaltLog(1, "**** Automatically updating to $latestVersionString")
-                    updateKobalt.updateKobalt()
+                    updateKobalt()
                 } else if (distFile.exists()) {
                     kobaltLog(1, "**** Version $latestVersionString is installed, you can switch to it with " +
                             "./kobaltw --update")
