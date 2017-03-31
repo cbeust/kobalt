@@ -38,6 +38,14 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
     fun resolve(id: String, scope: Scope? = null, filter: DependencyFilter? = null): DependencyResult {
         val dependencyRequest = DependencyRequest(createCollectRequest(id, scope), filter)
         val result = system.resolveDependencies(session, dependencyRequest)
+        if (args.downloadSources) {
+            listOf("sources", "javadoc").forEach {
+                val artifact = DefaultArtifact(id)
+                val sourceArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, it, artifact.extension,
+                        artifact.version)
+                system.resolveDependencies(session, DependencyRequest(createCollectRequest(sourceArtifact, scope), filter))
+            }
+        }
 
 //        GraphUtil.displayGraph(listOf(result.root), { it -> it.children },
 //                { it: DependencyNode, indent: String -> println(indent + it.toString()) })
@@ -104,17 +112,16 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
 
     private fun createCollectRequest(id: String, scope: Scope? = null) = CollectRequest().apply {
         val allIds = arrayListOf(MavenId.toMavenId(id))
-        if (args.downloadSources) {
-            listOf("sources", "javadoc").forEach {
-                val artifact = DefaultArtifact(id)
-                val sourceArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, it, artifact.extension,
-                        artifact.version)
-                allIds.add(sourceArtifact.toString())
-            }
-        }
+
         dependencies = allIds.map { Dependency(DefaultArtifact(it), scope?.scope) }
 
         root = Dependency(DefaultArtifact(MavenId.toMavenId(id)), scope?.scope)
+        repositories = kobaltRepositories
+    }
+
+    private fun createCollectRequest( artifact: DefaultArtifact, scope: Scope? = null) = CollectRequest().apply {
+        dependencies = listOf(Dependency(artifact, scope?.scope))
+        root = Dependency(artifact, scope?.scope)
         repositories = kobaltRepositories
     }
 }
