@@ -21,7 +21,8 @@ class UpdateKobalt @Inject constructor(val github: GithubApi2, val wrapperProper
         val newVersion = github.latestKobaltVersion
         wrapperProperties.create(newVersion.get())
         VersionCheckTimestampFile.updateTimestamp(Instant.now())
-        Main.main(arrayOf())
+        val args = if (KobaltLogger.isQuiet) { arrayOf("--log", "0") } else { arrayOf() }
+        Main.main(args)
     }
 
     /**
