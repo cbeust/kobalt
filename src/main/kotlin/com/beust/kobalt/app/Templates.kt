@@ -30,5 +30,6 @@ class Templates : ITemplateContributor {
                 kobaltLog(1, "    \"" + it.templateName + "\"\t\t" + it.templateDescription)
             }
         }
+        kobaltLog(1, "Once you've selected a template, run './kobaltw --init <templateName>")
     }
 }
