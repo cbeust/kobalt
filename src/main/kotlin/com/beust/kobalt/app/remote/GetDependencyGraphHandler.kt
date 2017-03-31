@@ -6,7 +6,6 @@ import com.beust.kobalt.app.ProjectFinder
 import com.beust.kobalt.internal.build.BuildSources
 import com.beust.kobalt.internal.eventbus.ArtifactDownloadedEvent
 import com.beust.kobalt.maven.aether.Exceptions
-import com.beust.kobalt.misc.KFiles
 import com.google.common.eventbus.EventBus
 import com.google.common.eventbus.Subscribe
 import com.google.gson.Gson
@@ -14,7 +13,6 @@ import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.WebSocketListener
 import java.io.File
-import java.nio.file.Paths
 
 /**
  * Manage the websocket endpoint "/v1/getDependencyGraph".
@@ -27,6 +25,7 @@ class GetDependencyGraphHandler : WebSocketListener {
     val PARAMETER_PROJECT_ROOT = "projectRoot"
     val PARAMETER_BUILD_FILE = "buildFile"
     val PARAMETER_PROFILES = "profiles"
+    val PARAMETER_DOWNLOAD_SOURCES = "downloadSources"
 
     var session: Session? = null
 
@@ -46,6 +45,7 @@ class GetDependencyGraphHandler : WebSocketListener {
     }
 
     private fun findProfiles(map: Map<String, List<String>>) = map[PARAMETER_PROFILES]?.getOrNull(0)
+    private fun findDownloadSources(map: Map<String, List<String>>) = map[PARAMETER_DOWNLOAD_SOURCES]?.getOrNull(0)?.toBoolean() ?: false
 
     private fun findBuildFile(map: Map<String, List<String>>) : BuildSources? {
         val projectRoot = map[PARAMETER_PROJECT_ROOT]
@@ -65,6 +65,7 @@ class GetDependencyGraphHandler : WebSocketListener {
         session = s
         val buildSources = findBuildFile(s.upgradeRequest.parameterMap)
         val profiles = findProfiles(s.upgradeRequest.parameterMap)
+        val downloadSources = findDownloadSources(s.upgradeRequest.parameterMap)
 
         fun <T> getInstance(cls: Class<T>) : T = Kobalt.INJECTOR.getInstance(cls)
 
@@ -89,6 +90,7 @@ class GetDependencyGraphHandler : WebSocketListener {
                     val dependencyData = getInstance(RemoteDependencyData::class.java)
                     val args = getInstance(Args::class.java)
                     args.profiles = profiles
+                    args.downloadSources = downloadSources
 
                     val allProjects = projectFinder.initForBuildFile(buildSources, args)
 
