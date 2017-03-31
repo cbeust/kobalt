@@ -24,6 +24,12 @@ class Profiles(val context: KobaltContext) {
         return BuildFiles.SplitBuildFile(imports, code, containsProfiles)
     }
 
+    /** Matches the new syntax: val debug by profile() */
+    val NEW_REGEXP = Regex(".*va[rl][ \\t]+([a-zA-Z0-9_]+)[ \\t]*.*profile\\(\\).*")
+
+    /** Matches the deprecated syntax: val debug = false */
+    val OLD_REGEXP = Regex(".*va[rl][ \\t]+([a-zA-Z0-9_]+)[ \\t]*=[ \\t]*[tf][ra][ul][es].*")
+
     /**
      * If the current line matches one of the profiles, turn the declaration into
      * val profile = true, otherwise return the same line.
@@ -33,10 +39,8 @@ class Profiles(val context: KobaltContext) {
     fun correctProfileLine(line: String): Pair<String, Boolean> {
         var containsProfiles = false
         (context.profiles as List<String>).forEach { profile ->
-            val re = Regex(".*va[rl][ \\t]+([a-zA-Z0-9_]+)[ \\t]*.*profile\\(\\).*")
-            val oldRe = Regex(".*va[rl][ \\t]+([a-zA-Z0-9_]+)[ \\t]*=[ \\t]*[tf][ra][ul][es].*")
-            val matcher = re.matchEntire(line)
-            val oldMatcher = oldRe.matchEntire(line)
+            val matcher = NEW_REGEXP.matchEntire(line)
+            val oldMatcher = OLD_REGEXP.matchEntire(line)
 
             fun profileMatch(matcher: MatchResult?) : Pair<Boolean, String?> {
                 val variable = if (matcher != null) matcher.groups[1]?.value else null
