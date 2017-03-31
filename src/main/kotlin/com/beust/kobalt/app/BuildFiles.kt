@@ -29,7 +29,9 @@ import java.util.regex.Pattern
  * Go back over all the files from kobalt/src/ *kt, insert each new build file in it,
  * save it as a modified, concatenated big build file in .kobalt/build/Built.kt.
 
- * Create buildScript.jar out of compiling all these modified build files.
+ * Compile .kobalt/build/Build.kt into buildScript.jar.
+ *
+ * And while doing all that, apply all the active profiles.
  */
 class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         val buildScriptUtil: BuildScriptUtil) {
