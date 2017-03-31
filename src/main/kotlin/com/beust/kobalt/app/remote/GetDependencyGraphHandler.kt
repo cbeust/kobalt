@@ -6,7 +6,6 @@ import com.beust.kobalt.app.ProjectFinder
 import com.beust.kobalt.internal.build.BuildSources
 import com.beust.kobalt.internal.eventbus.ArtifactDownloadedEvent
 import com.beust.kobalt.maven.aether.Exceptions
-import com.beust.kobalt.misc.KFiles
 import com.google.common.eventbus.EventBus
 import com.google.common.eventbus.Subscribe
 import com.google.gson.Gson
@@ -14,7 +13,6 @@ import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.WebSocketListener
 import java.io.File
-import java.nio.file.Paths
 
 /**
  * Manage the websocket endpoint "/v1/getDependencyGraph".
@@ -24,8 +22,9 @@ class GetDependencyGraphHandler : WebSocketListener {
     // so I have to do dependency injections manually :-(
     val projectFinder = Kobalt.INJECTOR.getInstance(ProjectFinder::class.java)
 
+    // URL parameters sent by the client
     val PARAMETER_PROJECT_ROOT = "projectRoot"
-    val PARAMETER_BUILD_FILE = "buildFile"
+    val PARAMETER_BUILD_FILE = "buildFile"  // Deprecated
     val PARAMETER_PROFILES = "profiles"
 
     var session: Session? = null
@@ -63,8 +62,9 @@ class GetDependencyGraphHandler : WebSocketListener {
 
     override fun onWebSocketConnect(s: Session) {
         session = s
-        val buildSources = findBuildFile(s.upgradeRequest.parameterMap)
-        val profiles = findProfiles(s.upgradeRequest.parameterMap)
+        val parameterMap = s.upgradeRequest.parameterMap
+        val buildSources = findBuildFile(parameterMap)
+        val profiles = findProfiles(parameterMap)
 
         fun <T> getInstance(cls: Class<T>) : T = Kobalt.INJECTOR.getInstance(cls)
 
@@ -88,6 +88,7 @@ class GetDependencyGraphHandler : WebSocketListener {
                 try {
                     val dependencyData = getInstance(RemoteDependencyData::class.java)
                     val args = getInstance(Args::class.java)
+                    args.buildFile = buildSources.root.absolutePath
                     args.profiles = profiles
 
                     val allProjects = projectFinder.initForBuildFile(buildSources, args)

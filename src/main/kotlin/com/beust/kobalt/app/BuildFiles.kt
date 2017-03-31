@@ -40,13 +40,16 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
 
     class BuildFileWithBuildScript(val file: File, val buildScriptInfo: BuildScriptInfo)
 
+    class BuildFileParseResult(val buildKt: File, val buildSourceDirectories: List<String>)
+
     /**
      * @return the new Build.kt
      */
-    fun parseBuildFiles(projectDir: String, context: KobaltContext) : File {
+    fun parseBuildFiles(projectDir: String, context: KobaltContext) : BuildFileParseResult {
         val profiles = Profiles(context)
         val bsiMap = hashMapOf<File, BuildFileWithBuildScript>()
         val newSourceDirs = arrayListOf<IncludedBuildSourceDir>()
+
         //
         // Create a map of File -> FileWithBuildScript
         //
@@ -94,7 +97,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
                     // We're inside a buildScriptInfo section, see if it includes any buildSourceDirs
                     // and if it does, include these build files here
                     //
-                    val isd = bsi.includedBuildSourceDirsForLine(lineNumber)
+                        val isd = bsi.includedBuildSourceDirsForLine(lineNumber)
                     log(2, "  Skipping buildScript{} line $lineNumber from file $file")
                     if (isd.any()) {
                         // If we found any new buildSourceDirs, all all the files found in these directories
@@ -111,7 +114,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         //
         // Create the big Build.kt out of the imports and code we've found so far
         //
-        with(File(KFiles.findBuildScriptDir(projectDir), "Build.kt")) {
+        val newBuildFile = with(File(KFiles.findBuildScriptDir(projectDir), "Build.kt")) {
             parentFile.mkdirs()
             val imp = arrayListOf<String>().apply {
                 addAll(imports)
@@ -119,9 +122,11 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
             Collections.sort(imp)
             writeText(imp.joinToString("\n"))
             appendText(code.joinToString("\n"))
-
-            return this
+            this
         }
+
+        val newDirs = listOf(projectDir) + newSourceDirs.flatMap{ it.dirs }
+        return BuildFileParseResult(newBuildFile, newDirs)
     }
 
     class SplitBuildFile(val imports: List<String>, val code: List<String>, val containsProfiles: Boolean)
@@ -205,7 +210,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
                 val newDirs = arrayListOf<String>().apply { addAll(Kobalt.buildSourceDirs) }
                 newDirs.removeAll(currentDirs)
                 if (newDirs.any()) {
-                    buildScriptInfo.includedBuildSourceDirs.add(IncludedBuildSourceDir(section.start, newDirs))
+                    buildScriptInfo.addBuildSourceDir(IncludedBuildSourceDir(section.start, newDirs))
                 }
             }
 

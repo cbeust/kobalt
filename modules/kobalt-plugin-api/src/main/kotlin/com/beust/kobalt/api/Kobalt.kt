@@ -128,5 +128,9 @@ class Kobalt {
         fun addBuildSourceDirs(dirs: Array<out String>) {
             buildSourceDirs.addAll(dirs)
         }
+
+        fun cleanUp() {
+            buildSourceDirs.clear()
+        }
     }
 }

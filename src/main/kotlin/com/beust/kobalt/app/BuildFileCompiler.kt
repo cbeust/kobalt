@@ -76,7 +76,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildSources") val buildS
     }
 
     class FindProjectResult(val context: KobaltContext, val projects: List<Project>, val pluginUrls: List<URL>,
-            val taskResult: TaskResult)
+            val buildSourceDirectories: List<String>, val taskResult: TaskResult)
 
     private fun findProjects(context: KobaltContext): FindProjectResult {
         val root = buildSources.root
@@ -96,7 +96,8 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildSources") val buildS
         // and possibly add new source build directories. The output of this process is a new Build.kt
         // file that contains the aggregation of all the build files with the profiles applied and with
         // the included build files inserted at the correct line.
-        val newBuildKt = buildFiles.parseBuildFiles(root.absolutePath, context)
+        val parseResult = buildFiles.parseBuildFiles(root.absolutePath, context)
+        val newBuildKt = parseResult.buildKt
 
         //
         // Save the current build script absolute directory
@@ -128,7 +129,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildSources") val buildS
         // Clear the absolute dir
         context.internalContext.absoluteDir = null
 
-        return FindProjectResult(context, projects, pluginUrls,
+        return FindProjectResult(context, projects, pluginUrls, parseResult.buildSourceDirectories,
                 if (errorTaskResult != null) errorTaskResult else TaskResult())
     }
 
