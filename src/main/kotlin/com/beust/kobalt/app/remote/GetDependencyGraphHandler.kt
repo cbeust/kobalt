@@ -40,8 +40,9 @@ class GetDependencyGraphHandler : WebSocketListener {
 
     fun <T> sendWebsocketCommand(endpoint: RemoteEndpoint, commandName: String, payload: T,
             errorMessage: String? = null) {
-        endpoint.sendString(Gson().toJson(WebSocketCommand(commandName, payload = Gson().toJson(payload),
-                errorMessage = errorMessage)))
+        val json = Gson().toJson(WebSocketCommand(commandName, payload = Gson().toJson(payload),
+                errorMessage = errorMessage))
+        endpoint.sendString(json)
     }
 
     private fun findProfiles(map: Map<String, List<String>>) = map[PARAMETER_PROFILES]?.getOrNull(0)
@@ -91,9 +92,9 @@ class GetDependencyGraphHandler : WebSocketListener {
                     args.buildFile = buildSources.root.absolutePath
                     args.profiles = profiles
 
-                    val allProjects = projectFinder.initForBuildFile(buildSources, args)
+                    val projectResults = projectFinder.initForBuildFile(buildSources, args)
 
-                    dependencyData.dependenciesDataFor(buildSources, args, object : IProgressListener {
+                    dependencyData.dependenciesDataFor(buildSources, args, projectResults, object : IProgressListener {
                         override fun onProgress(progress: Int?, message: String?) {
                             sendWebsocketCommand(s.remote, ProgressCommand.NAME, ProgressCommand(progress, message))
                         }

@@ -40,7 +40,8 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
 
     class BuildFileWithBuildScript(val file: File, val buildScriptInfo: BuildScriptInfo)
 
-    class BuildFileParseResult(val buildKt: File, val buildSourceDirectories: List<String>)
+    class BuildFileParseResult(val projectRoot: String, val buildKt: File,
+            val buildSourceDirectories: List<String>)
 
     /**
      * @return the new Build.kt
@@ -125,8 +126,9 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
             this
         }
 
-        val newDirs = listOf(projectDir) + newSourceDirs.flatMap{ it.dirs }
-        return BuildFileParseResult(newBuildFile, newDirs)
+        val newDirs = listOf(File(BuildFiles.buildContentRoot(projectDir)).relativeTo(File(projectDir)).path) +
+            newSourceDirs.flatMap{ it.dirs.map { BuildFiles.buildContentRoot(it)} }
+        return BuildFileParseResult(projectDir, newBuildFile, newDirs)
     }
 
     class SplitBuildFile(val imports: List<String>, val code: List<String>, val containsProfiles: Boolean)
@@ -149,6 +151,10 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         val BUILD_SCRIPT_REGEXP: Pattern = Pattern.compile("^val.*buildScript.*\\{")
         val BLOCK_EXTRACTOR = BlockExtractor(BUILD_SCRIPT_REGEXP, '{', '}')
 
+        /**
+         * The content root for a build file module.
+         */
+        fun buildContentRoot(root: String) = root + File.separatorChar + "kobalt"
     }
 
     fun parseBuildScriptInfos(projectDir: String, context: KobaltContext, profiles: Profiles)
@@ -219,7 +225,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
         return analyzedFiles
     }
 
-    private fun sourceDir(root: String) = File(KFiles.joinDir(root, "kobalt", "src"))
+    private fun sourceDir(root: String) = File(KFiles.joinDir(buildContentRoot(root), "src"))
 
     private fun findFiles(file: File, accept: (File) -> Boolean) : List<File> {
         val result = arrayListOf<File>()
@@ -236,6 +242,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
 
         return result
     }
+
     private fun findBuildSourceFiles(root: String) : List<File> {
         val result = arrayListOf<File>()
 

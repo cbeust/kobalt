@@ -76,7 +76,7 @@ class BuildFileCompiler @Inject constructor(@Assisted("buildSources") val buildS
     }
 
     class FindProjectResult(val context: KobaltContext, val projects: List<Project>, val pluginUrls: List<URL>,
-            val buildSourceDirectories: List<String>, val taskResult: TaskResult)
+            val buildContentRoots: List<String>, val taskResult: TaskResult)
 
     private fun findProjects(context: KobaltContext): FindProjectResult {
         val root = buildSources.root
