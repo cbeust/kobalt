@@ -110,11 +110,13 @@ class GithubApi2 @Inject constructor(
         return Observable.just(UploadAssetResponse(tagName, tagName))
     }
 
+    var isDev: Boolean = false
+
     val latestKobaltVersion: Future<String>
         get() {
             val callable = Callable<String> {
                 var result = Kobalt.version
-                if (Duration.ofMinutes(10L) >
+                if (! isDev && Duration.ofMinutes(10L) >
                         Duration.between(VersionCheckTimestampFile.timestamp, Instant.now())) {
                     kobaltLog(2, "Skipping GitHub latest release check, too soon.")
                 } else {
