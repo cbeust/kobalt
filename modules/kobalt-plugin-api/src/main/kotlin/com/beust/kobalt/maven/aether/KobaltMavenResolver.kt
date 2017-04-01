@@ -20,6 +20,7 @@ import org.eclipse.aether.resolution.DependencyRequest
 import org.eclipse.aether.resolution.DependencyResult
 import org.eclipse.aether.resolution.VersionRangeRequest
 import org.eclipse.aether.resolution.VersionRangeResult
+import java.util.*
 
 class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
         val args: Args,
@@ -35,8 +36,9 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
     fun resolveToArtifact(id: String, scope: Scope? = null, filter: DependencyFilter? = null) : Artifact
         = resolve(id, scope, filter).root.artifact
 
-    fun resolve(id: String, scope: Scope? = null, filter: DependencyFilter? = null): DependencyResult {
-        val dependencyRequest = DependencyRequest(createCollectRequest(id, scope), filter)
+    fun resolve(id: String, scope: Scope? = null, filter: DependencyFilter? = null,
+            repos: List<String> = emptyList()): DependencyResult {
+        val dependencyRequest = DependencyRequest(createCollectRequest(id, scope, repos), filter)
         val result = system.resolveDependencies(session, dependencyRequest)
 
 //        GraphUtil.displayGraph(listOf(result.root), { it -> it.children },
@@ -90,11 +92,12 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
     private val system = Booter.newRepositorySystem()
     private val session = Booter.newRepositorySystemSession(system, localRepo.localRepo, settings, eventBus)
 
+    private fun createRepo(url: String) = RemoteRepository.Builder(Random().nextInt().toString(), "default", url)
+            .build()
+
     private val kobaltRepositories: List<RemoteRepository>
         get() = Kobalt.repos.map {
-            RemoteRepository.Builder(null, "default", it.url)
-//                    .setSnapshotPolicy(RepositoryPolicy(false, null, null))
-                    .build().let { repository ->
+            createRepo(it.url).let { repository ->
                 val proxyConfigs = settings.proxyConfigs ?: return@map repository
                 RemoteRepository.Builder(repository).apply {
                     setProxy(proxyConfigs.getProxy(repository.protocol)?.toAetherProxy())
@@ -102,7 +105,8 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
             }
         }
 
-    private fun createCollectRequest(id: String, scope: Scope? = null) = CollectRequest().apply {
+    private fun createCollectRequest(id: String, scope: Scope? = null, repos: List<String> = emptyList())
+            = CollectRequest().apply {
         val allIds = arrayListOf(MavenId.toMavenId(id))
         if (args.downloadSources) {
             listOf("sources", "javadoc").forEach {
@@ -112,9 +116,8 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
                 allIds.add(sourceArtifact.toString())
             }
         }
-        dependencies = allIds.map { Dependency(DefaultArtifact(it), scope?.scope) }
 
         root = Dependency(DefaultArtifact(MavenId.toMavenId(id)), scope?.scope)
-        repositories = kobaltRepositories
+        repositories = kobaltRepositories + repos.map { createRepo(it) }
     }
 }

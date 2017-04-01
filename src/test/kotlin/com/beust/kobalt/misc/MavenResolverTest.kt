@@ -16,6 +16,7 @@ import org.eclipse.aether.graph.Dependency
 import org.eclipse.aether.repository.RemoteRepository
 import org.eclipse.aether.resolution.ArtifactResult
 import org.eclipse.aether.resolution.DependencyRequest
+import org.eclipse.aether.resolution.DependencyResolutionException
 import org.testng.annotations.DataProvider
 import org.testng.annotations.Guice
 import org.testng.annotations.Test
@@ -66,6 +67,21 @@ class MavenResolverTest {
 
         // Make sure that com.google.android is not included (it's an optional dependency of retrofit2)
         assertThat(closure.none { it.toString().contains("android") })
+    }
+
+    @Test
+    fun shouldResolveSnapshots() {
+        try {
+            // Should throw
+            resolver.resolve("org.bukkit:bukkit:1.11.2-R0.1-SNAPSHOT")
+        } catch(ex: DependencyResolutionException) {
+            // Success. Note: run the failing test first, because once the resolve succeeds, its
+            // results are cached in the local repo.
+        }
+
+        // Should succeed
+        resolver.resolve("org.bukkit:bukkit:1.11.2-R0.1-SNAPSHOT",
+                repos = listOf("https://hub.spigotmc.org/nexus/content/repositories/snapshots"))
     }
 
     private fun resolve(id: String): List<ArtifactResult> {
