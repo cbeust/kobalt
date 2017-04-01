@@ -1,8 +1,10 @@
 package com.beust.kobalt.misc
 
 import com.beust.kobalt.KobaltException
+import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.internal.DocUrl
 import com.beust.kobalt.internal.KobaltSettings
+import com.beust.kobalt.internal.build.VersionCheckTimestampFile
 import com.beust.kobalt.maven.Http
 import com.beust.kobalt.maven.aether.Exceptions
 import com.google.gson.Gson
@@ -16,6 +18,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import rx.Observable
 import java.io.File
+import java.time.Duration
+import java.time.Instant
 import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
@@ -110,38 +114,42 @@ class GithubApi2 @Inject constructor(
         get() {
             val callable = Callable<String> {
                 var result = "0"
-
-                val username = localProperties.getNoThrows(PROPERTY_USERNAME, DOC_URL)
-                val accessToken = localProperties.getNoThrows(PROPERTY_ACCESS_TOKEN, DOC_URL)
-                try {
-                    val req =
-                            if (username != null && accessToken != null) {
-                                service.getReleases(username, "kobalt", accessToken)
-                            } else {
-                                service.getReleasesNoAuth("cbeust", "kobalt")
-                            }
-                    val ex = req.execute()
-                    val errorBody = ex.errorBody()
-                    if (errorBody != null) {
-                        val jsonError = JsonParser().parse(errorBody.string())
-                        warn("Couldn't call Github.getReleases(): $jsonError")
-                    } else {
-                        val releases = ex.body()
-                        if (releases != null) {
-                            releases.firstOrNull()?.let {
-                                try {
-                                    result = listOf(it.name, it.tagName).filterNotNull().first { !it.isBlank() }
-                                } catch(ex: NoSuchElementException) {
-                                    throw KobaltException("Couldn't find the latest release")
+                if (Duration.ofMinutes(10L) >
+                        Duration.between(VersionCheckTimestampFile.timestamp, Instant.now())) {
+                    kobaltLog(2, "Skipping GitHub latest release check, too soon.")
+                    result = Kobalt.version
+                } else {
+                    val username = localProperties.getNoThrows(PROPERTY_USERNAME, DOC_URL)
+                    val accessToken = localProperties.getNoThrows(PROPERTY_ACCESS_TOKEN, DOC_URL)
+                    try {
+                        val req =
+                                if (username != null && accessToken != null) {
+                                    service.getReleases(username, "kobalt", accessToken)
+                                } else {
+                                    service.getReleasesNoAuth("cbeust", "kobalt")
                                 }
-                            }
+                        val ex = req.execute()
+                        val errorBody = ex.errorBody()
+                        if (errorBody != null) {
+                            val jsonError = JsonParser().parse(errorBody.string())
+                            warn("Couldn't call Github.getReleases(): $jsonError")
                         } else {
-                            warn("Didn't receive any body in the response to GitHub.getReleases()")
+                            val releases = ex.body()
+                            if (releases != null) {
+                                releases.firstOrNull()?.let {
+                                    try {
+                                        result = listOf(it.name, it.tagName).filterNotNull().first { !it.isBlank() }
+                                    } catch(ex: NoSuchElementException) {
+                                        throw KobaltException("Couldn't find the latest release")
+                                    }
+                                }
+                            } else {
+                                warn("Didn't receive any body in the response to GitHub.getReleases()")
+                            }
                         }
-                    }
-                } catch(e: Exception) {
-                    kobaltLog(1, "Couldn't retrieve releases from github: " + e.message)
-                    Exceptions.printStackTrace(e)
+                    } catch(e: Exception) {
+                        kobaltLog(1, "Couldn't retrieve releases from github: " + e.message)
+                        Exceptions.printStackTrace(e)
 //                    val error = parseRetrofitError(e)
 //                    val details = if (error.errors != null) {
 //                        error.errors[0]
@@ -152,6 +160,7 @@ class GithubApi2 @Inject constructor(
 //                    // using cbeust/kobalt, like above. Right now, just bailing.
 //                    kobaltLog(2, "Couldn't retrieve releases from github, ${error.message ?: e}: "
 //                            + details?.code + " field: " + details?.field)
+                    }
                 }
                 result
             }
