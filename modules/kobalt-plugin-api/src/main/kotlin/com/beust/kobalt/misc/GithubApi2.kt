@@ -25,7 +25,8 @@ import java.util.concurrent.Callable
 import java.util.concurrent.Future
 
 class GithubApi2 @Inject constructor(
-        val executors: KobaltExecutors, val localProperties: LocalProperties, val http: Http, val settings:KobaltSettings) {
+        val executors: KobaltExecutors, val localProperties: LocalProperties, val http: Http,
+        val settings:KobaltSettings, val args: Args) {
 
     companion object {
         const val PROPERTY_ACCESS_TOKEN = "github.accessToken"
@@ -110,13 +111,11 @@ class GithubApi2 @Inject constructor(
         return Observable.just(UploadAssetResponse(tagName, tagName))
     }
 
-    var isDev: Boolean = false
-
     val latestKobaltVersion: Future<String>
         get() {
             val callable = Callable<String> {
                 var result = Kobalt.version
-                if (! isDev && Duration.ofMinutes(10L) >
+                if (! args.isDev && Duration.ofMinutes(10L) >
                         Duration.between(VersionCheckTimestampFile.timestamp, Instant.now())) {
                     kobaltLog(2, "Skipping GitHub latest release check, too soon.")
                 } else {

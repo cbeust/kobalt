@@ -94,7 +94,6 @@ private class Main @Inject constructor(
 
         var result = 1
 
-        github.isDev = args.dev
         val latestVersionFuture = github.latestKobaltVersion
 
         try {
