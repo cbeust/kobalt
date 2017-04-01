@@ -1,5 +1,6 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.Args
 import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.internal.DocUrl
@@ -115,7 +116,7 @@ class GithubApi2 @Inject constructor(
         get() {
             val callable = Callable<String> {
                 var result = Kobalt.version
-                if (! args.isDev && Duration.ofMinutes(10L) >
+                if (! args.dev && Duration.ofMinutes(10L) >
                         Duration.between(VersionCheckTimestampFile.timestamp, Instant.now())) {
                     kobaltLog(2, "Skipping GitHub latest release check, too soon.")
                 } else {
