@@ -113,11 +113,10 @@ class GithubApi2 @Inject constructor(
     val latestKobaltVersion: Future<String>
         get() {
             val callable = Callable<String> {
-                var result = "0"
+                var result = Kobalt.version
                 if (Duration.ofMinutes(10L) >
                         Duration.between(VersionCheckTimestampFile.timestamp, Instant.now())) {
                     kobaltLog(2, "Skipping GitHub latest release check, too soon.")
-                    result = Kobalt.version
                 } else {
                     val username = localProperties.getNoThrows(PROPERTY_USERNAME, DOC_URL)
                     val accessToken = localProperties.getNoThrows(PROPERTY_ACCESS_TOKEN, DOC_URL)
