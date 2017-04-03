@@ -22,8 +22,9 @@ class GetDependencyGraphHandler : WebSocketListener {
     // so I have to do dependency injections manually :-(
     val projectFinder = Kobalt.INJECTOR.getInstance(ProjectFinder::class.java)
 
+    // URL parameters sent by the client
     val PARAMETER_PROJECT_ROOT = "projectRoot"
-    val PARAMETER_BUILD_FILE = "buildFile"
+    val PARAMETER_BUILD_FILE = "buildFile"  // Deprecated
     val PARAMETER_PROFILES = "profiles"
     val PARAMETER_DOWNLOAD_SOURCES = "downloadSources"
 
@@ -40,8 +41,9 @@ class GetDependencyGraphHandler : WebSocketListener {
 
     fun <T> sendWebsocketCommand(endpoint: RemoteEndpoint, commandName: String, payload: T,
             errorMessage: String? = null) {
-        endpoint.sendString(Gson().toJson(WebSocketCommand(commandName, payload = Gson().toJson(payload),
-                errorMessage = errorMessage)))
+        val json = Gson().toJson(WebSocketCommand(commandName, payload = Gson().toJson(payload),
+                errorMessage = errorMessage))
+        endpoint.sendString(json)
     }
 
     private fun findProfiles(map: Map<String, List<String>>) = map[PARAMETER_PROFILES]?.getOrNull(0)
@@ -63,8 +65,9 @@ class GetDependencyGraphHandler : WebSocketListener {
 
     override fun onWebSocketConnect(s: Session) {
         session = s
-        val buildSources = findBuildFile(s.upgradeRequest.parameterMap)
-        val profiles = findProfiles(s.upgradeRequest.parameterMap)
+        val parameterMap = s.upgradeRequest.parameterMap
+        val buildSources = findBuildFile(parameterMap)
+        val profiles = findProfiles(parameterMap)
         val downloadSources = findDownloadSources(s.upgradeRequest.parameterMap)
 
         fun <T> getInstance(cls: Class<T>) : T = Kobalt.INJECTOR.getInstance(cls)
@@ -89,12 +92,13 @@ class GetDependencyGraphHandler : WebSocketListener {
                 try {
                     val dependencyData = getInstance(RemoteDependencyData::class.java)
                     val args = getInstance(Args::class.java)
+                    args.buildFile = buildSources.root.absolutePath
                     args.profiles = profiles
                     args.downloadSources = downloadSources
 
-                    val allProjects = projectFinder.initForBuildFile(buildSources, args)
+                    val projectResults = projectFinder.initForBuildFile(buildSources, args)
 
-                    dependencyData.dependenciesDataFor(buildSources, args, object : IProgressListener {
+                    dependencyData.dependenciesDataFor(buildSources, args, projectResults, object : IProgressListener {
                         override fun onProgress(progress: Int?, message: String?) {
                             sendWebsocketCommand(s.remote, ProgressCommand.NAME, ProgressCommand(progress, message))
                         }

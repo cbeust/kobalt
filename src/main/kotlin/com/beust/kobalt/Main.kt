@@ -93,6 +93,7 @@ private class Main @Inject constructor(
         }
 
         var result = 1
+
         val latestVersionFuture = github.latestKobaltVersion
 
         try {

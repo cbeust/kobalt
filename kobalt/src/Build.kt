@@ -117,6 +117,7 @@ val kobaltPluginApi = project {
                 "org.testng:testng:${Versions.testng}"
         )
         exclude(*aether("impl", "spi", "util", "api"))
+        compile("org.jetbrains.kotlin:kotlin-stdlib:1.1.1")
     }
 
 
@@ -180,6 +181,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 //                "org.glassfish.jersey.media:jersey-media-moxy:${Versions.jersey}",
 //                "org.wasabi:wasabi:0.1.182"
         )
+        compile("org.jetbrains.kotlin:kotlin-stdlib:1.1.1")
 
     }
 
@@ -188,6 +190,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "org.assertj:assertj-core:3.4.1",
                 *mavenResolver("util")
                 )
+        compile("org.jetbrains.kotlin:kotlin-test:1.1.1")
     }
 
     assemble {

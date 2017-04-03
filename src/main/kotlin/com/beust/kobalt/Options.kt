@@ -46,7 +46,8 @@ class Options @Inject constructor(
         val buildSources = if (p.isDirectory) BuildSources(p.absoluteFile) else SingleFileBuildSources(p)
         var pluginClassLoader = javaClass.classLoader
 
-        val allProjects = projectFinder.initForBuildFile(buildSources, args)
+        val allProjectResult = projectFinder.initForBuildFile(buildSources, args)
+        val allProjects = allProjectResult.projects
 
         // Modify `args` with options found in buildScript { kobaltOptions(...) }, if any
         addOptionsFromBuild(args, Kobalt.optionsFromBuild)
@@ -139,6 +140,7 @@ class Options @Inject constructor(
     private fun cleanUp() {
         pluginInfo.cleanUp()
         taskManager.cleanUp()
+        Kobalt.cleanUp()
     }
 
     private fun addOptionsFromBuild(args: Args, optionsFromBuild: ArrayList<String>) {

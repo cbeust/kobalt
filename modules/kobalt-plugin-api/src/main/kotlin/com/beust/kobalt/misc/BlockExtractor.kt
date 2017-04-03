@@ -20,6 +20,8 @@ class BuildScriptInfo(val file: File, val fullBuildFile: List<String>, val secti
 
     val includedBuildSourceDirs = arrayListOf<IncludedBuildSourceDir>()
 
+    fun addBuildSourceDir(dir: IncludedBuildSourceDir) = includedBuildSourceDirs.add(dir)
+
     fun includedBuildSourceDirsForLine(line: Int): List<String> {
         val result = includedBuildSourceDirs.find { it.line == line }?.dirs
         return result ?: emptyList()

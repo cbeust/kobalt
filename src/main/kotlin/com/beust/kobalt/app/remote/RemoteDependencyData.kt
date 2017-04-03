@@ -4,10 +4,16 @@ import com.beust.kobalt.Args
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.BuildFileCompiler
-import com.beust.kobalt.internal.*
+import com.beust.kobalt.internal.DynamicGraph
+import com.beust.kobalt.internal.GraphUtil
+import com.beust.kobalt.internal.PluginInfo
+import com.beust.kobalt.internal.TaskManager
 import com.beust.kobalt.internal.build.BuildSources
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.KobaltExecutors
+import com.beust.kobalt.misc.StringVersion
+import com.beust.kobalt.misc.log
 import com.google.inject.Inject
 import java.io.File
 
@@ -22,7 +28,9 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
         val buildFileCompilerFactory: BuildFileCompiler.IFactory, val pluginInfo: PluginInfo,
         val taskManager: TaskManager) {
 
-    fun dependenciesDataFor(buildSources: BuildSources, args: Args, progressListener: IProgressListener? = null,
+    fun dependenciesDataFor(buildSources: BuildSources, args: Args,
+            findProjectResult: BuildFileCompiler.FindProjectResult,
+            progressListener: IProgressListener? = null,
             useGraph : Boolean = false): GetDependenciesData {
         val projectDatas = arrayListOf<ProjectData>()
 
@@ -168,7 +176,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
                     })
         }
 
-        return GetDependenciesData(projectDatas, allTasks, pluginDependencies,
+        return GetDependenciesData(projectDatas, allTasks, pluginDependencies, findProjectResult.buildContentRoots,
                 projectResult.taskResult.errorMessage)
     }
 
@@ -194,6 +202,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
     class GetDependenciesData(val projects: List<ProjectData> = emptyList(),
             val allTasks: Collection<TaskData> = emptySet(),
             val pluginDependencies: List<DependencyData> = emptyList(),
+            val buildContentRoots: List<String> = emptyList(),
             val errorMessage: String?) {
         companion object {
             val NAME = "GetDependencies"
