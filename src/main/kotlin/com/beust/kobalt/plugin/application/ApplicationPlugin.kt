@@ -100,7 +100,10 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
     }
 
     private fun runJarFile(project: Project, context: KobaltContext, config: ApplicationConfig) : TaskResult {
+        // If the user specified a Main-Class attribute when creating their jar file manifest, use that. Otherwise,
+        // use the default jar file name and hope there's a main class in it
         val fileName = project.projectProperties.get(Archives.JAR_NAME_WITH_MAIN_CLASS)?.toString()
+            ?: project.projectProperties.get(Archives.JAR_NAME)?.toString()
             ?: throw KobaltException("Couldn't find any jar file with a main class in it")
 
         val jarFileName = KFiles.joinDir(KFiles.libsDir(project), fileName)
