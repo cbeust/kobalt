@@ -122,7 +122,6 @@ class GetDependencyGraphHandler : WebSocketListener {
         // Respond to the request
         sendWebsocketCommand(s.remote, RemoteDependencyData.GetDependenciesData.NAME, result,
                 errorMessage = result.errorMessage)
-        s.close()
     }
 
     override fun onWebSocketText(message: String?) {
