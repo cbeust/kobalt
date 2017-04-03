@@ -47,7 +47,8 @@ class GetDependencyGraphHandler : WebSocketListener {
     }
 
     private fun findProfiles(map: Map<String, List<String>>) = map[PARAMETER_PROFILES]?.getOrNull(0)
-    private fun findDownloadSources(map: Map<String, List<String>>) = map[PARAMETER_DOWNLOAD_SOURCES]?.getOrNull(0)?.toBoolean() ?: false
+    private fun findDownloadSources(map: Map<String, List<String>>) = map[PARAMETER_DOWNLOAD_SOURCES]
+            ?.getOrNull(0)?.toBoolean() ?: false
 
     private fun findBuildFile(map: Map<String, List<String>>) : BuildSources? {
         val projectRoot = map[PARAMETER_PROJECT_ROOT]

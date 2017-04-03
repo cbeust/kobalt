@@ -26,33 +26,24 @@ class AetherDependency(val artifact: Artifact, override val optional: Boolean = 
     private fun toId(a: Artifact) = a.toString()
 
     override val jarFile: Future<File>
-        get() =
-            if (artifact.file != null) {
-                resolveSourcesIfNeeded()
-                CompletedFuture(artifact.file)
-            } else {
-                resolveSourcesIfNeeded()
-                val td = aether.resolve(artifact)
-                CompletedFuture(td.root.artifact.file)
-            }
+        get() {
+            resolveSourcesIfNeeded()
+            return if (artifact.file != null) {
+                    CompletedFuture(artifact.file)
+                } else {
+                    val td = aether.resolve(artifact)
+                    CompletedFuture(td.root.artifact.file)
+                }
+        }
 
     private fun resolveSourcesIfNeeded() {
         if (args?.downloadSources ?: false) {
-            artifact.toSourcesArtifact().let { sourcesArtifact ->
-                if (sourcesArtifact.file == null) {
+            listOf(artifact.toSourcesArtifact(), artifact.toJavaDocArtifact()).forEach { artifact ->
+                if (artifact.file == null) {
                     try {
-                        aether.resolve(sourcesArtifact)
+                        aether.resolve(artifact)
                     } catch(e: DependencyResolutionException) {
-                        //do nothing
-                    }
-                }
-            }
-            artifact.toJavaDocArtifact().let { javadocArtifact ->
-                if (javadocArtifact.file == null) {
-                    try {
-                        aether.resolve(javadocArtifact)
-                    } catch(e: DependencyResolutionException) {
-                        //do nothing
+                        // Ignore
                     }
                 }
             }
