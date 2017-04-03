@@ -22,12 +22,6 @@ class GetDependencyGraphHandler : WebSocketListener {
     // so I have to do dependency injections manually :-(
     val projectFinder = Kobalt.INJECTOR.getInstance(ProjectFinder::class.java)
 
-    // URL parameters sent by the client
-    val PARAMETER_PROJECT_ROOT = "projectRoot"
-    val PARAMETER_BUILD_FILE = "buildFile"  // Deprecated
-    val PARAMETER_PROFILES = "profiles"
-    val PARAMETER_DOWNLOAD_SOURCES = "downloadSources"
-
     var session: Session? = null
 
     override fun onWebSocketClose(code: Int, reason: String?) {
@@ -46,30 +40,39 @@ class GetDependencyGraphHandler : WebSocketListener {
         endpoint.sendString(json)
     }
 
-    private fun findProfiles(map: Map<String, List<String>>) = map[PARAMETER_PROFILES]?.getOrNull(0)
-    private fun findDownloadSources(map: Map<String, List<String>>) = map[PARAMETER_DOWNLOAD_SOURCES]
-            ?.getOrNull(0)?.toBoolean() ?: false
+    /**
+     * Convenience class to extract the parameters from the WebSocket connection.
+     */
+    class ParameterExtractor(val map: Map<String, List<String>>) {
+        // URL parameters sent by the client
+        private val PARAMETER_PROJECT_ROOT = "projectRoot"
+        private val PARAMETER_BUILD_FILE = "buildFile"  // Deprecated
+        private val PARAMETER_PROFILES = "profiles"
+        private val PARAMETER_DOWNLOAD_SOURCES = "downloadSources"
 
-    private fun findBuildFile(map: Map<String, List<String>>) : BuildSources? {
+        val profiles = map[PARAMETER_PROFILES]?.getOrNull(0)
+        val downloadSources = map[PARAMETER_DOWNLOAD_SOURCES]?.getOrNull(0)?.toBoolean() ?: false
         val projectRoot = map[PARAMETER_PROJECT_ROOT]
-        val buildFile = map[PARAMETER_BUILD_FILE]
-        val result =
-            if (projectRoot != null) {
-                BuildSources(File(projectRoot[0]))
-            } else if (buildFile != null) {
-                BuildSources(File(buildFile[0]))
-            } else {
-                null
+        val buildFile: BuildSources?
+            get() {
+                val bf = map[PARAMETER_BUILD_FILE]
+                return if (projectRoot != null) {
+                    BuildSources(File(projectRoot[0]))
+                } else if (bf != null) {
+                    BuildSources(File(bf[0]))
+                } else {
+                    null
+                }
             }
-        return result
     }
 
     override fun onWebSocketConnect(s: Session) {
         session = s
         val parameterMap = s.upgradeRequest.parameterMap
-        val buildSources = findBuildFile(parameterMap)
-        val profiles = findProfiles(parameterMap)
-        val downloadSources = findDownloadSources(s.upgradeRequest.parameterMap)
+        val parameters = ParameterExtractor(parameterMap)
+        val buildSources = parameters.buildFile
+        val profiles = parameters.profiles
+        val downloadSources = parameters.downloadSources
 
         fun <T> getInstance(cls: Class<T>) : T = Kobalt.INJECTOR.getInstance(cls)
 
