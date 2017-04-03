@@ -11,13 +11,11 @@ object Constants {
     val BUILD_FILE_PATH = KFiles.joinDir(BUILD_FILE_DIRECTORY, BUILD_FILE_NAME)
     val KOTLIN_COMPILER_VERSION = "1.1.1"
 
-    internal val DEFAULT_REPOS = listOf<String>(
+    internal val DEFAULT_REPOS = listOf<HostConfig>(
             //            "https://maven-central.storage.googleapis.com/",
-            "http://repo1.maven.org/maven2/",
-            "https://jcenter.bintray.com/",
+            HostConfig("http://repo1.maven.org/maven2/", "Maven"),
+            HostConfig("https://jcenter.bintray.com/", "JCenter")
 //            "http://repository.jetbrains.com/all/", // <-- contains snapshots
-            "https://dl.bintray.com/kotlin/kotlin-eap",
-            "https://dl.bintray.com/kotlin/kotlin-eap-1.1"
 
             // snapshots
 //            "https://oss.sonatype.org/content/repositories/snapshots/"

@@ -1,6 +1,7 @@
 package com.beust.kobalt.maven.aether
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.HostConfig
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.getProxy
@@ -92,12 +93,12 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
     private val system = Booter.newRepositorySystem()
     private val session = Booter.newRepositorySystemSession(system, localRepo.localRepo, settings, eventBus)
 
-    private fun createRepo(url: String) = RemoteRepository.Builder(Random().nextInt().toString(), "default", url)
-            .build()
+    private fun createRepo(hostConfig: HostConfig) =
+            RemoteRepository.Builder(hostConfig.name, "default", hostConfig.url).build()
 
     private val kobaltRepositories: List<RemoteRepository>
         get() = Kobalt.repos.map {
-            createRepo(it.url).let { repository ->
+            createRepo(it).let { repository ->
                 val proxyConfigs = settings.proxyConfigs ?: return@map repository
                 RemoteRepository.Builder(repository).apply {
                     setProxy(proxyConfigs.getProxy(repository.protocol)?.toAetherProxy())
@@ -118,6 +119,6 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
         }
 
         root = Dependency(DefaultArtifact(MavenId.toMavenId(id)), scope?.scope)
-        repositories = kobaltRepositories + repos.map { createRepo(it) }
+        repositories = kobaltRepositories + repos.map { createRepo(HostConfig(it)) }
     }
 }

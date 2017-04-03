@@ -74,7 +74,8 @@ data class ProxyConfig(val host: String = "", val port: Int = 0, val type: Strin
     fun toAetherProxy() = Proxy(type, host, port) // TODO make support for proxy auth
 }
 
-data class HostConfig(var url: String = "", var username: String? = null, var password: String? = null) {
+data class HostConfig(var url: String = "", var name: String = url, var username: String? = null,
+        var password: String? = null) {
     fun hasAuth() : Boolean {
         return (! username.isNullOrBlank()) && (! password.isNullOrBlank())
     }
