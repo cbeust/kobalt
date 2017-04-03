@@ -40,15 +40,6 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
             repos: List<String> = emptyList()): DependencyResult {
         val dependencyRequest = DependencyRequest(createCollectRequest(id, scope, repos), filter)
         val result = system.resolveDependencies(session, dependencyRequest)
-        if (args.downloadSources) {
-            listOf("sources", "javadoc").forEach {
-                val artifact = DefaultArtifact(id)
-                val sourceArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, it, artifact.extension,
-                        artifact.version)
-                system.resolveDependencies(session, DependencyRequest(createCollectRequest(sourceArtifact, scope), filter))
-            }
-        }
-
 //        GraphUtil.displayGraph(listOf(result.root), { it -> it.children },
 //                { it: DependencyNode, indent: String -> println(indent + it.toString()) })
         return result
@@ -95,7 +86,7 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
     /**
      * Create an IClasspathDependency from a Kobalt id.
      */
-    fun create(id: String, optional: Boolean) = AetherDependency(DefaultArtifact(id), optional)
+    fun create(id: String, optional: Boolean) = AetherDependency(DefaultArtifact(id), optional, args)
 
     private val system = Booter.newRepositorySystem()
     private val session = Booter.newRepositorySystemSession(system, localRepo.localRepo, settings, eventBus)
@@ -121,11 +112,5 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
 
         root = Dependency(DefaultArtifact(MavenId.toMavenId(id)), scope?.scope)
         repositories = kobaltRepositories + repos.map { createRepo(it) }
-    }
-
-    private fun createCollectRequest( artifact: DefaultArtifact, scope: Scope? = null) = CollectRequest().apply {
-        dependencies = listOf(Dependency(artifact, scope?.scope))
-        root = Dependency(artifact, scope?.scope)
-        repositories = kobaltRepositories
     }
 }
