@@ -212,7 +212,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                     "modules/wrapper/$buildDirectory/libs", "$dir/kobalt/wrapper", "$projectName-wrapper.jar")
 
             (0 .. files.size - 1 step 3).forEach { i ->
-                include(from(files[i]), To(files[i + 1]), files[i + 2])
+                include(from(files[i]), to(files[i + 1]), files[i + 2])
             }
         }
     }
