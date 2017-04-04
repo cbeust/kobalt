@@ -4,12 +4,14 @@ import com.beust.kobalt.*
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.Md5
+import org.apache.commons.io.FileUtils
 import java.io.*
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.util.jar.JarInputStream
+
 
 class KFiles {
     /**
@@ -194,69 +196,6 @@ class KFiles {
             }
         }
 
-        fun copyRecursively(from: File, to: File, replaceExisting: Boolean = true, deleteFirst: Boolean = false,
-                onError: (File, IOException) -> OnErrorAction = { _, exception -> throw exception }) {
-            // Need to wait until copyRecursively supports an overwrite: Boolean = false parameter
-            // Until then, wipe everything first
-            if (deleteFirst) to.deleteRecursively()
-//            to.mkdirs()
-            hackCopyRecursively(from, to, replaceExisting = replaceExisting, onError = onError)
-        }
-
-        /** Private exception class, used to terminate recursive copying */
-        private class TerminateException(file: File) : FileSystemException(file) {}
-
-        /**
-         * Copy/pasted from kotlin/io/Utils.kt to add support for overwriting.
-         */
-        private fun hackCopyRecursively(from: File, dst: File,
-                replaceExisting: Boolean,
-                onError: (File, IOException) -> OnErrorAction =
-                { _, exception -> throw exception }
-        ): Boolean {
-            if (!from.exists()) {
-                return onError(from, NoSuchFileException(file = from, reason = "The source file doesn't exist")) !=
-                        OnErrorAction.TERMINATE
-            }
-            try {
-                // We cannot break for loop from inside a lambda, so we have to use an exception here
-                for (src in from.walkTopDown().onFail { f, e ->
-                    if (onError(f, e) == OnErrorAction.TERMINATE) throw TerminateException(f)
-                }) {
-                    if (!src.exists()) {
-                        if (onError(src, NoSuchFileException(file = src, reason = "The source file doesn't exist")) ==
-                                OnErrorAction.TERMINATE)
-                            return false
-                    } else {
-                        val relPath = src.relativeTo(from)
-                        val dstFile = File(KFiles.joinDir(dst.path, relPath.path))
-                        if (dstFile.exists() && !replaceExisting && !(src.isDirectory && dstFile.isDirectory)) {
-                            if (onError(dstFile, FileAlreadyExistsException(file = src,
-                                    other = dstFile,
-                                    reason = "The destination file already exists")) == OnErrorAction.TERMINATE)
-                                return false
-                        } else if (src.isDirectory) {
-                            dstFile.mkdirs()
-                        } else {
-                            if (Features.USE_TIMESTAMPS && dstFile.exists() && Md5.toMd5(src) == Md5.toMd5(dstFile)) {
-                                kobaltLog(3, "  Identical files, not copying $src to $dstFile")
-                            } else {
-                                val target = src.copyTo(dstFile, true)
-                                if (target.length() != src.length()) {
-                                    if (onError(src,
-                                            IOException("src.length() != dst.length()")) == OnErrorAction.TERMINATE)
-                                        return false
-                                }
-                            }
-                        }
-                    }
-                }
-                return true
-            } catch (e: TerminateException) {
-                return false
-            }
-        }
-
         /**
          * The build location for build scripts is .kobalt/build
          */
@@ -386,6 +325,29 @@ class KFiles {
         }
 
         val dotKobaltDir = File(KFiles.joinAndMakeDir(KFiles.KOBALT_DOT_DIR))
+
+        /**
+         * Turn the IncludedFiles into actual Files
+         */
+        fun materializeIncludedFiles(project: Project, includedFiles: List<IncludedFile>) : List<File> {
+            val result = includedFiles.fold(arrayListOf<File>()) { files, includedFile: IncludedFile ->
+                val foundFiles = includedFile.allFromFiles(project.directory)
+                val absFiles = foundFiles.map {
+                    File(KFiles.joinDir(project.directory, includedFile.from, it.path))
+                }
+                files.addAll(absFiles)
+                files
+            }
+            return result
+        }
+
+        fun copyRecursively(from: File, to: File, replaceExisting: Boolean = true, deleteFirst: Boolean = false) {
+// fun copy(relativePath: String, sourceDir: File, targetDir: File) =
+//            sourceDir.resolve(relativePath).copyRecursively(targetDir.resolve(relativePath), overwrite = true)
+            if (from.isFile) FileUtils.copyFileToDirectory(from, to)
+            else FileUtils.copyDirectory(from, to)
+        }
+
     }
 
     fun findRecursively(directory: File, function: Function1<String, Boolean>): List<String> {

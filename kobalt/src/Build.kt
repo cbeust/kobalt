@@ -1,3 +1,4 @@
+
 import com.beust.kobalt.*
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.annotation.Task
@@ -97,6 +98,7 @@ val kobaltPluginApi = project {
 
     dependencies {
         compile(
+                "org.jetbrains.kotlin:kotlin-stdlib:${Versions.kotlin}",
                 "com.google.inject:guice:4.0",
                 "com.google.inject.extensions:guice-assistedinject:4.0",
                 "javax.inject:javax.inject:1",
@@ -114,10 +116,10 @@ val kobaltPluginApi = project {
                 *mavenResolver("api", "spi", "util", "impl", "connector-basic", "transport-http", "transport-file"),
                 "org.apache.maven:maven-aether-provider:3.3.9",
                 "org.testng.testng-remote:testng-remote:1.3.0",
-                "org.testng:testng:${Versions.testng}"
+                "org.testng:testng:${Versions.testng}",
+                "commons-io:commons-io:2.5"
         )
         exclude(*aether("impl", "spi", "util", "api"))
-        compile("org.jetbrains.kotlin:kotlin-stdlib:1.1.1")
     }
 
 
@@ -154,7 +156,9 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
         compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:${Versions.kotlin}")
 
         // Used by the main app
-        compile("com.github.spullara.mustache.java:compiler:0.9.1",
+        compile(
+                "org.jetbrains.kotlin:kotlin-stdlib:${Versions.kotlin}",
+                "com.github.spullara.mustache.java:compiler:0.9.1",
                 "javax.inject:javax.inject:1",
                 "com.google.inject:guice:4.0",
                 "com.google.inject.extensions:guice-assistedinject:4.0",
@@ -181,16 +185,15 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 //                "org.glassfish.jersey.media:jersey-media-moxy:${Versions.jersey}",
 //                "org.wasabi:wasabi:0.1.182"
         )
-        compile("org.jetbrains.kotlin:kotlin-stdlib:1.1.1")
 
     }
 
     dependenciesTest {
-        compile("org.testng:testng:${Versions.testng}",
+        compile("org.jetbrains.kotlin:kotlin-test:${Versions.kotlin}",
+                "org.testng:testng:${Versions.testng}",
                 "org.assertj:assertj-core:3.4.1",
                 *mavenResolver("util")
                 )
-        compile("org.jetbrains.kotlin:kotlin-test:1.1.1")
     }
 
     assemble {
@@ -202,12 +205,15 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
         }
         zip {
             val dir = "kobalt-$version"
-            include(from("dist"), to("$dir/bin"), "kobaltw")
-            include(from("dist"), to("$dir/bin"), "kobaltw.bat")
-            include(from("$buildDirectory/libs"), to("$dir/kobalt/wrapper"),
-                    "$projectName-$version.jar")
-            include(from("modules/wrapper/$buildDirectory/libs"), to("$dir/kobalt/wrapper"),
-                    "$projectName-wrapper.jar")
+            val files = listOf(
+                    "dist", "$dir/bin", "kobaltw",
+                    "dist", "$dir/bin", "kobaltw.bat",
+                    "$buildDirectory/libs", "$dir/kobalt/wrapper", "$projectName-$version.jar",
+                    "modules/wrapper/$buildDirectory/libs", "$dir/kobalt/wrapper", "$projectName-wrapper.jar")
+
+            (0 .. files.size - 1 step 3).forEach { i ->
+                include(from(files[i]), To(files[i + 1]), files[i + 2])
+            }
         }
     }
 

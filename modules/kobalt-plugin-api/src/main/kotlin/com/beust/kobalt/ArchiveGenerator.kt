@@ -3,7 +3,6 @@ package com.beust.kobalt
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.archive.Zip
-import com.beust.kobalt.misc.IncludedFile
 import com.beust.kobalt.misc.KFiles
 import java.io.File
 

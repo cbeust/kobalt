@@ -175,13 +175,13 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
      * TODO: This should be private, everyone should be calling calculateDependencies().
      */
     fun transitiveClosure(dependencies : List<IClasspathDependency>,
-            dependencyFilter: DependencyFilter? = null,
+            filter: DependencyFilter = Filters.EXCLUDE_OPTIONAL_FILTER,
             requiredBy: String? = null): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
         dependencies.forEach { dependency ->
             result.add(dependency)
             if (dependency.isMaven) {
-                val resolved = resolver.resolveToIds(dependency.id, null, dependencyFilter).map { create(it) }
+                val resolved = resolver.resolveToIds(dependency.id, null, filter).map { create(it) }
                 result.addAll(resolved)
             }
         }

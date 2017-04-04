@@ -196,7 +196,7 @@ class CompilerUtils @Inject constructor(val files: KFiles, val dependencyManager
                 .filter(File::exists)
                 .forEach {
                     context.logger.log(project.name, 2, "Copying from $it to $absOutputDir")
-                        KFiles.copyRecursively(it, absOutputDir, deleteFirst = false)
+                        KFiles.copyRecursively(it, absOutputDir, replaceExisting = true)
                 }
         } else {
             context.logger.log(project.name, 2, "No resources to copy for $sourceSet")

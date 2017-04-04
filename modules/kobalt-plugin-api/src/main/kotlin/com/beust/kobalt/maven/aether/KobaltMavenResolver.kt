@@ -34,10 +34,12 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
         fun isRangeVersion(id: String) = id.contains(",")
     }
 
-    fun resolveToArtifact(id: String, scope: Scope? = null, filter: DependencyFilter? = null) : Artifact
+    fun resolveToArtifact(id: String, scope: Scope? = null,
+            filter: DependencyFilter = Filters.EXCLUDE_OPTIONAL_FILTER) : Artifact
         = resolve(id, scope, filter).root.artifact
 
-    fun resolve(id: String, scope: Scope? = null, filter: DependencyFilter? = null,
+    fun resolve(id: String, scope: Scope? = null,
+            filter: DependencyFilter = Filters.EXCLUDE_OPTIONAL_FILTER,
             repos: List<String> = emptyList()): DependencyResult {
         val dependencyRequest = DependencyRequest(createCollectRequest(id, scope, repos), filter)
         val result = system.resolveDependencies(session, dependencyRequest)
@@ -46,10 +48,12 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
         return result
     }
 
-    fun resolve(artifact: Artifact, scope: Scope? = null, filter: DependencyFilter? = null)
+    fun resolve(artifact: Artifact, scope: Scope? = null,
+            filter: DependencyFilter = Filters.EXCLUDE_OPTIONAL_FILTER)
         = resolve(artifactToId(artifact), scope, filter)
 
-    fun resolveToIds(id: String, scope: Scope? = null, filter: DependencyFilter? = null,
+    fun resolveToIds(id: String, scope: Scope? = null,
+            filter: DependencyFilter = Filters.EXCLUDE_OPTIONAL_FILTER,
             seen: HashSet<String> = hashSetOf<String>()) : List<String> {
         val rr = resolve(id, scope, filter)
         val children =

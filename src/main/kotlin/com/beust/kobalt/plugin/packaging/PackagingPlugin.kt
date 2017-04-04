@@ -12,11 +12,11 @@ import com.beust.kobalt.internal.ParallelLogger
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.Md5
 import com.beust.kobalt.maven.PomGenerator
-import com.beust.kobalt.misc.IncludedFile
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.benchmarkMillis
 import java.io.File
+import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -107,14 +107,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                         context.variant.archiveName(project, null, ".jar"))
 
                 // Turn the IncludedFiles into actual Files
-                val inputFiles = allIncludedFiles.fold(arrayListOf<File>()) { files, includedFile: IncludedFile ->
-                    val foundFiles = includedFile.allFromFiles(project.directory)
-                    val absFiles = foundFiles.map {
-                        File(KFiles.joinDir(project.directory, includedFile.from, it.path))
-                    }
-                    files.addAll(absFiles)
-                    files
-                }
+                val inputFiles = KFiles.materializeIncludedFiles(project, allIncludedFiles)
 
                 val inMd5 = Md5.toMd5Directories(inputFiles)
                 val outMd5 = Md5.toMd5Directories(outputFiles)
@@ -221,10 +214,24 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val buildDir = project.projectProperties.getString(LIBS_DIR)
         val buildDirFile = File(buildDir)
         if (buildDirFile.exists()) {
-            context.logger.log(project.name, 1, "Installing from $buildDir to ${config.libDir}")
 
-            val toDir = KFiles.makeDir(config.libDir)
-            KFiles.copyRecursively(buildDirFile, toDir, deleteFirst = true)
+            if (config.includedFiles.isEmpty()) {
+                context.logger.log(project.name, 1, "  Installing from $buildDir to ${config.libDir}")
+                val toDir = KFiles.makeDir(config.libDir)
+                File(buildDir).copyRecursively(toDir, overwrite = true)
+            } else {
+                config.includedFiles.forEach { inf ->
+                    val target = inf.to
+                    val targetFile = File(target)
+                    targetFile.deleteRecursively()
+                    targetFile.mkdirs()
+                    val files = KFiles.materializeIncludedFiles(project, listOf(inf))
+                    files.forEach {
+                        context.logger.log(project.name, 1, "  Installing $it to $targetFile")
+                        KFiles.copyRecursively(it, targetFile, true)
+                    }
+                }
+            }
         }
 
         return TaskResult()
@@ -242,7 +249,7 @@ fun Project.install(init: InstallConfig.() -> Unit) {
     }
 }
 
-class InstallConfig(var libDir : String = "libs")
+class InstallConfig(var libDir : String = "libs") : IncludeFromTo()
 
 @Directive
 fun Project.assemble(init: PackageConfig.(p: Project) -> Unit): PackageConfig = let {
@@ -292,14 +299,14 @@ class PackageConfig(val project: Project) : AttributeHolder {
             name = "${project.name}-${project.version}-sources.jar"
             project.sourceDirectories.forEach {
                 if (File(project.directory, it).exists()) {
-                    include(from(it), to(""), glob("**"))
+                    include(From(it), To(""), glob("**"))
                 }
             }
         }
         jar {
             name = "${project.name}-${project.version}-javadoc.jar"
             val fromDir = KFiles.joinDir(project.buildDirectory, JvmCompilerPlugin.DOCS_DIRECTORY)
-            include(from(fromDir), to(""), glob("**"))
+            include(From(fromDir), To(""), glob("**"))
         }
 
         mainJarAttributes.forEach {
@@ -331,3 +338,19 @@ class Pom {
 
 }
 
+fun main(args: Array<String>) {
+    val realSource = File("/tmp/a")
+    val sourceDir = File(realSource, "b").apply { mkdirs() }
+    val from = File(sourceDir, "foo").apply { writeText("I'm a file") }
+    val to = File("/tmp/to").apply {
+        deleteRecursively()
+        mkdirs()
+    }
+    val sourcePath = Paths.get(realSource.toURI())
+    val targetPath = Paths.get(to.toURI())
+//    Files.walkFileTree(sourcePath, KFiles.Companion.CopyFileVisitor(targetPath))
+
+    if (! to.isDirectory) {
+        throw AssertionError("Should be a directory")
+    }
+}

@@ -1,8 +1,6 @@
 package com.beust.kobalt.plugin.packaging
 
-import com.beust.kobalt.ArchiveGenerator
-import com.beust.kobalt.IFileSpec
-import com.beust.kobalt.JarGenerator
+import com.beust.kobalt.*
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
@@ -10,10 +8,7 @@ import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.archive.Zip
 import com.beust.kobalt.internal.ParallelLogger
 import com.beust.kobalt.maven.DependencyManager
-import com.beust.kobalt.misc.From
-import com.beust.kobalt.misc.IncludedFile
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.To
 import com.google.inject.Inject
 import java.io.File
 import java.io.OutputStream

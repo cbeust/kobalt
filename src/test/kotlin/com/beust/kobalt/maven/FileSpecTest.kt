@@ -1,11 +1,7 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.IFileSpec
-import com.beust.kobalt.homeDir
-import com.beust.kobalt.misc.From
-import com.beust.kobalt.misc.IncludedFile
+import com.beust.kobalt.*
 import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.To
 import org.testng.annotations.Test
 
 @Test(enabled = false)

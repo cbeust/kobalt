@@ -1,6 +1,9 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.From
 import com.beust.kobalt.IFileSpec
+import com.beust.kobalt.IncludedFile
+import com.beust.kobalt.To
 import org.testng.Assert
 import org.testng.annotations.Test
 import javax.inject.Inject

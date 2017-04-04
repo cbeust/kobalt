@@ -1,8 +1,5 @@
 package com.beust.kobalt
 
-import com.beust.kobalt.misc.From
-import com.beust.kobalt.misc.IncludedFile
-import com.beust.kobalt.misc.To
 import org.testng.Assert
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.DataProvider
