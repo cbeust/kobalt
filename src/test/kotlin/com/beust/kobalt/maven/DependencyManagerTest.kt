@@ -16,7 +16,7 @@ import org.testng.annotations.Test
 
 @Guice(modules = arrayOf(TestModule::class))
 class DependencyManagerTest @Inject constructor(val dependencyManager: DependencyManager,
-        compilerFactory: BuildFileCompiler.IFactory) : BaseTest(compilerFactory) {
+        compilerFactory: BuildFileCompiler.IFactory) : BaseTest() {
 
     private fun assertContains(dependencies: List<IClasspathDependency>, vararg ids: String) {
         ids.forEach { id ->
@@ -55,10 +55,12 @@ class DependencyManagerTest @Inject constructor(val dependencyManager: Dependenc
         // Should resolve to TestNG and its dependencies
         dependencyManager.transitiveClosure(testDeps).let { dependencies ->
             assertContains(dependencies, ":jcommander:")
-            assertContains(dependencies, ":bsh:")
-            assertContains(dependencies, ":ant:")
-            assertContains(dependencies, ":ant-launcher:")
             assertContains(dependencies, ":testng:")
+
+            // Optional dependencies
+            assertDoesNotContain(dependencies, ":bsh:")
+            assertDoesNotContain(dependencies, ":ant:")
+            assertDoesNotContain(dependencies, ":ant-launcher:")
         }
     }
 
