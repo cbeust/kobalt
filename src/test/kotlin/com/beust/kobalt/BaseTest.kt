@@ -90,4 +90,46 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
 
     fun createTemporaryProjectDirectory() = KFiles.fixSlashes(Files.createTempDirectory("kobaltTest").toFile())
 
+    fun createProject(projectInfo: ProjectInfo) : File {
+        val root = Files.createTempDirectory("kobalt-test").toFile()
+
+        fun createFile(root: File, f: String, text: String) : File {
+            val file = File(root, f)
+            file.parentFile.mkdirs()
+            file.writeText(text)
+            return file
+        }
+
+        createFile(root, "kobalt/src/Build.kt", projectInfo.buildFile.text(root.absolutePath))
+        projectInfo.files.forEach {
+            createFile(root, it.path, it.content)
+        }
+        return root
+    }
 }
+
+class BuildFile(val imports: List<String>, val projectText: String) {
+    fun text(projectDirectory: String) : String {
+        val projectName = "p" + Math.abs(Random().nextInt())
+        val bottom = """
+
+            val $projectName = project {
+                name = "$projectName"
+                $projectText
+            }
+
+        """
+//                .trimIndent()
+        val buildFileText= """
+            import com.beust.kobalt.*
+            import com.beust.kobalt.api.*
+""".trimIndent() +
+        "\n" +
+                imports.map { "import " + it }.joinToString("\n") + "\n" +
+                bottom
+
+        return buildFileText
+    }
+}
+class ProjectFile(val path: String, val content: String)
+class ProjectInfo(val buildFile: BuildFile, val files: List<ProjectFile>)
