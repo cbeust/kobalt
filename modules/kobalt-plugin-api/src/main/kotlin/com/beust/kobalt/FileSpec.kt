@@ -28,15 +28,15 @@ sealed class IFileSpec {
         private fun isIncluded(includeMatchers: Glob, excludes: List<Glob>, rel: Path) : Boolean {
             excludes.forEach {
                 if (it.matches(rel)) {
-                    kobaltLog(3, "Excluding ${rel.toFile()}")
+                    kobaltLog(3, "  Excluding ${rel.toFile()}")
                     return false
                 }
             }
             if (includeMatchers.matches(rel)) {
-                kobaltLog(3, "Including ${rel.toFile().path}")
+                kobaltLog(3, "  Including ${rel.toFile().path}")
                 return true
             }
-            kobaltLog(2, "Excluding ${rel.toFile()} (not matching any include pattern")
+            kobaltLog(2, "  Excluding ${rel.toFile()} (not matching any include pattern")
             return false
         }
 
