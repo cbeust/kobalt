@@ -16,7 +16,7 @@ import org.testng.annotations.Test
 
 @Guice(modules = arrayOf(TestModule::class))
 class DependencyManagerTest @Inject constructor(val dependencyManager: DependencyManager,
-        compilerFactory: BuildFileCompiler.IFactory) : BaseTest() {
+        compilerFactory: BuildFileCompiler.IFactory) : BaseTest(compilerFactory) {
 
     private fun assertContains(dependencies: List<IClasspathDependency>, vararg ids: String) {
         ids.forEach { id ->
