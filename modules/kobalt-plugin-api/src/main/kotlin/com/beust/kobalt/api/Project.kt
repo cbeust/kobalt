@@ -139,7 +139,6 @@ open class Project(
             ?: emptyList()
     }
 
-
     override fun toString() = "[Project $name]"
 }
 
