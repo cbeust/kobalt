@@ -133,9 +133,8 @@ open class Project(
      * Can be used for example as `collect(compileDependencies)`.
      */
     @Directive
-    fun collect(dependencies: List<IClasspathDependency>) : List<String> {
+    fun collect(dependencies: List<IClasspathDependency>) : List<File> {
         return Kobalt.context?.dependencyManager?.transitiveClosure(dependencies)?.map { it.jarFile.get() }
-                ?.map { it.absolutePath}
             ?: emptyList()
     }
 
