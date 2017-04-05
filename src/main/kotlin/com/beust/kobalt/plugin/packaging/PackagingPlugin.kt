@@ -250,7 +250,7 @@ fun Project.install(init: InstallConfig.() -> Unit) {
     }
 }
 
-class InstallConfig(var libDir : String = "libs") : IncludeFromTo()
+class InstallConfig(var target : String = "libs") : IncludeFromTo()
 
 @Directive
 fun Project.assemble(init: PackageConfig.(p: Project) -> Unit): PackageConfig = let {
