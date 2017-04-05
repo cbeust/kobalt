@@ -1,6 +1,7 @@
 package com.beust.kobalt
 
 import com.beust.kobalt.api.annotation.Directive
+import java.io.File
 
 /**
  * Base classes for directives that support install(from,to) (e.g. install{} or jar{}).
@@ -17,6 +18,13 @@ open class IncludeFromTo {
 
     @Directive
     fun to(s: String) = To(s)
+
+    @Directive
+    fun copy(from: String, to: To) {
+        with(File(from)) {
+            includedFiles.add(IncludedFile(from(parent), to, listOf(IFileSpec.FileSpec(name))))
+        }
+    }
 
     @Directive
     fun include(vararg files: String) {

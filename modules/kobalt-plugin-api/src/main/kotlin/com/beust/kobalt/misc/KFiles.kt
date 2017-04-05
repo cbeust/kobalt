@@ -333,7 +333,13 @@ class KFiles {
             val result = includedFiles.fold(arrayListOf<File>()) { files, includedFile: IncludedFile ->
                 val foundFiles = includedFile.allFromFiles(project.directory)
                 val absFiles = foundFiles.map {
-                    File(KFiles.joinDir(project.directory, includedFile.from, it.path))
+                    if (it.isAbsolute) {
+                        it
+                    } else if (File(includedFile.from).isAbsolute) {
+                        File(includedFile.from, it.path)
+                    } else {
+                        File(KFiles.joinDir(project.directory, includedFile.from, it.path))
+                    }
                 }
                 files.addAll(absFiles)
                 files
