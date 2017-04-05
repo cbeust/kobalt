@@ -20,9 +20,9 @@ open class IncludeFromTo {
     fun to(s: String) = To(s)
 
     @Directive
-    fun copy(from: String, to: To) {
-        with(File(from)) {
-            includedFiles.add(IncludedFile(from(parent), to, listOf(IFileSpec.FileSpec(name))))
+    fun copy(from: From, to: To) {
+        with(File(from.path)) {
+            includedFiles.add(IncludedFile(from, to, listOf(IFileSpec.FileSpec(name))))
         }
     }
 
