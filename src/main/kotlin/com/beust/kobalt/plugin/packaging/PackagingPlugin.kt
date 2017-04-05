@@ -216,8 +216,8 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         if (buildDirFile.exists()) {
 
             if (config.includedFiles.isEmpty()) {
-                context.logger.log(project.name, 1, "  Installing from $buildDir to ${config.libDir}")
-                val toDir = KFiles.makeDir(config.libDir)
+                context.logger.log(project.name, 1, "  Installing from $buildDir to ${config.target}")
+                val toDir = KFiles.makeDir(config.target)
                 File(buildDir).copyRecursively(toDir, overwrite = true)
             } else {
                 config.includedFiles.forEach { inf ->
