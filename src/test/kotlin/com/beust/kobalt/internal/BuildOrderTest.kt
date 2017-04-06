@@ -1,22 +1,14 @@
 package com.beust.kobalt.internal
 
-import com.beust.kobalt.TestModule
+import com.beust.kobalt.BaseTest
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.project
 import org.assertj.core.api.Assertions.assertThat
-import org.testng.annotations.BeforeClass
 import org.testng.annotations.DataProvider
-import org.testng.annotations.Guice
 import org.testng.annotations.Test
 
-@Guice(modules = arrayOf(TestModule::class))
-class BuildOrderTest {
+class BuildOrderTest : BaseTest() {
     val taskManager: TaskManager get() = Kobalt.INJECTOR.getInstance(TaskManager::class.java)
-
-    @BeforeClass
-    fun beforeClass() {
-        Kobalt.init(TestModule())
-    }
 
     private fun toExpectedList(vararg projectNames: Int) = projectNames.map { "p$it:assemble" }.toList()
 

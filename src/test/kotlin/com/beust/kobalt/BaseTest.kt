@@ -1,5 +1,6 @@
 package com.beust.kobalt
 
+import com.beust.jcommander.JCommander
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.BuildFileCompiler
@@ -10,11 +11,13 @@ import com.beust.kobalt.internal.build.SingleFileBuildSources
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.log
 import org.testng.annotations.BeforeClass
+import org.testng.annotations.Guice
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 
+@Guice(modules = arrayOf(TestModule::class))
 open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
     @BeforeClass
     fun bc() {
@@ -90,8 +93,12 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
 
     fun createTemporaryProjectDirectory() = KFiles.fixSlashes(Files.createTempDirectory("kobaltTest").toFile())
 
-    fun createProject(projectInfo: ProjectInfo) : File {
+    class ProjectDescription(val path: File, val name: String, val version: String)
+
+    fun createProject(projectInfo: ProjectInfo) : ProjectDescription {
         val root = Files.createTempDirectory("kobalt-test").toFile()
+        val projectName = "p" + Math.abs(Random().nextInt())
+        val version = "1.0"
 
         fun createFile(root: File, f: String, text: String) : File {
             val file = File(root, f)
@@ -100,21 +107,38 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
             return file
         }
 
-        createFile(root, "kobalt/src/Build.kt", projectInfo.buildFile.text(root.absolutePath))
+        createFile(root, "kobalt/src/Build.kt",
+                projectInfo.buildFile.text(root.absolutePath, projectName, version))
+
         projectInfo.files.forEach {
             createFile(root, it.path, it.content)
         }
-        return root
+        return ProjectDescription(root, projectName, version)
+    }
+
+    class LaunchProjectResult(val projectInfo: ProjectInfo, val projectDescription: ProjectDescription,
+            val result: Int)
+
+    fun launchProject(projectInfo: ProjectInfo, commandLine: Array<String>) : LaunchProjectResult {
+        val project = createProject(projectInfo)
+        println("Project: $project")
+        val main = Kobalt.INJECTOR.getInstance(Main::class.java)
+        val args = Args()
+        val jc = JCommander(args).apply { parse(*commandLine) }
+        args.buildFile = project.path.absolutePath + "/kobalt/src/Build.kt"
+        val result = Main.launchMain(main, jc, args, arrayOf("assemble"))
+        return LaunchProjectResult(projectInfo, project, result)
     }
 }
 
 class BuildFile(val imports: List<String>, val projectText: String) {
-    fun text(projectDirectory: String) : String {
-        val projectName = "p" + Math.abs(Random().nextInt())
+    fun text(projectDirectory: String, projectName: String, version: String) : String {
         val bottom = """
 
             val $projectName = project {
                 name = "$projectName"
+                version = "$version"
+                directory = "$projectDirectory"
                 $projectText
             }
 

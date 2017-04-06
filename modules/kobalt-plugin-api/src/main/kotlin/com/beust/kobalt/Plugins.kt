@@ -28,7 +28,6 @@ class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManage
         val depManager: DependencyManager,
         val settings: KobaltSettings,
         val executors: KobaltExecutors,
-        val pluginInfo: PluginInfo,
         val incrementalManagerFactory: IncrementalManager.IFactory,
         val taskManager: TaskManager) {
 
@@ -171,6 +170,9 @@ class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManage
 
     val dependencies = arrayListOf<IClasspathDependency>()
 
+//    @Inject
+//    lateinit var pluginInfo: PluginInfo
+
     fun installPlugins(dependencies: List<IClasspathDependency>, scriptClassLoader: ClassLoader) {
         val executor = executors.newExecutor("Plugins", 5)
         dependencies.forEach {
@@ -191,6 +193,8 @@ class Plugins @Inject constructor (val taskManagerProvider : Provider<TaskManage
                 // The plug-in is pointing to a jar file, read kobalt-plugin.xml from it
                 JarUtils.extractTextFile(JarFile(file), PluginInfo.PLUGIN_XML)
             }
+
+            val pluginInfo = Kobalt.INJECTOR.getInstance(PluginInfo::class.java)
             if (pluginXml != null) {
                 val pluginClassLoader = URLClassLoader(arrayOf(file.toURI().toURL()))
                 val thisPluginInfo = PluginInfo.readPluginXml(pluginXml, pluginClassLoader, scriptClassLoader)

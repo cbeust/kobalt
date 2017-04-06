@@ -17,7 +17,7 @@ import javax.inject.Singleton
 @Singleton
 class TaskManager @Inject constructor(val args: Args,
         val incrementalManagerFactory: IncrementalManager.IFactory,
-        val pluginInfo: PluginInfo, val kobaltLog: ParallelLogger) {
+        val kobaltLog: ParallelLogger) {
     private val dependsOn = TreeMultimap.create<String, String>()
     private val reverseDependsOn = TreeMultimap.create<String, String>()
     private val runBefore = TreeMultimap.create<String, String>()
@@ -80,6 +80,9 @@ class TaskManager @Inject constructor(val args: Args,
         }
     }
 
+//    @Inject
+//    lateinit var pluginInfo: PluginInfo
+
     fun runTargets(passedTaskNames: List<String>, allProjects: List<Project>): RunTargetResult {
         // Check whether tasks passed at command line exist
         passedTaskNames.forEach {
@@ -87,6 +90,7 @@ class TaskManager @Inject constructor(val args: Args,
                 throw KobaltException("Unknown task: $it")
         }
 
+        val pluginInfo = Kobalt.INJECTOR.getInstance(PluginInfo::class.java)
         var taskInfos = calculateDependentTaskNames(passedTaskNames, allProjects)
 
         // Remove non existing tasks (e.g. dynamic task defined for a single project)

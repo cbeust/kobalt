@@ -1,13 +1,14 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.BaseTest
 import com.beust.kobalt.TestConfig
-import com.beust.kobalt.TestModule
-import com.beust.kobalt.api.*
+import com.beust.kobalt.api.ITestJvmFlagContributor
+import com.beust.kobalt.api.ITestJvmFlagInterceptor
+import com.beust.kobalt.api.KobaltContext
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.project
 import org.assertj.core.api.Assertions.assertThat
-import org.testng.annotations.BeforeClass
-import org.testng.annotations.Guice
 import org.testng.annotations.Test
 import javax.inject.Inject
 
@@ -15,8 +16,7 @@ import javax.inject.Inject
 /**
  * Test ITestJvmFlagContributor and ITestJvmFlagInterceptor.
  */
-@Guice(modules = arrayOf(TestModule::class))
-class DependencyTest @Inject constructor(val context: KobaltContext) {
+class DependencyTest @Inject constructor(val context: KobaltContext) : BaseTest() {
     private fun isWindows() = System.getProperty("os.name").toLowerCase().contains("ndows")
     private val A_JAR = if (isWindows()) "c:\\tmp\\a.jar" else "/tmp/a.jar"
     private val B_JAR = if (isWindows()) "c:\\tmp\\b.jar" else "/tmp/b.jar"
@@ -35,11 +35,6 @@ class DependencyTest @Inject constructor(val context: KobaltContext) {
                 currentFlags: List<String>): List<String> {
             return currentFlags.map { if (it == A_JAR) B_JAR else it }
         }
-    }
-
-    @BeforeClass
-    fun beforeClass() {
-        Kobalt.init(TestModule())
     }
 
     private fun runTest(pluginInfo: IPluginInfo, expected: List<String>) {
