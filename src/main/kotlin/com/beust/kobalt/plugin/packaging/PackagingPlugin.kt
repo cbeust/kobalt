@@ -220,13 +220,17 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 val toDir = KFiles.makeDir(config.target)
                 File(buildDir).copyRecursively(toDir, overwrite = true)
             } else {
-                config.includedFiles.forEach { inf ->
-                    val target = inf.to
-                    val targetFile = File(target)
-                    val files = KFiles.materializeIncludedFiles(project, listOf(inf))
+                // Delete all target directories
+                val targetDirs = config.includedFiles.map { File(it.to) }.distinct().forEach { targetFile ->
+                    val isFile = targetFile.isFile
                     context.logger.log(project.name, 2, "  Deleting target dir $targetFile")
                     targetFile.deleteRecursively()
-                    targetFile.mkdirs()
+                    if (! isFile) targetFile.mkdirs()
+                }
+                // Perform the installations
+                config.includedFiles.forEach { inf ->
+                    val targetFile = File(inf.to)
+                    val files = KFiles.materializeIncludedFiles(project, listOf(inf))
                     files.forEach {
                         context.logger.log(project.name, 1, "  Installing $it to $targetFile")
                         KFiles.copyRecursively(it, targetFile, true)
