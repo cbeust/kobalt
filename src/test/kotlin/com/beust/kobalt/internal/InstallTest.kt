@@ -12,19 +12,6 @@ import java.io.File
 
 class InstallTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactory) : BaseTest(compilerFactory) {
 
-    private fun toPath(s: String) = "\"\${project.directory}/$s\""
-    private fun from(path: String) = "from(" + toPath(path) + ")"
-    private fun to(path: String) = "to(" + toPath(path) + ")"
-    private fun include(s1: String, s2: String, s3: String) = "include(from(" + toPath(s1) + "), " +
-        "to(" + toPath(s2) + "), " + s3 + ")"
-
-    private fun assertFile(lpr: LaunchProjectResult, path: String, content: String) {
-        File(lpr.projectDescription.file.absolutePath, path).let { file ->
-            assertThat(file).exists()
-            assertThat(file.readText()).isEqualTo(content)
-        }
-    }
-
     @Test(description = "Test that copy() and include() work properly")
     fun shouldInstall() {
         val from = from("testFile")
@@ -45,5 +32,19 @@ class InstallTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactor
 
         assertFile(result, "installed/testFile", testFileContent)
         assertFile(result, "deployed2/b/c", cContent)
+    }
+
+
+    private fun toPath(s: String) = "\"\${project.directory}/$s\""
+    private fun from(path: String) = "from(" + toPath(path) + ")"
+    private fun to(path: String) = "to(" + toPath(path) + ")"
+    private fun include(s1: String, s2: String, s3: String) = "include(from(" + toPath(s1) + "), " +
+            "to(" + toPath(s2) + "), " + s3 + ")"
+
+    private fun assertFile(lpr: LaunchProjectResult, path: String, content: String) {
+        File(lpr.projectDescription.file.absolutePath, path).let { file ->
+            assertThat(file).exists()
+            assertThat(file.readText()).isEqualTo(content)
+        }
     }
 }
