@@ -40,7 +40,7 @@ class KotlinCompiler @Inject constructor(
     val compilerAction = object: ICompilerAction {
         override fun compile(project: Project?, info: CompilerActionInfo): TaskResult {
             val projectName = project?.name
-            val version = settings.kobaltCompilerVersion
+            val version = kotlinVersion(project)
             var filesToCompile = 0
             if (! info.outputDir.path.endsWith("ript.jar")) {
                 // Don't display the message if compiling Build.kt
@@ -84,9 +84,10 @@ class KotlinCompiler @Inject constructor(
             // If the Kotlin compiler version in settings.xml is different from the default, we
             // need to spawn a Kotlin compiler in a separate process. Otherwise, we can just invoke
             // the K2JVMCompiler class directly
-            val actualVersion = kotlinConfig(project)?.version ?: settings.kobaltCompilerVersion
+            val actualVersion = kotlinVersion(project)
+
             if (settings.kobaltCompilerSeparateProcess || actualVersion != Constants.KOTLIN_COMPILER_VERSION) {
-                return invokeCompilerInSeparateProcess(classpath, info, project)
+                return invokeCompilerInSeparateProcess(classpath, info, actualVersion, project)
 
             } else {
                 return invokeCompilerDirectly(projectName ?: "kobalt-" + Random().nextInt(), outputDir,
@@ -94,15 +95,12 @@ class KotlinCompiler @Inject constructor(
             }
         }
 
-        fun kotlinConfig(project: Project?)
-                = (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as KotlinPlugin).configurationFor(project)
-
         private fun invokeCompilerInSeparateProcess(classpath: String, info: CompilerActionInfo,
-                project: Project?): TaskResult {
+                compilerVersion: String, project: Project?): TaskResult {
             val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable
 
-            val compilerClasspath = compilerDep.jarFile.get().path + File.pathSeparator +
-                    compilerEmbeddableDependencies(null).map { it.jarFile.get().path }
+            val compilerClasspath = compilerDep(compilerVersion).jarFile.get().path + File.pathSeparator +
+                    compilerEmbeddableDependencies(null, compilerVersion).map { it.jarFile.get().path }
                             .joinToString(File.pathSeparator)
             val xFlagsString = listOf(kotlinConfig(project)?.args?.joinToString(" "),
                     settings.kobaltCompilerFlags)
@@ -343,11 +341,17 @@ class KotlinCompiler @Inject constructor(
         }
     }
 
-    val compilerVersion = settings.kobaltCompilerVersion
-    val compilerDep = dependencyManager.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$compilerVersion")
+    private fun kotlinConfig(project: Project?)
+            = (Kobalt.findPlugin(KotlinPlugin.PLUGIN_NAME) as KotlinPlugin).configurationFor(project)
 
-    fun compilerEmbeddableDependencies(project: Project?): List<IClasspathDependency> {
-        val deps = dependencyManager.transitiveClosure(listOf(compilerDep), requiredBy = project?.name ?: "")
+    private fun kotlinVersion(project: Project?)
+            = kotlinConfig(project)?.version ?: settings.kobaltCompilerVersion ?: Constants.KOTLIN_COMPILER_VERSION
+
+    private fun compilerDep(version: String)
+            = dependencyManager.create("org.jetbrains" + ".kotlin:kotlin-compiler-embeddable:$version")
+
+    fun compilerEmbeddableDependencies(project: Project?, version: String): List<IClasspathDependency> {
+        val deps = dependencyManager.transitiveClosure(listOf(compilerDep(version)), requiredBy = project?.name ?: "")
         return deps
     }
 
@@ -362,7 +366,7 @@ class KotlinCompiler @Inject constructor(
         val executor = executors.newExecutor("KotlinCompiler", 10)
 
         // Force a download of the compiler dependencies
-        compilerEmbeddableDependencies(project).forEach { it.jarFile.get() }
+        compilerEmbeddableDependencies(project, kotlinVersion(project)).forEach { it.jarFile.get() }
 
         executor.shutdown()
 
