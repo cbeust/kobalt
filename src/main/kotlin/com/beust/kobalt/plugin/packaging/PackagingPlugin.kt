@@ -221,7 +221,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                 File(buildDir).copyRecursively(toDir, overwrite = true)
             } else {
                 // Delete all target directories
-                val targetDirs = config.includedFiles.map { File(it.to) }.distinct().forEach { targetFile ->
+                config.includedFiles.map { File(it.to) }.distinct().forEach { targetFile ->
                     val isFile = targetFile.isFile
                     context.logger.log(project.name, 2, "  Deleting target dir $targetFile")
                     targetFile.deleteRecursively()
