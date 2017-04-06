@@ -3,14 +3,9 @@ package com.beust.kobalt
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
 import org.testng.annotations.Test
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileReader
-import java.io.InputStream
+import java.io.*
 import java.util.*
-import java.util.jar.JarEntry
-import java.util.jar.JarFile
-import java.util.jar.JarInputStream
+import java.util.jar.*
 
 /**
  * Make sure the distribution zip file contains all the right files and no bad files.
@@ -35,6 +30,13 @@ class VerifyKobaltZipTest : KobaltTest() {
             var entry = stream.nextEntry
             while (entry != null) {
                 if (entry.name.endsWith("kobaltw")) {
+                    val ins = zipFile.getInputStream(entry)
+                    ins.readBytes().forEach {
+                        // Look for carriage returns
+                        if (it.compareTo(13) == 0) {
+                            throw KobaltException("kobaltw has wrong line endings")
+                        }
+                    }
                     foundKobaltw = true
                 } else if (entry.name.endsWith(mainJarFilePath)) {
                     val ins = zipFile.getInputStream(entry)
