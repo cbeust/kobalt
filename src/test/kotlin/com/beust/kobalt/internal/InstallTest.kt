@@ -1,21 +1,14 @@
 package com.beust.kobalt.internal
 
-import com.beust.kobalt.*
+import com.beust.kobalt.BaseTest
+import com.beust.kobalt.BuildFile
+import com.beust.kobalt.ProjectFile
+import com.beust.kobalt.ProjectInfo
 import com.beust.kobalt.app.BuildFileCompiler
 import com.google.inject.Inject
 import org.assertj.core.api.Assertions.assertThat
-import org.testng.IModuleFactory
-import org.testng.ITestContext
 import org.testng.annotations.Test
 import java.io.File
-
-class ModuleFactory : IModuleFactory {
-    companion object {
-        val TEST_MODULE = TestModule()
-    }
-
-    override fun createModule(tc: ITestContext?, c: Class<*>?) = TEST_MODULE
-}
 
 class InstallTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactory) : BaseTest(compilerFactory) {
 
