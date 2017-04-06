@@ -17,37 +17,13 @@ import java.net.URLClassLoader
 import javax.inject.Inject
 
 fun main(argv: Array<String>) {
-    val result = mainNoExit(argv)
+    val result = Main.mainNoExit(argv)
     if (result != 0) {
         System.exit(result)
     }
 }
 
-private fun parseArgs(argv: Array<String>): Main.RunInfo {
-    val args = Args()
-    val result = JCommander(args)
-    result.parse(*argv)
-    KobaltLogger.LOG_LEVEL = if (args.log < Constants.LOG_QUIET_LEVEL) {
-            Constants.LOG_DEFAULT_LEVEL
-        } else if (args.log > Constants.LOG_MAX_LEVEL) {
-            Constants.LOG_MAX_LEVEL
-        } else args.log
-    return Main.RunInfo(result, args)
-}
-
-fun mainNoExit(argv: Array<String>): Int {
-    val (jc, args) = parseArgs(argv)
-    Kobalt.init(MainModule(args, KobaltSettings.readSettingsXml()))
-    val result = Kobalt.INJECTOR.getInstance(Main::class.java).run {
-        val runResult = run(jc, args, argv)
-        pluginInfo.cleanUp()
-        executors.shutdown()
-        runResult
-    }
-    return result
-}
-
-private class Main @Inject constructor(
+class Main @Inject constructor(
         val plugins: Plugins,
         val http: Http,
         val files: KFiles,
@@ -58,6 +34,39 @@ private class Main @Inject constructor(
         val client: KobaltClient,
         val pluginInfo: PluginInfo,
         val options: Options) {
+
+    companion object {
+        fun mainNoExit(argv: Array<String>): Int {
+            val (jc, args) = parseArgs(argv)
+            Kobalt.init(MainModule(args, KobaltSettings.readSettingsXml()))
+            val result = launchMain(Kobalt.INJECTOR.getInstance(Main::class.java), jc, args, argv)
+            return result
+        }
+
+        private fun parseArgs(argv: Array<String>): Main.RunInfo {
+            val args = Args()
+            val result = JCommander(args)
+            result.parse(*argv)
+            KobaltLogger.LOG_LEVEL = if (args.log < Constants.LOG_QUIET_LEVEL) {
+                Constants.LOG_DEFAULT_LEVEL
+            } else if (args.log > Constants.LOG_MAX_LEVEL) {
+                Constants.LOG_MAX_LEVEL
+            } else args.log
+            return Main.RunInfo(result, args)
+        }
+
+        /**
+         * Entry point for tests, which can instantiate their main object with their own module and injector.
+         */
+        fun launchMain(main: Main, jc: JCommander, args: Args, argv: Array<String>) : Int {
+            return main.run {
+                val runResult = run(jc, args, argv)
+                pluginInfo.cleanUp()
+                executors.shutdown()
+                runResult
+            }
+        }
+    }
 
     data class RunInfo(val jc: JCommander, val args: Args)
 
