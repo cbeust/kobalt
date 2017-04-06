@@ -23,7 +23,7 @@ class DownloadTest @Inject constructor(
     private var executor: ExecutorService by Delegates.notNull()
 
     @BeforeClass
-    fun bc() {
+    fun bc2() {
         executor = executors.newExecutor("DependentTest", 5)
     }
 

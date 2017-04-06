@@ -2,10 +2,8 @@ package com.beust.kobalt
 
 import com.beust.kobalt.api.Kobalt
 import org.testng.annotations.BeforeSuite
-import org.testng.annotations.Guice
 
-@Guice(modules = arrayOf(TestModule::class))
-open class KobaltTest {
+open class KobaltTest: BaseTest() {
     companion object {
         @BeforeSuite
         fun bs() {

@@ -1,15 +1,12 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.BaseTest
-import com.beust.kobalt.TestModule
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
 import com.google.common.collect.TreeMultimap
 import org.assertj.core.api.Assertions.assertThat
-import org.testng.annotations.Guice
 import org.testng.annotations.Test
 
-@Guice(modules = arrayOf(TestModule::class))
 class TaskManagerTest : BaseTest() {
 
     class DryRunGraphExecutor<T>(val graph: DynamicGraph<T>) {

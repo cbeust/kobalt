@@ -1,14 +1,12 @@
 package com.beust.kobalt.internal
 
-import com.beust.kobalt.TestModule
+import com.beust.kobalt.BaseTest
 import com.beust.kobalt.app.BuildFiles
 import org.assertj.core.api.Assertions.assertThat
-import org.testng.annotations.Guice
 import org.testng.annotations.Test
 import java.io.File
 
-@Guice(modules = arrayOf(TestModule::class))
-class BlockExtractorTest {
+class BlockExtractorTest : BaseTest() {
 
     @Test
     fun verifyExtraction() {

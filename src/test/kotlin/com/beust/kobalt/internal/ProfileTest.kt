@@ -9,11 +9,9 @@ import com.beust.kobalt.app.BuildFileCompiler
 import com.google.inject.Inject
 import org.assertj.core.api.Assertions.assertThat
 import org.testng.annotations.DataProvider
-import org.testng.annotations.Guice
 import org.testng.annotations.Test
 import java.util.*
 
-@Guice(modules = arrayOf(TestModule::class))
 class ProfileTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactory) : BaseTest(compilerFactory) {
 
     private fun runTestWithProfile(enabled: Boolean, oldSyntax: Boolean) : Project {

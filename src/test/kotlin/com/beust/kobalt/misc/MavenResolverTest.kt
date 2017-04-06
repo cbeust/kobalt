@@ -1,6 +1,6 @@
 package com.beust.kobalt.misc
 
-import com.beust.kobalt.TestModule
+import com.beust.kobalt.BaseTest
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.KobaltSettingsXml
 import com.beust.kobalt.maven.DependencyManager
@@ -18,11 +18,9 @@ import org.eclipse.aether.resolution.ArtifactResult
 import org.eclipse.aether.resolution.DependencyRequest
 import org.eclipse.aether.resolution.DependencyResolutionException
 import org.testng.annotations.DataProvider
-import org.testng.annotations.Guice
 import org.testng.annotations.Test
 
-@Guice(modules = arrayOf(TestModule::class))
-class MavenResolverTest {
+class MavenResolverTest : BaseTest() {
     @Inject
     lateinit var resolver: KobaltMavenResolver
 

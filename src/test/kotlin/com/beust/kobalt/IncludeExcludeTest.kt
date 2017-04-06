@@ -21,7 +21,7 @@ class IncludeExcludeTest : KobaltTest() {
     val A_HTML = "a.html"
 
     @BeforeClass
-    fun bc() {
+    fun bc2() {
         topDirectory = Files.createTempDirectory("kobaltTest-").toFile()
         directory = File(topDirectory, "com/beust")
         directory.mkdirs()

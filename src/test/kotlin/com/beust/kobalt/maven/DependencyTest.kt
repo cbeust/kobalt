@@ -1,16 +1,18 @@
 package com.beust.kobalt.maven
 
-import com.beust.kobalt.TestModule
+import com.beust.kobalt.BaseTest
 import com.beust.kobalt.misc.KobaltExecutors
 import com.beust.kobalt.misc.StringVersion
 import org.testng.Assert
-import org.testng.annotations.*
+import org.testng.annotations.AfterClass
+import org.testng.annotations.BeforeClass
+import org.testng.annotations.DataProvider
+import org.testng.annotations.Test
 import java.util.concurrent.ExecutorService
 import javax.inject.Inject
 import kotlin.properties.Delegates
 
-@Guice(modules = arrayOf(TestModule::class))
-class DependencyTest @Inject constructor(val executors: KobaltExecutors) {
+class DependencyTest @Inject constructor(val executors: KobaltExecutors) : BaseTest() {
 
     @DataProvider
     fun dpVersions(): Array<Array<out Any>> {
@@ -29,7 +31,7 @@ class DependencyTest @Inject constructor(val executors: KobaltExecutors) {
     private var executor: ExecutorService by Delegates.notNull()
 
     @BeforeClass
-    fun bc() {
+    fun bc2() {
         executor = executors.newExecutor("DependencyTest", 5)
     }
 

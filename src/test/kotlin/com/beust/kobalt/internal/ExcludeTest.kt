@@ -1,7 +1,6 @@
 package com.beust.kobalt.internal
 
 import com.beust.kobalt.BaseTest
-import com.beust.kobalt.TestModule
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.app.BuildFileCompiler
 import com.beust.kobalt.maven.DependencyManager
@@ -9,10 +8,8 @@ import com.beust.kobalt.maven.aether.Scope
 import com.google.inject.Inject
 import org.assertj.core.api.Assertions.assertThat
 import org.testng.annotations.DataProvider
-import org.testng.annotations.Guice
 import org.testng.annotations.Test
 
-@Guice(modules = arrayOf(TestModule::class))
 class ExcludeTest @Inject constructor(compilerFactory: BuildFileCompiler.IFactory,
         val dependencyManager: DependencyManager) : BaseTest(compilerFactory) {
 

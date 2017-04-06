@@ -14,7 +14,6 @@ import org.eclipse.aether.util.filter.AndDependencyFilter
 import org.testng.annotations.Guice
 import org.testng.annotations.Test
 
-@Guice(modules = arrayOf(TestModule::class))
 class DependencyManagerTest @Inject constructor(val dependencyManager: DependencyManager,
         compilerFactory: BuildFileCompiler.IFactory) : BaseTest(compilerFactory) {
 
