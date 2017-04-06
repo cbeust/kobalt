@@ -27,11 +27,4 @@ class KobaltPlugin @Inject constructor(val checkVersions: CheckVersions, val upd
         checkVersions.run(project)
         return TaskResult()
     }
-
-    @Task(name = "update", description = "Update Kobalt to the latest version")
-    fun taskUpdate(project: Project) : TaskResult {
-        updateKobalt.updateKobalt()
-        return TaskResult()
-    }
-
 }
