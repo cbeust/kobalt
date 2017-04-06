@@ -93,7 +93,7 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
 
     fun createTemporaryProjectDirectory() = KFiles.fixSlashes(Files.createTempDirectory("kobaltTest").toFile())
 
-    class ProjectDescription(val path: File, val name: String, val version: String)
+    class ProjectDescription(val file: File, val name: String, val version: String)
 
     fun createProject(projectInfo: ProjectInfo) : ProjectDescription {
         val root = Files.createTempDirectory("kobalt-test").toFile()
@@ -125,7 +125,7 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
         val main = Kobalt.INJECTOR.getInstance(Main::class.java)
         val args = Args()
         val jc = JCommander(args).apply { parse(*commandLine) }
-        args.buildFile = project.path.absolutePath + "/kobalt/src/Build.kt"
+        args.buildFile = project.file.absolutePath + "/kobalt/src/Build.kt"
         val result = Main.launchMain(main, jc, args, arrayOf("assemble"))
         return LaunchProjectResult(projectInfo, project, result)
     }

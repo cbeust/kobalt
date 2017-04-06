@@ -21,7 +21,7 @@ open class IncludeFromTo {
 
     @Directive
     fun copy(from: From, to: To) {
-        val dir = File(from.path).parentFile
+        val dir = File(from.path).absoluteFile.parentFile
         includedFiles.add(IncludedFile(from(dir.absolutePath), to, listOf(IFileSpec.FileSpec(from.path))))
     }
 

@@ -20,7 +20,7 @@ class BuildFilesTest : BaseTest() {
         val result = launchProject(projectInfo, arrayOf("assemble"))
 
         val project = result.projectDescription
-        val jarFile = File(KFiles.joinDir(project.path.absolutePath, "kobaltBuild/libs", project.name + "-"
+        val jarFile = File(KFiles.joinDir(project.file.absolutePath, "kobaltBuild/libs", project.name + "-"
                 + project.version + ".jar"))
 
         assertThat(jarFile).exists()
