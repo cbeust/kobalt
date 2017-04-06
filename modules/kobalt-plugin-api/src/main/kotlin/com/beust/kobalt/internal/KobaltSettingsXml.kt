@@ -25,7 +25,7 @@ class KobaltSettingsXml {
     @XmlElement(name = "localMavenRepo") @JvmField
     var localMavenRepo: String = homeDir(KFiles.KOBALT_DOT_DIR, "localMavenRepo")
 
-    @XmlElement(name = "defaulRepos") @JvmField
+    @XmlElement(name = "defaultRepos") @JvmField
     var defaultRepos: DefaultReposXml? = null
 
     @XmlElement(name = "proxies") @JvmField
