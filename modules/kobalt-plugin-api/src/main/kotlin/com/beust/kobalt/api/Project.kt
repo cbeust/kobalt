@@ -251,7 +251,6 @@ class Dependencies(val project: Project,
     @Directive
     fun provided(vararg dep: String) {
         addToDependencies(project, providedDependencies, dep)
-        addToDependencies(project, dependencies, dep)
     }
 
     @Directive
