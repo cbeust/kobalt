@@ -82,6 +82,16 @@ class MavenResolverTest : BaseTest() {
                 repos = listOf("https://hub.spigotmc.org/nexus/content/repositories/snapshots"))
     }
 
+    @Test(enabled = false)
+    fun shouldIgnoreOptionalResolutions() {
+        resolver.resolve("org.springframework:spring-context-support:2.5.6.SEC03")
+    }
+
+    @Test(expectedExceptions = arrayOf(DependencyResolutionException::class))
+    fun shouldThrowIfResolutionFails() {
+        resolver.resolve("org.testng:bogus:6.11")
+    }
+
     private fun resolve(id: String): List<ArtifactResult> {
         val system = Booter.newRepositorySystem()
         val session = Booter.newRepositorySystemSession(system,
