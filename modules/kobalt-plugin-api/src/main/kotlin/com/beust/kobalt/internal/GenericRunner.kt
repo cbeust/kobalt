@@ -15,8 +15,12 @@ abstract class GenericTestRunner: ITestRunnerContributor {
     abstract val dependencyName : String
     abstract val mainClass: String
     abstract val annotationPackage: String
+    abstract val runnerName: String
+
     abstract fun args(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             testConfig: TestConfig) : List<String>
+
+    open val extraClasspath: List<String> = emptyList()
 
     open fun filterTestClasses(classes: List<String>) : List<String> = classes
 
@@ -98,7 +102,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
             configName: String) : Boolean {
         var result = false
 
-        context.logger.log(project.name, 1, "Running default TestNG runner")
+        context.logger.log(project.name, 1, "Running tests with " + runnerName)
 
         val testConfig = project.testConfigs.firstOrNull { it.name == configName }
 
@@ -144,13 +148,14 @@ abstract class GenericTestRunner: ITestRunnerContributor {
      */
     @VisibleForTesting
     fun calculateAllJvmArgs(project: Project, context: KobaltContext,
-                            testConfig: TestConfig, classpath: List<IClasspathDependency>, pluginInfo: IPluginInfo) : List<String> {
+            testConfig: TestConfig, classpath: List<IClasspathDependency>, pluginInfo: IPluginInfo) : List<String> {
+        val fullClasspath = classpath.map { it.jarFile.get().absolutePath } + extraClasspath
         // Default JVM args
         val jvmFlags = arrayListOf<String>().apply {
             addAll(testConfig.jvmArgs)
             add("-ea")
             add("-classpath")
-            add(classpath.map { it.jarFile.get().absolutePath }.joinToString(File.pathSeparator))
+            add(fullClasspath.joinToString(File.pathSeparator))
         }
 
         // JVM flags from the contributors

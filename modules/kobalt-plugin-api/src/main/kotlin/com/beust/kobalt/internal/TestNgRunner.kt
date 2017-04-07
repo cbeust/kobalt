@@ -2,21 +2,25 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.TestConfig
-import com.beust.kobalt.api.*
+import com.beust.kobalt.api.IClasspathDependency
+import com.beust.kobalt.api.KobaltContext
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.maven.aether.AetherDependency
 import com.beust.kobalt.misc.*
 import org.testng.remote.RemoteArgs
-import org.testng.remote.strprotocol.*
+import org.testng.remote.strprotocol.JsonMessageSender
+import org.testng.remote.strprotocol.MessageHelper
+import org.testng.remote.strprotocol.MessageHub
+import org.testng.remote.strprotocol.TestResultMessage
 import java.io.File
 import java.io.IOException
 
 class TestNgRunner : GenericTestRunner() {
 
     override val mainClass = "org.testng.TestNG"
-
     override val dependencyName = "testng"
-
     override val annotationPackage = "org.testng"
+    override val runnerName = "TestNG"
 
     fun defaultOutput(project: Project) = KFiles.joinDir(project.buildDirectory, "test-output")
 

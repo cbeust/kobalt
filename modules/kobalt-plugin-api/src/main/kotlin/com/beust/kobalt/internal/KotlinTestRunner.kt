@@ -6,6 +6,7 @@ package com.beust.kobalt.internal
  */
 class KotlinTestRunner : JUnitRunner() {
     override val dependencyName = "io.kotlintest"
+    override val runnerName = "Kotlin Test"
 
     /**
      * KotlinTestRunner runs tests in the init{} initializer, so ignore all the extra

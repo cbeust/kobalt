@@ -6,5 +6,6 @@ package com.beust.kobalt.internal
  */
 class SpekRunner : JUnitRunner() {
     override val dependencyName = "org.jetbrains.spek"
+    override val runnerName = "Spek"
 }
 
