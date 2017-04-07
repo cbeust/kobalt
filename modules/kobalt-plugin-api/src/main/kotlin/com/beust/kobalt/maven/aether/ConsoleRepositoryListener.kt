@@ -16,12 +16,6 @@ class ConsoleRepositoryListener @JvmOverloads constructor(out: PrintStream? = nu
         val LOG_LEVEL = 4
     }
 
-    private val out: PrintStream
-
-    init {
-        this.out = out ?: System.out
-    }
-
     override fun artifactDeployed(event: RepositoryEvent?) {
         kobaltLog(LOG_LEVEL, "Deployed " + event!!.artifact + " to " + event.repository)
     }
