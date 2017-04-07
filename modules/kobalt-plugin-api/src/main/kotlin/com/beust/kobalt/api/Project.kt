@@ -128,14 +128,16 @@ open class Project(
         return result
     }
 
+    class Dep(val File: File, val id: String)
+
     /**
      * @return a list of the transitive dependencies (absolute paths to jar files) for the given dependencies.
      * Can be used for example as `collect(compileDependencies)`.
      */
     @Directive
-    fun collect(dependencies: List<IClasspathDependency>) : List<File> {
-        return Kobalt.context?.dependencyManager?.transitiveClosure(dependencies)?.map { it.jarFile.get() }
-            ?: emptyList()
+    fun collect(dependencies: List<IClasspathDependency>) : List<Dep> {
+        return (Kobalt.context?.dependencyManager?.transitiveClosure(dependencies) ?: emptyList())
+            .map { Dep(it.jarFile.get(), it.id) }
     }
 
     override fun toString() = "[Project $name]"

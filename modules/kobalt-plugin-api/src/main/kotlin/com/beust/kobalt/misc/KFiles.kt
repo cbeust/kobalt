@@ -16,7 +16,7 @@ import java.util.jar.JarInputStream
 class KFiles {
     /**
      * This actually returns a list of strings because in development mode, we are not pointing to a single
-     * jar file but to a set of /classes directories.
+     * jar file but to a set of classes/directories.
      */
     val kobaltJar : List<String>
         get() {

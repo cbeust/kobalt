@@ -33,7 +33,14 @@ object Versions {
     val kotlin = "1.1.1"
     val aether = "1.0.2.v20150114"
     val testng = "6.11"
+
+    // JUnit 5
+    val junit = "4.12"
+    val junitPlatform = "1.0.0-M4"
+    val junitJupiter = "5.0.0-M4"
+    val junitVintageVersion = "$junit.0-M4"
 }
+
 
 fun mavenResolver(vararg m: String)
         = m.map { "org.apache.maven.resolver:maven-resolver-$it:${Versions.mavenResolver}" }
@@ -117,7 +124,14 @@ val kobaltPluginApi = project {
                 "org.apache.maven:maven-aether-provider:3.3.9",
                 "org.testng.testng-remote:testng-remote:1.3.0",
                 "org.testng:testng:${Versions.testng}",
-                "commons-io:commons-io:2.5"
+                "commons-io:commons-io:2.5",
+                "org.junit.platform:junit-platform-surefire-provider:${Versions.junitPlatform}",
+                "org.junit.platform:junit-platform-runner:${Versions.junitPlatform}",
+                "org.junit.platform:junit-platform-engine:${Versions.junitPlatform}",
+                "org.junit.platform:junit-platform-console:${Versions.junitPlatform}",
+                "org.junit.jupiter:junit-jupiter-engine:${Versions.junitJupiter}",
+                "org.junit.vintage:junit-vintage-engine:${Versions.junitVintageVersion}"
+
         )
         exclude(*aether("impl", "spi", "util", "api"))
     }

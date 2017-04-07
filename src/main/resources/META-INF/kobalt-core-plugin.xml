@@ -24,6 +24,7 @@
         <class-name>com.beust.kobalt.internal.TestNgRunner</class-name>
         <class-name>com.beust.kobalt.internal.SpekRunner</class-name>
         <class-name>com.beust.kobalt.internal.KotlinTestRunner</class-name>
+        <class-name>com.beust.kobalt.internal.JUnit5Runner</class-name>
 
         <!-- Templates -->
         <class-name>com.beust.kobalt.app.KobaltPluginTemplate</class-name>
