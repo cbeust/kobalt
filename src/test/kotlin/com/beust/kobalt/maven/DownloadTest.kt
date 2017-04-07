@@ -153,7 +153,7 @@ class DownloadTest @Inject constructor(
         // since snapshots are not allowed to be returned when looking up a versionless id)
         val id = "com.squareup.moshi:moshi:1.1.0"
         val artifact = resolver.resolveToArtifact(id)
-        assertThat(artifact.version).isEqualTo("1.1.0")
+        assertThat(artifact.version.toString()).isEqualTo("1.1.0")
     }
 
     @Test
