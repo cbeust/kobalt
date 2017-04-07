@@ -61,7 +61,7 @@ interface IDependencyManager {
                 return excluded?.map { it.id }?.contains(dep.id) ?: false
             }
 
-            val accept = dependencies.any {
+            val accept = dependencies.isEmpty() || dependencies.any {
                 // Is this dependency excluded?
                 val isExcluded = isNodeExcluded(p0, it) || isDepExcluded(p0, project?.excludedDependencies)
 
