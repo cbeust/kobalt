@@ -91,7 +91,8 @@ open class Project(
     @Directive
     fun dependenciesTest(init: Dependencies.() -> Unit) : Dependencies {
         dependencies = Dependencies(this, testDependencies, arrayListOf(),
-                testProvidedDependencies, compileRuntimeDependencies, excludedDependencies, nativeDependencies)
+                testProvidedDependencies, compileOnlyDependencies, compileRuntimeDependencies,
+                excludedDependencies, nativeDependencies)
         dependencies!!.init()
         return dependencies!!
     }
@@ -154,6 +155,7 @@ class Dependencies(val project: Project,
         val dependencies: ArrayList<IClasspathDependency>,
         val optionalDependencies: ArrayList<IClasspathDependency>,
         val providedDependencies: ArrayList<IClasspathDependency>,
+        val compileOnlyDependencies: ArrayList<IClasspathDependency>,
         val runtimeDependencies: ArrayList<IClasspathDependency>,
         val excludedDependencies: ArrayList<IClasspathDependency>,
         val nativeDependencies: ArrayList<IClasspathDependency>) {
@@ -243,6 +245,9 @@ class Dependencies(val project: Project,
         }
         addToDependencies(project, dependencies, arrayOf(dep), excludeConfig = excludeConfig)
     }
+
+    @Directive
+    fun compileOnly(vararg dep: String) = addToDependencies(project, compileOnlyDependencies, dep)
 
     @Directive
     fun compileOptional(vararg dep: String) {
