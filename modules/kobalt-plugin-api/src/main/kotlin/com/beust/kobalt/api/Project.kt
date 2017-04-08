@@ -128,7 +128,7 @@ open class Project(
         return result
     }
 
-    class Dep(val File: File, val id: String)
+    class Dep(val file: File, val id: String)
 
     /**
      * @return a list of the transitive dependencies (absolute paths to jar files) for the given dependencies.
