@@ -62,6 +62,7 @@ val wrapper = project {
     }
 
     assemble {
+        jar { }
         jar {
             name = projectName + ".jar"
             manifest {
@@ -73,6 +74,12 @@ val wrapper = project {
     application {
         mainClass = "com.beust.kobalt.wrapper.Main"
     }
+
+    bintray {
+        publish = true
+    }
+
+    pom = createPom(name, "Wrapper for Kobalt")
 }
 
 val kobaltPluginApi = project {
@@ -84,24 +91,7 @@ val kobaltPluginApi = project {
     description = "A build system in Kotlin"
     url = "http://beust.com/kobalt"
 
-    pom = Model().apply {
-        name = project.name
-        description = "A build system in Kotlin"
-        url = "http://beust.com/kobalt"
-        licenses = listOf(License().apply {
-            name = "Apache 2.0"
-            url = "http://www.apache .org/licenses/LICENSE-2.0"
-        })
-        scm = Scm().apply {
-            url = "http://github.com/cbeust/kobalt"
-            connection = "https://github.com/cbeust/kobalt.git"
-            developerConnection = "git@github.com:cbeust/kobalt.git"
-        }
-        developers = listOf(Developer().apply {
-            name = "Cedric Beust"
-            email = "cedric@beust.com"
-        })
-    }
+    pom = createPom(name, "A build system in Kotlin")
 
     dependencies {
         compile(
@@ -277,4 +267,23 @@ fun taskCopyVersionForWrapper(project: Project) : TaskResult {
         }
     }
     return TaskResult()
+}
+
+fun createPom(projectName: String, projectDescription: String) = Model().apply {
+    name = projectName
+    description = projectDescription
+    url = "http://beust.com/kobalt"
+    licenses = listOf(License().apply {
+        name = "Apache-2.0"
+        url = "http://www.apache.org/licenses/LICENSE-2.0"
+    })
+    scm = Scm().apply {
+        url = "http://github.com/cbeust/kobalt"
+        connection = "https://github.com/cbeust/kobalt.git"
+        developerConnection = "git@github.com:cbeust/kobalt.git"
+    }
+    developers = listOf(Developer().apply {
+        name = "Cedric Beust"
+        email = "cedric@beust.com"
+    })
 }
