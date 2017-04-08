@@ -53,20 +53,22 @@ class JarUtils {
                 } else {
                     if (file.expandJarFiles && foundFile.name.endsWith(".jar") && ! file.from.contains("resources")) {
                         kobaltLog(2, "  Writing contents of jar file $foundFile")
-                        val stream = JarInputStream(FileInputStream(localFile))
-                        var entry = stream.nextEntry
-                        while (entry != null) {
-                            if (!entry.isDirectory && !KFiles.isExcluded(entry.name, DEFAULT_JAR_EXCLUDES)) {
-                                val ins = JarFile(localFile).getInputStream(entry)
-                                addEntry(ins, JarEntry(entry), outputStream, onError)
+                        JarInputStream(FileInputStream(localFile)).use { stream ->
+                            var entry = stream.nextEntry
+                            while (entry != null) {
+                                if (!entry.isDirectory && !KFiles.isExcluded(entry.name, DEFAULT_JAR_EXCLUDES)) {
+                                    addEntry(stream, JarEntry(entry), outputStream, onError)
+                                }
+                                entry = stream.nextEntry
                             }
-                            entry = stream.nextEntry
                         }
                     } else {
                         val entryFileName = KFiles.fixSlashes(file.to(foundFile.path))
                         val entry = JarEntry(entryFileName)
                         entry.time = localFile.lastModified()
-                        addEntry(FileInputStream(localFile), entry, outputStream, onError)
+                        FileInputStream(localFile).use { stream ->
+                            addEntry(stream, entry, outputStream, onError)
+                        }
                     }
                 }
             }
@@ -74,22 +76,12 @@ class JarUtils {
 
         private fun addEntry(inputStream: InputStream, entry: ZipEntry, outputStream: ZipOutputStream,
                 onError: (Exception) -> Unit = DEFAULT_HANDLER) {
-            var bis: BufferedInputStream? = null
             try {
                 outputStream.putNextEntry(entry)
-                bis = BufferedInputStream(inputStream)
-
-                val buffer = ByteArray(50 * 1024)
-                while (true) {
-                    val count = bis.read(buffer)
-                    if (count == -1) break
-                    outputStream.write(buffer, 0, count)
-                }
+                inputStream.copyTo(outputStream, 50 * 1024)
                 outputStream.closeEntry()
             } catch(ex: Exception) {
                 onError(ex)
-            } finally {
-                bis?.close()
             }
         }
 
