@@ -10,8 +10,8 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.aether.Scope
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.KobaltExecutors
-import com.beust.kobalt.misc.RunCommand
 import com.beust.kobalt.misc.kobaltLog
+import com.beust.kobalt.misc.runCommand
 import com.beust.kobalt.plugin.packaging.PackageConfig
 import com.beust.kobalt.plugin.packaging.PackagingPlugin
 import com.google.inject.Inject
@@ -106,10 +106,8 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
             ?: project.projectProperties.get(Archives.JAR_NAME)?.toString()
             ?: throw KobaltException("Couldn't find any jar file with a main class in it")
 
-        val jarFileName = KFiles.joinDir(KFiles.libsDir(project), fileName)
-        val jarName = (jarFileName ?: KFiles.joinDir(KFiles.libsDir(project),
-                context.variant.archiveName(project, null, ".jar")))
-            as String
+        // The application will run in the project's directory, so we don't need to add project.directory here
+        val jarName = KFiles.joinDir(project.buildDirectory, KFiles.LIBS_DIR, fileName)
         @Suppress("UNCHECKED_CAST")
         val packages = project.projectProperties.get(PackagingPlugin.PACKAGES) as List<PackageConfig>
         val allDeps = arrayListOf(jarName)
@@ -131,16 +129,19 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
         val contributorFlags = context.pluginInfo.jvmFlagContributors.flatMap {
             it.jvmFlagsFor(project, context, initialArgs)
         }
-        val args = contributorFlags + initialArgs + config.args
-        val exitCode = RunCommand(java.absolutePath).run(args,
-                successCallback = { output: List<String> ->
-                    kobaltLog(1, output.joinToString("\n"))
-                },
-                errorCallback =  { output: List<String> ->
-                    kobaltLog(1, "ERROR")
-                    kobaltLog(1, output.joinToString("\n"))
-                }
-        )
+        val allArgs = contributorFlags + initialArgs + config.args
+        val exitCode = runCommand {
+            command = "java"
+            args = allArgs
+            directory = File(project.directory)
+            successCallback = { output: List<String> ->
+                kobaltLog(1, output.joinToString("\n"))
+            }
+            errorCallback =  { output: List<String> ->
+                kobaltLog(1, "ERROR")
+                kobaltLog(1, output.joinToString("\n"))
+            }
+        }
         return TaskResult(exitCode == 0)
     }
 
