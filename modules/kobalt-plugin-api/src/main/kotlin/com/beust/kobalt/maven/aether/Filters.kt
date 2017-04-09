@@ -15,7 +15,7 @@ object Filters {
         override fun accept(p0: DependencyNode, p1: MutableList<DependencyNode>): Boolean {
             val result = p0.dependency != null && ! p0.dependency.optional
             if (! result) {
-                kobaltLog(2, "Excluding from optional filter: $p0")
+                kobaltLog(3, "Excluding from optional filter: $p0")
             }
             return result
         }
