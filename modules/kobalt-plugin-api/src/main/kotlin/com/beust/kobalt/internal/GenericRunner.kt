@@ -16,11 +16,13 @@ abstract class GenericTestRunner: ITestRunnerContributor {
     abstract val mainClass: String
     abstract val annotationPackage: String
     abstract val runnerName: String
-    open val shortMessage: String? = null//""Short message"
-    open val longMessage: String? = null//""Long message"
+    open var shortMessage: String? = null
+    open var longMessage: String? = null
 
     abstract fun args(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             testConfig: TestConfig) : List<String>
+
+    open fun onFinish(project: Project) {}
 
     open val extraClasspath: List<String> = emptyList()
 
@@ -145,6 +147,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
             throw KobaltException("Couldn't find a test configuration named \"$configName\"")
         }
 
+        onFinish(project)
         return TestResult(result, shortMessage, longMessage)
     }
 

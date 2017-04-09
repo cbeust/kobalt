@@ -13,8 +13,12 @@ import org.testng.remote.strprotocol.JsonMessageSender
 import org.testng.remote.strprotocol.MessageHelper
 import org.testng.remote.strprotocol.MessageHub
 import org.testng.remote.strprotocol.TestResultMessage
+import org.w3c.dom.Attr
+import org.xml.sax.InputSource
 import java.io.File
+import java.io.FileReader
 import java.io.IOException
+import javax.xml.parsers.DocumentBuilderFactory
 
 class TestNgRunner : GenericTestRunner() {
 
@@ -58,6 +62,35 @@ class TestNgRunner : GenericTestRunner() {
             }
         } else {
             addAll(testConfig.testArgs)
+        }
+    }
+
+    /**
+     * Extract test results from testng-results.xml and initialize shortMessage.
+     */
+    override fun onFinish(project: Project) {
+        File(defaultOutput(project), "testng-results.xml").let { file ->
+            val ins = InputSource(FileReader(file))
+            val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(ins)
+
+            val root = doc.documentElement
+            var failed = 0
+            var skipped = 0
+            var passed = 0
+            repeat(root.attributes.length) {
+                val attribute = root.attributes.item(it)
+                if (attribute is Attr) when (attribute.name) {
+                    "failed" -> failed = Integer.parseInt(attribute.value)
+                    "skipped" -> skipped = Integer.parseInt(attribute.value)
+                    "passed" -> passed = Integer.parseInt(attribute.value)
+                }
+            }
+
+            if (failed == 0) {
+                shortMessage = "$passed tests"
+            } else if (failed > 0) {
+                shortMessage = "$failed failed" + (if (skipped > 0) ", $skipped skipped" else "") + " tests"
+            }
         }
     }
 
