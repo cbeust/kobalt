@@ -76,9 +76,14 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
 
         }
 
+        // Calculate the longest short message so we can create a column long enough to contain it
+        val width = 12 + (projectInfos.values.map { it.shortMessage?.length ?: 0 }.maxBy { it } ?: 0)
+
         fun col1(s: String) = String.format(" %1\$-30s", s)
-        fun col2(s: String) = String.format(" %1\$-13s", s)
+        fun col2(s: String) = String.format(" %1\$-${width}s", s)
         fun col3(s: String) = String.format(" %1\$-8s", s)
+
+
 
         // Only print the build report if there is more than one project and at least one of them failed
         if (timings.any()) {
@@ -89,7 +94,7 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
             table.append(AsciiArt.logBox(listOf(line), AsciiArt.bottomLeft2, AsciiArt.bottomRight2, indent = 10) + "\n")
             projectStatuses.forEach { pair ->
                 val projectName = pair.first.name
-                val cl = listOf(col1(projectName), col2(pair.second.toString()),
+                val cl = listOf(col1(projectName), col2(pair.second),
                         col3(formatMillisLeft(projectInfos[projectName]!!.durationMillis, 8)))
                         .joinToString(AsciiArt.verticalBar)
                 table.append("          " + AsciiArt.verticalBar + " " + cl + " " + AsciiArt.verticalBar + "\n")
