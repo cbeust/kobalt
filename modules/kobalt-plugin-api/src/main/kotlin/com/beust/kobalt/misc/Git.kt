@@ -11,7 +11,7 @@ class Git @Inject constructor() {
                 if (uploadResult.success && enabled) {
                     val tagSuccess = tagRelease(project, annotated, tag, message)
                     if (! tagSuccess) {
-                        TaskResult(false, "Couldn't tag the project")
+                        TaskResult(false, errorMessage  = "Couldn't tag the project")
                     } else {
                         TaskResult()
                     }

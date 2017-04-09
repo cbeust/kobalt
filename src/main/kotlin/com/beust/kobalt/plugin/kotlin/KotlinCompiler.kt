@@ -126,7 +126,7 @@ class KotlinCompiler @Inject constructor(
                 // The Kotlin compiler issues warnings on stderr :-(
                 containsErrors = { errors: List<String> -> errors.any { it.contains("rror")} }
             }).invoke()
-            return TaskResult(result == 0, "Error while compiling")
+            return TaskResult(result == 0, errorMessage = "Error while compiling")
         }
 
         private fun invokeCompilerDirectly(projectName: String, outputDir: String?, info: CompilerActionInfo,

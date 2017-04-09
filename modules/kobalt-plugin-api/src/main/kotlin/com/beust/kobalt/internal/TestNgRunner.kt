@@ -2,6 +2,7 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.TestConfig
+import com.beust.kobalt.TestResult
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
@@ -64,7 +65,7 @@ class TestNgRunner : GenericTestRunner() {
 
     fun _runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
 //    override fun runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
-            configName: String): Boolean {
+            configName: String): TestResult {
 
         val testConfig = project.testConfigs.firstOrNull { it.name == configName }
 
@@ -85,7 +86,7 @@ class TestNgRunner : GenericTestRunner() {
                 }
             return result
         } else {
-            return true
+            return TestResult(true)
         }
     }
 
@@ -102,7 +103,8 @@ class TestNgRunner : GenericTestRunner() {
     }
 
     private fun displayPrettyColors(project: Project, context: KobaltContext,
-            classpath: List<IClasspathDependency>, testConfig: TestConfig, versions: Pair<String, String>): Boolean {
+            classpath: List<IClasspathDependency>, testConfig: TestConfig, versions: Pair<String, String>)
+            : TestResult {
         val port = 2345
 //        launchRemoteServer(project, context, classpath, testConfig, versions, port)
 
@@ -151,7 +153,7 @@ class TestNgRunner : GenericTestRunner() {
             val top = it.stackTrace.substring(0, it.stackTrace.indexOf("\n"))
              kobaltLog(1, "  " + it.cls + "." + it.method + "\n    " + top)
         }
-        return failed.isEmpty() && skipped.isEmpty()
+        return TestResult(failed.isEmpty() && skipped.isEmpty())
     }
 
     fun launchRemoteServer(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,

@@ -7,7 +7,8 @@ import java.lang.reflect.InvocationTargetException
 import java.util.*
 import java.util.concurrent.*
 
-open class TaskResult2<T>(success: Boolean, errorMessage: String?, val value: T) : TaskResult(success, errorMessage) {
+open class TaskResult2<T>(success: Boolean, testResult: TestResult? = null,
+        errorMessage: String? = null, val value: T) : TaskResult(success, testResult, errorMessage) {
     override fun toString() = com.beust.kobalt.misc.toString("TaskResult", "value", value, "success", success)
 }
 
@@ -393,7 +394,7 @@ fun main(argv: Array<String>) {
                 object: IWorker<String> {
                     override fun call(): TaskResult2<String>? {
                         kobaltLog(1, "  Running worker $it")
-                        return TaskResult2(true, null, it)
+                        return TaskResult2(true, value = it)
                     }
 
                     override val priority: Int get() = 0
