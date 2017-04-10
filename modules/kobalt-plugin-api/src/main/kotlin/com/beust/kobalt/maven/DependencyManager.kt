@@ -108,6 +108,9 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
                     addAll(project.compileDependencies)
                     addAll(project.compileProvidedDependencies)
                 }
+                if (scopes.contains(Scope.COMPILEONLY)) {
+                    addAll(project.compileOnlyDependencies)
+                }
                 if (scopes.contains(Scope.RUNTIME)) {
                     addAll(project.compileRuntimeDependencies)
                 }

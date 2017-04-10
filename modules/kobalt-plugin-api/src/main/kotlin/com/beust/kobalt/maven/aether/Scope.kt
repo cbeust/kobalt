@@ -12,6 +12,7 @@ sealed class Scope(val scope: String, val dependencyLambda: (Project) -> List<IC
 
     object COMPILE : Scope(JavaScopes.COMPILE, Project::compileDependencies)
     object PROVIDED : Scope(JavaScopes.PROVIDED, Project::compileProvidedDependencies)
+    object COMPILEONLY : Scope("compileOnly", Project::compileOnlyDependencies)
     object SYSTEM : Scope(JavaScopes.SYSTEM, { project -> emptyList() })
     object RUNTIME : Scope(JavaScopes.RUNTIME, Project::compileRuntimeDependencies)
     object TEST : Scope(JavaScopes.TEST, Project::testDependencies)
