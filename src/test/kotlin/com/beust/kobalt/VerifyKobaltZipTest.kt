@@ -38,7 +38,7 @@ class VerifyKobaltZipTest : KobaltTest() {
                             throw KobaltException("kobaltw has wrong line endings")
                         }
                     }
-                    if (System.getProperty("os.name").contains("Windows")) {
+                    if (OperatingSystem.current().isWindows()) {
                         warn("Can't determine if kobaltw is executable under Windows")
                     } else if (!Files.isExecutable(Paths.get("dist/kobaltw"))) {
                         throw KobaltException("kobaltw has invalid permissions")
