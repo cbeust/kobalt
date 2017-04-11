@@ -1,14 +1,16 @@
 package com.beust.kobalt.misc
 
-import com.beust.kobalt.*
+import com.beust.kobalt.From
+import com.beust.kobalt.IFileSpec
+import com.beust.kobalt.IncludedFile
+import com.beust.kobalt.To
+import com.beust.kobalt.archive.MetaArchive
 import com.google.common.io.CharStreams
-import java.io.*
-import java.util.jar.JarEntry
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStreamReader
 import java.util.jar.JarFile
-import java.util.jar.JarInputStream
-import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
-import java.util.zip.ZipOutputStream
 
 class JarUtils {
     companion object {
@@ -19,18 +21,15 @@ class JarUtils {
             }
         }
 
-        fun addFiles(directory: String, files: List<IncludedFile>, target: ZipOutputStream,
+        fun addFiles(directory: String, files: List<IncludedFile>, metaArchive: MetaArchive,
                 expandJarFiles: Boolean,
                 onError: (Exception) -> Unit = DEFAULT_HANDLER) {
             files.forEach {
-                addSingleFile(directory, it, target, expandJarFiles, onError)
+                addSingleFile(directory, it, metaArchive, expandJarFiles, onError)
             }
         }
 
-        private val DEFAULT_JAR_EXCLUDES =
-                Glob("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
-
-        fun addSingleFile(directory: String, file: IncludedFile, outputStream: ZipOutputStream,
+        fun addSingleFile(directory: String, file: IncludedFile, metaArchive: MetaArchive,
                 expandJarFiles: Boolean, onError: (Exception) -> Unit = DEFAULT_HANDLER) {
             val foundFiles = file.allFromFiles(directory)
             foundFiles.forEach { foundFile ->
@@ -49,39 +48,19 @@ class JarUtils {
 
                     // Directory
                     val includedFile = IncludedFile(From(""), To(""), listOf(IFileSpec.GlobSpec("**")))
-                    addSingleFile(localFile.path, includedFile, outputStream, expandJarFiles)
+                    addSingleFile(localFile.path, includedFile, metaArchive, expandJarFiles)
                 } else {
-                    if (file.expandJarFiles && foundFile.name.endsWith(".jar") && ! file.from.contains("resources")) {
-                        kobaltLog(2, "  Writing contents of jar file $foundFile")
-                        JarInputStream(FileInputStream(localFile)).use { stream ->
-                            var entry = stream.nextEntry
-                            while (entry != null) {
-                                if (!entry.isDirectory && !KFiles.isExcluded(entry.name, DEFAULT_JAR_EXCLUDES)) {
-                                    addEntry(stream, JarEntry(entry), outputStream, onError)
-                                }
-                                entry = stream.nextEntry
-                            }
+                    try {
+                        if (file.expandJarFiles && foundFile.name.endsWith(".jar") && !file.from.contains("resources")) {
+                            kobaltLog(2, "  Writing contents of jar file $foundFile")
+                            metaArchive.addArchive(foundFile)
+                        } else {
+                            metaArchive.addFile(File(directory, fromFile.path), foundFile.path)
                         }
-                    } else {
-                        val entryFileName = KFiles.fixSlashes(file.to(foundFile.path))
-                        val entry = JarEntry(entryFileName)
-                        entry.time = localFile.lastModified()
-                        FileInputStream(localFile).use { stream ->
-                            addEntry(stream, entry, outputStream, onError)
-                        }
+                    } catch(ex: Exception) {
+                        onError(ex)
                     }
                 }
-            }
-        }
-
-        private fun addEntry(inputStream: InputStream, entry: ZipEntry, outputStream: ZipOutputStream,
-                onError: (Exception) -> Unit = DEFAULT_HANDLER) {
-            try {
-                outputStream.putNextEntry(entry)
-                inputStream.copyTo(outputStream, 50 * 1024)
-                outputStream.closeEntry()
-            } catch(ex: Exception) {
-                onError(ex)
             }
         }
 
