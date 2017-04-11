@@ -38,13 +38,27 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
             filter: DependencyFilter = Filters.EXCLUDE_OPTIONAL_FILTER) : Artifact
         = resolve(id, scope, filter).root.artifact
 
-    fun resolve(id: String, scope: Scope? = null,
+    fun resolve(passedId: String, scope: Scope? = null,
             filter: DependencyFilter = Filters.EXCLUDE_OPTIONAL_FILTER,
             repos: List<String> = emptyList()): DependencyResult {
-        val dependencyRequest = DependencyRequest(createCollectRequest(id, scope, repos), filter)
+        val mavenId = MavenId.toMavenId(passedId)
+        val id =
+            if (isRangeVersion(mavenId)) {
+                val artifact = DefaultArtifact(mavenId)
+                val request = VersionRangeRequest(artifact, createRepos(repos), null)
+                val rr = system.resolveVersionRange(session, request)
+                val newArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.classifier,
+                        artifact.extension, rr.highestVersion.toString())
+                artifactToId(newArtifact)
+            } else {
+                passedId
+            }
+
+        val collectRequest = createCollectRequest(id)
+        val dependencyRequest = DependencyRequest(collectRequest, filter)
         val result = system.resolveDependencies(session, dependencyRequest)
-//        GraphUtil.displayGraph(listOf(result.root), { it -> it.children },
-//                { it: DependencyNode, indent: String -> println(indent + it.toString()) })
+        //        GraphUtil.displayGraph(listOf(result.root), { it -> it.children },
+        //                { it: DependencyNode, indent: String -> println(indent + it.toString()) })
         return result
     }
 
@@ -109,6 +123,9 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
             }
         }
 
+    private fun createRepos(repos: List<String>) : List<RemoteRepository>
+            = kobaltRepositories + repos.map { createRepo(HostConfig(it)) }
+
     private fun createCollectRequest(id: String, scope: Scope? = null, repos: List<String> = emptyList())
             = CollectRequest().apply {
         val allIds = arrayListOf(MavenId.toMavenId(id))
@@ -116,6 +133,6 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
         dependencies = allIds.map { Dependency(DefaultArtifact(it), scope?.scope) }
 
         root = Dependency(DefaultArtifact(MavenId.toMavenId(id)), scope?.scope)
-        repositories = kobaltRepositories + repos.map { createRepo(HostConfig(it)) }
+        repositories = createRepos(repos)
     }
 }
