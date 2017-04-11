@@ -1,9 +1,10 @@
 package com.beust.kobalt
 
-import com.beust.kobalt.misc.KFiles
-import com.beust.kobalt.misc.kobaltLog
+import com.beust.kobalt.misc.*
 import org.testng.annotations.Test
 import java.io.*
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.*
 import java.util.jar.*
 
@@ -36,6 +37,11 @@ class VerifyKobaltZipTest : KobaltTest() {
                         if (it.compareTo(13) == 0) {
                             throw KobaltException("kobaltw has wrong line endings")
                         }
+                    }
+                    if (OperatingSystem.current().isWindows()) {
+                        warn("Can't determine if kobaltw is executable under Windows")
+                    } else if (!Files.isExecutable(Paths.get("dist/kobaltw"))) {
+                        throw KobaltException("kobaltw has invalid permissions")
                     }
                     foundKobaltw = true
                 } else if (entry.name.endsWith(mainJarFilePath)) {
