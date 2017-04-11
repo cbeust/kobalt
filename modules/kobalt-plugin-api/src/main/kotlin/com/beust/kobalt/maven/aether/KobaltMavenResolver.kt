@@ -54,7 +54,7 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
                 passedId
             }
 
-        val collectRequest = createCollectRequest(id)
+        val collectRequest = createCollectRequest(id, scope, repos)
         val dependencyRequest = DependencyRequest(collectRequest, filter)
         val result = system.resolveDependencies(session, dependencyRequest)
         //        GraphUtil.displayGraph(listOf(result.root), { it -> it.children },
