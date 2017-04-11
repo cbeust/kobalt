@@ -345,6 +345,11 @@ public class Main {
                     try {
                         Files.createDirectories(entryPath.getParent());
                         Files.copy(zipFile.getInputStream(entry), entryPath, StandardCopyOption.REPLACE_EXISTING);
+                        if (!isWindows() && entry.getName().endsWith(KOBALTW)) {
+                           if (!entryPath.toFile().setExecutable(true)) {
+                               log(1, "Couldn't make distribution " + KOBALTW + " executable");
+                           }
+                        }
                     } catch (FileSystemException ex) {
                         log(2, "Couldn't copy to " + entryPath);
                     }
