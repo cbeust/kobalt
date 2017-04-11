@@ -72,7 +72,7 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
         val rr = resolve(id, scope, filter)
         val children =
             rr.root.children.filter {
-                filter == null || filter.accept(DefaultDependencyNode(it.dependency), emptyList())
+                filter.accept(DefaultDependencyNode(it.dependency), emptyList())
             }.filter {
                 it.dependency.scope != Scope.SYSTEM.scope
             }
