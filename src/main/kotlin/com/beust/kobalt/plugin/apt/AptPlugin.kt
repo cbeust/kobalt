@@ -25,7 +25,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager)
     // ISourceDirectoryContributor
 
     private fun generatedDir(project: Project, outputDir: String) : File
-        = File(KFiles.joinDir(project.directory, KFiles.KOBALT_BUILD_DIR, outputDir))
+        = File(KFiles.joinDir(project.directory, outputDir))
 
     override fun sourceDirectoriesFor(project: Project, context: KobaltContext): List<File> {
         val result = arrayListOf<File>()
@@ -63,8 +63,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager)
     }
 
     private fun generated(project: Project, context: KobaltContext, outputDir: String) =
-            KFiles.joinAndMakeDir(project.directory, project.buildDirectory, outputDir,
-                    context.variant.toIntermediateDir())
+            KFiles.joinAndMakeDir(project.directory, outputDir, context.variant.toIntermediateDir())
 
     // ICompilerFlagContributor
     override fun compilerFlagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
@@ -112,7 +111,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager)
     }
 }
 
-class AptConfig(var outputDir: String = "generated/source/apt")
+class AptConfig(var outputDir: String = "${KFiles.KOBALT_BUILD_DIR}/generated/source/apt")
 
 @Directive
 fun Project.apt(init: AptConfig.() -> Unit) {
@@ -129,7 +128,7 @@ fun Dependencies.apt(vararg dep: String) {
     }
 }
 
-class KaptConfig(var outputDir: String = "generated/source/apt")
+class KaptConfig(var outputDir: String = "${KFiles.KOBALT_BUILD_DIR}/generated/source/apt")
 
 @Directive
 fun Project.kapt(init: KaptConfig.() -> Unit) {
