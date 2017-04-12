@@ -17,6 +17,8 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 val bs = buildScript {
     repos("http://dl.bintray.com/cbeust/maven")
@@ -220,6 +222,12 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
             (0 .. files.size - 1 step 3).forEach { i ->
                 include(from(files[i]), to(files[i + 1]), files[i + 2])
             }
+
+            val currentDir = Paths.get(".").toAbsolutePath().normalize().toString()
+            zipFolders("$currentDir/$buildDirectory/libs/all-sources/$projectName-$version-sources.jar",
+                    "$currentDir/$directory/src/main/kotlin",
+                    "$currentDir/${kobaltPluginApi.directory}/src/main/kotlin")
+            include(from("$buildDirectory/libs/all-sources"), to("$dir/kobalt/wrapper"), "$projectName-$version-sources.jar")
         }
     }
 
@@ -241,6 +249,28 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
 
     autoGitTag {
         enabled = true
+    }
+}
+
+fun zipFolders(zipFilePath: String, vararg foldersPath: String) {
+    val zip = Paths.get(zipFilePath)
+    Files.deleteIfExists(zip)
+    Files.createDirectories(zip.parent)
+    val zipPath = Files.createFile(zip)
+    ZipOutputStream(Files.newOutputStream(zipPath)).use {
+        foldersPath.map {Paths.get(it)}.forEach { folderPath ->
+            Files.walk(folderPath)
+                    .filter { path -> !Files.isDirectory(path) }
+                    .forEach { path ->
+                        val zipEntry = ZipEntry(folderPath.relativize(path).toString())
+                        try {
+                            it.putNextEntry(zipEntry)
+                            Files.copy(path, it)
+                            it.closeEntry()
+                        } catch (e: Exception) {
+                        }
+                    }
+        }
     }
 }
 
