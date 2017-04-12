@@ -4,10 +4,7 @@ import com.beust.kobalt.Glob
 import com.beust.kobalt.misc.KFiles
 import org.apache.commons.compress.archivers.ArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
-import java.io.Closeable
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
+import java.io.*
 import java.nio.file.Files
 import org.apache.commons.compress.archivers.zip.ZipFile as ApacheZipFile
 
@@ -61,7 +58,9 @@ class MetaArchive(outputFile: File, val manifest: java.util.jar.Manifest?) : Clo
 
     private fun addEntry(entry: ArchiveEntry, inputStream: FileInputStream) {
         zos.putArchiveEntry(entry)
-        inputStream.copyTo(zos, 50 * 1024)
+        inputStream.use { ins ->
+            ins.copyTo(zos, 50 * 1024)
+        }
         zos.closeArchiveEntry()
     }
 
