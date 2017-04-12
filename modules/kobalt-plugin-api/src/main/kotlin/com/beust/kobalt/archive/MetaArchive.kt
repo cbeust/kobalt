@@ -4,7 +4,10 @@ import com.beust.kobalt.Glob
 import com.beust.kobalt.misc.KFiles
 import org.apache.commons.compress.archivers.ArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
-import java.io.*
+import java.io.Closeable
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.nio.file.Files
 import org.apache.commons.compress.archivers.zip.ZipFile as ApacheZipFile
 
@@ -47,11 +50,14 @@ class MetaArchive(outputFile: File, val manifest: java.util.jar.Manifest?) : Clo
 
     override fun close() {
         if (manifest != null) {
-            val manifestFile = Files.createTempFile("aaa", "bbb").toFile()
-            manifest.write(FileOutputStream(manifestFile))
+            Files.createTempFile("aaa", "bbb").toFile().let { manifestFile ->
+                FileOutputStream(manifestFile).use { fos ->
+                    manifest.write(fos)
+                }
 
-            val entry = zos.createArchiveEntry(manifestFile, "META-INF/MANIFEST.MF")
-            addEntry(entry, FileInputStream(manifestFile))
+                val entry = zos.createArchiveEntry(manifestFile, "META-INF/MANIFEST.MF")
+                addEntry(entry, FileInputStream(manifestFile))
+            }
         }
         zos.close()
     }
