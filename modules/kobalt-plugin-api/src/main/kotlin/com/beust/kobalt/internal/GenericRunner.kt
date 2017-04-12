@@ -16,17 +16,23 @@ abstract class GenericTestRunner: ITestRunnerContributor {
     abstract val mainClass: String
     abstract val annotationPackage: String
     abstract val runnerName: String
+    open var shortMessage: String? = null
+    open var longMessage: String? = null
 
     abstract fun args(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             testConfig: TestConfig) : List<String>
+
+    open fun onFinish(project: Project) {}
 
     open val extraClasspath: List<String> = emptyList()
 
     open fun filterTestClasses(classes: List<String>) : List<String> = classes
 
     override fun run(project: Project, context: KobaltContext, configName: String,
-            classpath: List<IClasspathDependency>)
-        = TaskResult(runTests(project, context, classpath, configName))
+            classpath: List<IClasspathDependency>) : TaskResult {
+        val tr = runTests(project, context, classpath, configName)
+        return TaskResult(tr.success, testResult = tr)
+    }
 
     override fun affinity(project: Project, context: KobaltContext) : Int {
         val result =
@@ -99,7 +105,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
      * @return true if all the tests passed
      */
     open fun runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
-            configName: String) : Boolean {
+            configName: String) : TestResult {
         var result = false
 
         context.logger.log(project.name, 1, "Running tests with " + runnerName)
@@ -140,7 +146,9 @@ abstract class GenericTestRunner: ITestRunnerContributor {
         } else {
             throw KobaltException("Couldn't find a test configuration named \"$configName\"")
         }
-        return result
+
+        onFinish(project)
+        return TestResult(result, shortMessage, longMessage)
     }
 
     /*

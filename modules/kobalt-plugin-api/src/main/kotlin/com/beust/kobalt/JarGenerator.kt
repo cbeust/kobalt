@@ -6,13 +6,12 @@ import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.archive.Zip
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.aether.Scope
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.kobaltLog
 import com.google.inject.Inject
 import java.io.File
 import java.io.FileInputStream
-import java.io.OutputStream
 import java.nio.file.Paths
-import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
 
 class JarGenerator @Inject constructor(val dependencyManager: DependencyManager) : ArchiveGenerator {
@@ -155,10 +154,8 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
                 }
             }
 
-        val jarFactory = { os: OutputStream -> JarOutputStream(os, manifest) }
-
         return Archives.generateArchive(project, context, zip.name, ".jar", includedFiles,
-                true /* expandJarFiles */, jarFactory)
+                true /* expandJarFiles */, manifest)
     }
 
 }

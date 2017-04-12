@@ -204,7 +204,7 @@ class BintrayApi @Inject constructor(val http: Http,
                 return TaskResult()
             } else {
                 error(" Errors while uploading:\n" + errorMessages.map { "    $it" }.joinToString("\n"))
-                return TaskResult(false, errorMessages.joinToString("\n"))
+                return TaskResult(false, errorMessage = errorMessages.joinToString("\n"))
             }
         } else {
             warn("Found no artifacts to upload")

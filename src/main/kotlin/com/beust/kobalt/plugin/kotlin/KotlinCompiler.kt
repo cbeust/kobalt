@@ -90,7 +90,7 @@ class KotlinCompiler @Inject constructor(
                 return invokeCompilerInSeparateProcess(classpath, info, actualVersion, project)
 
             } else {
-                return invokeCompilerDirectly(projectName ?: "kobalt-" + Random().nextInt(), outputDir,
+                return invokeCompilerDirectly(project, projectName ?: "kobalt-" + Random().nextInt(), outputDir,
                         info, classpath, filesToCompile)
             }
         }
@@ -126,14 +126,23 @@ class KotlinCompiler @Inject constructor(
                 // The Kotlin compiler issues warnings on stderr :-(
                 containsErrors = { errors: List<String> -> errors.any { it.contains("rror")} }
             }).invoke()
-            return TaskResult(result == 0, "Error while compiling")
+            return TaskResult(result == 0, errorMessage = "Error while compiling")
         }
 
-        private fun invokeCompilerDirectly(projectName: String, outputDir: String?, info: CompilerActionInfo,
-                classpathString: String, filesToCompile: Int): TaskResult {
+        private fun invokeCompilerDirectly(project: Project?, projectName: String, outputDir: String?,
+                info: CompilerActionInfo, classpathString: String, filesToCompile: Int): TaskResult {
             val sourceFiles = info.sourceFiles
             val friends = info.friendPaths.toTypedArray()
-            val args = K2JVMCompilerArguments().apply {
+
+            // Collect the compiler args from kotlinCompiler{} and from settings.xml and parse them
+            val args2 = (kotlinConfig(project)?.args ?: arrayListOf<String>()) +
+                (settings.kobaltCompilerFlags?.split(" ") ?: listOf<String>())
+            val args = K2JVMCompilerArguments()
+            val compiler = K2JVMCompiler()
+            compiler.parseArguments(args2.toTypedArray(), args)
+
+            // Override important arguments with our values
+            args.apply {
                 moduleName = projectName
                 destination = outputDir
                 classpath = classpathString
@@ -224,7 +233,7 @@ class KotlinCompiler @Inject constructor(
                 if (cliArgs.noIncrementalKotlin || Kobalt.context?.internalContext?.noIncrementalKotlin ?: false) {
                     log(2, "  Kotlin incremental compilation is disabled")
                     val duration = benchmarkMillis {
-                        K2JVMCompiler().exec(collector, Services.Builder().build(), args)
+                        compiler.exec(collector, Services.Builder().build(), args)
                     }
                     log(1, "  Regular compilation time: ${duration.first} ms")
                     TaskResult(duration.second == ExitCode.OK)

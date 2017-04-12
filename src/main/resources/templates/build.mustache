@@ -2,36 +2,37 @@ import com.beust.kobalt.*
 import com.beust.kobalt.plugin.packaging.*
 import com.beust.kobalt.plugin.application.*
 {{imports}}
-
+{{#repositories.length}}
 val bs = buildScript {
     repos({{{repositories}}})
 }
-
+{{/repositories.length}}
 {{#properties}}
 val {{first}} = "{{second}}"
 {{/properties}}
 
 val p = {{directive}} {
-
     name = "{{name}}"
     group = "{{group}}"
     artifactId = name
     version = "{{version}}"
-
+{{#sourceDirectories.length}}
     sourceDirectories {
         {{#sourceDirectories}}
         path("{{toString}}")
         {{/sourceDirectories}}
     }
-
+{{/sourceDirectories.length}}
+{{#sourceDirectoriesTest.length}}
     sourceDirectoriesTest {
         {{#sourceDirectoriesTest}}
         path("{{toString}}")
         {{/sourceDirectoriesTest}}
     }
+{{/sourceDirectoriesTest.length}}
 
     dependencies {
-//        compile("com.beust:jcommander:1.48")
+//        compile("com.beust:jcommander:1.68")
         {{#mainDependencies}}
         compile("{{groupId}}:{{artifactId}}:{{version}}")
         {{/mainDependencies}}
@@ -42,7 +43,6 @@ val p = {{directive}} {
         {{#testDependencies}}
         compile("{{groupId}}:{{artifactId}}:{{version}}")
         {{/testDependencies}}
-
     }
 
     assemble {
@@ -53,6 +53,4 @@ val p = {{directive}} {
     application {
         mainClass = "com.example.{{mainClass}}"
     }
-
-
 }

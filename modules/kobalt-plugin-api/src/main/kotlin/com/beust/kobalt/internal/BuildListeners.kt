@@ -11,7 +11,8 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class BuildListeners : IBuildListener, IBuildReportContributor {
     class ProfilerInfo(val taskName: String, val durationMillis: Long)
-    class ProjectInfo(val projectName: String, var durationMillis: Long = 0)
+    class ProjectInfo(val projectName: String, var durationMillis: Long = 0,
+            var shortMessage: String? = null, var longMessage: String? = null)
 
     private val startTimes = ConcurrentHashMap<String, Long>()
     private val timings = arrayListOf<ProfilerInfo>()
@@ -29,18 +30,21 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
     }
 
     // IBuildListener
-    override fun taskEnd(project: Project, context: KobaltContext, taskName: String, success: Boolean) {
+    override fun taskEnd(project: Project, context: KobaltContext, taskName: String, info: IBuildListener.TaskEndInfo) {
+        val success = info.success
         if (! success) hasFailures = true
         startTimes[taskName]?.let {
             val taskTime = System.currentTimeMillis() - it
             timings.add(ProfilerInfo(taskName, taskTime))
             projectInfos[project.name]?.let {
-                it.durationMillis += taskTime.toLong()
+                it.durationMillis += taskTime
+                if (info.shortMessage != null && it.shortMessage == null) it.shortMessage = info.shortMessage
+                if (info.longMessage != null && it.longMessage == null) it.longMessage = info.longMessage
             }
         }
     }
 
-    private val projectStatuses = arrayListOf<Pair<Project, ProjectBuildStatus>>()
+    private val projectStatuses = arrayListOf<Pair<Project, String>>()
 
     // IBuildListener
     override fun projectStart(project: Project, context: KobaltContext) {
@@ -49,7 +53,9 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
 
     // IBuildListener
     override fun projectEnd(project: Project, context: KobaltContext, status: ProjectBuildStatus) {
-        projectStatuses.add(Pair(project, status))
+        val shortMessage = projectInfos[project.name]?.shortMessage
+        val statusText = status.toString() + (if (shortMessage != null) " ($shortMessage)" else "")
+        projectStatuses.add(Pair(project, statusText))
     }
 
     // IBuildReportContributor
@@ -70,9 +76,14 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
 
         }
 
+        // Calculate the longest short message so we can create a column long enough to contain it
+        val width = 12 + (projectInfos.values.map { it.shortMessage?.length ?: 0 }.maxBy { it } ?: 0)
+
         fun col1(s: String) = String.format(" %1\$-30s", s)
-        fun col2(s: String) = String.format(" %1\$-13s", s)
+        fun col2(s: String) = String.format(" %1\$-${width}s", s)
         fun col3(s: String) = String.format(" %1\$-8s", s)
+
+
 
         // Only print the build report if there is more than one project and at least one of them failed
         if (timings.any()) {
@@ -83,7 +94,7 @@ class BuildListeners : IBuildListener, IBuildReportContributor {
             table.append(AsciiArt.logBox(listOf(line), AsciiArt.bottomLeft2, AsciiArt.bottomRight2, indent = 10) + "\n")
             projectStatuses.forEach { pair ->
                 val projectName = pair.first.name
-                val cl = listOf(col1(projectName), col2(pair.second.toString()),
+                val cl = listOf(col1(projectName), col2(pair.second),
                         col3(formatMillisLeft(projectInfos[projectName]!!.durationMillis, 8)))
                         .joinToString(AsciiArt.verticalBar)
                 table.append("          " + AsciiArt.verticalBar + " " + cl + " " + AsciiArt.verticalBar + "\n")

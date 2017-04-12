@@ -91,7 +91,7 @@ open class JvmCompilerPlugin @Inject constructor(
                     dependencyFilter = dependencyManager.createDependencyFilter(project, project.testDependencies),
                     scopes = listOf(Scope.TEST))
             val compileDependencies = dependencyManager.calculateDependencies(project, context,
-                    scopes = listOf(Scope.COMPILE))
+                    scopes = listOf(Scope.COMPILE, Scope.COMPILEONLY))
             val allDependencies = (testDependencies + compileDependencies).distinct()
             return testContributor.run(project, context, configName, allDependencies.toList())
         } else {

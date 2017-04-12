@@ -2,6 +2,7 @@ package com.beust.kobalt.internal
 
 import com.beust.kobalt.AsciiArt
 import com.beust.kobalt.TestConfig
+import com.beust.kobalt.TestResult
 import com.beust.kobalt.api.IClasspathDependency
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
@@ -12,8 +13,12 @@ import org.testng.remote.strprotocol.JsonMessageSender
 import org.testng.remote.strprotocol.MessageHelper
 import org.testng.remote.strprotocol.MessageHub
 import org.testng.remote.strprotocol.TestResultMessage
+import org.w3c.dom.Attr
+import org.xml.sax.InputSource
 import java.io.File
+import java.io.FileReader
 import java.io.IOException
+import javax.xml.parsers.DocumentBuilderFactory
 
 class TestNgRunner : GenericTestRunner() {
 
@@ -60,11 +65,40 @@ class TestNgRunner : GenericTestRunner() {
         }
     }
 
+    /**
+     * Extract test results from testng-results.xml and initialize shortMessage.
+     */
+    override fun onFinish(project: Project) {
+        File(defaultOutput(project), "testng-results.xml").let { file ->
+            val ins = InputSource(FileReader(file))
+            val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(ins)
+
+            val root = doc.documentElement
+            var failed = 0
+            var skipped = 0
+            var passed = 0
+            repeat(root.attributes.length) {
+                val attribute = root.attributes.item(it)
+                if (attribute is Attr) when (attribute.name) {
+                    "failed" -> failed = Integer.parseInt(attribute.value)
+                    "skipped" -> skipped = Integer.parseInt(attribute.value)
+                    "passed" -> passed = Integer.parseInt(attribute.value)
+                }
+            }
+
+            if (failed == 0) {
+                shortMessage = "$passed tests"
+            } else if (failed > 0) {
+                shortMessage = "$failed failed" + (if (skipped > 0) ", $skipped skipped" else "") + " tests"
+            }
+        }
+    }
+
     val VERSION_6_10 = StringVersion("6.10")
 
     fun _runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
 //    override fun runTests(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
-            configName: String): Boolean {
+            configName: String): TestResult {
 
         val testConfig = project.testConfigs.firstOrNull { it.name == configName }
 
@@ -85,7 +119,7 @@ class TestNgRunner : GenericTestRunner() {
                 }
             return result
         } else {
-            return true
+            return TestResult(true)
         }
     }
 
@@ -102,7 +136,8 @@ class TestNgRunner : GenericTestRunner() {
     }
 
     private fun displayPrettyColors(project: Project, context: KobaltContext,
-            classpath: List<IClasspathDependency>, testConfig: TestConfig, versions: Pair<String, String>): Boolean {
+            classpath: List<IClasspathDependency>, testConfig: TestConfig, versions: Pair<String, String>)
+            : TestResult {
         val port = 2345
 //        launchRemoteServer(project, context, classpath, testConfig, versions, port)
 
@@ -151,7 +186,7 @@ class TestNgRunner : GenericTestRunner() {
             val top = it.stackTrace.substring(0, it.stackTrace.indexOf("\n"))
              kobaltLog(1, "  " + it.cls + "." + it.method + "\n    " + top)
         }
-        return failed.isEmpty() && skipped.isEmpty()
+        return TestResult(failed.isEmpty() && skipped.isEmpty())
     }
 
     fun launchRemoteServer(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,

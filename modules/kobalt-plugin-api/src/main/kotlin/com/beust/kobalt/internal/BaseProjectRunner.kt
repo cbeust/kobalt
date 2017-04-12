@@ -1,5 +1,7 @@
 package com.beust.kobalt.internal
 
+import com.beust.kobalt.TestResult
+import com.beust.kobalt.api.IBuildListener
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.api.ProjectBuildStatus
@@ -25,9 +27,14 @@ abstract class BaseProjectRunner {
         }
 
         fun runBuildListenersForTask(project: Project, context: KobaltContext, taskName: String, start: Boolean,
-                success: Boolean = false) {
+                success: Boolean = false, testResult: TestResult? = null) {
             context.pluginInfo.buildListeners.forEach {
-                if (start) it.taskStart(project, context, taskName) else it.taskEnd(project, context, taskName, success)
+                if (start) {
+                    it.taskStart(project, context, taskName)
+                } else {
+                    val info = IBuildListener.TaskEndInfo(success, testResult?.shortMessage, testResult?.longMessage)
+                    it.taskEnd(project, context, taskName, info)
+                }
             }
         }
 

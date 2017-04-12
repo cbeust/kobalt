@@ -88,7 +88,7 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager,
 
         val jarFactory = { os: OutputStream -> JarOutputStream(os, manifest) }
         return Archives.generateArchive(project, context, war.name, ".war", files,
-                false /* don't expand jar files */, jarFactory)
+                false /* don't expand jar files */, manifest)
     }
 
 }

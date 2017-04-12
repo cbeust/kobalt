@@ -70,7 +70,12 @@ class CompilerUtils @Inject constructor(val files: KFiles, val dependencyManager
         copyResources(project, context, SourceSet.of(isTest))
 
         val fullClasspath = dependencyManager.calculateDependencies(project, context,
-                scopes = if (isTest) listOf(Scope.COMPILE, Scope.TEST) else listOf(Scope.COMPILE))
+                scopes = if (isTest) {
+                    listOf(Scope.COMPILE, Scope.COMPILEONLY, Scope.TEST)
+                } else {
+                    listOf(Scope.COMPILE, Scope.COMPILEONLY)
+                })
+
 
         File(project.directory, buildDirectory.path).mkdirs()
 

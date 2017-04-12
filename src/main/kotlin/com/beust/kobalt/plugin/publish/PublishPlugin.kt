@@ -153,7 +153,7 @@ class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGener
                 TaskResult()
             }
 
-        val result = TaskResult(tmpResult.success, messages.joinToString("\n  "))
+        val result = TaskResult(tmpResult.success, errorMessage = messages.joinToString("\n  "))
 
         return result
     }

@@ -8,10 +8,7 @@ import com.beust.kobalt.misc.JarUtils
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
 import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
 import java.util.*
-import java.util.zip.ZipOutputStream
 
 class Archives {
     companion object {
@@ -19,8 +16,6 @@ class Archives {
         const val JAR_NAME = "jarName"
         @ExportedProjectProperty(doc = "The name of the a jar file with a main() method", type = "String")
         const val JAR_NAME_WITH_MAIN_CLASS = "jarNameWithMainClass"
-
-        private val DEFAULT_STREAM_FACTORY = { os : OutputStream -> ZipOutputStream(os) }
 
         fun defaultArchiveName(project: Project) = project.name + "-" + project.version
 
@@ -30,15 +25,15 @@ class Archives {
                 suffix: String,
                 includedFiles: List<IncludedFile>,
                 expandJarFiles : Boolean = false,
-                outputStreamFactory: (OutputStream) -> ZipOutputStream = DEFAULT_STREAM_FACTORY) : File {
+                manifest: java.util.jar.Manifest? = null) : File {
             val fullArchiveName = context.variant.archiveName(project, archiveName, suffix)
             val archiveDir = File(KFiles.libsDir(project))
             val result = File(archiveDir.path, fullArchiveName)
             context.logger.log(project.name, 3, "Creating $result")
             if (! Features.USE_TIMESTAMPS || isOutdated(project.directory, includedFiles, result)) {
                 try {
-                    outputStreamFactory(FileOutputStream(result)).use {
-                        JarUtils.addFiles(project.directory, includedFiles, it, expandJarFiles)
+                    MetaArchive(result, manifest).use { metaArchive ->
+                        JarUtils.addFiles(project.directory, includedFiles, metaArchive, expandJarFiles)
                         context.logger.log(project.name, 2, "Added ${includedFiles.size} files to $result")
                         context.logger.log(project.name, 1, "  Created $result")
                     }

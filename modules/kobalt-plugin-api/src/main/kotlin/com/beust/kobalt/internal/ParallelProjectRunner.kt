@@ -54,12 +54,12 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
                             runBuildListenersForTask(project, context, task.name, start = true)
                             logger.log(project.name, 1,
                                     AsciiArt.taskColor(AsciiArt.horizontalSingleLine + " ${project.name}:${task.name}"))
-                            val thisResult = if (dryRun) TaskResult2(true, null, task) else task.call()
+                            val thisResult = if (dryRun) TaskResult2(true, value = task) else task.call()
                             if (lastResult.success) {
                                 lastResult = thisResult
                             }
                             runBuildListenersForTask(project, context, task.name, start = false,
-                                    success = thisResult.success)
+                                    success = thisResult.success, testResult = thisResult.testResult)
                         }
                     }
                     graph.freeNodes.forEach { graph.removeNode(it) }
@@ -69,7 +69,7 @@ class ParallelProjectRunner(val tasksByNames: (Project) -> ListMultimap<String, 
                 runBuildListenersForProject(project, context, false,
                         if (lastResult.success) ProjectBuildStatus.SUCCESS else ProjectBuildStatus.FAILED)
 
-                return TaskResult2(lastResult.success, lastResult.errorMessage, this)
+                return TaskResult2(lastResult.success, errorMessage = lastResult.errorMessage, value = this)
             }
 
         }
