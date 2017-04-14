@@ -100,15 +100,13 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
         val projectName = "p" + Math.abs(Random().nextInt())
         val version = "1.0"
 
-        fun createFile(root: File, f: String, text: String) : File {
-            val file = File(root, f)
-            file.parentFile.mkdirs()
-            file.writeText(text)
-            return file
+        fun createFile(root: File, f: String, text: String) = File(root, f).apply {
+            parentFile.mkdirs()
+            writeText(text)
         }
 
         createFile(root, "kobalt/src/Build.kt",
-                projectInfo.buildFile.text(root.absolutePath, projectName, version))
+                projectInfo.buildFile.text(KFiles.fixSlashes(root.absolutePath), projectName, version))
 
         projectInfo.files.forEach {
             createFile(root, it.path, it.content)
@@ -125,7 +123,7 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
         val main = Kobalt.INJECTOR.getInstance(Main::class.java)
         val args = Args()
         val jc = JCommander(args).apply { parse(*commandLine) }
-        args.buildFile = project.file.absolutePath + "/kobalt/src/Build.kt"
+        args.buildFile = KFiles.fixSlashes(project.file.absolutePath) + "/kobalt/src/Build.kt"
         val result = Main.launchMain(main, jc, args, arrayOf("assemble"))
         return LaunchProjectResult(projectInfo, project, result)
     }
