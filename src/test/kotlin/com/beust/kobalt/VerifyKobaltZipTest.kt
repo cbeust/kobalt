@@ -1,12 +1,19 @@
 package com.beust.kobalt
 
-import com.beust.kobalt.misc.*
+import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.kobaltLog
+import com.beust.kobalt.misc.warn
 import org.testng.annotations.Test
-import java.io.*
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileReader
+import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
-import java.util.jar.*
+import java.util.jar.JarEntry
+import java.util.jar.JarFile
+import java.util.jar.JarInputStream
 
 /**
  * Make sure the distribution zip file contains all the right files and no bad files.
@@ -23,13 +30,17 @@ class VerifyKobaltZipTest : KobaltTest() {
         var foundJar = false
         var foundWrapperJar = false
 
-        val mainJarFilePath = "kobalt-$KOBALT_VERSION.jar"
-        val zipFilePath = KFiles.joinDir("kobaltBuild", "libs", "kobalt-$KOBALT_VERSION.zip")
+        val root = "kobalt-$KOBALT_VERSION"
+        val mainJarFilePath = "$root.jar"
+        val zipFilePath = KFiles.joinDir("kobaltBuild", "libs", "$root.zip")
         if (File(zipFilePath).exists()) {
             val zipFile = JarFile(zipFilePath)
             val stream = JarInputStream(FileInputStream(zipFilePath))
             var entry = stream.nextEntry
             while (entry != null) {
+                if (! entry.name.startsWith(root)) {
+                    throw AssertionError("Entries in the zip file should be under the directory $root")
+                }
                 if (entry.name.endsWith("kobaltw")) {
                     val ins = zipFile.getInputStream(entry)
                     ins.readBytes().forEach {
