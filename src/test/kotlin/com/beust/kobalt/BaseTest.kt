@@ -114,18 +114,16 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
         return ProjectDescription(root, projectName, version)
     }
 
-    class LaunchProjectResult(val projectInfo: ProjectInfo, val projectDescription: ProjectDescription,
-            val result: Int)
+    class LaunchProjectResult(val projectDescription: ProjectDescription, val result: Int)
 
     fun launchProject(projectInfo: ProjectInfo, commandLine: Array<String>) : LaunchProjectResult {
         val project = createProject(projectInfo)
-        println("Project: $project")
         val main = Kobalt.INJECTOR.getInstance(Main::class.java)
         val args = Args()
         val jc = JCommander(args).apply { parse(*commandLine) }
         args.buildFile = KFiles.fixSlashes(project.file.absolutePath) + "/kobalt/src/Build.kt"
         val result = Main.launchMain(main, jc, args, arrayOf("assemble"))
-        return LaunchProjectResult(projectInfo, project, result)
+        return LaunchProjectResult(project, result)
     }
 }
 
