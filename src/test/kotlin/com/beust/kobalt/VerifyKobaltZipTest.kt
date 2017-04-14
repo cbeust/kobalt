@@ -46,19 +46,19 @@ class VerifyKobaltZipTest : KobaltTest() {
                     ins.readBytes().forEach {
                         // Look for carriage returns
                         if (it.compareTo(13) == 0) {
-                            throw KobaltException("kobaltw has wrong line endings")
+                            throw AssertionError("kobaltw has wrong line endings")
                         }
                     }
                     if (OperatingSystem.current().isWindows()) {
                         warn("Can't determine if kobaltw is executable under Windows")
                     } else if (!Files.isExecutable(Paths.get("dist/kobaltw"))) {
-                        throw KobaltException("kobaltw has invalid permissions")
+                        throw AssertionError("kobaltw has invalid permissions")
                     }
                     foundKobaltw = true
                 } else if (entry.name.endsWith(mainJarFilePath)) {
                     val ins = zipFile.getInputStream(entry)
                     if (ins.available() < 20000000) {
-                        throw KobaltException(mainJarFilePath + " is too small: " + mainJarFilePath)
+                        throw AssertionError(mainJarFilePath + " is too small: " + mainJarFilePath)
                     }
                     verifyMainJarFile(ins)
                     foundJar = true
@@ -70,13 +70,13 @@ class VerifyKobaltZipTest : KobaltTest() {
                 entry = stream.nextEntry
             }
             if (!foundKobaltw) {
-                throw KobaltException("Couldn't find kobaltw in $zipFilePath")
+                throw AssertionError("Couldn't find kobaltw in $zipFilePath")
             }
             if (!foundJar) {
-                throw KobaltException("Couldn't find jar in $zipFilePath")
+                throw AssertionError("Couldn't find jar in $zipFilePath")
             }
             if (!foundWrapperJar) {
-                throw KobaltException("Couldn't find wrapper jar in $zipFilePath")
+                throw AssertionError("Couldn't find wrapper jar in $zipFilePath")
             }
             kobaltLog(1, "$zipFilePath looks correct")
         } else {
