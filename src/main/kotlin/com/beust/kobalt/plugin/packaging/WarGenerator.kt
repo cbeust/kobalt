@@ -11,9 +11,7 @@ import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.google.inject.Inject
 import java.io.File
-import java.io.OutputStream
 import java.nio.file.Paths
-import java.util.jar.JarOutputStream
 
 class WarGenerator @Inject constructor(val dependencyManager: DependencyManager, val kobaltLog: ParallelLogger)
     : ArchiveGenerator {
@@ -86,7 +84,6 @@ class WarGenerator @Inject constructor(val dependencyManager: DependencyManager,
             manifest.mainAttributes.putValue(attribute.first, attribute.second)
         }
 
-        val jarFactory = { os: OutputStream -> JarOutputStream(os, manifest) }
         return Archives.generateArchive(project, context, war.name, ".war", files,
                 false /* don't expand jar files */, manifest)
     }
