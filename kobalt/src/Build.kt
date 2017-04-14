@@ -223,6 +223,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 include(from(files[i]), to(files[i + 1]), files[i + 2])
             }
 
+            // Package the sources
             val currentDir = Paths.get(".").toAbsolutePath().normalize().toString()
             zipFolders("$currentDir/$buildDirectory/libs/all-sources/$projectName-$version-sources.jar",
                     "$currentDir/$directory/src/main/kotlin",
