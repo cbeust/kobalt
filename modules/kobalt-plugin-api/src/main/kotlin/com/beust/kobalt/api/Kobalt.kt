@@ -68,6 +68,7 @@ class Kobalt {
 
         fun addBuildFileClasspath(dep: String) {
             val dependencyManager = Kobalt.INJECTOR.getInstance(DependencyManager::class.java)
+            //FIXME buildFileClasspath collection never becomes clear! each synchronization will add the same dependencies to it
             buildFileClasspath.add(dependencyManager.create(dep))
         }
 
