@@ -3,28 +3,33 @@ package com.beust.kobalt.archive
 import com.beust.kobalt.Glob
 import com.beust.kobalt.misc.KFiles
 import org.apache.commons.compress.archivers.ArchiveEntry
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
 import java.io.Closeable
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.nio.file.Files
+import java.util.jar.Manifest
 import org.apache.commons.compress.archivers.zip.ZipFile as ApacheZipFile
 
 /**
  * Abstraction of a zip/jar/war archive that automatically manages the addition of expanded jar files.
  * Uses ZipArchiveOutputStream for fast inclusion of expanded jar files.
  */
-class MetaArchive(outputFile: File, val manifest: java.util.jar.Manifest?) : Closeable {
+class MetaArchive(outputFile: File, val manifest: Manifest?) : Closeable {
     private val zos = ZipArchiveOutputStream(outputFile).apply {
         encoding = "UTF-8"
     }
 
-    fun addFile(file: File, path: String) {
+    fun addFile(f: File, entryFile: File, path: String?) {
+        val file = f.normalize()
         FileInputStream(file).use { inputStream ->
-            val entry = zos.createArchiveEntry(file, path)
-            maybeAddEntry(entry) {
-                addEntry(entry, inputStream)
+            val actualPath = if (path != null) path + entryFile.path else entryFile.path
+            ZipArchiveEntry(actualPath).let { entry ->
+                maybeAddEntry(entry) {
+                    addEntry(entry, inputStream)
+                }
             }
         }
     }
