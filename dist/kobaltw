@@ -1,7 +1,11 @@
 #!/usr/bin/env sh
 
-DIRNAME=`dirname $(readlink -f "$0")`
-if [[ "$(uname)" == "CYGWIN"* ]]; then
-    DIRNAME=`cygpath -d "$DIRNAME"`
+case "$(uname)" in
+    CYGWIN*) DIRNAME=$(cygpath -d "$(dirname "$(readlink -f "$0")")");;
+    Darwin*) DIRNAME=$(dirname "$(readlink "$0")");;
+    *) DIRNAME=$(dirname "$(readlink -f "$0")");;
+esac
+if [ "$DIRNAME" = "." ]; then
+    DIRNAME="$(dirname "$0")"
 fi
 java -jar "${DIRNAME}/../kobalt/wrapper/kobalt-wrapper.jar" $*
