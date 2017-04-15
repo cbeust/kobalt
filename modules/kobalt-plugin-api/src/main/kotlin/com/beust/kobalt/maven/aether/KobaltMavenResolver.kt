@@ -2,11 +2,14 @@ package com.beust.kobalt.maven.aether
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.HostConfig
+import com.beust.kobalt.KobaltException
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.getProxy
+import com.beust.kobalt.maven.Kurl
 import com.beust.kobalt.maven.LocalRepo
 import com.beust.kobalt.maven.MavenId
+import com.beust.kobalt.misc.LocalProperties
 import com.google.common.eventbus.EventBus
 import com.google.inject.Inject
 import org.eclipse.aether.artifact.Artifact
@@ -21,6 +24,7 @@ import org.eclipse.aether.resolution.DependencyRequest
 import org.eclipse.aether.resolution.DependencyResult
 import org.eclipse.aether.resolution.VersionRangeRequest
 import org.eclipse.aether.resolution.VersionRangeResult
+import org.eclipse.aether.util.repository.AuthenticationBuilder
 import java.util.*
 
 class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
@@ -32,6 +36,31 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
             MavenId.toId(it.groupId, it.artifactId, it.extension, it.classifier, it.version)
         }
         fun isRangeVersion(id: String) = id.contains(",")
+
+        fun initAuthentication(hostInfo: HostConfig) {
+            // See if the URL needs to be authenticated. Look in local.properties for keys
+            // of the format authUrl.<host>.user=xxx and authUrl.<host>.password=xxx
+            val properties = LocalProperties().localProperties
+            val host = java.net.URL(hostInfo.url).host
+            properties.entries.forEach {
+                val key = it.key.toString()
+                if (key == "${Kurl.KEY}.$host.${Kurl.VALUE_USER}") {
+                    hostInfo.username = properties.getProperty(key)
+                } else if (key == "${Kurl.KEY}.$host.${Kurl.VALUE_PASSWORD}") {
+                    hostInfo.password = properties.getProperty(key)
+                }
+            }
+            fun error(s1: String, s2: String) {
+                throw KobaltException("Found \"$s1\" but not \"$s2\" in local.properties for ${Kurl.KEY}.$host",
+                        docUrl = "http://beust.com/kobalt/documentation/index.html#maven-repos-authenticated")
+            }
+            if (! hostInfo.username.isNullOrBlank() && hostInfo.password.isNullOrBlank()) {
+                error("username", "password")
+            } else if(hostInfo.username.isNullOrBlank() && ! hostInfo.password.isNullOrBlank()) {
+                error("password", "username")
+            }
+
+        }
     }
 
     fun resolveToArtifact(id: String, scope: Scope? = null,
@@ -110,8 +139,17 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
     private val system = Booter.newRepositorySystem()
     private val session = Booter.newRepositorySystemSession(system, localRepo.localRepo, settings, eventBus)
 
-    private fun createRepo(hostConfig: HostConfig) =
-            RemoteRepository.Builder(hostConfig.name, "default", hostConfig.url).build()
+    private fun createRepo(hostConfig: HostConfig) : RemoteRepository {
+        val builder = RemoteRepository.Builder(hostConfig.name, "default", hostConfig.url)
+        if (hostConfig.hasAuth()) {
+            val auth = AuthenticationBuilder()
+                    .addUsername(hostConfig.username)
+                    .addPassword(hostConfig.password)
+                .build()
+            builder.setAuthentication(auth)
+        }
+        return builder.build()
+    }
 
     private val kobaltRepositories: List<RemoteRepository>
         get() = Kobalt.repos.map {
