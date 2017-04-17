@@ -116,6 +116,7 @@ fun buildFileClasspath(vararg deps: String) {
 }
 
 fun newBuildFileClasspath(vararg deps: String) {
+    //FIXME newBuildFileClasspath called twice
     deps.forEach { Kobalt.addBuildFileClasspath(it) }
 }
 
