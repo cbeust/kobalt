@@ -30,7 +30,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
         val taskManager: TaskManager) {
 
     fun dependenciesDataFor(buildSources: BuildSources, args: Args,
-            findProjectResult: BuildFileCompiler.FindProjectResult,
+            projectResult: BuildFileCompiler.FindProjectResult,
             progressListener: IProgressListener? = null,
             useGraph : Boolean = false): GetDependenciesData {
         val projectDatas = arrayListOf<ProjectData>()
@@ -42,10 +42,6 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
 
         fun allDeps(l: List<IClasspathDependency>, name: String) = dependencyManager.transitiveClosure(l,
                 requiredBy = name)
-
-//        val buildFile = BuildFile(Paths.get(buildFilePath), "GetDependenciesCommand")
-        val buildFileCompiler = buildFileCompilerFactory.create(buildSources, pluginInfo)
-        val projectResult = buildFileCompiler.compileBuildFiles(args)
 
         val buildFileDependencies = Kobalt.buildFileClasspath.map {toDependencyData(it, "compile")}
 
@@ -179,8 +175,8 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
                     })
         }
 
-        return GetDependenciesData(projectDatas, allTasks, pluginDependencies, buildFileDependencies, findProjectResult.buildContentRoots,
-                projectResult.taskResult.errorMessage)
+        return GetDependenciesData(projectDatas, allTasks, pluginDependencies, buildFileDependencies,
+                projectResult.buildContentRoots, projectResult.taskResult.errorMessage)
     }
 
     /////
