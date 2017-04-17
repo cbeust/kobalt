@@ -43,7 +43,6 @@ object Versions {
     val junitVintageVersion = "$junit.0-M4"
 }
 
-
 fun mavenResolver(vararg m: String)
         = m.map { "org.apache.maven.resolver:maven-resolver-$it:${Versions.mavenResolver}" }
     .toTypedArray()
@@ -140,12 +139,8 @@ val kobaltPluginApi = project {
         }
     }
 
-//    install {
-//        libDir = "lib-test"
-//    }
-
     kotlinCompiler {
-        args("-nowarn")
+        args("nowarn")
     }
 
     bintray {
@@ -233,7 +228,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
     }
 
     kotlinCompiler {
-        args("-nowarn")
+        args("nowarn")
     }
 
     bintray {
