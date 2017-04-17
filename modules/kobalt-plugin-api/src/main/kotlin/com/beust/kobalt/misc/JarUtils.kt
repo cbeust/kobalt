@@ -55,7 +55,10 @@ class JarUtils {
                             kobaltLog(2, "  Writing contents of jar file $foundFile")
                             metaArchive.addArchive(foundFile)
                         } else {
-                            metaArchive.addFile(File(directory, fromFile.path), foundFile.path)
+                            val fp = foundFile.path
+                            val toPath = File(file.to).normalize().path
+                            val finalPath = if (toPath.isEmpty()) null else (toPath + "/")
+                            metaArchive.addFile(File(directory, fromFile.path), foundFile, finalPath)
                         }
                     } catch(ex: Exception) {
                         onError(ex)

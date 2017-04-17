@@ -5,6 +5,7 @@ import com.beust.kobalt.HostConfig
 import com.beust.kobalt.Plugins
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import com.google.inject.Guice
 import com.google.inject.Injector
 import com.google.inject.Module
@@ -55,6 +56,9 @@ class Kobalt {
                 // Repos from the build file
                 result.addAll(reposFromBuildFiles)
 
+                result.forEach {
+                    KobaltMavenResolver.initAuthentication(it)
+                }
                 return result.toHashSet()
             }
 

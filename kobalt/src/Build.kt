@@ -114,7 +114,7 @@ val kobaltPluginApi = project {
                 "org.slf4j:slf4j-simple:${Versions.slf4j}",
                 *mavenResolver("api", "spi", "util", "impl", "connector-basic", "transport-http", "transport-file"),
                 "org.apache.maven:maven-aether-provider:3.3.9",
-                "org.testng.testng-remote:testng-remote:1.3.0",
+                "org.testng.testng-remote:testng-remote:1.3.2",
                 "org.testng:testng:${Versions.testng}",
                 "commons-io:commons-io:2.5",
                 "org.junit.platform:junit-platform-surefire-provider:${Versions.junitPlatform}",
@@ -223,6 +223,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 include(from(files[i]), to(files[i + 1]), files[i + 2])
             }
 
+            // Package the sources
             val currentDir = Paths.get(".").toAbsolutePath().normalize().toString()
             zipFolders("$currentDir/$buildDirectory/libs/all-sources/$projectName-$version-sources.jar",
                     "$currentDir/$directory/src/main/kotlin",
