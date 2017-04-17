@@ -135,6 +135,7 @@ class Kobalt {
 
         fun cleanUp() {
             buildSourceDirs.clear()
+            buildFileClasspath.clear()
         }
     }
 }
