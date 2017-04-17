@@ -1,10 +1,19 @@
 package com.beust.kobalt.plugin.apt
 
+import com.beust.kobalt.Constants
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
+import com.beust.kobalt.api.annotation.Task
+import com.beust.kobalt.homeDir
+import com.beust.kobalt.internal.CompilerUtils
 import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.maven.aether.Filters
+import com.beust.kobalt.maven.aether.Scope
+import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.warn
+import com.beust.kobalt.plugin.kotlin.KotlinPlugin
 import com.google.common.collect.ArrayListMultimap
 import com.google.inject.Inject
 import java.io.File
@@ -19,7 +28,8 @@ import javax.inject.Singleton
  * (outputDir, etc...).
  */
 @Singleton
-class AptPlugin @Inject constructor(val dependencyManager: DependencyManager)
+class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, val kotlinPlugin: KotlinPlugin,
+        val compilerUtils: CompilerUtils)
     : BasePlugin(), ICompilerFlagContributor, ISourceDirectoryContributor {
 
     // ISourceDirectoryContributor
@@ -49,6 +59,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager)
     override val name = PLUGIN_NAME
 
     override fun apply(project: Project, context: KobaltContext) {
+        super.apply(project, context)
         listOf(aptConfigs[project.name]?.outputDir, aptConfigs[project.name]?.outputDir)
             .filterNotNull()
             .distinct()
@@ -66,6 +77,110 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager)
             KFiles.joinAndMakeDir(project.directory, project.buildDirectory, outputDir,
                     context.variant.toIntermediateDir())
 
+    private fun generatedSources(project: Project, context: KobaltContext, outputDir: String) =
+            KFiles.joinDir(generated(project, context, outputDir), "sources")
+    private fun generatedStubs(project: Project, context: KobaltContext, outputDir: String) =
+            KFiles.joinDir(generated(project, context, outputDir), "stubs")
+    private fun generatedClasses(project: Project, context: KobaltContext, outputDir: String) =
+            KFiles.joinDir(generated(project, context, outputDir), "classes")
+
+//    @Task(name = "compileKapt", dependsOn = arrayOf("runKapt"), reverseDependsOn = arrayOf("compile"))
+    fun taskCompileKapt(project: Project) : TaskResult {
+        kaptConfigs[project.name]?.let { config ->
+            val sourceDirs = listOf(
+                    generatedStubs(project, context, config.outputDir),
+                    generatedSources(project, context, config.outputDir))
+            val sourceFiles = KFiles.findSourceFiles(project.directory, sourceDirs, listOf("kt", "java")).toList()
+            val buildDirectory = File(KFiles.joinDir(project.directory,
+                    generatedClasses(project, context, config.outputDir)))
+            val flags = listOf<String>()
+            val cai = CompilerActionInfo(project.directory, allDependencies(), sourceFiles, listOf(".kt"),
+                    buildDirectory, flags, emptyList(), forceRecompile = true)
+
+            val cr = compilerUtils.invokeCompiler(project, context, kotlinPlugin.compiler, cai)
+            println("")
+        }
+
+        return TaskResult()
+    }
+
+    val annotationDependencyId = "org.jetbrains.kotlin:kotlin-annotation-processing:" +
+            Constants.KOTLIN_COMPILER_VERSION
+
+    fun annotationProcessorDependency() = dependencyManager.create(annotationDependencyId)
+
+    fun aptJarDependencies() : List<IClasspathDependency> {
+        val apDep = dependencyManager.create("net.thauvin.erik.:semver:0.9.6-beta")
+        val apDep2 = FileDependency(homeDir("t/semver-example-kotlin/lib/semver-0.9.7.jar"))
+        return listOf(apDep2)
+    }
+
+    fun allDependencies(): List<IClasspathDependency> {
+        val allDeps = listOf(annotationProcessorDependency()) + aptJarDependencies()
+
+        return allDeps
+    }
+
+//    @Task(name = "runKapt", reverseDependsOn = arrayOf("compile"), runAfter = arrayOf("clean"))
+    fun taskRunKapt(project: Project) : TaskResult {
+        val flags = arrayListOf<String>()
+        kaptConfigs[project.name]?.let { config ->
+
+            fun kaptPluginFlag(flagValue: String): String {
+                return "plugin:org.jetbrains.kotlin.kapt3:$flagValue"
+            }
+
+            val generated = generated(project, context, config.outputDir)
+            val generatedSources = generatedSources(project, context, config.outputDir)
+            File(generatedSources).mkdirs()
+
+            val allDeps = allDependencies()
+            flags.add("-Xplugin")
+            flags.add(annotationProcessorDependency().jarFile.get().absolutePath)
+            flags.add("-P")
+            val kaptPluginFlags = arrayListOf<String>()
+//                kaptPluginFlags.add(kaptPluginFlag("aptOnly=true"))
+
+            kaptPluginFlags.add(kaptPluginFlag("sources=" + generatedSources))
+            kaptPluginFlags.add(kaptPluginFlag("classes=" + generatedClasses(project, context, config.outputDir)))
+            kaptPluginFlags.add(kaptPluginFlag("stubs=" + generatedStubs(project, context, config.outputDir)))
+            kaptPluginFlags.add(kaptPluginFlag("verbose=true"))
+            kaptPluginFlags.add(kaptPluginFlag("aptOnly=false"))
+            val dependencies = dependencyManager.calculateDependencies(project, context,
+                    Filters.EXCLUDE_OPTIONAL_FILTER,
+                    listOf(Scope.COMPILE),
+                    allDeps)
+            dependencies.forEach {
+                val jarFile = it.jarFile.get()
+                kaptPluginFlags.add(kaptPluginFlag("apclasspath=$jarFile"))
+            }
+
+            flags.add(kaptPluginFlags.joinToString(","))
+            listOf("-language-version", "1.1", " -api-version", "1.1").forEach {
+                flags.add(it)
+            }
+            val sourceFiles =
+//                    KFiles.findSourceFiles(project.directory,
+//                            listOf("src/tmp/kotlin"),
+//                            listOf("kt"))
+//                        .toList()
+
+                KFiles.findSourceFiles(project.directory, project.sourceDirectories, listOf("kt")).toList() +
+                generatedSources
+//
+            val buildDirectory = File(KFiles.joinDir(project.directory, generated))
+            val cai = CompilerActionInfo(project.directory, allDeps, sourceFiles, listOf(".kt"),
+                    buildDirectory, flags, emptyList(), forceRecompile = true)
+
+            println("FLAGS: " + flags.joinToString("\n"))
+            println("  " + kaptPluginFlags.joinToString("\n  "))
+            val cr = compilerUtils.invokeCompiler(project, context, kotlinPlugin.compiler, cai)
+            println("")
+        }
+
+        return TaskResult()
+    }
+
     // ICompilerFlagContributor
     override fun compilerFlagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
             suffixesBeingCompiled: List<String>): List<String> {
@@ -76,7 +191,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager)
         fun addFlags(outputDir: String) {
             aptDependencies[project.name]?.let {
                 result.add("-s")
-                result.add(generated(project, context, outputDir))
+                result.add(generatedSources(project, context, outputDir))
             }
         }
 
