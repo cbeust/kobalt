@@ -114,7 +114,7 @@ val kobaltPluginApi = project {
                 "org.slf4j:slf4j-simple:${Versions.slf4j}",
                 *mavenResolver("api", "spi", "util", "impl", "connector-basic", "transport-http", "transport-file"),
                 "org.apache.maven:maven-aether-provider:3.3.9",
-                "org.testng.testng-remote:testng-remote:1.3.0",
+                "org.testng.testng-remote:testng-remote:1.3.2",
                 "org.testng:testng:${Versions.testng}",
                 "commons-io:commons-io:2.5",
                 "org.junit.platform:junit-platform-surefire-provider:${Versions.junitPlatform}",
