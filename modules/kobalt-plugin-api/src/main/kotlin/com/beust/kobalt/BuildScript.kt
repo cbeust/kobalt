@@ -74,8 +74,18 @@ data class ProxyConfig(val host: String = "", val port: Int = 0, val type: Strin
     fun toAetherProxy() = Proxy(type, host, port) // TODO make support for proxy auth
 }
 
-data class HostConfig(var url: String = "", var name: String, var username: String? = null,
-        var password: String? = null) {
+data class HostConfig(var url: String = "", var name: String = HostConfig.createRepoName(url),
+        var username: String? = null, var password: String? = null) {
+
+    companion object {
+        /**
+         * For repos specified in the build file (repos()) that don't have an associated unique name,
+         * create such a name from the URL. This is a requirement from Maven Resolver, and failing to do
+         * this leads to very weird resolution errors.
+         */
+        private fun createRepoName(url: String) = url.replace("/", "_").replace("\\", "_").replace(":", "_")
+    }
+
     fun hasAuth() : Boolean {
         return (! username.isNullOrBlank()) && (! password.isNullOrBlank())
     }
@@ -95,10 +105,8 @@ fun repos(vararg repos : String) {
     newRepos(*repos)
 }
 
-fun createRepoName(url: String) = url.replace("/", "_").replace("\\", "_").replace(":", "_")
-
 fun newRepos(vararg repos: String) {
-    repos.forEach { Kobalt.addRepo(HostConfig(it, createRepoName(it))) }
+    repos.forEach { Kobalt.addRepo(HostConfig(it)) }
 }
 
 fun buildFileClasspath(vararg deps: String) {
