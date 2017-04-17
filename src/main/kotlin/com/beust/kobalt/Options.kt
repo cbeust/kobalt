@@ -3,6 +3,7 @@ package com.beust.kobalt
 import com.beust.jcommander.JCommander
 import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.PluginTask
+import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.ProjectFinder
 import com.beust.kobalt.app.ProjectGenerator
 import com.beust.kobalt.app.Templates
@@ -44,10 +45,26 @@ class Options @Inject constructor(
         val p = if (args.buildFile != null) File(args.buildFile) else File(".")
 //        val buildFile = BuildFile(Paths.get(p.absolutePath), p.name)
         val buildSources = if (p.isDirectory) BuildSources(p.absoluteFile) else SingleFileBuildSources(p)
-        var pluginClassLoader = javaClass.classLoader
+        val pluginClassLoader = javaClass.classLoader
 
-        val allProjectResult = projectFinder.initForBuildFile(buildSources, args)
-        val allProjects = allProjectResult.projects
+        //
+        // Attempt to parse the build file in order to correctly set up repos, plug-ins, etc...
+        // If the build file can't be parsed, don't give up just yet since some options don't need
+        // a correct build file to work.
+        //
+        var buildError: Throwable? = null
+        val allProjects =
+                try {
+                    projectFinder.initForBuildFile(buildSources, args).projects
+                } catch(ex: Exception) {
+                    buildError = ex
+                    listOf<Project>()
+                }
+
+        fun runIfSuccessfulBuild(buildError: Throwable?, action: () -> Unit) {
+            buildError?.let { throw it }
+            action()
+        }
 
         // Modify `args` with options found in buildScript { kobaltOptions(...) }, if any
         addOptionsFromBuild(args, Kobalt.optionsFromBuild)
@@ -77,9 +94,11 @@ class Options @Inject constructor(
                 }),
                 Option( { -> args.projectInfo }, {
                     // --projectInfo
-                    allProjects.forEach {
-                        it.compileDependencies.filter { it.isMaven }.forEach {
-                            resolveDependency.run(it.id)
+                    runIfSuccessfulBuild(buildError) {
+                        allProjects.forEach {
+                            it.compileDependencies.filter { it.isMaven }.forEach {
+                                resolveDependency.run(it.id)
+                            }
                         }
                     }
                 }),
@@ -93,7 +112,9 @@ class Options @Inject constructor(
                 }),
                 Option( { args.checkVersions }, {
                     // --checkVersions
-                    checkVersions.run(allProjects)
+                    runIfSuccessfulBuild(buildError) {
+                        checkVersions.run(allProjects)
+                    }
                 }),
                 Option( { args.download }, {
                     // --download
@@ -121,17 +142,19 @@ class Options @Inject constructor(
             if (! buildSources.exists()) {
                 throw KobaltException("Could not find build file: " + buildSources)
             }
-            val runTargetResult = taskManager.runTargets(args.targets, allProjects)
-            if (result == 0) {
-                result = if (runTargetResult.taskResult.success) 0 else 1
-            }
+            runIfSuccessfulBuild(buildError) {
+                val runTargetResult = taskManager.runTargets(args.targets, allProjects)
+                if (result == 0) {
+                    result = if (runTargetResult.taskResult.success) 0 else 1
+                }
 
-            // Shutdown all plug-ins
-            plugins.shutdownPlugins()
+                // Shutdown all plug-ins
+                plugins.shutdownPlugins()
 
-            // Run the build report contributors
-            pluginInfo.buildReportContributors.forEach {
-                it.generateReport(Kobalt.context!!)
+                // Run the build report contributors
+                pluginInfo.buildReportContributors.forEach {
+                    it.generateReport(Kobalt.context!!)
+                }
             }
         }
         return result
