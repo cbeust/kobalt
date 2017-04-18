@@ -1,11 +1,11 @@
 package com.beust.kobalt.plugin.apt
 
 import com.beust.kobalt.Constants
+import com.beust.kobalt.Jvm
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.AnnotationDefault
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.CompilerUtils
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.aether.Filters
@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, val kotlinPlugin: KotlinPlugin,
-        val compilerUtils: CompilerUtils)
+        val compilerUtils: CompilerUtils, val jvm: Jvm)
     : BasePlugin(), ICompilerFlagContributor, ISourceDirectoryContributor, IClasspathContributor, ITaskContributor {
 
     companion object {
@@ -130,7 +130,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
             val buildDirectory = File(KFiles.joinDir(project.directory,
                     generatedClasses(project, context, config.outputDir)))
             val flags = listOf<String>()
-            val cai = CompilerActionInfo(project.directory, allDependencies(), sourceFiles, listOf(".kt"),
+            val cai = CompilerActionInfo(project.directory, allDependencies(project), sourceFiles, listOf(".kt"),
                     buildDirectory, flags, emptyList(), forceRecompile = true)
 
             val cr = compilerUtils.invokeCompiler(project, context, kotlinPlugin.compiler, cai)
@@ -145,14 +145,16 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
 
     fun annotationProcessorDependency() = dependencyManager.create(annotationDependencyId)
 
-    fun aptJarDependencies() : List<IClasspathDependency> {
-        val apDep = dependencyManager.create("net.thauvin.erik.:semver:0.9.6-beta")
-        val apDep2 = FileDependency(homeDir("t/semver-example-kotlin/lib/semver-0.9.7.jar"))
-        return listOf(apDep2)
-    }
+    fun aptJarDependencies(project: Project) = aptDependencies[project.name].map { dependencyManager.create(it) }
 
-    fun allDependencies(): List<IClasspathDependency> {
-        val allDeps = listOf(annotationProcessorDependency()) + aptJarDependencies()
+    fun allDependencies(project: Project): List<IClasspathDependency> {
+        val allDeps = arrayListOf<IClasspathDependency>()
+        allDeps.add(annotationProcessorDependency())
+        allDeps.addAll(aptJarDependencies(project))
+
+//        jvm.toolsJar?.let { toolsJar ->
+//            allDeps.add(FileDependency(toolsJar.absolutePath))
+//        }
 
         return allDeps
     }
@@ -170,7 +172,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
             //
             // Tell the Kotlin compiler to use the annotation plug-in
             //
-            val allDeps = allDependencies()
+            val allDeps = allDependencies(project)
             flags.add("-Xplugin")
             flags.add(annotationProcessorDependency().jarFile.get().absolutePath)
             flags.add("-P")
