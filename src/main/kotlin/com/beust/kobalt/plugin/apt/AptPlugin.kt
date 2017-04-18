@@ -92,8 +92,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
     }
 
     private fun generated(project: Project, context: KobaltContext, outputDir: String) =
-            KFiles.joinAndMakeDir(project.directory, project.buildDirectory, outputDir,
-                    context.variant.toIntermediateDir())
+            KFiles.joinAndMakeDir(project.directory, project.buildDirectory, outputDir)
 
     private fun generatedSources(project: Project, context: KobaltContext, outputDir: String) =
             KFiles.joinDir(generated(project, context, outputDir), "sources")
