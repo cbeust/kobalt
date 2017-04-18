@@ -4,6 +4,7 @@ import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.KFiles
 import com.google.common.annotations.VisibleForTesting
+import com.google.inject.Inject
 import java.io.File
 import java.util.*
 
@@ -18,6 +19,9 @@ abstract class GenericTestRunner: ITestRunnerContributor {
     abstract val runnerName: String
     open var shortMessage: String? = null
     open var longMessage: String? = null
+
+    @Inject
+    private lateinit var jvm: Jvm
 
     abstract fun args(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             testConfig: TestConfig) : List<String>
@@ -116,7 +120,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
             val args = args(project, context, classpath, testConfig)
             if (args.size > 0) {
 
-                val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable
+                val java = jvm.javaExecutable
                 val jvmArgs = calculateAllJvmArgs(project, context, testConfig, classpath,
                         Kobalt.INJECTOR.getInstance (PluginInfo::class.java))
                 val allArgs = arrayListOf<String>().apply {

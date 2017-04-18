@@ -1,6 +1,9 @@
 package com.beust.kobalt.plugin.application
 
-import com.beust.kobalt.*
+import com.beust.kobalt.Jvm
+import com.beust.kobalt.KobaltException
+import com.beust.kobalt.Plugins
+import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.api.annotation.Task
@@ -42,7 +45,7 @@ fun Project.application(init: ApplicationConfig.() -> Unit): ApplicationConfig {
 @Singleton
 class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<ApplicationConfig>,
         val executors: KobaltExecutors, val nativeManager: NativeManager,
-        val dependencyManager: DependencyManager, val taskContributor : TaskContributor)
+        val dependencyManager: DependencyManager, val taskContributor : TaskContributor, val jvm: Jvm)
             : BasePlugin(), IRunnerContributor, ITaskContributor, IConfigActor<ApplicationConfig> by configActor {
 
     companion object {
@@ -111,7 +114,7 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
         @Suppress("UNCHECKED_CAST")
         val packages = project.projectProperties.get(PackagingPlugin.PACKAGES) as List<PackageConfig>
         val allDeps = arrayListOf(jarName)
-        val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable!!
+        val java = jvm.javaExecutable!!
         if (! isFatJar(packages, jarName)) {
             @Suppress("UNCHECKED_CAST")
             // If the jar file is not fat, we need to add the transitive closure of all dependencies

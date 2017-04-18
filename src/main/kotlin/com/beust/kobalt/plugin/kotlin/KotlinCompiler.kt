@@ -35,7 +35,8 @@ class KotlinCompiler @Inject constructor(
         val settings: KobaltSettings,
         val jvmCompiler: JvmCompiler,
         val compilerUtils: CompilerUtils,
-        val kobaltLog: ParallelLogger) {
+        val kobaltLog: ParallelLogger,
+        val jvm: Jvm) {
 
     val compilerAction = object: ICompilerAction {
         override fun compile(project: Project?, info: CompilerActionInfo): TaskResult {
@@ -99,7 +100,7 @@ class KotlinCompiler @Inject constructor(
 
         private fun invokeCompilerInSeparateProcess(classpath: String, info: CompilerActionInfo,
                 compilerVersion: String, project: Project?): TaskResult {
-            val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable
+            val java = jvm.javaExecutable
 
             val compilerClasspath = compilerDep(compilerVersion).jarFile.get().path + File.pathSeparator +
                     compilerEmbeddableDependencies(null, compilerVersion).map { it.jarFile.get().path }

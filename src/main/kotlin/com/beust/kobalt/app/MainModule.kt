@@ -1,6 +1,8 @@
 package com.beust.kobalt.app
 
 import com.beust.kobalt.Args
+import com.beust.kobalt.JavaInfo
+import com.beust.kobalt.Jvm
 import com.beust.kobalt.app.remote.KobaltServer
 import com.beust.kobalt.internal.IncrementalManager
 import com.beust.kobalt.internal.KobaltSettings
@@ -17,6 +19,7 @@ import com.google.inject.Provider
 import com.google.inject.Singleton
 import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
+import java.io.File
 import java.util.concurrent.ExecutorService
 
 open class MainModule(val args: Args, val settings: KobaltSettings) : AbstractModule() {
@@ -49,15 +52,14 @@ open class MainModule(val args: Args, val settings: KobaltSettings) : AbstractMo
         bind(Args::class.java).toProvider(Provider<Args> {
             args
         })
-        EventBus().let { eventBus ->
-            bind(EventBus::class.java).toInstance(eventBus)
-        }
+        bind(EventBus::class.java).toInstance(EventBus())
         bind(PluginInfo::class.java).toProvider(Provider<PluginInfo> {
             PluginInfo.readKobaltPluginXml()
         }).`in`(Singleton::class.java)
         bind(KobaltSettings::class.java).toProvider(Provider<KobaltSettings> {
             settings
         }).`in`(Singleton::class.java)
+        bind(Jvm::class.java).toInstance(JavaInfo.create(File(com.beust.kobalt.SystemProperties.javaBase)))
 
 //        bindListener(Matchers.any(), object: TypeListener {
 //            override fun <I> hear(typeLiteral: TypeLiteral<I>?, typeEncounter: TypeEncounter<I>?) {
