@@ -108,7 +108,9 @@ class Options @Inject constructor(
                 }),
                 Option( { args.tasks }, {
                     // --tasks
-                    displayTasks()
+                    runIfSuccessfulBuild(buildError) {
+                        displayTasks()
+                    }
                 }),
                 Option( { args.checkVersions }, {
                     // --checkVersions
