@@ -30,7 +30,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
 
     open val extraClasspath: List<String> = emptyList()
 
-    open fun filterTestClasses(classes: List<String>) : List<String> = classes
+    open fun filterTestClasses(project: Project, context: KobaltContext, classes: List<String>) : List<String> = classes
 
     override fun run(project: Project, context: KobaltContext, configName: String,
             classpath: List<IClasspathDependency>) : TaskResult {
@@ -69,7 +69,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
 //            }
 
         context.logger.log(project.name, 2, "Found ${result.size} test classes")
-        return filterTestClasses(result.map { it.second })
+        return filterTestClasses(project, context, result.map { it.second })
     }
 
     /**
