@@ -151,11 +151,6 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
         val allDeps = arrayListOf<IClasspathDependency>()
         allDeps.add(annotationProcessorDependency())
         allDeps.addAll(aptJarDependencies(project))
-
-//        jvm.toolsJar?.let { toolsJar ->
-//            allDeps.add(FileDependency(toolsJar.absolutePath))
-//        }
-
         return allDeps
     }
 
@@ -175,11 +170,17 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
             val allDeps = allDependencies(project)
             flags.add("-Xplugin")
             flags.add(annotationProcessorDependency().jarFile.get().absolutePath)
-            flags.add("-P")
+
+            // Also need tools.jar on the plug-in classpath
+            jvm.toolsJar?.let { toolsJar ->
+                flags.add("-Xplugin")
+                flags.add(toolsJar.absolutePath)
+            }
 
             //
             // Pass options to the annotation plugin
             //
+            flags.add("-P")
             fun kaptPluginFlag(flagValue: String) = "plugin:org.jetbrains.kotlin.kapt3:$flagValue"
             val kaptPluginFlags = arrayListOf<String>()
             val verbose = KobaltLogger.LOG_LEVEL >= 2
