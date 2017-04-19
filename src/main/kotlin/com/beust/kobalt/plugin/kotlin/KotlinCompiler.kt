@@ -89,7 +89,8 @@ class KotlinCompiler @Inject constructor(
             // the K2JVMCompiler class directly
             val actualVersion = kotlinVersion(project)
 
-            if (settings.kobaltCompilerSeparateProcess || actualVersion != Constants.KOTLIN_COMPILER_VERSION) {
+            if (settings.kobaltCompilerSeparateProcess || actualVersion != Constants.KOTLIN_COMPILER_VERSION
+                    || info.compilerSeparateProcess) {
                 return invokeCompilerInSeparateProcess(classpath, info, actualVersion, project)
 
             } else {
@@ -114,20 +115,24 @@ class KotlinCompiler @Inject constructor(
             val newArgs = listOf(
                     "-classpath", compilerClasspath,
                     K2JVMCompiler::class.java.name,
+                    *info.compilerArgs.toTypedArray(),
                     "-classpath", classpath,
                     "-d", info.outputDir.absolutePath,
                     *xFlagsArray,
                     *info.sourceFiles.toTypedArray())
                 .filter { ! it.isEmpty() }
 
-            log(2, "  Invoking separate kotlinc:\n  " + java!!.absolutePath + " " + newArgs.joinToString())
+            log(2, "  Invoking separate kotlinc:\n  " + java!!.absolutePath + " " + newArgs.joinToString(" "))
 
             val result = NewRunCommand(RunCommandInfo().apply {
                 command = java.absolutePath
                 args = newArgs
                 directory = File(".")
-                // The Kotlin compiler issues warnings on stderr :-(
-                containsErrors = { errors: List<String> -> errors.any { it.contains("rror")} }
+//                // The Kotlin compiler issues warnings on stderr :-(
+                useErrorStreamAsErrorIndicator = false
+//                containsErrors = {
+//                    errors: List<String> -> errors.any { it.contains("rror")}
+//                }
             }).invoke()
             return TaskResult(result == 0, errorMessage = "Error while compiling")
         }
@@ -388,7 +393,8 @@ class KotlinCompiler @Inject constructor(
      * JvmCompilerPlugin#createCompilerActionInfo instead
      */
     fun compile(project: Project?, context: KobaltContext?, compileDependencies: List<IClasspathDependency>,
-            otherClasspath: List<String>, sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult {
+            otherClasspath: List<String>, sourceFiles: List<String>, outputDir: File, args: List<String>,
+            compilerSeparateProcess: Boolean) : TaskResult {
 
         val executor = executors.newExecutor("KotlinCompiler", 10)
 
@@ -414,7 +420,7 @@ class KotlinCompiler @Inject constructor(
                 emptyList<String>()
             }
         val info = CompilerActionInfo(project?.directory, dependencies, sourceFiles, listOf("kt"), outputDir, args,
-                friendPaths, context?.internalContext?.forceRecompile ?: false)
+                friendPaths, context?.internalContext?.forceRecompile ?: false, compilerSeparateProcess)
 
         return jvmCompiler.doCompile(project, context, compilerAction, info,
                 if (context != null) compilerUtils.sourceCompilerFlags(project, context, info) else emptyList())
@@ -428,6 +434,7 @@ class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
     var output: File by Delegates.notNull()
     val args = arrayListOf<String>()
     var noIncrementalKotlin = false
+    var compilerSeparateProcess = false
 
     fun sourceFiles(s: String) = source.add(s)
 
@@ -442,7 +449,8 @@ class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
     fun compile(project: Project? = null, context: KobaltContext? = null) : TaskResult {
         val saved = context?.internalContext?.noIncrementalKotlin ?: false
         if (context != null) context.internalContext.noIncrementalKotlin = noIncrementalKotlin
-        val result = compiler.compile(project, context, dependencies, classpath, source, output, args)
+        val result = compiler.compile(project, context, dependencies, classpath, source, output, args,
+                compilerSeparateProcess)
         if (context != null) context.internalContext.noIncrementalKotlin = saved
         return result
     }

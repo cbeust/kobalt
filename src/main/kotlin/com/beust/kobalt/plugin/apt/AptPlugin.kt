@@ -131,7 +131,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
                     generatedClasses(project, context, config.outputDir)))
             val flags = listOf<String>()
             val cai = CompilerActionInfo(project.directory, allDependencies(project), sourceFiles, listOf(".kt"),
-                    buildDirectory, flags, emptyList(), forceRecompile = true)
+                    buildDirectory, flags, emptyList(), forceRecompile = true, compilerSeparateProcess = true)
 
             val cr = compilerUtils.invokeCompiler(project, context, kotlinPlugin.compiler, cai)
             success = cr.failedResult == null
@@ -151,6 +151,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
         val allDeps = arrayListOf<IClasspathDependency>()
         allDeps.add(annotationProcessorDependency())
         allDeps.addAll(aptJarDependencies(project))
+
         return allDeps
     }
 
@@ -177,6 +178,11 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
                 flags.add(toolsJar.absolutePath)
             }
 
+            aptJarDependencies(project).forEach {
+                flags.add("-Xplugin")
+                flags.add(it.jarFile.get().absolutePath)
+            }
+
             //
             // Pass options to the annotation plugin
             //
@@ -200,12 +206,12 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
                     listOf(Scope.COMPILE),
                     allDeps)
             dependencies.forEach {
-                val jarFile = it.jarFile.get()
+                val jarFile = it.jarFile.get().absolutePath
                 kaptPluginFlags.add(kaptPluginFlag("apclasspath=$jarFile"))
             }
 
             flags.add(kaptPluginFlags.joinToString(","))
-            listOf("-language-version", "1.1", " -api-version", "1.1").forEach {
+            listOf("-language-version", "1.1", "-api-version", "1.1").forEach {
                 flags.add(it)
             }
 
@@ -214,7 +220,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
                         .toList() + generatedSources
             val buildDirectory = File(KFiles.joinDir(project.directory, generated))
             val cai = CompilerActionInfo(project.directory, allDeps, sourceFiles, listOf(".kt"),
-                    buildDirectory, flags, emptyList(), forceRecompile = true)
+                    buildDirectory, flags, emptyList(), forceRecompile = true, compilerSeparateProcess = true)
 
             context.logger.log(project.name, 2, "  " + kaptPluginFlags.joinToString("\n  "))
             val cr = compilerUtils.invokeCompiler(project, context, kotlinPlugin.compiler, cai)

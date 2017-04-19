@@ -83,6 +83,7 @@ class KotlinPlugin @Inject constructor(val executors: KobaltExecutors, val depen
                 sourceFiles(info.sourceFiles)
                 compilerArgs(info.compilerArgs)
                 output = info.outputDir
+                compilerSeparateProcess = info.compilerSeparateProcess
             }.compile(project, context)
         }
 

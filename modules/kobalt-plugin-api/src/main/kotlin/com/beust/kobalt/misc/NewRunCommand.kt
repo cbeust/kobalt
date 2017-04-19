@@ -79,10 +79,12 @@ open class NewRunCommand(val info: RunCommandInfo) {
 
         // Run the command and collect the return code and streams
         val returnCode = process.waitFor(30, TimeUnit.SECONDS)
-        val input = if (process.inputStream.available() > 0) fromStream(process.inputStream)
-        else listOf()
-        val error = if (process.errorStream.available() > 0) fromStream(process.errorStream)
-        else listOf()
+        val input =
+                if (process.inputStream.available() > 0) fromStream(process.inputStream)
+                else listOf()
+        val error =
+                if (process.errorStream.available() > 0) fromStream(process.errorStream)
+                else listOf()
 
         // Check to see if the command succeeded
         val isSuccess =
