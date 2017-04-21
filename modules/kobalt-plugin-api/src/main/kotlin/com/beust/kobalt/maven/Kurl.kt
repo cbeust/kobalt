@@ -1,9 +1,8 @@
 package com.beust.kobalt.maven
 
 import com.beust.kobalt.HostConfig
-import com.beust.kobalt.KobaltException
+import com.beust.kobalt.maven.aether.KobaltMavenResolver
 import com.beust.kobalt.maven.dependency.FileDependency
-import com.beust.kobalt.misc.LocalProperties
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
@@ -21,27 +20,7 @@ class Kurl(val hostInfo: HostConfig) {
     }
 
     init {
-        // See if the URL needs to be authenticated. Look in local.properties for keys
-        // of the format authUrl.<host>.user=xxx and authUrl.<host>.password=xxx
-        val properties = LocalProperties().localProperties
-        val host = java.net.URL(hostInfo.url).host
-        properties.entries.forEach {
-            val key = it.key.toString()
-            if (key == "$KEY.$host.$VALUE_USER") {
-                hostInfo.username = properties.getProperty(key)
-            } else if (key == "$KEY.$host.$VALUE_PASSWORD") {
-                hostInfo.password = properties.getProperty(key)
-            }
-        }
-        fun error(s1: String, s2: String) {
-            throw KobaltException("Found \"$s1\" but not \"$s2\" in local.properties for $KEY.$host",
-                    docUrl = "http://beust.com/kobalt/documentation/index.html#maven-repos-authenticated")
-        }
-        if (! hostInfo.username.isNullOrBlank() && hostInfo.password.isNullOrBlank()) {
-            error("username", "password")
-        } else if(hostInfo.username.isNullOrBlank() && ! hostInfo.password.isNullOrBlank()) {
-            error("password", "username")
-        }
+        KobaltMavenResolver.initAuthentication(hostInfo)
     }
 
     override fun toString() = hostInfo.toString()

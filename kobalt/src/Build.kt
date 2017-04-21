@@ -43,7 +43,6 @@ object Versions {
     val junitVintageVersion = "$junit.0-M4"
 }
 
-
 fun mavenResolver(vararg m: String)
         = m.map { "org.apache.maven.resolver:maven-resolver-$it:${Versions.mavenResolver}" }
     .toTypedArray()
@@ -114,7 +113,7 @@ val kobaltPluginApi = project {
                 "org.slf4j:slf4j-simple:${Versions.slf4j}",
                 *mavenResolver("api", "spi", "util", "impl", "connector-basic", "transport-http", "transport-file"),
                 "org.apache.maven:maven-aether-provider:3.3.9",
-                "org.testng.testng-remote:testng-remote:1.3.0",
+                "org.testng.testng-remote:testng-remote:1.3.2",
                 "org.testng:testng:${Versions.testng}",
                 "commons-io:commons-io:2.5",
                 "org.junit.platform:junit-platform-surefire-provider:${Versions.junitPlatform}",
@@ -140,12 +139,8 @@ val kobaltPluginApi = project {
         }
     }
 
-//    install {
-//        libDir = "lib-test"
-//    }
-
     kotlinCompiler {
-        args("-nowarn")
+        args("nowarn")
     }
 
     bintray {
@@ -233,7 +228,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
     }
 
     kotlinCompiler {
-        args("-nowarn")
+        args("nowarn")
     }
 
     bintray {

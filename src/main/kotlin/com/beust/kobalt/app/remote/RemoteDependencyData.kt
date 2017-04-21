@@ -2,6 +2,7 @@ package com.beust.kobalt.app.remote
 
 import com.beust.kobalt.Args
 import com.beust.kobalt.api.IClasspathDependency
+import com.beust.kobalt.api.Kobalt
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.BuildFileCompiler
 import com.beust.kobalt.internal.DynamicGraph
@@ -29,7 +30,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
         val taskManager: TaskManager) {
 
     fun dependenciesDataFor(buildSources: BuildSources, args: Args,
-            findProjectResult: BuildFileCompiler.FindProjectResult,
+            projectResult: BuildFileCompiler.FindProjectResult,
             progressListener: IProgressListener? = null,
             useGraph : Boolean = false): GetDependenciesData {
         val projectDatas = arrayListOf<ProjectData>()
@@ -42,9 +43,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
         fun allDeps(l: List<IClasspathDependency>, name: String) = dependencyManager.transitiveClosure(l,
                 requiredBy = name)
 
-//        val buildFile = BuildFile(Paths.get(buildFilePath), "GetDependenciesCommand")
-        val buildFileCompiler = buildFileCompilerFactory.create(buildSources, pluginInfo)
-        val projectResult = buildFileCompiler.compileBuildFiles(args)
+        val buildFileDependencies = Kobalt.buildFileClasspath.map {toDependencyData(it, "compile")}
 
         val pluginDependencies = projectResult.pluginUrls.map { File(it.toURI()) }.map {
             DependencyData(it.name, "compile", it.absolutePath)
@@ -176,8 +175,8 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
                     })
         }
 
-        return GetDependenciesData(projectDatas, allTasks, pluginDependencies, findProjectResult.buildContentRoots,
-                projectResult.taskResult.errorMessage)
+        return GetDependenciesData(projectDatas, allTasks, pluginDependencies, buildFileDependencies,
+                projectResult.buildContentRoots, projectResult.taskResult.errorMessage)
     }
 
     /////
@@ -202,6 +201,7 @@ class RemoteDependencyData @Inject constructor(val executors: KobaltExecutors, v
     class GetDependenciesData(val projects: List<ProjectData> = emptyList(),
             val allTasks: Collection<TaskData> = emptySet(),
             val pluginDependencies: List<DependencyData> = emptyList(),
+            val buildFileDependencies: List<DependencyData> = emptyList(),
             val buildContentRoots: List<String> = emptyList(),
             val errorMessage: String?) {
         companion object {

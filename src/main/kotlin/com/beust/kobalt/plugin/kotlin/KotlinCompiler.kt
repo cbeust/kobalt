@@ -35,7 +35,8 @@ class KotlinCompiler @Inject constructor(
         val settings: KobaltSettings,
         val jvmCompiler: JvmCompiler,
         val compilerUtils: CompilerUtils,
-        val kobaltLog: ParallelLogger) {
+        val kobaltLog: ParallelLogger,
+        val jvm: Jvm) {
 
     val compilerAction = object: ICompilerAction {
         override fun compile(project: Project?, info: CompilerActionInfo): TaskResult {
@@ -44,14 +45,16 @@ class KotlinCompiler @Inject constructor(
             var filesToCompile = 0
             if (! info.outputDir.path.endsWith("ript.jar")) {
                 // Don't display the message if compiling Build.kt
-                filesToCompile =
-                        info.sourceFiles.map(::File).map {
-                            if (it.isDirectory) KFiles.findRecursively(it).size else 1
-                        }.reduce { a, b ->
-                            a + b
-                        }
-                kobaltLog.log(projectName ?: "", 1,
-                        "  Kotlin $version compiling " + Strings.pluralizeAll(filesToCompile, "file"))
+                if (info.sourceFiles.isNotEmpty()) {
+                    filesToCompile =
+                            info.sourceFiles.map(::File).map {
+                                if (it.isDirectory) KFiles.findRecursively(it).size else 1
+                            }.reduce { a, b ->
+                                a + b
+                            }
+                    kobaltLog.log(projectName ?: "", 1,
+                            "  Kotlin $version compiling " + Strings.pluralizeAll(filesToCompile, "file"))
+                }
             }
             val cp = compilerFirst(info.dependencies.map { it.jarFile.get() })
             val infoDir = info.directory
@@ -86,7 +89,8 @@ class KotlinCompiler @Inject constructor(
             // the K2JVMCompiler class directly
             val actualVersion = kotlinVersion(project)
 
-            if (settings.kobaltCompilerSeparateProcess || actualVersion != Constants.KOTLIN_COMPILER_VERSION) {
+            if (settings.kobaltCompilerSeparateProcess || actualVersion != Constants.KOTLIN_COMPILER_VERSION
+                    || info.compilerSeparateProcess) {
                 return invokeCompilerInSeparateProcess(classpath, info, actualVersion, project)
 
             } else {
@@ -97,7 +101,7 @@ class KotlinCompiler @Inject constructor(
 
         private fun invokeCompilerInSeparateProcess(classpath: String, info: CompilerActionInfo,
                 compilerVersion: String, project: Project?): TaskResult {
-            val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable
+            val java = jvm.javaExecutable
 
             val compilerClasspath = compilerDep(compilerVersion).jarFile.get().path + File.pathSeparator +
                     compilerEmbeddableDependencies(null, compilerVersion).map { it.jarFile.get().path }
@@ -111,20 +115,24 @@ class KotlinCompiler @Inject constructor(
             val newArgs = listOf(
                     "-classpath", compilerClasspath,
                     K2JVMCompiler::class.java.name,
+                    *info.compilerArgs.toTypedArray(),
                     "-classpath", classpath,
                     "-d", info.outputDir.absolutePath,
                     *xFlagsArray,
                     *info.sourceFiles.toTypedArray())
                 .filter { ! it.isEmpty() }
 
-            log(2, "  Invoking separate kotlinc:\n  " + java!!.absolutePath + " " + newArgs.joinToString())
+            log(2, "  Invoking separate kotlinc:\n  " + java!!.absolutePath + " " + newArgs.joinToString(" "))
 
             val result = NewRunCommand(RunCommandInfo().apply {
                 command = java.absolutePath
                 args = newArgs
                 directory = File(".")
-                // The Kotlin compiler issues warnings on stderr :-(
-                containsErrors = { errors: List<String> -> errors.any { it.contains("rror")} }
+//                // The Kotlin compiler issues warnings on stderr :-(
+                useErrorStreamAsErrorIndicator = false
+//                containsErrors = {
+//                    errors: List<String> -> errors.any { it.contains("rror")}
+//                }
             }).invoke()
             return TaskResult(result == 0, errorMessage = "Error while compiling")
         }
@@ -135,8 +143,9 @@ class KotlinCompiler @Inject constructor(
             val friends = info.friendPaths.toTypedArray()
 
             // Collect the compiler args from kotlinCompiler{} and from settings.xml and parse them
-            val args2 = (kotlinConfig(project)?.args ?: arrayListOf<String>()) +
-                (settings.kobaltCompilerFlags?.split(" ") ?: listOf<String>())
+            val args2 =
+                    info.compilerArgs +
+                    (settings.kobaltCompilerFlags?.split(" ") ?: listOf<String>())
             val args = K2JVMCompilerArguments()
             val compiler = K2JVMCompiler()
             compiler.parseArguments(args2.toTypedArray(), args)
@@ -185,13 +194,27 @@ class KotlinCompiler @Inject constructor(
 
             fun logk(level: Int, message: CharSequence) = kobaltLog.log(projectName, level, message)
 
-            logk(2, "  Invoking K2JVMCompiler with arguments:"
+            fun pluginClasspaths(args: K2JVMCompilerArguments) : String {
+                var result = ""
+                args.pluginClasspaths?.forEach {
+                    result += " -Xplugin " + it
+                }
+                args.pluginOptions?.let {
+                    result += " -P "
+                    result += it.joinToString(",")
+                }
+                return result
+            }
+
+            logk(2, "  Invoking K2JVMCompiler with arguments: kotlinc "
                     + if (args.skipMetadataVersionCheck) " -Xskip-metadata-version-check" else ""
-                    + " -moduleName " + args.moduleName
                     + " -d " + args.destination
-                    + " -friendPaths " + args.friendPaths.joinToString(";")
                     + " -classpath " + args.classpath
+                    + pluginClasspaths(args)
                     + " " + sourceFiles.joinToString(" "))
+            logk(2, "    Additional kotlinc arguments: "
+                    + " -moduleName " + args.moduleName
+                    + " -friendPaths " + args.friendPaths.joinToString(";"))
             val collector = object : MessageCollector {
                 override fun clear() {
                     throw UnsupportedOperationException("not implemented")
@@ -214,7 +237,6 @@ class KotlinCompiler @Inject constructor(
                         message: String, location: CompilerMessageLocation) {
                     if (severity.isError) {
                         "Couldn't compile file: ${dump(location, message)}".let { fullMessage ->
-                            System.err.println(fullMessage)
                             throw KobaltException(fullMessage)
                         }
                     } else if (severity == CompilerMessageSeverity.WARNING && KobaltLogger.LOG_LEVEL >= 2) {
@@ -224,28 +246,28 @@ class KotlinCompiler @Inject constructor(
                     }
                 }
             }
-
-            System.setProperty("kotlin.incremental.compilation", "true")
-            // TODO: experimental should be removed as soon as it becomes standard
-            System.setProperty("kotlin.incremental.compilation.experimental", "true")
+//
+//            System.setProperty("kotlin.incremental.compilation", "true")
+//            // TODO: experimental should be removed as soon as it becomes standard
+//            System.setProperty("kotlin.incremental.compilation.experimental", "true")
 
             val result =
-                if (cliArgs.noIncrementalKotlin || Kobalt.context?.internalContext?.noIncrementalKotlin ?: false) {
-                    log(2, "  Kotlin incremental compilation is disabled")
-                    val duration = benchmarkMillis {
-                        compiler.exec(collector, Services.Builder().build(), args)
+                    if (cliArgs.noIncrementalKotlin || Kobalt.context?.internalContext?.noIncrementalKotlin ?: false) {
+                        log(2, "  Kotlin incremental compilation is disabled")
+                        val duration = benchmarkMillis {
+                            compiler.exec(collector, Services.Builder().build(), args)
+                        }
+                        log(1, "  Regular compilation time: ${duration.first} ms")
+                        TaskResult(duration.second == ExitCode.OK)
+                    } else {
+                        log(1, "  Kotlin incremental compilation is enabled")
+                        val start = System.currentTimeMillis()
+                        val duration = benchmarkMillis {
+                            compileIncrementally(filesToCompile, sourceFiles, outputDir, info, args, collector)
+                        }
+                        log(1, "  Incremental compilation time: ${duration.first} ms")
+                        TaskResult()
                     }
-                    log(1, "  Regular compilation time: ${duration.first} ms")
-                    TaskResult(duration.second == ExitCode.OK)
-                } else {
-                    log(1, "  Kotlin incremental compilation is enabled")
-                    val start = System.currentTimeMillis()
-                    val duration = benchmarkMillis {
-                        compileIncrementally(filesToCompile, sourceFiles, outputDir, info, args, collector)
-                    }
-                    log(1, "  Incremental compilation time: ${duration.first} ms")
-                    TaskResult()
-                }
             return result
         }
 
@@ -370,7 +392,8 @@ class KotlinCompiler @Inject constructor(
      * JvmCompilerPlugin#createCompilerActionInfo instead
      */
     fun compile(project: Project?, context: KobaltContext?, compileDependencies: List<IClasspathDependency>,
-            otherClasspath: List<String>, sourceFiles: List<String>, outputDir: File, args: List<String>) : TaskResult {
+            otherClasspath: List<String>, sourceFiles: List<String>, outputDir: File, args: List<String>,
+            compilerSeparateProcess: Boolean) : TaskResult {
 
         val executor = executors.newExecutor("KotlinCompiler", 10)
 
@@ -396,10 +419,12 @@ class KotlinCompiler @Inject constructor(
                 emptyList<String>()
             }
         val info = CompilerActionInfo(project?.directory, dependencies, sourceFiles, listOf("kt"), outputDir, args,
-                friendPaths, context?.internalContext?.forceRecompile ?: false)
+                friendPaths, context?.internalContext?.forceRecompile ?: false, compilerSeparateProcess)
 
-        return jvmCompiler.doCompile(project, context, compilerAction, info,
-                if (context != null) compilerUtils.sourceCompilerFlags(project, context, info) else emptyList())
+        val compilerFlags =
+            if (context != null) compilerUtils.sourceCompilerFlags(project, context, info)
+            else emptyList()
+        return jvmCompiler.doCompile(project, context, compilerAction, info, compilerFlags)
     }
 }
 
@@ -410,6 +435,7 @@ class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
     var output: File by Delegates.notNull()
     val args = arrayListOf<String>()
     var noIncrementalKotlin = false
+    var compilerSeparateProcess = false
 
     fun sourceFiles(s: String) = source.add(s)
 
@@ -424,7 +450,8 @@ class KConfiguration @Inject constructor(val compiler: KotlinCompiler){
     fun compile(project: Project? = null, context: KobaltContext? = null) : TaskResult {
         val saved = context?.internalContext?.noIncrementalKotlin ?: false
         if (context != null) context.internalContext.noIncrementalKotlin = noIncrementalKotlin
-        val result = compiler.compile(project, context, dependencies, classpath, source, output, args)
+        val result = compiler.compile(project, context, dependencies, classpath, source, output, args,
+                compilerSeparateProcess)
         if (context != null) context.internalContext.noIncrementalKotlin = saved
         return result
     }

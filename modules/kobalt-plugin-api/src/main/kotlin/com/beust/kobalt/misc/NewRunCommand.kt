@@ -79,10 +79,12 @@ open class NewRunCommand(val info: RunCommandInfo) {
 
         // Run the command and collect the return code and streams
         val returnCode = process.waitFor(30, TimeUnit.SECONDS)
-        val input = if (process.inputStream.available() > 0) fromStream(process.inputStream)
-        else listOf()
-        val error = if (process.errorStream.available() > 0) fromStream(process.errorStream)
-        else listOf()
+        val input =
+                if (process.inputStream.available() > 0) fromStream(process.inputStream)
+                else listOf()
+        val error =
+                if (process.errorStream.available() > 0) fromStream(process.errorStream)
+                else listOf()
 
         // Check to see if the command succeeded
         val isSuccess =
@@ -105,10 +107,10 @@ open class NewRunCommand(val info: RunCommandInfo) {
     open protected fun isSuccess(isSuccess: Boolean, input: List<String>, error: List<String>) : Boolean {
         var hasErrors = ! isSuccess
         if (info.useErrorStreamAsErrorIndicator && ! hasErrors) {
-            hasErrors = hasErrors || error.size > 0
+            hasErrors = hasErrors || error.isNotEmpty()
         }
         if (info.useInputStreamAsErrorIndicator && ! hasErrors) {
-            hasErrors = hasErrors || input.size > 0
+            hasErrors = hasErrors || input.isNotEmpty()
         }
 
         return ! hasErrors

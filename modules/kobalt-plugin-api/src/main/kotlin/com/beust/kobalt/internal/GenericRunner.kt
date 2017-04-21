@@ -4,6 +4,7 @@ import com.beust.kobalt.*
 import com.beust.kobalt.api.*
 import com.beust.kobalt.misc.KFiles
 import com.google.common.annotations.VisibleForTesting
+import com.google.inject.Inject
 import java.io.File
 import java.util.*
 
@@ -19,6 +20,9 @@ abstract class GenericTestRunner: ITestRunnerContributor {
     open var shortMessage: String? = null
     open var longMessage: String? = null
 
+    @Inject
+    private lateinit var jvm: Jvm
+
     abstract fun args(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             testConfig: TestConfig) : List<String>
 
@@ -26,7 +30,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
 
     open val extraClasspath: List<String> = emptyList()
 
-    open fun filterTestClasses(classes: List<String>) : List<String> = classes
+    open fun filterTestClasses(project: Project, context: KobaltContext, classes: List<String>) : List<String> = classes
 
     override fun run(project: Project, context: KobaltContext, configName: String,
             classpath: List<IClasspathDependency>) : TaskResult {
@@ -65,7 +69,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
 //            }
 
         context.logger.log(project.name, 2, "Found ${result.size} test classes")
-        return filterTestClasses(result.map { it.second })
+        return filterTestClasses(project, context, result.map { it.second })
     }
 
     /**
@@ -116,7 +120,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
             val args = args(project, context, classpath, testConfig)
             if (args.size > 0) {
 
-                val java = JavaInfo.create(File(SystemProperties.javaBase)).javaExecutable
+                val java = jvm.javaExecutable
                 val jvmArgs = calculateAllJvmArgs(project, context, testConfig, classpath,
                         Kobalt.INJECTOR.getInstance (PluginInfo::class.java))
                 val allArgs = arrayListOf<String>().apply {

@@ -1,7 +1,6 @@
 package com.beust.kobalt.plugin.java
 
-import com.beust.kobalt.JavaInfo
-import com.beust.kobalt.SystemProperties
+import com.beust.kobalt.Jvm
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.internal.CompilerUtils
@@ -22,7 +21,7 @@ import javax.tools.ToolProvider
 
 @Singleton
 class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler, val kobaltLog: ParallelLogger,
-        val compilerUtils: CompilerUtils) : ICompiler {
+        val compilerUtils: CompilerUtils, val jvm: Jvm) : ICompiler {
     fun compilerAction(executable: File) = object : ICompilerAction {
         override fun compile(project: Project?, info: CompilerActionInfo): TaskResult {
             val projectName = project?.name
@@ -119,7 +118,7 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler, val kobaltL
                     -> it.compilerFlagsFor(project, context, currentFlags, suffixesBeingCompiled) }
             FlagContributor(it.flagPriority, closure)
         }
-        return run(project, context, info, JavaInfo.create(File(SystemProperties.javaBase)).javacExecutable!!,
+        return run(project, context, info, jvm.javacExecutable!!,
                 compilerUtils.compilerFlags(project, context, info, adapters))
     }
 
@@ -130,7 +129,7 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler, val kobaltL
                 -> it.docFlagsFor(project, context, currentFlags, suffixesBeingCompiled) }
             FlagContributor(it.flagPriority, closure)
         }
-        return run(project, context, info, JavaInfo.create(File(SystemProperties.javaBase)).javadocExecutable!!,
+        return run(project, context, info, jvm.javadocExecutable!!,
                 compilerUtils.compilerFlags(project, context, info, adapters))
     }
 }
