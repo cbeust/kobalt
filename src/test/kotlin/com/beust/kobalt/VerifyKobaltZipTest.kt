@@ -3,6 +3,7 @@ package com.beust.kobalt
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.kobaltLog
 import com.beust.kobalt.misc.warn
+import org.assertj.core.api.Assertions.assertThat
 import org.testng.annotations.Test
 import java.io.File
 import java.io.FileInputStream
@@ -38,6 +39,7 @@ class VerifyKobaltZipTest : KobaltTest() {
             val stream = JarInputStream(FileInputStream(zipFilePath))
             var entry = stream.nextEntry
             while (entry != null) {
+                assertThat(entry.name).doesNotContain("\\")
                 if (! entry.name.startsWith(root)) {
                     throw AssertionError("Entries in the zip file should be under the directory $root")
                 }
