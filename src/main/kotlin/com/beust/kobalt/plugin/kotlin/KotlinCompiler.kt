@@ -145,7 +145,6 @@ class KotlinCompiler @Inject constructor(
             // Collect the compiler args from kotlinCompiler{} and from settings.xml and parse them
             val args2 =
                     info.compilerArgs +
-                    (kotlinConfig(project)?.args ?: arrayListOf<String>()) +
                     (settings.kobaltCompilerFlags?.split(" ") ?: listOf<String>())
             val args = K2JVMCompilerArguments()
             val compiler = K2JVMCompiler()
