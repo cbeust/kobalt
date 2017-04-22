@@ -227,22 +227,18 @@ class KFiles {
         private fun isWindows() = System.getProperty("os.name").contains("Windows")
 
         fun copy(from: Path?, to: Path?, option: StandardCopyOption = StandardCopyOption.REPLACE_EXISTING) {
-            if (isWindows() && to!!.toFile().exists()) {
-                kobaltLog(2, "Windows detected, not overwriting $to")
-            } else {
-                try {
-                    if (from != null && to != null) {
-                        if (!Files.exists(to) || Md5.toMd5(from.toFile()) != Md5.toMd5(to.toFile())) {
-                            kobaltLog(3, "Copy from $from to $to")
-                            Files.copy(from, to, option)
-                        } else {
-                            kobaltLog(3, "  Not copying, indentical files: $from $to")
-                        }
+            try {
+                if (from != null && to != null) {
+                    if (!Files.exists(to) || Md5.toMd5(from.toFile()) != Md5.toMd5(to.toFile())) {
+                        kobaltLog(3, "Copy from $from to $to")
+                        Files.copy(from, to, option)
+                    } else {
+                        kobaltLog(3, "  Not copying, indentical files: $from $to")
                     }
-                } catch(ex: IOException) {
-                    // Windows is anal about this
-                    kobaltLog(1, "Couldn't copy $from to $to: ${ex.message}")
                 }
+            } catch(ex: IOException) {
+                // Windows is anal about this
+                kobaltLog(1, "Couldn't copy $from to $to: ${ex.message}")
             }
         }
 
