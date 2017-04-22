@@ -421,8 +421,10 @@ class KotlinCompiler @Inject constructor(
         val info = CompilerActionInfo(project?.directory, dependencies, sourceFiles, listOf("kt"), outputDir, args,
                 friendPaths, context?.internalContext?.forceRecompile ?: false, compilerSeparateProcess)
 
-        return jvmCompiler.doCompile(project, context, compilerAction, info,
-                if (context != null) compilerUtils.sourceCompilerFlags(project, context, info) else emptyList())
+        val compilerFlags =
+            if (context != null) compilerUtils.sourceCompilerFlags(project, context, info)
+            else emptyList()
+        return jvmCompiler.doCompile(project, context, compilerAction, info, compilerFlags)
     }
 }
 
