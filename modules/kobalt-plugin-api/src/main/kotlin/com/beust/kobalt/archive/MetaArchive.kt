@@ -25,7 +25,7 @@ class MetaArchive(outputFile: File, val manifest: Manifest?) : Closeable {
     fun addFile(f: File, entryFile: File, path: String?) {
         val file = f.normalize()
         FileInputStream(file).use { inputStream ->
-            val actualPath = if (path != null) path + entryFile.path else entryFile.path
+            val actualPath = KFiles.fixSlashes(if (path != null) path + entryFile.path else entryFile.path)
             ZipArchiveEntry(actualPath).let { entry ->
                 maybeAddEntry(entry) {
                     addEntry(entry, inputStream)

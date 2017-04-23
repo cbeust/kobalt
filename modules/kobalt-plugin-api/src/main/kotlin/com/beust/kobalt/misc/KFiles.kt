@@ -10,7 +10,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
+import java.util.*
 import java.util.jar.JarInputStream
+import java.util.regex.Pattern
 
 
 class KFiles {
@@ -20,6 +22,20 @@ class KFiles {
      */
     val kobaltJar : List<String>
         get() {
+            val PATTERN = Pattern.compile("kobalt-([-.0-9]+)")
+
+            fun latestInstalledVersion() : StringVersion {
+                val versions = File(distributionsDir).listFiles().map { it.name }.map {
+                    val matcher = PATTERN.matcher(it)
+                    val result =
+                        if (matcher.matches()) matcher.group(1)
+                        else null
+                    result
+                }.filterNotNull().map(::StringVersion)
+                Collections.sort(versions, reverseOrder())
+                return versions[0]
+            }
+
             val envJar = System.getenv("KOBALT_JAR")
             if (envJar != null) {
                 debug("Using kobalt jar $envJar")
@@ -31,16 +47,15 @@ class KFiles {
                 if (jarFile.exists()) {
                     return listOf(jarFile.absolutePath)
                 } else {
-                    // In development mode, keep your kobalt.properties version one above kobalt-wrapper.properties:
+                    // In development mode, keep your kobalt.properties version to a nonexistent version
                     // kobalt.properties:  kobalt.version=0.828
                     // kobalt-wrapper.properties: kobalt.version=0.827
                     // When Kobalt can't find the newest jar file, it will instead use the classes produced by IDEA
                     // in the directories specified here:
-                    val leftSuffix = Kobalt.version.substring(0, Kobalt.version.lastIndexOf(".") + 1)
-                    val previousVersion = leftSuffix +
-                            (Kobalt.version.split(".").let { it[it.size - 1] }.toInt() - 1).toString()
+                    val previousVersion = latestInstalledVersion().version
                     val previousJar = joinDir(distributionsDir, "kobalt-" + previousVersion,
                             "kobalt/wrapper/kobalt-$previousVersion.jar")
+                    val v = latestInstalledVersion()
                     val result = listOf("", "modules/kobalt-plugin-api", "modules/wrapper").map {
                         File(homeDir(KFiles.joinDir("kotlin", "kobalt", it, "kobaltBuild", "classes")))
                             .absolutePath
