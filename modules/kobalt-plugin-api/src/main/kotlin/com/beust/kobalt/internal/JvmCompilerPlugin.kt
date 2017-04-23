@@ -172,7 +172,10 @@ open class JvmCompilerPlugin @Inject constructor(
                     if (wi.value.sourceSuffixes.contains("java")) ij = wi.index
                     if (wi.value.sourceSuffixes.contains("kt")) ik = wi.index
                 }
-                Collections.swap(result, ik, ij)
+
+                if (ik >= 0 && ij >= 0) {
+                    Collections.swap(result, ik, ij)
+                }
                 return result
             }
 
