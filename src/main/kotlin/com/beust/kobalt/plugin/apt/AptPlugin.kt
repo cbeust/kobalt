@@ -166,7 +166,6 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
             //
             // Tell the Kotlin compiler to use the annotation plug-in
             //
-            val allDeps = allDependencies(project)
             flags.add("-Xplugin")
             flags.add(annotationProcessorDependency().jarFile.get().absolutePath)
 
@@ -202,6 +201,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
             //
             // Dependencies for the annotation plug-in and the generation
             //
+            val allDeps = allDependencies(project)
             val dependencies = dependencyManager.calculateDependencies(project, context,
                     Filters.EXCLUDE_OPTIONAL_FILTER,
                     listOf(Scope.COMPILE),
