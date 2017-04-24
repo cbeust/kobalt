@@ -28,7 +28,6 @@ class JvmCompiler @Inject constructor(val dependencyManager: DependencyManager) 
             .distinct()
 
         // Plugins that add flags to the compiler
-        val currentFlags = arrayListOf<String>().apply { addAll(info.compilerArgs) }
         val contributorFlags : List<String> = if (project != null) flags else emptyList()
 
         val addedFlags = contributorFlags + ArrayList(info.compilerArgs)
