@@ -76,9 +76,13 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
                 val artifact = DefaultArtifact(mavenId)
                 val request = VersionRangeRequest(artifact, createRepos(repos), null)
                 val rr = system.resolveVersionRange(session, request)
-                val newArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.classifier,
-                        artifact.extension, rr.highestVersion.toString())
-                artifactToId(newArtifact)
+                if (rr.highestVersion != null) {
+                    val newArtifact = DefaultArtifact(artifact.groupId, artifact.artifactId, artifact.classifier,
+                            artifact.extension, rr.highestVersion.toString())
+                    artifactToId(newArtifact)
+                } else {
+                    throw KobaltException("Couldn't resolve $passedId")
+                }
             } else {
                 passedId
             }
