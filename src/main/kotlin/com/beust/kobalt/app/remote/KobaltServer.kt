@@ -1,6 +1,5 @@
 package com.beust.kobalt.app.remote
 
-import com.beust.kobalt.api.Project
 import com.beust.kobalt.homeDir
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.maven.aether.Exceptions
@@ -74,15 +73,12 @@ class KobaltServer @Inject constructor(@Assisted val force: Boolean, @Assisted @
         try {
             if (createServerFile(port, force)) {
                 kobaltLog(1, "KobaltServer listening on port $port")
-//                OldServer(initCallback, cleanUpCallback).run(port)
-//                JerseyServer(initCallback, cleanUpCallback).run(port)
                 SparkServer(cleanUpCallback, pluginInfo).run(port)
-//                WasabiServer(initCallback, cleanUpCallback).run(port)
             }
         } catch(ex: Exception) {
             Exceptions.printStackTrace(ex)
         } finally {
-//            deleteServerFile()
+            deleteServerFile()
         }
         return port
     }
