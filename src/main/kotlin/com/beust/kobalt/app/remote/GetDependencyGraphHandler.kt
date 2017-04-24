@@ -35,6 +35,7 @@ class GetDependencyGraphHandler : WebSocketListener {
 
     fun <T> sendWebsocketCommand(endpoint: RemoteEndpoint, commandName: String, payload: T,
             errorMessage: String? = null) {
+        SparkServer.watchDog.rearm()
         val json = Gson().toJson(WebSocketCommand(commandName, payload = Gson().toJson(payload),
                 errorMessage = errorMessage))
         endpoint.sendString(json)

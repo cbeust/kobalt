@@ -5,6 +5,7 @@ import com.beust.kobalt.app.Templates
 import com.beust.kobalt.internal.PluginInfo
 import com.google.common.collect.ListMultimap
 import com.google.gson.Gson
+import org.slf4j.Logger
 import spark.ResponseTransformer
 import spark.Route
 import spark.Spark
@@ -14,6 +15,8 @@ class SparkServer(val cleanUpCallback: () -> Unit, val pluginInfo : PluginInfo) 
 
     companion object {
         lateinit var cleanUpCallback: () -> Unit
+        val URL_QUIT = "/quit"
+        lateinit var watchDog: WatchDog
     }
 
     init {
@@ -28,19 +31,25 @@ class SparkServer(val cleanUpCallback: () -> Unit, val pluginInfo : PluginInfo) 
     private fun jsonRoute(path: String, route: Route)
         = Spark.get(path, "application/json", route, JsonTransformer())
 
-    val log = org.slf4j.LoggerFactory.getLogger("SparkServer")
+    val log: Logger = org.slf4j.LoggerFactory.getLogger("SparkServer")
 
     override fun run(port: Int) {
+        val threadPool = Executors.newFixedThreadPool(2)
+        watchDog = WatchDog(port, 60 * 10 /* 10 minutes */, log)
+        threadPool.submit {
+            watchDog.run()
+        }
         log.debug("Server running")
         Spark.port(port)
         Spark.webSocket("/v1/getDependencyGraph", GetDependencyGraphHandler::class.java)
         Spark.get("/ping") { req, res ->
+            watchDog.rearm()
             log.debug("  Received ping")
             """ { "result" : "ok" } """
         }
-        Spark.get("/quit", { req, res ->
+        Spark.get(URL_QUIT, { req, res ->
             log.debug("  Received quit")
-            Executors.newFixedThreadPool(1).let { executor ->
+            threadPool.let { executor ->
                 executor.submit {
                     Thread.sleep(1000)
                     Spark.stop()
