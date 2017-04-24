@@ -10,8 +10,9 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 /**
- * Wakes up every `WAKE_UP_INTERVAL` and check if a certain period of time (`checkPeriod) has elapsed
- * without being rearmed. If that time has elapsed, send a QUIT command to the Kobalt server.
+ * Wakes up every `WAKE_UP_INTERVAL` and check if a certain period of time (`checkPeriod`) has elapsed
+ * without being rearmed. If that time has elapsed, send a QUIT command to the Kobalt server. If the WatchDog
+ * gets rearmed, the expiration period is reset.
  */
 class WatchDog(val port: Int, val checkPeriodSeconds: Long, val log: Logger) {
     private val WAKE_UP_INTERVAL: Duration = Duration.ofSeconds(60)
@@ -32,9 +33,11 @@ class WatchDog(val port: Int, val checkPeriodSeconds: Long, val log: Logger) {
      * Start the watch dog.
      */
     fun run() {
-        log.info("Next wake up:" + format(nextWakeUpMillis))
+        val wakeUpSeconds = WAKE_UP_INTERVAL.toMillis()
+        log.info("Server dying at " + format(nextWakeUpMillis) + ", next wake up in "
+                + (wakeUpSeconds / 1000) + " seconds")
         while (! stop) {
-            Thread.sleep(WAKE_UP_INTERVAL.toMillis())
+            Thread.sleep(wakeUpSeconds)
             val diffSeconds = (nextWakeUpMillis - System.currentTimeMillis()) / 1000
             if (diffSeconds <= 0) {
                 log.info("Time to die")
