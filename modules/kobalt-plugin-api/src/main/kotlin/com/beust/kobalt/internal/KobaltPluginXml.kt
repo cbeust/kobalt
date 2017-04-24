@@ -78,7 +78,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
     val compilerInterceptors = arrayListOf<ICompilerInterceptor>()
     val sourceDirectoriesInterceptors = arrayListOf<ISourceDirectoryInterceptor>()
     val buildDirectoryInterceptors = arrayListOf<IBuildDirectoryInterceptor>()
-    val runnerContributors = arrayListOf<IRunnerContributor>()
+//    val runnerContributors = arrayListOf<IRunnerContributor>()
     val testRunnerContributors = arrayListOf<ITestRunnerContributor>()
     val classpathInterceptors = arrayListOf<IClasspathInterceptor>()
     val compilerContributors = arrayListOf<ICompilerContributor>()
@@ -197,7 +197,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
                 if (this is IPlugin) plugins.add(this)
                 if (this is IProjectContributor) projectContributors.add(this)
                 if (this is IRepoContributor) repoContributors.add(this)
-                if (this is IRunnerContributor) runnerContributors.add(this)
+//                if (this is IRunnerContributor) runnerContributors.add(this)
                 if (this is ISourceDirectoryContributor) sourceDirContributors.add(this)
                 if (this is ISourceDirectoryInterceptor) sourceDirectoriesInterceptors.add(this)
                 if (this is ITaskContributor) taskContributors.add(this)
@@ -225,7 +225,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
         listOf(projectContributors, classpathContributors, templateContributors,
                 repoContributors, compilerFlagContributors, compilerInterceptors,
                 sourceDirectoriesInterceptors, buildDirectoryInterceptors,
-                runnerContributors, testRunnerContributors, classpathInterceptors,
+                /* runnerContributors, */ testRunnerContributors, classpathInterceptors,
                 compilerContributors, docContributors, sourceDirContributors,
                 testSourceDirContributors, buildConfigFieldContributors,
                 taskContributors, incrementalTaskContributors, assemblyContributors,
@@ -252,7 +252,7 @@ class PluginInfo(val xml: KobaltPluginXml, val pluginClassLoader: ClassLoader?, 
         compilerInterceptors.addAll(pluginInfo.compilerInterceptors)
         sourceDirectoriesInterceptors.addAll(pluginInfo.sourceDirectoriesInterceptors)
         buildDirectoryInterceptors.addAll(pluginInfo.buildDirectoryInterceptors)
-        runnerContributors.addAll(pluginInfo.runnerContributors)
+//        runnerContributors.addAll(pluginInfo.runnerContributors)
         testRunnerContributors.addAll(pluginInfo.testRunnerContributors)
         classpathInterceptors.addAll(pluginInfo.classpathInterceptors)
         compilerContributors.addAll(pluginInfo.compilerContributors)

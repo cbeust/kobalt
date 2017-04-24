@@ -6,9 +6,7 @@ import com.beust.kobalt.Plugins
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.api.annotation.Task
 import com.beust.kobalt.archive.Archives
-import com.beust.kobalt.internal.ActorUtils
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.aether.Scope
 import com.beust.kobalt.misc.KFiles
@@ -22,6 +20,9 @@ import com.google.inject.Singleton
 import java.io.File
 
 class ApplicationConfig {
+    @Directive
+    var taskName: String = "run"
+
     @Directive
     var mainClass: String? = null
 
@@ -43,10 +44,10 @@ fun Project.application(init: ApplicationConfig.() -> Unit): ApplicationConfig {
 }
 
 @Singleton
-class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<ApplicationConfig>,
+class ApplicationPlugin @Inject constructor(val configActor: ConfigsActor<ApplicationConfig>,
         val executors: KobaltExecutors, val nativeManager: NativeManager,
         val dependencyManager: DependencyManager, val taskContributor : TaskContributor, val jvm: Jvm)
-            : BasePlugin(), IRunnerContributor, ITaskContributor, IConfigActor<ApplicationConfig> by configActor {
+            : BasePlugin(), ITaskContributor, IConfigsActor<ApplicationConfig> by configActor {
 
     companion object {
         const val PLUGIN_NAME = "Application"
@@ -56,49 +57,52 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigActor<Applica
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        taskContributor.addVariantTasks(this, project, context, "run", group = "run", dependsOn = listOf("install"),
-                runTask = { taskRun(project) })
-    }
+//        taskContributor.addVariantTasks(this, project, context, "run", group = "run", dependsOn = listOf("install"),
+//                runTask = { taskRun(project) })
 
-    @Task(name = "run", description = "Run the main class", group = "run", dependsOn = arrayOf("install"))
-    fun taskRun(project: Project): TaskResult {
-        val runContributor = ActorUtils.selectAffinityActor(project, context,
-                context.pluginInfo.runnerContributors)
-        if (runContributor != null && runContributor.affinity(project, context) > 0) {
-            return runContributor.run(project, context,
-                    dependencyManager.dependencies(project, context, listOf(Scope.RUNTIME)))
-        } else {
-            context.logger.log(project.name, 1,
-                    "Couldn't find a runner for project ${project.name}. Please make sure" +
-                    " your build file contains " +
-                    "an application{} directive with a mainClass=... in it")
-            return TaskResult()
+        configurationFor(project)?.let { configs ->
+            configs.forEach { config ->
+                taskManager.addTask(this, project, config.taskName,
+                        description = "Run the class " + config.mainClass,
+                        group = "run",
+                        dependsOn = listOf("install"),
+                        task = { run(project, context, config) })
+            }
         }
     }
+
+//    fun taskRun(project: Project, config: ApplicationConfig): TaskResult {
+//        val runContributor = ActorUtils.selectAffinityActor(project, context,
+//                context.pluginInfo.runnerContributors)
+//        if (runContributor != null && runContributor.affinity(project, context) > 0) {
+//            return runContributor.run(project, context,
+//                    dependencyManager.dependencies(project, context, listOf(Scope.RUNTIME)))
+//        } else {
+//            context.logger.log(project.name, 1,
+//                    "Couldn't find a runner for project ${project.name}. Please make sure" +
+//                    " your build file contains " +
+//                    "an application{} directive with a mainClass=... in it")
+//            return TaskResult()
+//        }
+//    }
 
     private fun isFatJar(packages: List<PackageConfig>, jarName: String): Boolean {
         val foundJar = packages.flatMap { it.jars }.filter { jarName.endsWith(it.name) }
         return foundJar.size == 1 && foundJar[0].fatJar
     }
 
-    // IRunContributor
-
-    override fun affinity(project: Project, context: KobaltContext): Int {
-        return if (configurationFor(project) != null) IAffinity.DEFAULT_POSITIVE_AFFINITY else 0
-    }
-
-    override fun run(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>): TaskResult {
-        var result = TaskResult()
+    private fun run(project: Project, context: KobaltContext, config: ApplicationConfig): TaskResult {
         if (project.nativeDependencies.any()) {
             nativeManager.installLibraries(project)
         }
-        configurationFor(project)?.let { config ->
+
+        val result =
             if (config.mainClass != null) {
-                result = runJarFile(project, context, config)
+                runJarFile(project, context, config)
             } else {
                 throw KobaltException("No \"mainClass\" specified in the application{} part of project ${project.name}")
             }
-        }
+
         return result
     }
 
