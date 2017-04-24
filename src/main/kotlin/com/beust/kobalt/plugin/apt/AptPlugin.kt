@@ -159,8 +159,6 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
         var success = true
         val flags = arrayListOf<String>()
         kaptConfig?.let { config ->
-
-
             val generated = generated(project, context, config.outputDir)
             val generatedSources = generatedSources(project, context, config.outputDir).replace("//", "/")
             File(generatedSources).mkdirs()
@@ -173,9 +171,12 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
             flags.add(annotationProcessorDependency().jarFile.get().absolutePath)
 
             // Also need tools.jar on the plug-in classpath
-            jvm.toolsJar?.let { toolsJar ->
+            val toolsJar = jvm.toolsJar
+            if (toolsJar != null) {
                 flags.add("-Xplugin")
                 flags.add(toolsJar.absolutePath)
+            } else {
+                warn("Couldn't find tools.jar from the JDK")
             }
 
             aptJarDependencies(project).forEach {
