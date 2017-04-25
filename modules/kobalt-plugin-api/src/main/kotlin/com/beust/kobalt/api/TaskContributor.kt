@@ -44,6 +44,23 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
         }
     }
 
+    fun addTask(plugin: IPlugin, project: Project, taskName: String, description: String,
+            group: String = AnnotationDefault.GROUP,
+            dependsOn: List<String> = emptyList(),
+            reverseDependsOn : List<String> = emptyList(),
+            runBefore : List<String> = emptyList(),
+            runAfter : List<String> = emptyList(),
+            runTask: (Project) -> TaskResult) {
+        dynamicTasks.add(DynamicTask(plugin, taskName, description, group, project,
+                dependsOn = dependsOn,
+                reverseDependsOn = reverseDependsOn,
+                runBefore = runBefore,
+                runAfter = runAfter,
+                closure = { p: Project ->
+                    runTask(project)
+                }))
+    }
+
     fun addIncrementalVariantTasks(plugin: IPlugin, project: Project, context: KobaltContext, taskName: String,
             group: String = AnnotationDefault.GROUP,
             dependsOn: List<String> = emptyList(),

@@ -57,16 +57,14 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigsActor<Applic
 
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-//        taskContributor.addVariantTasks(this, project, context, "run", group = "run", dependsOn = listOf("install"),
-//                runTask = { taskRun(project) })
 
         configurationFor(project)?.let { configs ->
             configs.forEach { config ->
-                taskManager.addTask(this, project, config.taskName,
+                taskContributor.addTask(this, project, config.taskName,
                         description = "Run the class " + config.mainClass,
                         group = "run",
                         dependsOn = listOf("install"),
-                        task = { run(project, context, config) })
+                        runTask = { run(project, context, config) })
             }
         }
     }

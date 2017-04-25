@@ -41,7 +41,6 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         const val PACKAGES = "packages"
 
         const val TASK_ASSEMBLE: String = "assemble"
-        const val TASK_INSTALL: String = "install"
     }
 
     override val name = PLUGIN_NAME
@@ -59,11 +58,11 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
         configurationFor(project)?.let { configs ->
             configs.forEach { config ->
-                taskManager.addTask(this, project, config.taskName,
+                taskContributor.addTask(this, project, config.taskName,
                         description = "Install to \"" + config.target + "\"",
                         group = "build",
                         dependsOn = listOf(PackagingPlugin.TASK_ASSEMBLE),
-                        task = { taskInstall(project, context, config) })
+                        runTask = { taskInstall(project, context, config) })
                 taskContributor.addVariantTasks(this, project, context, "config.taskName",
                         dependsOn = listOf("assemble"),
                         runTask = { taskInstall(project, context, config) })
