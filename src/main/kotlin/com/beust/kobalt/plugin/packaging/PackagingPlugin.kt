@@ -26,9 +26,9 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val executors: KobaltExecutors, val jarGenerator: JarGenerator, val warGenerator: WarGenerator,
         val zipGenerator: ZipGenerator, val taskContributor: TaskContributor,
         val kobaltLog: ParallelLogger,
-        val pomFactory: PomGenerator.IFactory, val configActor: ConfigActor<InstallConfig>)
+        val pomFactory: PomGenerator.IFactory, val configActor: ConfigsActor<InstallConfig>)
             : BasePlugin(), ITaskContributor, IIncrementalAssemblyContributor,
-        IConfigActor<InstallConfig> by configActor {
+        IConfigsActor<InstallConfig> by configActor {
 
     companion object {
         const val PLUGIN_NAME = "Packaging"
@@ -56,9 +56,20 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         taskContributor.addVariantTasks(this, project, context, "assemble", group = "build",
                 dependsOn = listOf("compile"),
                 runTask = { doTaskAssemble(project) })
-        taskContributor.addVariantTasks(this, project, context, "install",
-                dependsOn = listOf("assemble"),
-                runTask = { taskInstall(project) })
+
+        configurationFor(project)?.let { configs ->
+            configs.forEach { config ->
+                taskManager.addTask(this, project, config.taskName,
+                        description = "Install to \"" + config.target + "\"",
+                        group = "build",
+                        dependsOn = listOf(PackagingPlugin.TASK_ASSEMBLE),
+                        task = { taskInstall(project, context, config) })
+                taskContributor.addVariantTasks(this, project, context, "config.taskName",
+                        dependsOn = listOf("assemble"),
+                        runTask = { taskInstall(project, context, config) })
+            }
+        }
+
     }
 
     override fun assemble(project: Project, context: KobaltContext) : IncrementalTaskInfo {
@@ -207,10 +218,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 //    }
 
 
-    @Task(name = PackagingPlugin.TASK_INSTALL, description = "Install the artifacts",
-            dependsOn = arrayOf(PackagingPlugin.TASK_ASSEMBLE))
-    fun taskInstall(project: Project) : TaskResult {
-        val config = configurationFor(project) ?: InstallConfig()
+    private fun taskInstall(project: Project, context: KobaltContext, config: InstallConfig) : TaskResult {
         val buildDir = project.projectProperties.getString(LIBS_DIR)
         val buildDirFile = File(buildDir)
         if (buildDirFile.exists()) {
@@ -254,7 +262,7 @@ fun Project.install(init: InstallConfig.() -> Unit) {
     }
 }
 
-class InstallConfig(var target : String = "libs") : IncludeFromTo()
+class InstallConfig(var target : String = "libs", var taskName : String = "install") : IncludeFromTo()
 
 @Directive
 fun Project.assemble(init: PackageConfig.(p: Project) -> Unit): PackageConfig = let {
