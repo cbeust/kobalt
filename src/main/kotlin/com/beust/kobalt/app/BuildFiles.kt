@@ -119,7 +119,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
             parentFile.mkdirs()
             val imp = arrayListOf<String>().apply {
                 addAll(imports)
-            }.distinct()
+            }.toMutableSet().toMutableList()
             Collections.sort(imp)
             writeText(imp.joinToString("\n"))
             appendText(code.joinToString("\n"))
