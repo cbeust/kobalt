@@ -1,0 +1,103 @@
+package com.beust.kobalt.plugin.osgi
+
+import aQute.bnd.osgi.Analyzer
+import com.beust.kobalt.TaskResult
+import com.beust.kobalt.api.*
+import com.beust.kobalt.api.annotation.Directive
+import com.beust.kobalt.archive.Archives
+import com.beust.kobalt.maven.DependencyManager
+import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.plugin.packaging.PackagingPlugin
+import com.google.common.reflect.ClassPath
+import com.google.inject.Inject
+import com.google.inject.Singleton
+import java.io.File
+import java.net.URI
+import java.net.URLClassLoader
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
+
+/**
+ * Generate OSGi attributes in the MANIFEST.MF if an osgi{} directive was found in the project.
+ */
+@Singleton
+class OsgiPlugin @Inject constructor(val configActor: ConfigActor<OsgiConfig>, val taskContributor: TaskContributor,
+        val dependencyManager: DependencyManager)
+        : BasePlugin(), ITaskContributor by taskContributor, IConfigActor<OsgiConfig> by configActor {
+    companion object {
+        const val PLUGIN_NAME = "Osgi"
+    }
+    override val name: String = PLUGIN_NAME
+
+    override fun apply(project: Project, context: KobaltContext) {
+        super.apply(project, context)
+
+        configurationFor(project)?.let { config ->
+            taskContributor.addTask(this, project, "generateOsgiManifest",
+                    description = "Generate the OSGi information in the manifest",
+                    group = "build",
+                    alwaysRunAfter = listOf(PackagingPlugin.TASK_ASSEMBLE),
+                    runTask = { generateManifest(project, context) })
+        }
+    }
+
+    private fun generateManifest(project: Project, context: KobaltContext): TaskResult {
+        val jarName = project.projectProperties.get(Archives.JAR_NAME) as String
+        val jarFile = File(KFiles.libsDir(project), jarName)
+        val cp = ClassPath.from(URLClassLoader(arrayOf(jarFile.toURI().toURL()), null))
+
+        val packages = cp.allClasses.map { it.packageName }.distinct()
+        val exportPackageLine = packages.map {
+            it + ";version=\"" + project.version + "\""
+        }.joinToString(",")
+
+        val analyzer = Analyzer().apply {
+            jar = aQute.bnd.osgi.Jar(jarName)
+            val dependencies = project.compileDependencies + project.compileRuntimeDependencies
+            dependencyManager.calculateDependencies(project, context, passedDependencies = dependencies).forEach {
+                addClasspath(it.jarFile.get())
+            }
+            setProperty(Analyzer.BUNDLE_VERSION, project.version)
+            setProperty(Analyzer.BUNDLE_NAME, project.group + "." + project.artifactId)
+            setProperty(Analyzer.BUNDLE_DESCRIPTION, project.description)
+            setProperty(Analyzer.IMPORT_PACKAGE, "*")
+            setProperty(Analyzer.EXPORT_PACKAGE, exportPackageLine)
+            project.pom?.let { pom ->
+                if (pom.licenses.any()) {
+                    setProperty(Analyzer.BUNDLE_LICENSE, pom.licenses[0].url)
+                }
+            }
+        }
+
+        val manifest = analyzer.calcManifest()
+        val lines = manifest.mainAttributes.map {
+            it.key.toString() + ": " + it.value.toString()
+        }
+
+        context.logger.log(project.name, 2, "  Generated manifest:")
+        lines.forEach {
+            context.logger.log(project.name, 2, "    $it")
+        }
+
+        val uri = URI.create("jar:file:" + jarFile.absolutePath)
+        val options = hashMapOf<String, String>()
+        FileSystems.newFileSystem(uri, options).use { fs ->
+            val jarManifest = fs.getPath("/META-INF/MANIFEST.MF")
+            Files.write(jarManifest, lines, StandardOpenOption.APPEND)
+        }
+        return TaskResult()
+    }
+}
+
+class OsgiConfig
+
+@Directive
+fun Project.osgi(init: OsgiConfig.() -> Unit) {
+    OsgiConfig().let {
+        it.init()
+        (Kobalt.findPlugin(OsgiPlugin.PLUGIN_NAME) as OsgiPlugin).addConfiguration(this, it)
+    }
+}
+
+

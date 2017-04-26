@@ -1,8 +1,9 @@
 package com.beust.kobalt
 
 import com.beust.jcommander.JCommander
+import com.beust.kobalt.api.ITask
 import com.beust.kobalt.api.Kobalt
-import com.beust.kobalt.api.PluginTask
+import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.app.ProjectFinder
 import com.beust.kobalt.app.ProjectGenerator
@@ -109,7 +110,7 @@ class Options @Inject constructor(
                 Option( { args.tasks }, {
                     // --tasks
                     runIfSuccessfulBuild(buildError) {
-                        displayTasks()
+                        displayTasks(allProjects, Kobalt.context!!)
                     }
                 }),
                 Option( { args.checkVersions }, {
@@ -177,19 +178,29 @@ class Options @Inject constructor(
         }
     }
 
-    private fun displayTasks() {
+    private fun displayTasks(projects: List<Project>, context: KobaltContext) {
         //
         // List of tasks, --tasks
         //
-        val tasksByPlugins = HashMultimap.create<String, PluginTask>()
-        taskManager.annotationTasks.forEach {
-            tasksByPlugins.put(it.plugin.name, it)
+        val tasksByPlugins = HashMultimap.create<String, ITask>()
+        projects.forEach { project ->
+            pluginInfo.taskContributors.forEach {
+                val tasks = it.tasksFor(project, context)
+                tasks.forEach {
+                    tasksByPlugins.put(it.plugin.name, it)
+                }
+            }
+        }
+        listOf(taskManager.annotationTasks, taskManager.dynamicTasks).forEach { tasks ->
+            tasks.forEach {
+                tasksByPlugins.put(it.plugin.name, it)
+            }
         }
         val sb = StringBuffer("List of tasks\n")
         tasksByPlugins.keySet().forEach { name ->
             sb.append("\n  " + AsciiArt.horizontalDoubleLine + " $name "
                     + AsciiArt.horizontalDoubleLine + "\n")
-            tasksByPlugins[name].distinctBy(PluginTask::name).sortedBy(PluginTask::name).forEach { task ->
+            tasksByPlugins[name].distinctBy(ITask::name).sortedBy(ITask::name).forEach { task ->
                 sb.append("    ${task.name}\t\t${task.doc}\n")
             }
         }

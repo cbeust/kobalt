@@ -50,12 +50,14 @@ class TaskContributor @Inject constructor(val incrementalManagerFactory: Increme
             reverseDependsOn : List<String> = emptyList(),
             runBefore : List<String> = emptyList(),
             runAfter : List<String> = emptyList(),
+            alwaysRunAfter: List<String> = emptyList(),
             runTask: (Project) -> TaskResult) {
         dynamicTasks.add(DynamicTask(plugin, taskName, description, group, project,
                 dependsOn = dependsOn,
                 reverseDependsOn = reverseDependsOn,
                 runBefore = runBefore,
                 runAfter = runAfter,
+                alwaysRunAfter = alwaysRunAfter,
                 closure = { p: Project ->
                     runTask(project)
                 }))

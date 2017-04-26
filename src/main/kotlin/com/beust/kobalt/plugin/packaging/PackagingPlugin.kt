@@ -27,7 +27,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         val zipGenerator: ZipGenerator, val taskContributor: TaskContributor,
         val kobaltLog: ParallelLogger,
         val pomFactory: PomGenerator.IFactory, val configActor: ConfigsActor<InstallConfig>)
-            : BasePlugin(), ITaskContributor, IIncrementalAssemblyContributor,
+            : BasePlugin(), ITaskContributor by taskContributor, IIncrementalAssemblyContributor,
         IConfigsActor<InstallConfig> by configActor {
 
     companion object {
@@ -196,27 +196,6 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
         packages.add(p)
     }
 
-//    @Task(name = "generateOsgiManifest", alwaysRunAfter = arrayOf(TASK_ASSEMBLE))
-//    fun generateManifest(project: Project): TaskResult {
-//        val analyzer = Analyzer().apply {
-//            jar = aQute.bnd.osgi.Jar(project.projectProperties.get(Archives.JAR_NAME) as String)
-//            val dependencies = project.compileDependencies + project.compileRuntimeDependencies
-//            dependencyManager.calculateDependencies(project, context, passedDependencies = dependencies).forEach {
-//                addClasspath(it.jarFile.get())
-//            }
-//            setProperty(Analyzer.BUNDLE_VERSION, project.version)
-//            setProperty(Analyzer.BUNDLE_NAME, project.group)
-//            setProperty(Analyzer.BUNDLE_DESCRIPTION, project.description)
-//            setProperty(Analyzer.IMPORT_PACKAGE, "*")
-//            setProperty(Analyzer.EXPORT_PACKAGE, "*;-noimport:=false;version=" + project.version)
-//        }
-//
-//        val manifest = analyzer.calcManifest()
-//        manifest.write(System.out)
-//        return TaskResult()
-//    }
-
-
     private fun taskInstall(project: Project, context: KobaltContext, config: InstallConfig) : TaskResult {
         val buildDir = project.projectProperties.getString(LIBS_DIR)
         val buildDirFile = File(buildDir)
@@ -248,9 +227,6 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
 
         return TaskResult()
     }
-
-    //ITaskContributor
-    override fun tasksFor(project: Project, context: KobaltContext): List<DynamicTask> = taskContributor.dynamicTasks
 }
 
 @Directive
