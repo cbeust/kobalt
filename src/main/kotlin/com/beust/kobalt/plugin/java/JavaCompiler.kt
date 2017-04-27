@@ -83,7 +83,7 @@ class JavaCompiler @Inject constructor(val jvmCompiler: JvmCompiler, val kobaltL
                     val pb = ProcessBuilder(executable.absolutePath, "@" + KFiles.fixSlashes(atFile))
                     pb.inheritIO()
                     logk(1, "  Java compiling " + Strings.pluralizeAll(info.sourceFiles.size, "file"))
-                    logk(2, "  Java compiling file: " + KFiles.fixSlashes(atFile))
+                    logk(2, "  Java compiling using file: " + KFiles.fixSlashes(atFile))
 
                     command = allArgs.joinToString(" ") + " " + info.sourceFiles.joinToString(" ")
                     val process = pb.start()
