@@ -19,7 +19,7 @@ import org.apache.commons.compress.archivers.zip.ZipFile as ApacheZipFile
  */
 class MetaArchive(outputFile: File, val manifest: Manifest?) : Closeable {
     companion object {
-        val MANIFEST_MF = "/META-INF/MANIFEST.MF"
+        val MANIFEST_MF = "META-INF/MANIFEST.MF"
     }
 
     private val zos = ZipArchiveOutputStream(outputFile).apply {
