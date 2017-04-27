@@ -3,6 +3,7 @@ package com.beust.kobalt
 import com.beust.kobalt.api.KobaltContext
 import com.beust.kobalt.api.Project
 import com.beust.kobalt.archive.Archives
+import com.beust.kobalt.archive.MetaArchive
 import com.beust.kobalt.archive.Zip
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.maven.aether.Scope
@@ -141,7 +142,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
                     val allFiles = includedFiles.flatMap { file ->
                         file.allFromFiles(project.directory).map { file.from(it.path) }
                     }
-                    val manifestFiles = allFiles.filter { it.path.contains("META-INF/MANIFEST.MF") }
+                    val manifestFiles = allFiles.filter { it.path.contains(MetaArchive.MANIFEST_MF) }
                     return if (manifestFiles.any()) manifestFiles[0] else null
                 }
 

@@ -18,6 +18,10 @@ import org.apache.commons.compress.archivers.zip.ZipFile as ApacheZipFile
  * Uses ZipArchiveOutputStream for fast inclusion of expanded jar files.
  */
 class MetaArchive(outputFile: File, val manifest: Manifest?) : Closeable {
+    companion object {
+        val MANIFEST_MF = "/META-INF/MANIFEST.MF"
+    }
+
     private val zos = ZipArchiveOutputStream(outputFile).apply {
         encoding = "UTF-8"
     }
@@ -60,7 +64,7 @@ class MetaArchive(outputFile: File, val manifest: Manifest?) : Closeable {
                     manifest.write(fos)
                 }
 
-                val entry = zos.createArchiveEntry(manifestFile, "META-INF/MANIFEST.MF")
+                val entry = zos.createArchiveEntry(manifestFile, MetaArchive.MANIFEST_MF)
                 addEntry(entry, FileInputStream(manifestFile))
             }
         }
