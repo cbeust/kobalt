@@ -150,7 +150,7 @@ class JarGenerator @Inject constructor(val dependencyManager: DependencyManager)
                     context.logger.log(project.name, 2, "Including MANIFEST.MF file $manifestFile")
                     Manifest(FileInputStream(manifestFile))
                 } else {
-                    Manifest()
+                    null
                 }
             }
 
