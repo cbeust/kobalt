@@ -320,7 +320,9 @@ class TaskWorker(val tasks: List<ITask>, val dryRun: Boolean, val pluginInfo: Pl
             val tr = if (dryRun) TaskResult() else it.call()
             BaseProjectRunner.runBuildListenersForTask(it.project, context, name, start = false, success = tr.success)
             success = success and tr.success
-            if (tr.errorMessage != null) errorMessages.add(tr.errorMessage)
+            tr.errorMessage?.let {
+                errorMessages.add(it)
+            }
         }
         return TaskResult2(success, errorMessage = errorMessages.joinToString("\n"), value = tasks[0])
     }
