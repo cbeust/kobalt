@@ -17,6 +17,7 @@ import com.beust.kobalt.plugin.packaging.PackageConfig
 import com.beust.kobalt.plugin.packaging.PackagingPlugin
 import com.google.inject.Inject
 import com.google.inject.Singleton
+import org.jetbrains.kotlin.config.TargetPlatformVersion.NoVersion.description
 import java.io.File
 
 class ApplicationConfig {
@@ -63,7 +64,7 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigsActor<Applic
                 taskContributor.addTask(this, project, config.taskName,
                         description = "Run the class " + config.mainClass,
                         group = "run",
-                        dependsOn = listOf("install"),
+                        dependsOn = listOf("assemble"),
                         runTask = { run(project, context, config) })
             }
         }
@@ -151,6 +152,17 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigsActor<Applic
     }
 
     //ITaskContributor
-    override fun tasksFor(project: Project, context: KobaltContext): List<DynamicTask> = taskContributor.dynamicTasks
+    override fun tasksFor(project: Project, context: KobaltContext): List<DynamicTask> {
+        val result = arrayListOf<DynamicTask>()
+        configurationFor(project)?.let { configs ->
+            configs.forEach { config ->
+                result.add(DynamicTask(this, config.taskName, "Run the class " + config.mainClass, "run", project,
+                        dependsOn = listOf("assemble"),
+                        closure = { run(project, context, config) }))
+            }
+        }
+
+        return result
+    }
 }
 
