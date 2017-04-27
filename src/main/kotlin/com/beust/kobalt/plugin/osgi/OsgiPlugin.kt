@@ -5,6 +5,7 @@ import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
 import com.beust.kobalt.archive.Archives
+import com.beust.kobalt.archive.MetaArchive
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.plugin.packaging.PackagingPlugin
@@ -17,6 +18,7 @@ import java.net.URLClassLoader
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
+import java.util.jar.JarFile
 
 /**
  * Generate OSGi attributes in the MANIFEST.MF if an osgi{} directive was found in the project.
@@ -80,11 +82,19 @@ class OsgiPlugin @Inject constructor(val configActor: ConfigActor<OsgiConfig>, v
             context.logger.log(project.name, 2, "    $it")
         }
 
+        //
+        // Update or create META-INF/MANIFEST.MF
+        //
         val uri = URI.create("jar:file:" + jarFile.absolutePath)
         val options = hashMapOf<String, String>()
-        FileSystems.newFileSystem(uri, options).use { fs ->
-            val jarManifest = fs.getPath("/META-INF/MANIFEST.MF")
-            Files.write(jarManifest, lines, StandardOpenOption.APPEND)
+        val fileSystem = FileSystems.newFileSystem(uri, options)
+        fileSystem.use { fs ->
+            val mf = JarFile(jarFile).getEntry(MetaArchive.MANIFEST_MF)
+            if (mf == null) {
+                Files.createDirectories(fs.getPath("META-INF/"))
+            }
+            val jarManifest = fs.getPath(MetaArchive.MANIFEST_MF)
+            Files.write(jarManifest, lines, if (mf != null) StandardOpenOption.APPEND else StandardOpenOption.CREATE)
         }
         return TaskResult()
     }
