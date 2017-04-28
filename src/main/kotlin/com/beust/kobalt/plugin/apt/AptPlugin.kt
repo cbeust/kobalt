@@ -85,7 +85,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
         }
 
         kaptConfigs[project.name]?.let { config ->
-            result.add(generatedDir(project, config.outputDir))
+            result.add(File(generatedSources(project, context, config.outputDir)))
         }
 
         return result
