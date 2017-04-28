@@ -63,7 +63,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                         group = "build",
                         dependsOn = listOf(PackagingPlugin.TASK_ASSEMBLE),
                         runTask = { taskInstall(project, context, config) })
-                taskContributor.addVariantTasks(this, project, context, "config.taskName",
+                taskContributor.addVariantTasks(this, project, context, config.taskName,
                         dependsOn = listOf("assemble"),
                         runTask = { taskInstall(project, context, config) })
             }
