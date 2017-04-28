@@ -223,6 +223,7 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
             val cai = CompilerActionInfo(project.directory, allDeps, sourceFiles, listOf(".kt"),
                     buildDirectory, flags, emptyList(), forceRecompile = true, compilerSeparateProcess = true)
 
+            context.logger.log(project.name, 2, "kapt3 flags:")
             context.logger.log(project.name, 2, "  " + kaptPluginFlags.joinToString("\n  "))
             val cr = compilerUtils.invokeCompiler(project, context, kotlinPlugin.compiler, cai)
             success = cr.failedResult == null
