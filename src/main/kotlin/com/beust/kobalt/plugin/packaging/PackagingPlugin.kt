@@ -148,9 +148,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                                     Pair(packageConfig.zips, zipGenerator)
                                     )
 
-                            pairs.forEach { pair ->
-                                val zips = pair.first
-                                val generator = pair.second
+                            pairs.forEach { (zips, generator) ->
                                 zips.forEach {
                                     generator.generateArchive(packageConfig.project, context, it,
                                             findFiles(generator, it))
