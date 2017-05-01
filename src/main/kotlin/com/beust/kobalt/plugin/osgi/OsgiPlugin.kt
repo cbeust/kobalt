@@ -12,12 +12,15 @@ import com.beust.kobalt.plugin.packaging.PackagingPlugin
 import com.google.common.reflect.ClassPath
 import com.google.inject.Inject
 import com.google.inject.Singleton
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URI
 import java.net.URLClassLoader
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.jar.JarFile
 
 /**
@@ -60,6 +63,7 @@ class OsgiPlugin @Inject constructor(val configActor: ConfigActor<OsgiConfig>, v
             dependencyManager.calculateDependencies(project, context, passedDependencies = dependencies).forEach {
                 addClasspath(it.jarFile.get())
             }
+            setProperty("Build-Date", LocalDate.now().format(DateTimeFormatter.ofPattern("y-MM-dd")))
             setProperty(Analyzer.BUNDLE_VERSION, project.version)
             setProperty(Analyzer.BUNDLE_NAME, project.group + "." + project.artifactId)
             setProperty(Analyzer.BUNDLE_DESCRIPTION, project.description)
@@ -72,31 +76,31 @@ class OsgiPlugin @Inject constructor(val configActor: ConfigActor<OsgiConfig>, v
             }
         }
 
-        val manifest = analyzer.calcManifest()
-        val lines = manifest.mainAttributes.map {
-            it.key.toString() + ": " + it.value.toString()
-        }
-
-        context.logger.log(project.name, 2, "  Generated manifest:")
-        lines.forEach {
-            context.logger.log(project.name, 2, "    $it")
-        }
-
-        //
-        // Update or create META-INF/MANIFEST.MF
-        //
-        val uri = URI.create("jar:file:" + jarFile.absolutePath)
-        val options = hashMapOf<String, String>()
-        val fileSystem = FileSystems.newFileSystem(uri, options)
-        fileSystem.use { fs ->
-            val mf = JarFile(jarFile).getEntry(MetaArchive.MANIFEST_MF)
-            if (mf == null) {
-                Files.createDirectories(fs.getPath("META-INF/"))
+        analyzer.calcManifest().let { manifest ->
+            val lines2 = ByteArrayOutputStream().use { baos ->
+                manifest.write(baos)
+                String(baos.toByteArray())
             }
-            val jarManifest = fs.getPath(MetaArchive.MANIFEST_MF)
-            Files.write(jarManifest, lines, if (mf != null) StandardOpenOption.APPEND else StandardOpenOption.CREATE)
+
+            context.logger.log(project.name, 2, "  Generated manifest:\n$lines2")
+
+            //
+            // Update or create META-INF/MANIFEST.MF
+            //
+            val uri = URI.create("jar:file:" + jarFile.absolutePath)
+            val options = hashMapOf<String, String>()
+            val fileSystem = FileSystems.newFileSystem(uri, options)
+            fileSystem.use { fs ->
+                val mf = JarFile(jarFile).getEntry(MetaArchive.MANIFEST_MF)
+                if (mf == null) {
+                    Files.createDirectories(fs.getPath("META-INF/"))
+                }
+                val jarManifest = fs.getPath(MetaArchive.MANIFEST_MF)
+                Files.write(jarManifest, listOf(lines2),
+                        if (mf != null) StandardOpenOption.APPEND else StandardOpenOption.CREATE)
+            }
+            return TaskResult()
         }
-        return TaskResult()
     }
 }
 
