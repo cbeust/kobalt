@@ -44,8 +44,17 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override va
     // IDocFlagContributor
     override fun docFlagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
             suffixesBeingCompiled: List<String>): List<String> {
-        return listOf("-d", "javadoc", "-Xdoclint:none", "-Xmaxerrs", "1", "-quiet")
+        val config = javadocConfigurations[project.name]
+        val args = config?.args ?: DEFAULT_JAVADOC_ARGS
+        return args
     }
+
+    val DEFAULT_JAVADOC_ARGS = listOf("-d", "javadoc", "-Xdoclint:none", "-Xmaxerrs", "1", "-quiet")
+
+    val javadocConfigurations = hashMapOf<String, JavadocConfig>()
+
+    fun addJavadocConfiguration(project: Project, configuration: JavadocConfig)
+            = javadocConfigurations.put(project.name, configuration)
 
     // ICompilerContributor
     val compiler = CompilerDescription(PLUGIN_NAME, "java", SOURCE_SUFFIXES, javaCompiler)
@@ -78,3 +87,16 @@ fun Project.javaCompiler(init: JavaConfig.() -> Unit) =
         config.init()
         (Kobalt.findPlugin(JavaPlugin.PLUGIN_NAME) as JavaPlugin).addConfiguration(this, config)
     }
+
+class JavadocConfig(val project: Project) {
+    val args = arrayListOf<String>()
+    fun args(vararg options: String) = args.addAll(options)
+}
+
+@Directive
+fun Project.javadoc(init: JavadocConfig.() -> Unit) =
+    JavadocConfig(this).also { config ->
+        config.init()
+        (Kobalt.findPlugin(JavaPlugin.PLUGIN_NAME) as JavaPlugin).addJavadocConfiguration(this, config)
+    }
+
