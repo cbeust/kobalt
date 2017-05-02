@@ -43,8 +43,11 @@ class JavaPlugin @Inject constructor(val javaCompiler: JavaCompiler, override va
 
     // IDocFlagContributor
     override fun docFlagsFor(project: Project, context: KobaltContext, currentFlags: List<String>,
-            suffixesBeingCompiled: List<String>): List<String>
-        = javadocConfigurations[project.name]?.args ?: DEFAULT_JAVADOC_ARGS
+            suffixesBeingCompiled: List<String>): List<String> {
+        val config = javadocConfigurations[project.name]
+        return if (config == null || config.args.isEmpty()) DEFAULT_JAVADOC_ARGS
+            else config.args
+    }
 
     val DEFAULT_JAVADOC_ARGS = listOf("-d", "javadoc", "-Xdoclint:none", "-Xmaxerrs", "1", "-quiet")
 
