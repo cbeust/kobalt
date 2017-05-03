@@ -88,11 +88,6 @@ fun Project.javaCompiler(init: JavaConfig.() -> Unit) =
         (Kobalt.findPlugin(JavaPlugin.PLUGIN_NAME) as JavaPlugin).addConfiguration(this, config)
     }
 
-class JavadocConfig(val project: Project) {
-    val args = arrayListOf<String>()
-    fun args(vararg options: String) = args.addAll(options)
-}
-
 @Directive
 fun Project.javadoc(init: JavadocConfig.() -> Unit) =
     JavadocConfig(this).also { config ->
