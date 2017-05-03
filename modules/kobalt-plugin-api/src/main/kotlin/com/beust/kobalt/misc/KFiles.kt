@@ -134,7 +134,7 @@ class KFiles {
         fun joinFileAndMakeDir(vararg ts: String) = joinDir(joinAndMakeDir(ts.slice(0..ts.size - 2)), ts[ts.size - 1])
 
         fun fixSlashes(f: File) = f.normalize().path.replace('\\', '/')
-        fun fixSlashes(s: String) = fixSlashes(File(s))
+        fun fixSlashes(s: String) = s.replace('\\', '/')
 
         fun makeDir(dir: String, s: String? = null) =
                 (if (s != null) File(dir, s) else File(dir)).apply { mkdirs() }
