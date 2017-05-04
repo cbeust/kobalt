@@ -222,7 +222,7 @@ open class JvmCompilerPlugin @Inject constructor(
     }
 
     @Task(name = "doc", description = "Generate the documentation for the project", group = GROUP_DOCUMENTATION,
-            runBefore = arrayOf("assemble"))
+            runBefore = arrayOf("assemble"), runAfter = arrayOf("clean"))
     fun taskJavadoc(project: Project): TaskResult {
         val docGenerator = ActorUtils.selectAffinityActor(project, context, context.pluginInfo.docContributors)
         if (docGenerator != null) {
