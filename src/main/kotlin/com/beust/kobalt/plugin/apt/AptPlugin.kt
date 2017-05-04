@@ -243,9 +243,9 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
         fun addFlags(outputDir: String) {
             aptDependencies[project.name]?.let {
                 result.add("-s")
-                generatedSources(project, context, outputDir).let { generatedSource ->
-                    File(generatedSource).mkdirs()
-                    result.add(generatedSource)
+                generatedDir(project, outputDir).let { generatedSource ->
+                    generatedSource.mkdirs()
+                    result.add(generatedSource.path)
                 }
             }
         }
