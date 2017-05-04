@@ -62,7 +62,7 @@ class JavadocConfig(val project: Project) {
         }
     }
 
-    private fun addOptions(option: String, first: String, second: String) {
+    private fun addPair(option: String, first: String, second: String) {
         if (first.isNotEmpty() && second.isNotEmpty()) {
             args.add("-$option")
             args.add("\"$first\"")
@@ -320,8 +320,8 @@ class JavadocConfig(val project: Project) {
      */
     var title: String = ""
         set(value) {
-            addString("windowtitle", value)
-            addString("doctitle", value)
+            windowTitle = value
+            docTitle = value
         }
 
     /**
@@ -543,12 +543,12 @@ class JavadocConfig(val project: Project) {
     /**
      * @see <a href="http://docs.oracle.com/javase/8/docs/technotes/tools/windows/javadoc.html#CHDIGGII">-group</a>
      */
-    fun group(groupHeading: String, packagePattern: String) = addOptions("group", groupHeading, packagePattern)
+    fun group(groupHeading: String, packagePattern: String) = addPair("group", groupHeading, packagePattern)
 
     /**
      * @see <a href="http://docs.oracle.com/javase/8/docs/technotes/tools/windows/javadoc.html#CHDFIIJH">-linkoffline</a>
      */
-    fun linkOffline(extdocURL: String, packagelistLoc: String) = addOptions("linkoffline", extdocURL, packagelistLoc)
+    fun linkOffline(extdocURL: String, packagelistLoc: String) = addPair("linkoffline", extdocURL, packagelistLoc)
 
     /**
      * @see <a href="http://docs.oracle.com/javase/8/docs/technotes/tools/windows/javadoc.html#CHDEDJFI">-link</a>
@@ -582,6 +582,7 @@ fun main(args: Array<String>) {
     }
 
     val config = JavadocConfig(Project())
+    config.title = "This is a test."
     config.verbose = true
     config.quiet = false
     config.links("http://docs.oracle.com/javase/8/docs/api/")
