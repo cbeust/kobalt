@@ -62,7 +62,7 @@ class BintrayApi @Inject constructor(val http: Http,
                            @Path("publish") publish: Int,
                            @Body file: File): Call<BintrayResponse>
 
-        class UpdateVersion(val desc: String?, val vcsTag: String?)
+        class UpdateVersion(val desc: String?, val vcs_tag: String?)
 
         @PATCH("/packages/{owner}/maven/{repo}/versions/{version}")
         fun updateVersion(@Path("owner") owner: String,
@@ -112,9 +112,10 @@ class BintrayApi @Inject constructor(val http: Http,
     private fun buildPackageInfo(project: Project): JsonObject {
         val jsonObject = JsonObject()
         jsonObject.addNonNull("name", project.name)
-        jsonObject.addNonNull("desc", project.description)
+        jsonObject.addNonNull("desc",
+                if (project.description.isNotBlank()) project.description else project.pom?.description)
         jsonObject.addNonNull("vcs_url", project.pom?.scm?.url)
-        jsonObject.addNonNull("website_url", project.url)
+        jsonObject.addNonNull("website_url", if (! project.url.isNullOrBlank()) project.url else project.pom?.url)
         val licenses = JsonArray()
         project.pom?.licenses?.forEach {
             licenses.add(it.name)
