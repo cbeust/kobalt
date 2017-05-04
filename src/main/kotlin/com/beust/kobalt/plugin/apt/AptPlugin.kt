@@ -41,11 +41,9 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
 
     override val name = PLUGIN_NAME
 
-    var kaptConfig: KaptConfig? = null
-
     override fun apply(project: Project, context: KobaltContext) {
         super.apply(project, context)
-        kaptConfig = kaptConfigs[project.name]
+        val kaptConfig = kaptConfigs[project.name]
 
         // Delete the output directories
         listOf(aptConfigs[project.name]?.outputDir, kaptConfig?.outputDir)
@@ -64,9 +62,10 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
     // IClasspathContributor
     override fun classpathEntriesFor(project: Project?, context: KobaltContext): Collection<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
+        val kaptConfig = kaptConfigs[project?.name]
         if (project != null && kaptConfig != null) {
-            kaptConfig?.let { config ->
-                val c = generatedClasses(project, context, config.outputDir)
+            kaptConfig.let { config ->
+                val c = generatedClasses(project, config.outputDir)
                 File(c).mkdirs()
                 result.add(FileDependency(c))
             }
@@ -85,24 +84,25 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
         }
 
         kaptConfigs[project.name]?.let { config ->
-            result.add(File(generatedSources(project, context, config.outputDir)))
+            result.add(File(generatedSources(project, config.outputDir)))
         }
 
         return result
     }
 
-    private fun generated(project: Project, context: KobaltContext, outputDir: String) =
+    private fun generated(project: Project, outputDir: String) =
             KFiles.joinAndMakeDir(project.directory, project.buildDirectory, outputDir)
 
-    private fun generatedSources(project: Project, context: KobaltContext, outputDir: String) =
-            KFiles.joinDir(generated(project, context, outputDir), "sources")
-    private fun generatedStubs(project: Project, context: KobaltContext, outputDir: String) =
-            KFiles.joinDir(generated(project, context, outputDir), "stubs")
-    private fun generatedClasses(project: Project, context: KobaltContext, outputDir: String) =
-            KFiles.joinDir(generated(project, context, outputDir), "classes")
+    private fun generatedSources(project: Project, outputDir: String) =
+            KFiles.joinDir(generated(project, outputDir), "sources")
+    private fun generatedStubs(project: Project, outputDir: String) =
+            KFiles.joinDir(generated(project, outputDir), "stubs")
+    private fun generatedClasses(project: Project, outputDir: String) =
+            KFiles.joinDir(generated(project, outputDir), "classes")
 
     // ITaskContributor
     override fun tasksFor(project: Project, context: KobaltContext): List<DynamicTask> {
+        val kaptConfig = kaptConfigs[project.name]
         val result =
             if (kaptConfig != null) {
                 listOf(
@@ -124,11 +124,11 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
         var success = true
         kaptConfigs[project.name]?.let { config ->
             val sourceDirs = listOf(
-                    generatedStubs(project, context, config.outputDir),
-                    generatedSources(project, context, config.outputDir))
+                    generatedStubs(project, config.outputDir),
+                    generatedSources(project, config.outputDir))
             val sourceFiles = KFiles.findSourceFiles(project.directory, sourceDirs, listOf("kt")).toList()
             val buildDirectory = File(KFiles.joinDir(project.directory,
-                    generatedClasses(project, context, config.outputDir)))
+                    generatedClasses(project, config.outputDir)))
             val flags = listOf<String>()
             val cai = CompilerActionInfo(project.directory, allDependencies(project), sourceFiles, listOf(".kt"),
                     buildDirectory, flags, emptyList(), forceRecompile = true, compilerSeparateProcess = true)
@@ -158,9 +158,10 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
     fun taskRunKapt(project: Project) : TaskResult {
         var success = true
         val flags = arrayListOf<String>()
+        val kaptConfig = kaptConfigs[project.name]
         kaptConfig?.let { config ->
-            val generated = generated(project, context, config.outputDir)
-            val generatedSources = generatedSources(project, context, config.outputDir).replace("//", "/")
+            val generated = generated(project, config.outputDir)
+            val generatedSources = generatedSources(project, config.outputDir).replace("//", "/")
             File(generatedSources).mkdirs()
 
             //
@@ -191,8 +192,8 @@ class AptPlugin @Inject constructor(val dependencyManager: DependencyManager, va
             val kaptPluginFlags = arrayListOf<String>()
             val verbose = KobaltLogger.LOG_LEVEL >= 2
             listOf("sources=" + generatedSources,
-                    "classes=" + generatedClasses(project, context, config.outputDir),
-                    "stubs=" + generatedStubs(project, context, config.outputDir),
+                    "classes=" + generatedClasses(project, config.outputDir),
+                    "stubs=" + generatedStubs(project, config.outputDir),
                     "verbose=$verbose",
                     "aptOnly=true").forEach {
                 kaptPluginFlags.add(kaptPluginFlag(it))
