@@ -96,12 +96,13 @@ class BintrayApi @Inject constructor(val http: Http,
                 .create(Api::class.java)
     }
 
-    fun validatePackage(project: Project) {
-        val execute = service.getPackage(org ?: username!!, project.name).execute()
+    fun validatePackage(project: Project, config: BintrayConfig) {
+        val pkgName = config.name ?: project.name
+        val execute = service.getPackage(org ?: username!!, pkgName).execute()
 
-        if (execute.errorBody()?.string()?.contains("'${project.name}' was not found") ?: false) {
+        if (execute.errorBody()?.string()?.contains("'$pkgName' was not found") ?: false) {
             warn("Package does not exist on bintray.  Creating now.")
-            val result = service.createPackage(org ?: username!!, buildPackageInfo(project))
+            val result = service.createPackage(org ?: username!!, buildPackageInfo(project, config))
                     .execute()
             if (result.errorBody() != null) {
                 throw KobaltException("Error while creating package:\n" + result.errorBody().string())
@@ -109,13 +110,14 @@ class BintrayApi @Inject constructor(val http: Http,
         }
     }
 
-    private fun buildPackageInfo(project: Project): JsonObject {
+    private fun buildPackageInfo(project: Project, config: BintrayConfig): JsonObject {
         val jsonObject = JsonObject()
-        jsonObject.addNonNull("name", project.name)
+        jsonObject.addNonNull("name", config.name ?: project.name)
         jsonObject.addNonNull("desc",
                 if (project.description.isNotBlank()) project.description else project.pom?.description)
         jsonObject.addNonNull("vcs_url", project.pom?.scm?.url)
-        jsonObject.addNonNull("website_url", if (! project.url.isNullOrBlank()) project.url else project.pom?.url)
+        jsonObject.addNonNull("website_url", project.url ?: project.pom?.url)
+        jsonObject.addNonNull("issue_tracker_url", config.issueTrackerUrl)
         val licenses = JsonArray()
         project.pom?.licenses?.forEach {
             licenses.add(it.name)
@@ -125,7 +127,7 @@ class BintrayApi @Inject constructor(val http: Http,
     }
 
     fun uploadMaven(project: Project, files: List<File>, config: BintrayConfig): TaskResult {
-        validatePackage(project)
+        validatePackage(project, config)
         return upload(project, files, config, generateMd5 = true)
     }
 

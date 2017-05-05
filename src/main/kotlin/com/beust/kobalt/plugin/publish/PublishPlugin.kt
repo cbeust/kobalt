@@ -268,8 +268,17 @@ data class BintrayConfig(val project: Project) {
         files.add(Pair(filePath, url))
     }
 
+    /**
+     * The package name on Bintray which is not always the project name.
+     */
+    @Directive
+    var name: String? = null
+
     @Directive
     var description: String? = null
+
+    @Directive
+    var issueTrackerUrl: String? = null
 
     @Directive
     var vcsTag: String? = null
