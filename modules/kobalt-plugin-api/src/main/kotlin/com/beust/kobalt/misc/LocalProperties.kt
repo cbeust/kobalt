@@ -6,6 +6,9 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 
+/**
+ * Encapsulate read access to local.properties.
+ */
 @Singleton
 class LocalProperties {
     val localProperties: Properties by lazy {
@@ -22,11 +25,11 @@ class LocalProperties {
         result
     }
 
-    fun getNoThrows(name: String, docUrl: String? = null) = localProperties.getProperty(name)
+    fun getNoThrows(name: String, docUrl: String? = null): String? = localProperties.getProperty(name, docUrl)
 
     fun get(name: String, docUrl: String? = null) : String {
         val result = getNoThrows(name, docUrl)
                 ?: throw KobaltException("Couldn't find $name in local.properties", docUrl = docUrl)
-        return result as String
+        return result
     }
 }
