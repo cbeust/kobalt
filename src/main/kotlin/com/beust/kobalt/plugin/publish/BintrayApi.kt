@@ -15,6 +15,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.TypeAdapter
+import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
 import com.google.inject.assistedinject.Assisted
 import okhttp3.*
@@ -62,7 +63,7 @@ class BintrayApi @Inject constructor(val http: Http,
                            @Path("publish") publish: Int,
                            @Body file: File): Call<BintrayResponse>
 
-        class UpdateVersion(val desc: String?, val vcs_tag: String?)
+        class UpdateVersion(val desc: String?, @SerializedName("vcs_tag") val vcsTag: String?)
 
         @PATCH("/packages/{owner}/maven/{repo}/versions/{version}")
         fun updateVersion(@Path("owner") owner: String,
@@ -111,13 +112,14 @@ class BintrayApi @Inject constructor(val http: Http,
     }
 
     private fun buildPackageInfo(project: Project, config: BintrayConfig): JsonObject {
-        val jsonObject = JsonObject()
-        jsonObject.addNonNull("name", config.name ?: project.name)
-        jsonObject.addNonNull("desc",
-                if (project.description.isNotBlank()) project.description else project.pom?.description)
-        jsonObject.addNonNull("vcs_url", project.pom?.scm?.url)
-        jsonObject.addNonNull("website_url", project.url ?: project.pom?.url)
-        jsonObject.addNonNull("issue_tracker_url", config.issueTrackerUrl)
+        val jsonObject = JsonObject().apply {
+            addNonNull("name", config.name ?: project.name)
+            addNonNull("desc",
+                    if (project.description.isNotBlank()) project.description else project.pom?.description)
+            addNonNull("vcs_url", project.pom?.scm?.url)
+            addNonNull("website_url", project.url ?: project.pom?.url)
+            addNonNull("issue_tracker_url", config.issueTrackerUrl)
+        }
         val licenses = JsonArray()
         project.pom?.licenses?.forEach {
             licenses.add(it.name)
