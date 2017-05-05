@@ -15,6 +15,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.TypeAdapter
+import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
 import com.google.inject.assistedinject.Assisted
 import okhttp3.*
@@ -62,7 +63,7 @@ class BintrayApi @Inject constructor(val http: Http,
                            @Path("publish") publish: Int,
                            @Body file: File): Call<BintrayResponse>
 
-        class UpdateVersion(val desc: String?, val vcsTag: String?)
+        class UpdateVersion(val desc: String?, @SerializedName("vcs_tag") val vcsTag: String?)
 
         @PATCH("/packages/{owner}/maven/{repo}/versions/{version}")
         fun updateVersion(@Path("owner") owner: String,
@@ -96,12 +97,13 @@ class BintrayApi @Inject constructor(val http: Http,
                 .create(Api::class.java)
     }
 
-    fun validatePackage(project: Project) {
-        val execute = service.getPackage(org ?: username!!, project.name).execute()
+    fun validatePackage(project: Project, config: BintrayConfig) {
+        val pkgName = config.name ?: project.name
+        val execute = service.getPackage(org ?: username!!, pkgName).execute()
 
-        if (execute.errorBody()?.string()?.contains("'${project.name}' was not found") ?: false) {
+        if (execute.errorBody()?.string()?.contains("'$pkgName' was not found") ?: false) {
             warn("Package does not exist on bintray.  Creating now.")
-            val result = service.createPackage(org ?: username!!, buildPackageInfo(project))
+            val result = service.createPackage(org ?: username!!, buildPackageInfo(project, config))
                     .execute()
             if (result.errorBody() != null) {
                 throw KobaltException("Error while creating package:\n" + result.errorBody().string())
@@ -109,12 +111,15 @@ class BintrayApi @Inject constructor(val http: Http,
         }
     }
 
-    private fun buildPackageInfo(project: Project): JsonObject {
-        val jsonObject = JsonObject()
-        jsonObject.addNonNull("name", project.name)
-        jsonObject.addNonNull("desc", project.description)
-        jsonObject.addNonNull("vcs_url", project.pom?.scm?.url)
-        jsonObject.addNonNull("website_url", project.url)
+    private fun buildPackageInfo(project: Project, config: BintrayConfig): JsonObject {
+        val jsonObject = JsonObject().apply {
+            addNonNull("name", config.name ?: project.name)
+            addNonNull("desc",
+                    if (project.description.isNotBlank()) project.description else project.pom?.description)
+            addNonNull("vcs_url", project.pom?.scm?.url)
+            addNonNull("website_url", project.url ?: project.pom?.url)
+            addNonNull("issue_tracker_url", config.issueTrackerUrl)
+        }
         val licenses = JsonArray()
         project.pom?.licenses?.forEach {
             licenses.add(it.name)
@@ -124,7 +129,7 @@ class BintrayApi @Inject constructor(val http: Http,
     }
 
     fun uploadMaven(project: Project, files: List<File>, config: BintrayConfig): TaskResult {
-        validatePackage(project)
+        validatePackage(project, config)
         return upload(project, files, config, generateMd5 = true)
     }
 
