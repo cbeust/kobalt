@@ -45,29 +45,23 @@ class Gpg @Inject constructor(val localProperties: LocalProperties) {
                 val allArgs = arrayListOf<String>()
                 allArgs.add(gpg)
 
-                val pwd = localProperties.getNoThrows("gpg.password")
-                if (pwd != null && ! pwd.isNullOrBlank()) {
-                    allArgs.add("--passphrase")
-                    allArgs.add(pwd)
-                    allArgs.add("--batch")
-                    allArgs.add("--yes")
+                fun maybeAdd(prop: String, f: (String) -> Unit) = localProperties.getNoThrows(prop)?.let {
+                    f(it)
                 }
 
-                val keyId = localProperties.getNoThrows("gpg.keyId")
-                if (keyId != null && ! keyId.isNullOrBlank()) {
-                    allArgs.add("--local-user")
-                    allArgs.add(keyId)
+                maybeAdd("gpg.password") {
+                    allArgs.addAll(listOf("--passphrase", it, "--batch", "--yes"))
                 }
-
-                val keyRing = localProperties.getNoThrows("gpg.secretKeyRingFile")
-                if (! keyRing.isNullOrBlank()) {
-                    allArgs.add("--secret-keyring")
-                    allArgs.add("\"$keyRing\"")
+                maybeAdd("gpg.keyId") {
+                    allArgs.addAll(listOf("--local-user", it))
+                }
+                maybeAdd("gpg.secretKeyRingFile") {
+                    allArgs.addAll(listOf("--secret-keyring", "\"$it\""))
                 }
 
                 allArgs.add("-ab")
                 allArgs.add(file.absolutePath)
-                
+
                 val pb = ProcessBuilder(allArgs)
                 pb.directory(directory)
                 kobaltLog(2, "Signing file: " + allArgs.joinToString(" "))
