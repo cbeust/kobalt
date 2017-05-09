@@ -46,7 +46,7 @@ class Gpg @Inject constructor(val localProperties: LocalProperties) {
                 allArgs.add(gpg)
 
                 val pwd = localProperties.getNoThrows("gpg.password")
-                if (! pwd.isNullOrBlank()) {
+                if (pwd != null && ! pwd.isNullOrBlank()) {
                     allArgs.add("--passphrase")
                     allArgs.add(pwd)
                     allArgs.add("--batch")
@@ -54,7 +54,7 @@ class Gpg @Inject constructor(val localProperties: LocalProperties) {
                 }
 
                 val keyId = localProperties.getNoThrows("gpg.keyId")
-                if (! keyId.isNullOrBlank()) {
+                if (keyId != null && ! keyId.isNullOrBlank()) {
                     allArgs.add("--local-user")
                     allArgs.add(keyId)
                 }
