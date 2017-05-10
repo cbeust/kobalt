@@ -169,7 +169,7 @@ class BintrayApi @Inject constructor(val http: Http,
 
             val results = arrayListOf<Boolean>()
             val owner = org ?: username!!
-            val repo = project.name
+            val repo = config.name ?: project.name
             val group = project.group!!.replace('.', '/')
             val artifact = project.artifactId!!
             val version = project.version!!
