@@ -117,7 +117,7 @@ class PublishPlugin @Inject constructor(val files: KFiles, val factory: PomGener
         val docUrl = DocUrl.PUBLISH_PLUGIN_URL
         val user = localProperties.get(PROPERTY_BINTRAY_USER, docUrl)
         val password = localProperties.get(PROPERTY_BINTRAY_PASSWORD, docUrl)
-        val org = localProperties.getNoThrows(PROPERTY_BINTRAY_ORG, docUrl)
+        val org = localProperties.getNoThrows(PROPERTY_BINTRAY_ORG)
 
         val jcenter = bintrayFactory.create(user, password, org)
         var success = false

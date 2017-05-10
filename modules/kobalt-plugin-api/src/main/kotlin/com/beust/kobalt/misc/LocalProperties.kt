@@ -25,10 +25,10 @@ class LocalProperties {
         result
     }
 
-    fun getNoThrows(name: String, docUrl: String? = null): String? = localProperties.getProperty(name, docUrl)
+    fun getNoThrows(name: String): String? = localProperties.getProperty(name)
 
     fun get(name: String, docUrl: String? = null) : String {
-        val result = getNoThrows(name, docUrl)
+        val result = getNoThrows(name)
                 ?: throw KobaltException("Couldn't find $name in local.properties", docUrl = docUrl)
         return result
     }

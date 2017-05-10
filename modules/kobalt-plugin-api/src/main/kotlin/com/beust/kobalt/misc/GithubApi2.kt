@@ -120,8 +120,8 @@ class GithubApi2 @Inject constructor(
                         Duration.between(VersionCheckTimestampFile.timestamp, Instant.now())) {
                     kobaltLog(2, "Skipping GitHub latest release check, too soon.")
                 } else {
-                    val username = localProperties.getNoThrows(PROPERTY_USERNAME, DOC_URL)
-                    val accessToken = localProperties.getNoThrows(PROPERTY_ACCESS_TOKEN, DOC_URL)
+                    val username = localProperties.getNoThrows(PROPERTY_USERNAME)
+                    val accessToken = localProperties.getNoThrows(PROPERTY_ACCESS_TOKEN)
                     try {
                         val req =
                                 if (username != null && accessToken != null) {
