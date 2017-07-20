@@ -20,6 +20,8 @@ abstract class LanguageTemplateGenerator : ITemplate {
 
     abstract val defaultSourceDirectories : HashSet<String>
     abstract val defaultTestDirectories : HashSet<String>
+    abstract val mainDependencies : ArrayList<Pom.Dependency>
+    abstract val testDependencies : ArrayList<Pom.Dependency>
     abstract val directive : String
     abstract val fileMatch : (String) -> Boolean
     abstract val fileMap: List<FileInfo>
@@ -131,19 +133,18 @@ abstract class LanguageTemplateGenerator : ITemplate {
                 put("directory", currentDir.absolutePath)
                 put("sourceDirectories", defaultSourceDirectories)
                 put("sourceDirectoriesTest", defaultTestDirectories)
+                put("mainDependencies", mainDependencies)
+                put("testDependencies", testDependencies)
                 put("imports", "import com.beust.kobalt.plugin.$templateName.*")
                 put("directive", "project")
             }
 
-            var mainDeps = arrayListOf<Pom.Dependency>()
-            var testDeps = arrayListOf<Pom.Dependency>()
-            map.put("mainDependencies", mainDeps)
-            map.put("testDependencies", testDeps)
             File("pom.xml").let {
                 if (it.absoluteFile.exists()) {
-                    importPom(it, mainDeps, testDeps, map)
+                    importPom(it, mainDependencies, testDependencies, map)
                 }
             }
+
 
             val fileInputStream = javaClass.classLoader
                     .getResource(ITemplateContributor.DIRECTORY_NAME + "/build.mustache").openStream()
