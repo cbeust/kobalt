@@ -4,7 +4,6 @@ import aQute.bnd.osgi.Analyzer
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
-import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.archive.MetaArchive
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
@@ -16,9 +15,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URI
 import java.net.URLClassLoader
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
+import java.nio.file.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.jar.JarFile
@@ -48,7 +45,7 @@ class OsgiPlugin @Inject constructor(val configActor: ConfigActor<OsgiConfig>, v
     }
 
     private fun generateManifest(project: Project, context: KobaltContext): TaskResult {
-        val jarName = project.projectProperties.get(Archives.JAR_NAME) as String
+        val jarName = "testng-6.13-SNAPSHOT.jar" // project.projectProperties.get(Archives.JAR_NAME) as String
         val jarFile = File(KFiles.libsDir(project), jarName)
         val cp = ClassPath.from(URLClassLoader(arrayOf(jarFile.toURI().toURL()), null))
 
@@ -57,6 +54,7 @@ class OsgiPlugin @Inject constructor(val configActor: ConfigActor<OsgiConfig>, v
             it + ";version=\"" + project.version + "\""
         }.joinToString(",")
 
+        val toFile = Files.createTempFile(null, ".jar")
         val analyzer = Analyzer().apply {
             jar = aQute.bnd.osgi.Jar(jarName)
             val dependencies = project.compileDependencies + project.compileRuntimeDependencies
@@ -87,18 +85,24 @@ class OsgiPlugin @Inject constructor(val configActor: ConfigActor<OsgiConfig>, v
             //
             // Update or create META-INF/MANIFEST.MF
             //
-            val uri = URI.create("jar:file:" + jarFile.absolutePath)
+            KFiles.copy(Paths.get(jarFile.toURI()), Paths.get(toFile.toUri()))
+
+            val uri = URI.create(KFiles.fixSlashes("jar:file:/" + toFile))
+
             val options = hashMapOf<String, String>()
             val fileSystem = FileSystems.newFileSystem(uri, options)
             fileSystem.use { fs ->
-                val mf = JarFile(jarFile).getEntry(MetaArchive.MANIFEST_MF)
-                if (mf == null) {
-                    Files.createDirectories(fs.getPath("META-INF/"))
+                JarFile(jarFile).use { jf ->
+                    val mf = jf.getEntry(MetaArchive.MANIFEST_MF)
+                    if (mf == null) {
+                        Files.createDirectories(fs.getPath("META-INF/"))
+                    }
+                    val jarManifest = fs.getPath(MetaArchive.MANIFEST_MF)
+                    Files.write(jarManifest, listOf(lines2),
+                            if (mf != null) StandardOpenOption.APPEND else StandardOpenOption.CREATE)
                 }
-                val jarManifest = fs.getPath(MetaArchive.MANIFEST_MF)
-                Files.write(jarManifest, listOf(lines2),
-                        if (mf != null) StandardOpenOption.APPEND else StandardOpenOption.CREATE)
             }
+            Files.copy(Paths.get(toFile.toUri()), Paths.get(jarFile.toURI()), StandardCopyOption.REPLACE_EXISTING)
             return TaskResult()
         }
     }
