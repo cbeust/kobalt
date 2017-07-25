@@ -1,11 +1,14 @@
 package com.beust.kobalt.app.java
 
 import com.beust.kobalt.app.LanguageTemplateGenerator
+import com.beust.kobalt.maven.Pom
 
 /**
  * Template for the "java" generator.
  */
 class JavaTemplateGenerator : LanguageTemplateGenerator() {
+    override val mainDependencies = arrayListOf<Pom.Dependency>()
+    override val testDependencies = arrayListOf<Pom.Dependency>()
     override val defaultSourceDirectories = hashSetOf("src/main/java")
     override val defaultTestDirectories = hashSetOf("src/test/java")
     override val directive = "project"
