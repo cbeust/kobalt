@@ -4,6 +4,7 @@ import aQute.bnd.osgi.Analyzer
 import com.beust.kobalt.TaskResult
 import com.beust.kobalt.api.*
 import com.beust.kobalt.api.annotation.Directive
+import com.beust.kobalt.archive.Archives
 import com.beust.kobalt.archive.MetaArchive
 import com.beust.kobalt.maven.DependencyManager
 import com.beust.kobalt.misc.KFiles
@@ -45,7 +46,7 @@ class OsgiPlugin @Inject constructor(val configActor: ConfigActor<OsgiConfig>, v
     }
 
     private fun generateManifest(project: Project, context: KobaltContext): TaskResult {
-        val jarName = "testng-6.13-SNAPSHOT.jar" // project.projectProperties.get(Archives.JAR_NAME) as String
+        val jarName = project.projectProperties.get(Archives.JAR_NAME) as String
         val jarFile = File(KFiles.libsDir(project), jarName)
         val cp = ClassPath.from(URLClassLoader(arrayOf(jarFile.toURI().toURL()), null))
 
