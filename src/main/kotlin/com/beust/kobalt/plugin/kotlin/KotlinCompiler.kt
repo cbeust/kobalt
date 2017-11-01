@@ -155,7 +155,7 @@ class KotlinCompiler @Inject constructor(
                 moduleName = projectName
                 destination = outputDir
                 classpath = classpathString
-                freeArgs = sourceFiles
+                freeArgs = sourceFiles.toMutableList()
                 friendPaths = friends
             }
 
@@ -178,10 +178,10 @@ class KotlinCompiler @Inject constructor(
                         "skip-runtime-version-check" -> args.skipRuntimeVersionCheck = true
                         "single-module" -> args.singleModule = true
                         "load-builtins-from-dependencies" -> args.loadBuiltInsFromDependencies = true
-
-                        "coroutines=enable" -> args.coroutinesEnable = true
-                        "coroutines=warn" -> args.coroutinesWarn = true
-                        "coroutines=error" -> args.coroutinesError = true
+                        // TODO fix
+                        //"coroutines=enable" -> args.coroutinesEnable = true
+                        //"coroutines=warn" -> args.coroutinesWarn = true
+                        //"coroutines=error" -> args.coroutinesError = true
                         "no-inline" -> args.noInline = true
                         "multi-platform" -> args.multiPlatform = true
                         "no-check-impl" -> args.noCheckImpl = true
@@ -214,7 +214,7 @@ class KotlinCompiler @Inject constructor(
                     + " " + sourceFiles.joinToString(" "))
             logk(2, "    Additional kotlinc arguments: "
                     + " -moduleName " + args.moduleName
-                    + " -friendPaths " + args.friendPaths.joinToString(";"))
+                    + " -friendPaths " + args.friendPaths?.joinToString(";"))
             val collector = object : MessageCollector {
                 override fun clear() {
                     throw UnsupportedOperationException("not implemented")
@@ -233,8 +233,7 @@ class KotlinCompiler @Inject constructor(
                         s
                     }
 
-                override fun report(severity: CompilerMessageSeverity,
-                        message: String, location: CompilerMessageLocation) {
+                override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation?) {
                     if (severity.isError) {
                         "Couldn't compile file: ${dump(location, message)}".let { fullMessage ->
                             throw KobaltException(fullMessage)

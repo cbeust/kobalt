@@ -101,12 +101,12 @@ class BintrayApi @Inject constructor(val http: Http,
         val pkgName = config.name ?: project.name
         val execute = service.getPackage(org ?: username!!, pkgName).execute()
 
-        if (execute.errorBody()?.string()?.contains("'$pkgName' was not found") ?: false) {
+        if (execute.errorBody()?.string()?.contains("'$pkgName' was not found") == true) {
             warn("Package does not exist on bintray.  Creating now.")
             val result = service.createPackage(org ?: username!!, buildPackageInfo(project, config))
                     .execute()
             if (result.errorBody() != null) {
-                throw KobaltException("Error while creating package:\n" + result.errorBody().string())
+                throw KobaltException("Error while creating package:\n" + result.errorBody())
             }
         }
     }

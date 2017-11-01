@@ -25,16 +25,18 @@ val bs = buildScript {
 }
 
 object Versions {
-    val okhttp = "3.2.0"
-    val okio = "1.6.0"
-    val retrofit = "2.1.0"
-    val gson = "2.6.2"
-    val maven = "3.3.9"
-    val mavenResolver = "1.0.3"
+    val okhttp = "3.9.0"
+    val okio = "1.13.0"
+    val retrofit = "2.3.0"
+    val gson = "2.8.2"
+    val guice = "4.1.0"
+    val maven = "3.5.2"
+    val mavenResolver = "1.1.0"
     val slf4j = "1.7.3"
-    val kotlin = "1.1.2"
+    val kotlin = "1.1.51"
     val aether = "1.0.2.v20150114"
-    val testng = "6.11"
+    val testng = "6.12"
+    val jcommander = "1.72"
 
     // JUnit 5
     val junit = "4.12"
@@ -97,34 +99,32 @@ val kobaltPluginApi = project {
     dependencies {
         compile(
                 "org.jetbrains.kotlin:kotlin-stdlib:${Versions.kotlin}",
-                "com.google.inject:guice:4.0",
-                "com.google.inject.extensions:guice-assistedinject:4.0",
+                "com.google.inject:guice:${Versions.guice}",
+                "com.google.inject.extensions:guice-assistedinject:4.1.0",
                 "javax.inject:javax.inject:1",
-                "com.google.guava:guava:21.0",
+                "com.google.guava:guava:23.3-jre",
                 "org.apache.maven:maven-model:${Versions.maven}",
-                "io.reactivex:rxjava:1.1.5",
+                "io.reactivex:rxjava:1.3.3",
                 "com.squareup.okio:okio:${Versions.okio}",
                 "com.google.code.gson:gson:${Versions.gson}",
                 "com.squareup.okhttp3:okhttp:${Versions.okhttp}",
                 "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
-                "com.beust:jcommander:1.48",
-                "org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r",
+                "com.beust:jcommander:${Versions.jcommander}",
+                "org.eclipse.jgit:org.eclipse.jgit:4.9.0.201710071750-r",
                 "org.slf4j:slf4j-simple:${Versions.slf4j}",
                 *mavenResolver("api", "spi", "util", "impl", "connector-basic", "transport-http", "transport-file"),
                 "org.apache.maven:maven-aether-provider:3.3.9",
                 "org.testng.testng-remote:testng-remote:1.3.2",
                 "org.testng:testng:${Versions.testng}",
-                "commons-io:commons-io:2.5",
                 "org.junit.platform:junit-platform-surefire-provider:${Versions.junitPlatform}",
                 "org.junit.platform:junit-platform-runner:${Versions.junitPlatform}",
                 "org.junit.platform:junit-platform-engine:${Versions.junitPlatform}",
                 "org.junit.platform:junit-platform-console:${Versions.junitPlatform}",
                 "org.junit.jupiter:junit-jupiter-engine:${Versions.junitJupiter}",
                 "org.junit.vintage:junit-vintage-engine:${Versions.junitVintageVersion}",
-
-                "org.apache.commons:commons-compress:1.13",
-                "commons-io:commons-io:2.5"
+                "org.apache.commons:commons-compress:1.15",
+                "commons-io:commons-io:2.6"
         )
         exclude(*aether("impl", "spi", "util", "api"))
     }
@@ -161,24 +161,30 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
         // Used by the main app
         compile(
                 "org.jetbrains.kotlin:kotlin-stdlib:${Versions.kotlin}",
-                "com.github.spullara.mustache.java:compiler:0.9.1",
+                "com.github.spullara.mustache.java:compiler:0.9.5",
                 "javax.inject:javax.inject:1",
-                "com.google.inject:guice:4.0",
-                "com.google.inject.extensions:guice-assistedinject:4.0",
-                "com.beust:jcommander:1.65",
+                "com.google.inject:guice:${Versions.guice}",
+                "com.google.inject.extensions:guice-assistedinject:${Versions.guice}",
+                "com.beust:jcommander:${Versions.jcommander}",
                 "org.apache.maven:maven-model:${Versions.maven}",
-                "com.google.code.findbugs:jsr305:3.0.1",
+                "com.google.code.findbugs:jsr305:3.0.2",
                 "com.google.code.gson:gson:${Versions.gson}",
                 "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
-                "com.squareup.okhttp3:okhttp-ws:${Versions.okhttp}",
+                "com.squareup.okhttp3:okhttp-ws:3.4.2",
                 "biz.aQute.bnd:bndlib:2.4.0",
                 *mavenResolver("spi"),
 
-                "com.squareup.okhttp3:logging-interceptor:3.2.0",
+                "com.squareup.okhttp3:logging-interceptor:3.9.0",
 
-                "com.sparkjava:spark-core:2.5",
-                "org.codehaus.groovy:groovy:2.4.8"
+                "com.sparkjava:spark-core:2.6.0",
+                "org.codehaus.groovy:groovy:2.4.12",
+
+                // Java 9
+                "javax.xml.bind:jaxb-api:2.3.0",
+                "com.sun.xml.bind:jaxb-impl:2.3.0",
+                "com.sun.xml.bind:jaxb-core:2.3.0",
+                "com.sun.activation:javax.activation:1.2.0"
 
 //                "org.eclipse.jetty:jetty-server:${Versions.jetty}",
 //                "org.eclipse.jetty:jetty-servlet:${Versions.jetty}",
@@ -194,7 +200,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
     dependenciesTest {
         compile("org.jetbrains.kotlin:kotlin-test:${Versions.kotlin}",
                 "org.testng:testng:${Versions.testng}",
-                "org.assertj:assertj-core:3.4.1",
+                "org.assertj:assertj-core:3.8.0",
                 *mavenResolver("util")
                 )
     }
