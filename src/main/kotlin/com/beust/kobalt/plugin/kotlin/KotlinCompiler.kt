@@ -89,12 +89,12 @@ class KotlinCompiler @Inject constructor(
             // the K2JVMCompiler class directly
             val actualVersion = kotlinVersion(project)
 
-            if (settings.kobaltCompilerSeparateProcess || actualVersion != Constants.KOTLIN_COMPILER_VERSION
+            return if (settings.kobaltCompilerSeparateProcess || actualVersion != Constants.KOTLIN_COMPILER_VERSION
                     || info.compilerSeparateProcess) {
-                return invokeCompilerInSeparateProcess(classpath, info, actualVersion, project)
+                invokeCompilerInSeparateProcess(classpath, info, actualVersion, project)
 
             } else {
-                return invokeCompilerDirectly(project, projectName ?: "kobalt-" + Random().nextInt(), outputDir,
+                invokeCompilerDirectly(project, projectName ?: "kobalt-" + Random().nextInt(), outputDir,
                         info, classpath, filesToCompile)
             }
         }
@@ -111,7 +111,7 @@ class KotlinCompiler @Inject constructor(
                 .filterNotNull()
                 .joinToString(" ")
 
-            val xFlagsArray = xFlagsString.split(" ").toTypedArray() ?: emptyArray()
+            val xFlagsArray = xFlagsString.split(" ").toTypedArray()
             val newArgs = listOf(
                     "-classpath", compilerClasspath,
                     K2JVMCompiler::class.java.name,
@@ -145,7 +145,7 @@ class KotlinCompiler @Inject constructor(
             // Collect the compiler args from kotlinCompiler{} and from settings.xml and parse them
             val args2 =
                     info.compilerArgs +
-                    (settings.kobaltCompilerFlags?.split(" ") ?: listOf<String>())
+                    (settings.kobaltCompilerFlags?.split(" ") ?: listOf())
             val args = K2JVMCompilerArguments()
             val compiler = K2JVMCompiler()
             compiler.parseArguments(args2.toTypedArray(), args)
@@ -225,7 +225,7 @@ class KotlinCompiler @Inject constructor(
                 }
 
                 fun dump(location: CompilerMessageLocation?, s: String) =
-                    if (location != null && location.lineContent != null) {
+                    if (location?.lineContent != null) {
                         with(location) {
                             "$lineContent\n$path:$line:$column $s"
                         }
@@ -250,24 +250,22 @@ class KotlinCompiler @Inject constructor(
 //            // TODO: experimental should be removed as soon as it becomes standard
 //            System.setProperty("kotlin.incremental.compilation.experimental", "true")
 
-            val result =
-                    if (cliArgs.noIncrementalKotlin || Kobalt.context?.internalContext?.noIncrementalKotlin ?: false) {
-                        log(2, "  Kotlin incremental compilation is disabled")
-                        val duration = benchmarkMillis {
-                            compiler.exec(collector, Services.Builder().build(), args)
-                        }
-                        log(1, "  Regular compilation time: ${duration.first} ms")
-                        TaskResult(duration.second == ExitCode.OK)
-                    } else {
-                        log(1, "  Kotlin incremental compilation is enabled")
-                        val start = System.currentTimeMillis()
-                        val duration = benchmarkMillis {
-                            compileIncrementally(filesToCompile, sourceFiles, outputDir, info, args, collector)
-                        }
-                        log(1, "  Incremental compilation time: ${duration.first} ms")
-                        TaskResult()
-                    }
-            return result
+            return if (cliArgs.noIncrementalKotlin || Kobalt.context?.internalContext?.noIncrementalKotlin ?: false) {
+                log(2, "  Kotlin incremental compilation is disabled")
+                val duration = benchmarkMillis {
+                    compiler.exec(collector, Services.Builder().build(), args)
+                }
+                log(1, "  Regular compilation time: ${duration.first} ms")
+                TaskResult(duration.second == ExitCode.OK)
+            } else {
+                log(1, "  Kotlin incremental compilation is enabled")
+                //val start = System.currentTimeMillis()
+                val duration = benchmarkMillis {
+                    compileIncrementally(filesToCompile, sourceFiles, outputDir, info, args, collector)
+                }
+                log(1, "  Incremental compilation time: ${duration.first} ms")
+                TaskResult()
+            }
         }
 
         private fun compileIncrementally(filesToCompile: Int, sourceFiles: List<String>, outputDir: String?,
@@ -381,8 +379,7 @@ class KotlinCompiler @Inject constructor(
             = dependencyManager.create("org.jetbrains" + ".kotlin:kotlin-compiler-embeddable:$version")
 
     fun compilerEmbeddableDependencies(project: Project?, version: String): List<IClasspathDependency> {
-        val deps = dependencyManager.transitiveClosure(listOf(compilerDep(version)), requiredBy = project?.name ?: "")
-        return deps
+        return dependencyManager.transitiveClosure(listOf(compilerDep(version)), requiredBy = project?.name ?: "")
     }
 
     /**
@@ -415,7 +412,7 @@ class KotlinCompiler @Inject constructor(
             if (project != null) {
                 listOf(KFiles.joinDir(project.directory, project.buildDirectory, KFiles.CLASSES_DIR))
             } else {
-                emptyList<String>()
+                emptyList()
             }
         val info = CompilerActionInfo(project?.directory, dependencies, sourceFiles, listOf("kt"), outputDir, args,
                 friendPaths, context?.internalContext?.forceRecompile ?: false, compilerSeparateProcess)
