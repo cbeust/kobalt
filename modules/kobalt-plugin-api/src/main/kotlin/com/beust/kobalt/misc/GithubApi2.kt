@@ -138,8 +138,8 @@ class GithubApi2 @Inject constructor(
                             val releases = ex.body()
                             if (releases != null) {
                                 releases.firstOrNull()?.let {
-                                    try {
-                                        result = listOf(it.name, it.tagName).filterNotNull().first { !it.isBlank() }
+                                    result = try {
+                                        listOf(it.name, it.tagName).filterNotNull().first { !it.isBlank() }
                                     } catch(ex: NoSuchElementException) {
                                         throw KobaltException("Couldn't find the latest release")
                                     }
