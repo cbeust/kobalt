@@ -32,7 +32,7 @@ object Versions {
     val maven = "3.3.9"
     val mavenResolver = "1.0.3"
     val slf4j = "1.7.3"
-    val kotlin = "1.1.2"
+    val kotlin = "1.1.51"
     val aether = "1.0.2.v20150114"
     val testng = "6.11"
 

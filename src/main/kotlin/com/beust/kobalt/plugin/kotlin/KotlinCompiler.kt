@@ -8,10 +8,12 @@ import com.beust.kobalt.maven.dependency.FileDependency
 import com.beust.kobalt.misc.*
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
+import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.incremental.ICReporter
 import org.jetbrains.kotlin.incremental.makeIncrementally
@@ -148,14 +150,14 @@ class KotlinCompiler @Inject constructor(
                     (settings.kobaltCompilerFlags?.split(" ") ?: listOf<String>())
             val args = K2JVMCompilerArguments()
             val compiler = K2JVMCompiler()
-            compiler.parseArguments(args2.toTypedArray(), args)
+            parseCommandLineArguments(args2, args)
 
             // Override important arguments with our values
             args.apply {
                 moduleName = projectName
                 destination = outputDir
                 classpath = classpathString
-                freeArgs = sourceFiles
+                freeArgs = sourceFiles.toMutableList()
                 friendPaths = friends
             }
 
@@ -179,9 +181,9 @@ class KotlinCompiler @Inject constructor(
                         "single-module" -> args.singleModule = true
                         "load-builtins-from-dependencies" -> args.loadBuiltInsFromDependencies = true
 
-                        "coroutines=enable" -> args.coroutinesEnable = true
-                        "coroutines=warn" -> args.coroutinesWarn = true
-                        "coroutines=error" -> args.coroutinesError = true
+                        "coroutines=enable" -> args.coroutinesState = LanguageFeature.State.ENABLED.name
+                        "coroutines=warn" -> args.coroutinesState = LanguageFeature.State.ENABLED_WITH_WARNING.name
+                        "coroutines=error" -> args.coroutinesState = LanguageFeature.State.ENABLED_WITH_ERROR.name
                         "no-inline" -> args.noInline = true
                         "multi-platform" -> args.multiPlatform = true
                         "no-check-impl" -> args.noCheckImpl = true
@@ -214,7 +216,7 @@ class KotlinCompiler @Inject constructor(
                     + " " + sourceFiles.joinToString(" "))
             logk(2, "    Additional kotlinc arguments: "
                     + " -moduleName " + args.moduleName
-                    + " -friendPaths " + args.friendPaths.joinToString(";"))
+                    + " -friendPaths " + args.friendPaths?.joinToString(";"))
             val collector = object : MessageCollector {
                 override fun clear() {
                     throw UnsupportedOperationException("not implemented")
@@ -233,8 +235,8 @@ class KotlinCompiler @Inject constructor(
                         s
                     }
 
-                override fun report(severity: CompilerMessageSeverity,
-                        message: String, location: CompilerMessageLocation) {
+                override fun report(severity: CompilerMessageSeverity, message: String,
+                                    location: CompilerMessageLocation?) {
                     if (severity.isError) {
                         "Couldn't compile file: ${dump(location, message)}".let { fullMessage ->
                             throw KobaltException(fullMessage)
