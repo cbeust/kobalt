@@ -106,7 +106,7 @@ class BintrayApi @Inject constructor(val http: Http,
             val result = service.createPackage(org ?: username!!, buildPackageInfo(project, config))
                     .execute()
             if (result.errorBody() != null) {
-                throw KobaltException("Error while creating package:\n" + result.errorBody())
+                throw KobaltException("Error while creating package:\n" + result.errorBody()!!.string())
             }
         }
     }
