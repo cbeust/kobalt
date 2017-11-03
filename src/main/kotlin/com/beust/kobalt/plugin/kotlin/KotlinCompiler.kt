@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
+import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.incremental.ICReporter
 import org.jetbrains.kotlin.incremental.makeIncrementally
@@ -178,10 +179,10 @@ class KotlinCompiler @Inject constructor(
                         "skip-runtime-version-check" -> args.skipRuntimeVersionCheck = true
                         "single-module" -> args.singleModule = true
                         "load-builtins-from-dependencies" -> args.loadBuiltInsFromDependencies = true
-                        // TODO fix
-                        //"coroutines=enable" -> args.coroutinesEnable = true
-                        //"coroutines=warn" -> args.coroutinesWarn = true
-                        //"coroutines=error" -> args.coroutinesError = true
+
+                        "coroutines=enable" -> args.coroutinesState = LanguageFeature.State.ENABLED.name
+                        "coroutines=warn" -> args.coroutinesState = LanguageFeature.State.ENABLED_WITH_WARNING.name
+                        "coroutines=error" -> args.coroutinesState = LanguageFeature.State.ENABLED_WITH_ERROR.name
                         "no-inline" -> args.noInline = true
                         "multi-platform" -> args.multiPlatform = true
                         "no-check-impl" -> args.noCheckImpl = true
