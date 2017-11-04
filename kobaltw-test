@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+JAR=$(ls -1 -t kobaltBuild/libs/*.jar | grep -Ev "(sources|javadoc)" | head -1)
+TEMPDIR=$(mktemp -d)
+cp -pf "$JAR" "$TEMPDIR"
+TEMPJAR=$TEMPDIR/$(basename "$JAR")
+export KOBALT_JAR=$TEMPJAR
+java -jar "$TEMPJAR" "$@"
+rm -rf "$TEMPDIR"
