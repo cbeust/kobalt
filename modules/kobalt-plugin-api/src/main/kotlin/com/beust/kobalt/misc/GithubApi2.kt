@@ -86,12 +86,12 @@ class GithubApi2 @Inject constructor(
                 .execute()
         val code = response.code()
         if (code != Http.CREATED) {
-            val error = Gson().fromJson(response.errorBody().string(), RetrofitError::class.java)
+            val error = Gson().fromJson(response.errorBody()?.string(), RetrofitError::class.java)
             throw KobaltException("Couldn't upload release, ${error.message}: " + error.errors[0].code)
         } else {
             val body = response.body()
 
-            uploadAsset(accessToken, body.uploadUrl!!, Http.TypedFile("application/zip", zipFile), tagName)
+            uploadAsset(accessToken, body?.uploadUrl!!, Http.TypedFile("application/zip", zipFile), tagName)
                     .toBlocking()
                 .forEach { action ->
                     kobaltLog(1, "\n${zipFile.name} successfully uploaded")
@@ -138,8 +138,8 @@ class GithubApi2 @Inject constructor(
                             val releases = ex.body()
                             if (releases != null) {
                                 releases.firstOrNull()?.let {
-                                    try {
-                                        result = listOf(it.name, it.tagName).filterNotNull().first { !it.isBlank() }
+                                    result = try {
+                                        listOf(it.name, it.tagName).filterNotNull().first { !it.isBlank() }
                                     } catch(ex: NoSuchElementException) {
                                         throw KobaltException("Couldn't find the latest release")
                                     }
