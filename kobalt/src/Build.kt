@@ -124,7 +124,10 @@ val kobaltPluginApi = project {
                 "org.junit.jupiter:junit-jupiter-engine:${Versions.junitJupiter}",
                 "org.junit.vintage:junit-vintage-engine:${Versions.junitVintageVersion}",
                 "org.apache.commons:commons-compress:1.15",
-                "commons-io:commons-io:2.6"
+                "commons-io:commons-io:2.6",
+
+                // Java 9
+                "javax.xml.bind:jaxb-api:2.3.0"
         )
         exclude(*aether("impl", "spi", "util", "api"))
     }
