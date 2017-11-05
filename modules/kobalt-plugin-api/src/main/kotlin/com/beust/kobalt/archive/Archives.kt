@@ -17,7 +17,8 @@ class Archives {
         @ExportedProjectProperty(doc = "The name of the a jar file with a main() method", type = "String")
         const val JAR_NAME_WITH_MAIN_CLASS = "jarNameWithMainClass"
 
-        fun defaultArchiveName(project: Project) = project.name + "-" + project.version
+        fun defaultArchiveName(project: Project) = project.name +
+            if (project.version == null || project.version == "") "" else "-${project.version}"
 
         fun generateArchive(project: Project,
                 context: KobaltContext,
