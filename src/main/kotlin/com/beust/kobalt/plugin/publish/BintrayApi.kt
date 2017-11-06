@@ -80,12 +80,12 @@ class BintrayApi @Inject constructor(val http: Http,
 //                    level = HttpLoggingInterceptor.Level.BASIC
 //                })
         builder.interceptors().add(Interceptor { chain ->
-            val original = chain.request();
+            val original = chain.request()
 
             chain.proceed(original.newBuilder()
                     .header("Authorization", Credentials.basic(username, password))
                     .method(original.method(), original.body())
-                    .build());
+                    .build())
         })
         val okHttpClient = builder.build()
 
@@ -101,12 +101,12 @@ class BintrayApi @Inject constructor(val http: Http,
         val pkgName = config.name ?: project.name
         val execute = service.getPackage(org ?: username!!, pkgName).execute()
 
-        if (execute.errorBody()?.string()?.contains("'$pkgName' was not found") ?: false) {
+        if (execute.errorBody()?.string()?.contains("'$pkgName' was not found") == true) {
             warn("Package does not exist on bintray.  Creating now.")
             val result = service.createPackage(org ?: username!!, buildPackageInfo(project, config))
                     .execute()
             if (result.errorBody() != null) {
-                throw KobaltException("Error while creating package:\n" + result.errorBody().string())
+                throw KobaltException("Error while creating package:\n" + result.errorBody()!!.string())
             }
         }
     }
@@ -163,7 +163,7 @@ class BintrayApi @Inject constructor(val http: Http,
 
             fun dots(total: Int, list: List<Boolean>, file: File? = null): String {
                 val spaces: String = Array(total - list.size, { " " }).joinToString("")
-                return "|" + list.map { if (it) "." else "X" }.joinToString("") + spaces +
+                return "|" + list.joinToString("") { if (it) "." else "X" } + spaces +
                         (if (file != null) "| [ $file ]" else "|")
             }
 
@@ -208,7 +208,7 @@ class BintrayApi @Inject constructor(val http: Http,
 
                 return TaskResult()
             } else {
-                error(" Errors while uploading:\n" + errorMessages.map { "    $it" }.joinToString("\n"))
+                error(" Errors while uploading:\n" + errorMessages.joinToString("\n") { "    $it" })
                 return TaskResult(false, errorMessage = errorMessages.joinToString("\n"))
             }
         } else {
@@ -221,7 +221,7 @@ class BintrayApi @Inject constructor(val http: Http,
 
     fun JsonObject.addNonNull(name: String, value: String?) {
         if (value != null) {
-            addProperty(name, value);
+            addProperty(name, value)
         }
     }
 
@@ -236,20 +236,16 @@ class ConverterFactory : Converter.Factory() {
     override fun requestBodyConverter(type: Type, parameterAnnotations: Array<out Annotation>,
             methodAnnotations: Array<out Annotation>,
             retrofit: Retrofit?): Converter<*, RequestBody>? {
-        val result =
-            if (type.typeName == File::class.java.name) FileBodyConverter()
-            else GsonBodyConverter()
-        return result
+        return if (type.typeName == File::class.java.name) FileBodyConverter()
+        else GsonBodyConverter()
     }
 }
 
 class GsonResponseBodyConverter(private val gson: Gson, private val adapter: TypeAdapter<out Any>) : Converter<ResponseBody, Any> {
     override fun convert(value: ResponseBody): Any {
         val jsonReader = gson.newJsonReader(value.charStream())
-        try {
+        value.use {
             return adapter.read(jsonReader)
-        } finally {
-            value.close()
         }
     }
 }
