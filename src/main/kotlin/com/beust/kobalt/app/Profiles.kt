@@ -56,7 +56,7 @@ class Profiles(val context: KobaltContext) {
                     val variable = if (match.first) match.second else oldMatch.second
 
                     if (oldMatch.first) {
-                        warn("Old profile syntax detected for \"$line\"," +
+                        warn("Old profile syntax detected for \"${line.trim()}\"," +
                                 " please update to \"val $variable by profile()\"")
                     }
 
