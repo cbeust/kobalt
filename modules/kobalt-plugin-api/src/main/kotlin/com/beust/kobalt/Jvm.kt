@@ -67,7 +67,7 @@ open class Jvm constructor(
             return toolsJar
         }
         if (javaHome!!.name.equals("jre", true)) {
-            javaHome = javaHome!!.parentFile
+            _javaHome = javaHome!!.parentFile
             toolsJar = File(javaHome, "lib/tools.jar")
             if (toolsJar.exists()) {
                 return toolsJar
@@ -78,7 +78,7 @@ open class Jvm constructor(
             val version = SystemProperties.Companion.javaVersion
             if (javaHome!!.name.toRegex().matches("jre\\d+")
                     || javaHome!!.name == "jre$version") {
-                javaHome = File(javaHome!!.parentFile, "jdk$version")
+                _javaHome = File(javaHome!!.parentFile, "jdk$version")
                 toolsJar = File(javaHome, "lib/tools.jar")
                 if (toolsJar.exists()) {
                     return toolsJar
