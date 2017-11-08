@@ -19,6 +19,7 @@ class RunCommandInfo {
      */
     var useErrorStreamAsErrorIndicator : Boolean = true
     var useInputStreamAsErrorIndicator : Boolean = false
+    var ignoreExitValue : Boolean = false
 
     var errorCallback: Function1<List<String>, Unit> = NewRunCommand.DEFAULT_ERROR
     var successCallback: Function1<List<String>, Unit> = NewRunCommand.DEFAULT_SUCCESS
@@ -89,10 +90,14 @@ open class NewRunCommand(val info: RunCommandInfo) {
         // Check to see if the command succeeded
         val isSuccess =
                 if (info.containsErrors != null) ! info.containsErrors!!(error)
-                else isSuccess(returnCode, input, error)
+                else isSuccess(if (info.ignoreExitValue) true else returnCode, input, error)
 
         if (isSuccess) {
-            info.successCallback(input)
+            if (!info.useErrorStreamAsErrorIndicator) {
+                info.successCallback(error + input)
+            } else {
+                info.successCallback(input)
+            }
         } else {
             info.errorCallback(error + input)
         }
@@ -105,7 +110,7 @@ open class NewRunCommand(val info: RunCommandInfo) {
      * have various ways to signal errors.
      */
     open protected fun isSuccess(isSuccess: Boolean, input: List<String>, error: List<String>) : Boolean {
-        var hasErrors = ! isSuccess
+        var hasErrors: Boolean = ! isSuccess
         if (info.useErrorStreamAsErrorIndicator && ! hasErrors) {
             hasErrors = hasErrors || error.isNotEmpty()
         }
