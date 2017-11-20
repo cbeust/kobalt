@@ -157,6 +157,10 @@ open class JvmCompilerPlugin @Inject constructor(
         if (compilerContributors.isEmpty()) {
             throw KobaltException("Couldn't find any compiler for project ${project.name}")
         } else {
+
+            // Generate BuildConfig if applicable
+            context.variant.maybeGenerateBuildConfig(project, context)
+
             val allCompilers = compilerContributors.flatMap { it.compilersFor(project, context)}.sorted()
 
             /**

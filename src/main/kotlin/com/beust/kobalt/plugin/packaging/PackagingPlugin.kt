@@ -105,7 +105,7 @@ class PackagingPlugin @Inject constructor(val dependencyManager : DependencyMana
                             val outputFile = jarGenerator.fullArchiveName(project, context, it.name)
                             outputFiles.add(outputFile)
                             allIncludedFiles.addAll(files)
-                            zipToFiles[it.name] = files
+                            zipToFiles[outputFile.name] = files
                         }
                     }
                 }

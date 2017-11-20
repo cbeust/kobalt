@@ -239,7 +239,9 @@ class KotlinCompiler @Inject constructor(
                                     location: CompilerMessageLocation?) {
                     if (severity.isError) {
                         "Couldn't compile file: ${dump(location, message)}".let { fullMessage ->
-                            throw KobaltException(fullMessage)
+                            error(fullMessage)
+                            val ex = KobaltException(fullMessage)
+                            throw ex
                         }
                     } else if (severity == CompilerMessageSeverity.WARNING && KobaltLogger.LOG_LEVEL >= 2) {
                         warn(dump(location, message))
