@@ -18,7 +18,7 @@ class Archives {
         const val JAR_NAME_WITH_MAIN_CLASS = "jarNameWithMainClass"
 
         fun defaultArchiveName(project: Project) = project.name +
-            if (project.version == null || project.version == "") "" else "-${project.version}"
+            if (project.version.isNullOrBlank()) "" else "-${project.version}"
 
         fun generateArchive(project: Project,
                 context: KobaltContext,

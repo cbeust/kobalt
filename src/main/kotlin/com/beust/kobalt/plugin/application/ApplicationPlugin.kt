@@ -33,6 +33,15 @@ class ApplicationConfig {
     @Directive
     fun args(vararg argv: String) = argv.forEach { args.add(it) }
     val args = arrayListOf<String>()
+
+    @Directive
+    var ignoreErrorStream: Boolean = false
+
+    @Directive
+    var ignoreInputStream: Boolean = true
+
+    @Directive
+    var ignoreExitValue: Boolean = false
 }
 
 @Directive
@@ -147,6 +156,9 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigsActor<Applic
                 kobaltLog(1, "ERROR")
                 kobaltLog(1, output.joinToString("\n"))
             }
+            useErrorStreamAsErrorIndicator = !config.ignoreErrorStream
+            useInputStreamAsErrorIndicator = !config.ignoreInputStream
+            ignoreExitValue = config.ignoreExitValue
         }
         return TaskResult(exitCode == 0)
     }
