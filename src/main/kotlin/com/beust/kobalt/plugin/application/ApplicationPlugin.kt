@@ -17,7 +17,6 @@ import com.beust.kobalt.plugin.packaging.PackageConfig
 import com.beust.kobalt.plugin.packaging.PackagingPlugin
 import com.google.inject.Inject
 import com.google.inject.Singleton
-import org.jetbrains.kotlin.config.TargetPlatformVersion.NoVersion.description
 import java.io.File
 
 class ApplicationConfig {
@@ -139,6 +138,7 @@ class ApplicationPlugin @Inject constructor(val configActor: ConfigsActor<Applic
         val exitCode = runCommand {
             command = "java"
             args = allArgs
+            useErrorStreamAsErrorIndicator = false
             directory = File(project.directory)
             successCallback = { output: List<String> ->
                 kobaltLog(1, output.joinToString("\n"))
