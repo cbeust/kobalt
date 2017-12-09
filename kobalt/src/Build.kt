@@ -80,6 +80,7 @@ val wrapper = project {
 
     bintray {
         publish = true
+        sign = true
     }
 
     pom = createPom(name, "Wrapper for Kobalt")
