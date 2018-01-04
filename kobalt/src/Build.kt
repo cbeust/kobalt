@@ -25,6 +25,7 @@ val bs = buildScript {
 }
 
 object Versions {
+    val kotlin = "1.2.10"
     val okhttp = "3.9.0"
     val okio = "1.13.0"
     val retrofit = "2.3.0"
@@ -33,7 +34,6 @@ object Versions {
     val maven = "3.5.2"
     val mavenResolver = "1.1.0"
     val slf4j = "1.7.3"
-    val kotlin = "1.1.51"
     val aether = "1.0.2.v20150114"
     val testng = "6.12"
     val jcommander = "1.72"
