@@ -186,7 +186,7 @@ class KotlinCompiler @Inject constructor(
                         "coroutines=error" -> args.coroutinesState = LanguageFeature.State.ENABLED_WITH_ERROR.name
                         "no-inline" -> args.noInline = true
                         "multi-platform" -> args.multiPlatform = true
-                        "no-check-impl" -> args.noCheckImpl = true
+//                        "no-check-impl" -> args.noCheckImpl = true
                         else -> warn("Unknown Kotlin compiler flag found in config.xml: $it")
                     }
                 }
