@@ -47,7 +47,6 @@ public class Main {
 
     private int installAndLaunchMain(String[] argv) throws IOException, InterruptedException {
         String version = getVersion();
-        initWrapperFile(version);
 
         List<String> kobaltArgv = new ArrayList<>();
         boolean noLaunch = false;
@@ -78,6 +77,7 @@ public class Main {
         }
         int result = 0;
         if (! exit) {
+            initWrapperFile(version);
             Path kobaltJarFile = installDistribution();
             if (!noLaunch) {
                 result = launchMain(kobaltJarFile, kobaltArgv);
@@ -133,7 +133,7 @@ public class Main {
     }
 
     private String getWrapperVersion() {
-        return wrapperProperties.getProperty(PROPERTY_VERSION);
+        return wrapperProperties.getProperty(PROPERTY_VERSION, "N/A");
     }
 
     private String getWrapperDownloadUrl(String version) {
