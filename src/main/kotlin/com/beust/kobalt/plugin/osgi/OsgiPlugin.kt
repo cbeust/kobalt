@@ -14,7 +14,6 @@ import com.google.inject.Inject
 import com.google.inject.Singleton
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.net.URI
 import java.net.URLClassLoader
 import java.nio.file.*
 import java.time.LocalDate
@@ -88,10 +87,7 @@ class OsgiPlugin @Inject constructor(val configActor: ConfigActor<OsgiConfig>, v
             //
             KFiles.copy(Paths.get(jarFile.toURI()), Paths.get(toFile.toUri()))
 
-            val uri = URI.create(KFiles.fixSlashes("jar:file:/" + toFile))
-
-            val options = hashMapOf<String, String>()
-            val fileSystem = FileSystems.newFileSystem(uri, options)
+            val fileSystem = FileSystems.newFileSystem(toFile, null)
             fileSystem.use { fs ->
                 JarFile(jarFile).use { jf ->
                     val mf = jf.getEntry(MetaArchive.MANIFEST_MF)
