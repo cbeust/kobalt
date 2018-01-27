@@ -38,6 +38,14 @@ class Main @Inject constructor(
     companion object {
         fun mainNoExit(argv: Array<String>): Int {
             val (jc, args) = parseArgs(argv)
+            if (args.usage) {
+                jc.usage()
+                return 0
+            }
+            if (args.version) {
+                println("Kobalt ${Kobalt.version}")
+                return 0
+            }
             Kobalt.init(MainModule(args, KobaltSettings.readSettingsXml()))
             val result = launchMain(Kobalt.INJECTOR.getInstance(Main::class.java), jc, args, argv)
             return result

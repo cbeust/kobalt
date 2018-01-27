@@ -101,5 +101,8 @@ class Args {
 
     @Parameter(names = arrayOf("--update"), description = "Update to the latest version of Kobalt")
     var update: Boolean = false
+
+    @Parameter(names = arrayOf("--version"), description = "Display the current version of Kobalt")
+    var version: Boolean = false
 }
 
