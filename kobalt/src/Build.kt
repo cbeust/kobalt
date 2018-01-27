@@ -25,7 +25,7 @@ val bs = buildScript {
 }
 
 object Versions {
-    val kotlin = "1.2.10"
+    val kotlin = "1.2.21"
     val okhttp = "3.9.0"
     val okio = "1.13.0"
     val retrofit = "2.3.0"

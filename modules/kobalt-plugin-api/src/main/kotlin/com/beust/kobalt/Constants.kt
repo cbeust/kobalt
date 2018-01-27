@@ -9,7 +9,7 @@ object Constants {
     val BUILD_FILE_NAME = "Build.kt"
     val BUILD_FILE_DIRECTORY = "kobalt/src"
     val BUILD_FILE_PATH = KFiles.joinDir(BUILD_FILE_DIRECTORY, BUILD_FILE_NAME)
-    val KOTLIN_COMPILER_VERSION = "1.2.20"
+    val KOTLIN_COMPILER_VERSION = "1.2.21"
 
     internal val DEFAULT_REPOS = listOf<HostConfig>(
             //            "https://maven-central.storage.googleapis.com/",
