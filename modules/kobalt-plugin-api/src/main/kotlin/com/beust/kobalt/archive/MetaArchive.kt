@@ -64,7 +64,7 @@ class MetaArchive(private val outputFile: File, val manifest: Manifest?) : Close
     }
 
     private val DEFAULT_JAR_EXCLUDES =
-            Glob("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
+            Glob("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/MANIFEST.MF")
 
     private val seen = hashSetOf<String>()
 
