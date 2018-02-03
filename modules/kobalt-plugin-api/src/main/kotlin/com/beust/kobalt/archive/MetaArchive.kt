@@ -17,14 +17,28 @@ import org.apache.commons.compress.archivers.zip.ZipFile as ApacheZipFile
  * Abstraction of a zip/jar/war archive that automatically manages the addition of expanded jar files.
  * Uses ZipArchiveOutputStream for fast inclusion of expanded jar files.
  */
-class MetaArchive(outputFile: File, val manifest: Manifest?) : Closeable {
+class MetaArchive(private val outputFile: File, val manifest: Manifest?) : Closeable {
     companion object {
         val MANIFEST_MF = "META-INF/MANIFEST.MF"
     }
 
-    private val zos = ZipArchiveOutputStream(outputFile).apply {
+    private val zos= ZipArchiveOutputStream(outputFile).apply {
         encoding = "UTF-8"
     }
+
+    init {
+        // If no manifest was passed, create an empty one so it's the first one in the archive
+        val m = manifest ?: Manifest()
+        Files.createTempFile("kobalt", "tmpManifest").toFile().let { manifestFile ->
+            FileOutputStream(manifestFile).use { fos ->
+                m.write(fos)
+            }
+
+            val entry = zos.createArchiveEntry(manifestFile, MetaArchive.MANIFEST_MF)
+            addEntry(entry, FileInputStream(manifestFile))
+        }
+    }
+
 
     fun addFile(f: File, entryFile: File, path: String?) {
         val file = f.normalize()
@@ -57,19 +71,7 @@ class MetaArchive(outputFile: File, val manifest: Manifest?) : Closeable {
     private fun okToAdd(name: String): Boolean = ! seen.contains(name)
             && ! KFiles.isExcluded(name, DEFAULT_JAR_EXCLUDES)
 
-    override fun close() {
-        if (manifest != null) {
-            Files.createTempFile("aaa", "bbb").toFile().let { manifestFile ->
-                FileOutputStream(manifestFile).use { fos ->
-                    manifest.write(fos)
-                }
-
-                val entry = zos.createArchiveEntry(manifestFile, MetaArchive.MANIFEST_MF)
-                addEntry(entry, FileInputStream(manifestFile))
-            }
-        }
-        zos.close()
-    }
+    override fun close() = zos.close()
 
     private fun addEntry(entry: ArchiveEntry, inputStream: FileInputStream) {
         zos.putArchiveEntry(entry)

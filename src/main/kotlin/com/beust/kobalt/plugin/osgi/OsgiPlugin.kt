@@ -90,10 +90,7 @@ class OsgiPlugin @Inject constructor(val configActor: ConfigActor<OsgiConfig>, v
             val fileSystem = FileSystems.newFileSystem(toFile, null)
             fileSystem.use { fs ->
                 JarFile(jarFile).use { jf ->
-                    val mf = jf.getEntry(MetaArchive.MANIFEST_MF)
-                    if (mf == null) {
-                        Files.createDirectories(fs.getPath("META-INF/"))
-                    }
+                    val mf = jf.getEntry(MetaArchive.MANIFEST_MF) ?: Files.createDirectories(fs.getPath("META-INF/"))
                     val jarManifest = fs.getPath(MetaArchive.MANIFEST_MF)
                     Files.write(jarManifest, listOf(lines2),
                             if (mf != null) StandardOpenOption.APPEND else StandardOpenOption.CREATE)
