@@ -64,7 +64,7 @@ class MetaArchive(outputFile: File, val manifest: Manifest?) : Closeable {
 
     @Suppress("PrivatePropertyName")
     private val DEFAULT_JAR_EXCLUDES =
-            Glob("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/MANIFEST.MF")
+            Glob("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", MANIFEST_MF)
 
     private val seen = hashSetOf<String>()
 
