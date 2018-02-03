@@ -17,9 +17,9 @@ import org.apache.commons.compress.archivers.zip.ZipFile as ApacheZipFile
  * Abstraction of a zip/jar/war archive that automatically manages the addition of expanded jar files.
  * Uses ZipArchiveOutputStream for fast inclusion of expanded jar files.
  */
-class MetaArchive(private val outputFile: File, val manifest: Manifest?) : Closeable {
+class MetaArchive(outputFile: File, val manifest: Manifest?) : Closeable {
     companion object {
-        val MANIFEST_MF = "META-INF/MANIFEST.MF"
+        const val MANIFEST_MF = "META-INF/MANIFEST.MF"
     }
 
     private val zos= ZipArchiveOutputStream(outputFile).apply {
@@ -63,6 +63,7 @@ class MetaArchive(private val outputFile: File, val manifest: Manifest?) : Close
         }
     }
 
+    @Suppress("PrivatePropertyName")
     private val DEFAULT_JAR_EXCLUDES =
             Glob("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/MANIFEST.MF")
 
