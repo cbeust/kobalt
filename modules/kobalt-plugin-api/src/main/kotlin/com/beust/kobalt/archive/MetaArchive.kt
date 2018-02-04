@@ -9,7 +9,6 @@ import java.io.Closeable
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.nio.file.Files
 import java.util.jar.Manifest
 import org.apache.commons.compress.archivers.zip.ZipFile as ApacheZipFile
 
@@ -29,14 +28,14 @@ class MetaArchive(outputFile: File, val manifest: Manifest?) : Closeable {
     init {
         // If no manifest was passed, create an empty one so it's the first one in the archive
         val m = manifest ?: Manifest()
-        Files.createTempFile("kobalt", "tmpManifest").toFile().let { manifestFile ->
+        val manifestFile = File.createTempFile("kobalt", "tmpManifest")
+        if (manifest != null) {
             FileOutputStream(manifestFile).use { fos ->
                 m.write(fos)
             }
-
-            val entry = zos.createArchiveEntry(manifestFile, MetaArchive.MANIFEST_MF)
-            addEntry(entry, FileInputStream(manifestFile))
         }
+        val entry = zos.createArchiveEntry(manifestFile, MetaArchive.MANIFEST_MF)
+        addEntry(entry, FileInputStream(manifestFile))
     }
 
 
