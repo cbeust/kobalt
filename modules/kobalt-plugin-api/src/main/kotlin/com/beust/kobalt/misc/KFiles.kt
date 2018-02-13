@@ -55,7 +55,7 @@ class KFiles {
                     val previousVersion = latestInstalledVersion().version
                     val previousJar = joinDir(distributionsDir, "kobalt-" + previousVersion,
                             "kobalt/wrapper/kobalt-$previousVersion.jar")
-                    val v = latestInstalledVersion()
+                    latestInstalledVersion()
                     val result = listOf("", "modules/kobalt-plugin-api", "modules/wrapper").map {
                         File(homeDir(KFiles.joinDir("kotlin", "kobalt", it, "kobaltBuild", "classes")))
                             .absolutePath
