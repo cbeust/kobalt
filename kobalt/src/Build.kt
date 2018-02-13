@@ -176,7 +176,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
                 "com.squareup.okhttp3:okhttp-ws:3.4.2",
-                "biz.aQute.bnd:bndlib:2.4.0",
+                "biz.aQute.bnd:biz.aQute.bndlib:3.5.0",
                 *mavenResolver("spi"),
 
                 "com.squareup.okhttp3:logging-interceptor:3.9.0",
