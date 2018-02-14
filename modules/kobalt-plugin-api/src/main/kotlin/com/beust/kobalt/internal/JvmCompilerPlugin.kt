@@ -187,8 +187,8 @@ open class JvmCompilerPlugin @Inject constructor(
             var done = false
             // The directory where the classes get compiled
             val buildDirectory =
-                    if (isTest) File(KFiles.joinDir(project.directory, project.buildDirectory, KFiles.TEST_CLASSES_DIR))
-                    else File(KFiles.joinDir(project.directory, project.classesDir(context)))
+                    if (isTest) File(KFiles.joinDir(project.buildDirectory, KFiles.TEST_CLASSES_DIR))
+                    else File(KFiles.joinDir(project.classesDir(context)))
 
             allCompilersSorted.doWhile({ ! done }) { compiler ->
                 val compilerResults = compilerUtils.invokeCompiler(project, context, compiler,
