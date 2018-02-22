@@ -26,7 +26,7 @@ val bs = buildScript {
 
 object Versions {
     val kotlin = "1.2.10"
-    val okhttp = "3.9.0"
+    val okhttp = "3.9.1"
     val okio = "1.13.0"
     val retrofit = "2.3.0"
     val gson = "2.8.2"
@@ -175,7 +175,7 @@ val kobaltApp = project(kobaltPluginApi, wrapper) {
                 "com.google.code.gson:gson:${Versions.gson}",
                 "com.squareup.retrofit2:retrofit:${Versions.retrofit}",
                 "com.squareup.retrofit2:converter-gson:${Versions.retrofit}",
-                "com.squareup.okhttp3:okhttp-ws:3.4.2",
+//                "com.squareup.okhttp3:okhttp-ws:3.4.2",
                 "biz.aQute.bnd:biz.aQute.bndlib:3.5.0",
                 *mavenResolver("spi"),
 

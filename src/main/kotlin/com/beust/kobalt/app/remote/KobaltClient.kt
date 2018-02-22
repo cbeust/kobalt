@@ -12,15 +12,7 @@ import com.beust.kobalt.misc.KFiles
 import com.beust.kobalt.misc.warn
 import com.google.gson.Gson
 import com.google.inject.Guice
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.ResponseBody
-import okhttp3.ws.WebSocket
-import okhttp3.ws.WebSocketCall
-import okhttp3.ws.WebSocketListener
-import okio.Buffer
-import java.io.IOException
+import okhttp3.*
 
 fun main(argv: Array<String>) {
     Kobalt.INJECTOR = Guice.createInjector(MainModule(Args(), KobaltSettings.readSettingsXml()))
@@ -39,26 +31,22 @@ class KobaltClient : Runnable {
             .url("$url?projectRoot=$projectRoot&buildFile=$buildFile")
                 .build()
         var webSocket: WebSocket? = null
-        val ws = WebSocketCall.create(client, request).enqueue(object: WebSocketListener {
-            override fun onOpen(ws: WebSocket, response: Response) {
-                webSocket = ws
-            }
-
-            override fun onPong(p0: Buffer?) {
-                println("WebSocket pong")
-            }
-
-            override fun onClose(p0: Int, p1: String?) {
-                println("WebSocket closed")
-            }
-
-            override fun onFailure(ex: IOException, response: Response?) {
+        val socketListener = object: WebSocketListener() {
+            override fun onFailure(webSocket: WebSocket, ex: Throwable, response: Response?) {
                 Exceptions.printStackTrace(ex)
                 error("WebSocket failure: ${ex.message} response: $response")
             }
 
-            override fun onMessage(body: ResponseBody) {
-                val json = body.string()
+            override fun onOpen(ws: WebSocket, response: Response) {
+                webSocket = ws
+            }
+
+            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+                println("Closing socket")
+            }
+
+            override fun onMessage(webSocket: WebSocket, text: String) {
+                val json = text
                 val wsCommand = Gson().fromJson(json, WebSocketCommand::class.java)
                 if (wsCommand.errorMessage != null) {
                     warn("Received error message from server: " + wsCommand.errorMessage)
@@ -87,7 +75,10 @@ class KobaltClient : Runnable {
                     }
                 }
             }
-        })
+        }
+
+        val ws = client.newWebSocket(request, socketListener)
+        ws.close(1000, "All good")
     }
 }
 
