@@ -29,8 +29,12 @@ class StringVersion(val version: String) : Comparable<StringVersion> {
                 if (v1 < v2) return -1
                 else if (v1 > v2) return 1
             } catch(ex: NumberFormatException) {
-                warn("Couldn't parse version $version or $other")
-                return -1
+                if (version == other.toString()) {
+                    return 0
+                } else {
+                    log(2, "Couldn't parse version $version or $other")
+                    return -1
+                }
             }
         }
         return 0
