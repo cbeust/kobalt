@@ -141,7 +141,7 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
     fun create(id: String, optional: Boolean) = AetherDependency(DefaultArtifact(id), optional, args)
 
     private val system = Booter.newRepositorySystem()
-    private val session = Booter.newRepositorySystemSession(system, localRepo.localRepo, settings, eventBus)
+    private val session = Booter.newRepositorySystemSession(system, localRepo.localRepo, settings, args, eventBus)
 
     private fun createRepo(hostConfig: HostConfig) : RemoteRepository {
         val builder = RemoteRepository.Builder(hostConfig.name, "default", hostConfig.url)
