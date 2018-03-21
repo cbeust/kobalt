@@ -93,14 +93,14 @@ class MetaArchive(outputFile: File, val manifest: Manifest?) : Closeable {
         }
     }
 
-    @Suppress("PrivatePropertyName")
-    private val DEFAULT_JAR_EXCLUDES =
-            Glob("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", MANIFEST_MF)
 
-    private val seen = hashSetOf<String>()
 
-    private fun okToAdd(name: String): Boolean = ! seen.contains(name)
-            && ! KFiles.isExcluded(name, DEFAULT_JAR_EXCLUDES)
+    private fun okToAdd(name: String) : Boolean {
+        val result = !KFiles.isExcluded(name,
+                Glob("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", MANIFEST_MF))
+//        if (name.startsWith("META-INF")) println((if (result) "ADDING" else "NOT ADDING") + " $name")
+        return result
+    }
 
     override fun close() = zos.close()
 
@@ -112,10 +112,14 @@ class MetaArchive(outputFile: File, val manifest: Manifest?) : Closeable {
         zos.closeArchiveEntry()
     }
 
+    private val seen = hashSetOf<String>()
+
     private fun maybeAddEntry(entry: ArchiveEntry, action:() -> Unit) {
-        if (okToAdd(entry.name)) {
-            action()
+        entry.name.let { name ->
+            if (!seen.contains(name) && okToAdd(name)) {
+                action()
+            }
+            seen.add(name)
         }
-        seen.add(entry.name)
     }
 }
