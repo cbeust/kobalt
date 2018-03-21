@@ -61,6 +61,9 @@ class Args {
     @Parameter(names = arrayOf("--noIncremental"), description = "Turn off incremental builds")
     var noIncremental: Boolean = false
 
+    @Parameter(names = arrayOf("--offline"), description = "Don't try to download dependencies even if there is no cached version")
+    var offline: Boolean = false
+
     @Parameter(names = arrayOf("--plugins"), description = "Comma-separated list of plug-in Maven id's")
     var pluginIds: String? = null
 

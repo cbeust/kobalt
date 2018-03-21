@@ -2,6 +2,7 @@ package com.beust.kobalt.maven.aether
 
 import com.beust.kobalt.internal.KobaltSettings
 import com.google.common.eventbus.EventBus
+import com.beust.kobalt.Args
 import org.eclipse.aether.DefaultRepositorySystemSession
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.repository.LocalRepository
@@ -32,8 +33,9 @@ object Booter {
 //    }
 
     fun newRepositorySystemSession(system: RepositorySystem, repo: File, settings: KobaltSettings,
-            eventBus: EventBus): DefaultRepositorySystemSession {
+            args: Args, eventBus: EventBus): DefaultRepositorySystemSession {
         val session = MavenRepositorySystemUtils.newSession(settings)
+        session.isOffline = args.offline
 
         val localRepo = LocalRepository(repo.absolutePath)
         session.localRepositoryManager = system.newLocalRepositoryManager(session, localRepo)
