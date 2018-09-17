@@ -55,11 +55,7 @@ class Main @Inject constructor(
             val args = Args()
             val result = JCommander(args)
             result.parse(*argv)
-            KobaltLogger.LOG_LEVEL = if (args.log < Constants.LOG_QUIET_LEVEL) {
-                Constants.LOG_DEFAULT_LEVEL
-            } else if (args.log > Constants.LOG_MAX_LEVEL) {
-                Constants.LOG_MAX_LEVEL
-            } else args.log
+            KobaltLogger.setLogLevel(args)
             return Main.RunInfo(result, args)
         }
 

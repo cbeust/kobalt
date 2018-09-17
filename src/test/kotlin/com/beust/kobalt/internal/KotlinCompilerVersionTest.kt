@@ -19,7 +19,6 @@ class KotlinCompilerVersionTest : BaseTest() {
                         """
                             kotlinCompiler {
                                 version = "1.2.60"
-                                args("-jvm-target", "1.8")
                             }
                             assemble{ jar{} }
                             """
@@ -30,7 +29,7 @@ class KotlinCompilerVersionTest : BaseTest() {
                 )
         )
 
-        val result = launchProject(projectInfo, arrayOf("assemble"))
+        val result = launchProject(projectInfo, arrayOf("assemble", "--log", "2"))
 
         val project = result.projectDescription
         val jarFile = File(KFiles.joinDir(project.file.absolutePath, "kobaltBuild/libs", project.name + "-"
@@ -49,10 +48,11 @@ class KotlinCompilerVersionTest : BaseTest() {
                             assemble{ jar{} }
                             """
                 ),
-                listOf(ProjectFile("src/main/kotlin/A.kt", "val a = \"foo\"")))
+                listOf(ProjectFile("src/main/kotlin/A.kt", "val a = \"foo\""))
+        )
 
-        val result = launchProject(projectInfo, arrayOf("assemble"))
+        val result = launchProject(projectInfo, arrayOf("assemble", "--log", "2"))
 
-        assertThat(result).isEqualTo(1)
+        assertThat(result.result).isEqualTo(1)
     }
 }
