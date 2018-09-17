@@ -9,6 +9,7 @@ import com.beust.kobalt.internal.KobaltPluginXml
 import com.beust.kobalt.internal.PluginInfo
 import com.beust.kobalt.internal.build.SingleFileBuildSources
 import com.beust.kobalt.misc.KFiles
+import com.beust.kobalt.misc.KobaltLogger
 import com.beust.kobalt.misc.log
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.Guice
@@ -121,6 +122,9 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
         val main = Kobalt.INJECTOR.getInstance(Main::class.java)
         val args = Args()
         val jc = JCommander(args).apply { parse(*commandLine) }
+
+        KobaltLogger.setLogLevel(args)
+
         args.buildFile = KFiles.fixSlashes(project.file.absolutePath) + "/kobalt/src/Build.kt"
         val result = Main.launchMain(main, jc, args, arrayOf("assemble"))
         return LaunchProjectResult(project, result)

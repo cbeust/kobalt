@@ -51,7 +51,7 @@ fun Any.error(text: CharSequence, e: Throwable? = null) {
 
 object KobaltLogger {
     var LOG_LEVEL: Int = 1
-    
+
     val isQuiet: Boolean get() = (LOG_LEVEL == Constants.LOG_QUIET_LEVEL)
 
     val logger: Logger get() =
@@ -60,6 +60,14 @@ object KobaltLogger {
         } else {
             Logger(false)
         }
+
+    fun setLogLevel(args: Args) {
+        LOG_LEVEL = when {
+            args.log < Constants.LOG_QUIET_LEVEL -> Constants.LOG_DEFAULT_LEVEL
+            args.log > Constants.LOG_MAX_LEVEL -> Constants.LOG_MAX_LEVEL
+            else -> args.log
+        }
+    }
 }
 
 class Logger(val dev: Boolean) {

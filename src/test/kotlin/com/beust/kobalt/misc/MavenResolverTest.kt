@@ -1,5 +1,6 @@
 package com.beust.kobalt.misc
 
+import com.beust.kobalt.Args
 import com.beust.kobalt.BaseTest
 import com.beust.kobalt.internal.KobaltSettings
 import com.beust.kobalt.internal.KobaltSettingsXml
@@ -95,7 +96,7 @@ class MavenResolverTest : BaseTest() {
     private fun resolve(id: String): List<ArtifactResult> {
         val system = Booter.newRepositorySystem()
         val session = Booter.newRepositorySystemSession(system,
-                localRepo.localRepo, KobaltSettings(KobaltSettingsXml()), EventBus())
+                localRepo.localRepo, KobaltSettings(KobaltSettingsXml()), Args(), EventBus())
         val artifact = DefaultArtifact(id)
 
         val collectRequest = CollectRequest().apply {
