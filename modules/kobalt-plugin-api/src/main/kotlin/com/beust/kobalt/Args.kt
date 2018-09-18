@@ -86,8 +86,8 @@ class Args {
     @Parameter(names = arrayOf("--projectInfo"), description = "Display information about the current projects")
     var projectInfo: Boolean = false
 
-    @Parameter(names = arrayOf("--noIncrementalKotlin"), description = "Disable incremental Kotlin compilation")
-    var noIncrementalKotlin: Boolean = false
+    @Parameter(names = arrayOf("--incrementalKotlin"), description = "Disable incremental Kotlin compilation")
+    var incrementalKotlin: Boolean = false
 
     companion object {
         const val SEQUENTIAL = "--sequential"

@@ -255,7 +255,7 @@ class KotlinCompiler @Inject constructor(
 //            // TODO: experimental should be removed as soon as it becomes standard
 //            System.setProperty("kotlin.incremental.compilation.experimental", "true")
 
-            return if (cliArgs.noIncrementalKotlin || Kobalt.context?.internalContext?.noIncrementalKotlin ?: false) {
+            return if (!cliArgs.incrementalKotlin || Kobalt.context?.internalContext?.noIncrementalKotlin == true) {
                 log(2, "  Kotlin incremental compilation is disabled")
                 val duration = benchmarkMillis {
                     compiler.exec(collector, Services.Builder().build(), args)

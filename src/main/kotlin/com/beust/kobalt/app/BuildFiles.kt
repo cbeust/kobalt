@@ -253,7 +253,7 @@ class BuildFiles @Inject constructor(val factory: BuildFileCompiler.IFactory,
 
 fun main(argv: Array<String>) {
     val args = Args().apply {
-        noIncrementalKotlin = true
+        incrementalKotlin = false
     }
     val context = KobaltContext(args)
     KobaltLogger.LOG_LEVEL = 3

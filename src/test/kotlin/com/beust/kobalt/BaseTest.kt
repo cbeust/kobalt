@@ -82,7 +82,7 @@ open class BaseTest(val compilerFactory: BuildFileCompiler.IFactory? = null) {
         args.apply {
             buildFile = actualBuildFile.absolutePath
             noIncremental = true
-            noIncrementalKotlin = true
+            incrementalKotlin = false
         }
         val jvmCompilerPlugin = Kobalt.findPlugin("JvmCompiler") as JvmCompilerPlugin
         val pluginInfo = PluginInfo(KobaltPluginXml(), null, null).apply {
