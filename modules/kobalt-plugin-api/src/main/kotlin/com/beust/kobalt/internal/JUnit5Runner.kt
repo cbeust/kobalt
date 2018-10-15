@@ -35,7 +35,8 @@ class JUnit5Runner @Inject constructor(kFiles: KFiles) : GenericTestRunner() {
 
     override fun affinity(project: Project, context: KobaltContext) : Int {
         val result =
-                if (project.testDependencies.any { it.id.contains("jupiter") }) IAffinity.DEFAULT_POSITIVE_AFFINITY + 100
+                if (project.testDependencies.any { it.id.contains("junit5") || it.id.contains("jupiter") })
+                    IAffinity.DEFAULT_POSITIVE_AFFINITY + 100
                 else 0
         return result
 
