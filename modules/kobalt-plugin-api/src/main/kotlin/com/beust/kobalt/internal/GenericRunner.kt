@@ -112,7 +112,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
             configName: String) : TestResult {
         var result = false
 
-        context.logger.log(project.name, 1, "Running tests with " + runnerName)
+        context.logger.log(project.name, 1, "Running tests with $runnerName")
 
         val testConfig = project.testConfigs.firstOrNull { it.name == configName }
 
