@@ -27,7 +27,7 @@ class TestNgRunner : GenericTestRunner() {
     override val annotationPackage = "org.testng"
     override val runnerName = "TestNG"
 
-    fun defaultOutput(project: Project) = KFiles.joinDir(project.buildDirectory, "test-output")
+    private fun defaultOutput(project: Project) = KFiles.joinDir(project.directory, project.buildDirectory, "test-output")
 
     override fun args(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             testConfig: TestConfig) = arrayListOf<String>().apply {
