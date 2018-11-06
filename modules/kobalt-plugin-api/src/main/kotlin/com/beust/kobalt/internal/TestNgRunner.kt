@@ -27,7 +27,10 @@ class TestNgRunner : GenericTestRunner() {
     override val annotationPackage = "org.testng"
     override val runnerName = "TestNG"
 
-    private fun defaultOutput(project: Project) = KFiles.joinDir(project.directory, project.buildDirectory, "test-output")
+    private fun defaultOutputWithoutProjectDir(project: Project)
+            = KFiles.joinDir(project.buildDirectory, "test-output")
+    private fun defaultOutput(project: Project)
+            = KFiles.joinDir(project.directory, project.buildDirectory, "test-output")
 
     override fun args(project: Project, context: KobaltContext, classpath: List<IClasspathDependency>,
             testConfig: TestConfig) = arrayListOf<String>().apply {
@@ -39,7 +42,9 @@ class TestNgRunner : GenericTestRunner() {
 
         if (testConfig.testArgs.none { it == "-d" }) {
             add("-d")
-            add(defaultOutput(project))
+            // Don't include the project directory here since the generic runner will cd to that directory before
+            // running the tests
+            add(defaultOutputWithoutProjectDir(project))
         }
 
         if (testConfig.testArgs.size == 0) {
