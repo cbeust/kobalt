@@ -116,6 +116,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
 
         val testConfig = project.testConfigs.firstOrNull { it.name == configName }
 
+        var errorCode = -1
         if (testConfig != null) {
             val args = args(project, context, classpath, testConfig)
             if (args.size > 0) {
@@ -136,12 +137,7 @@ abstract class GenericTestRunner: ITestRunnerContributor {
                 context.logger.log(project.name, 2, "Running tests with classpath size ${classpath.size}")
                 context.logger.log(project.name, 2, "Launching " + allArgs.joinToString(" "))
                 val process = pb.start()
-                val errorCode = process.waitFor()
-                if (errorCode == 0) {
-                    context.logger.log(project.name, 1, "All tests passed")
-                } else {
-                    context.logger.log(project.name, 1, "Test failures")
-                }
+                errorCode = process.waitFor()
                 result = result || errorCode == 0
             } else {
                 context.logger.log(project.name, 1, "  No tests to run")
@@ -152,6 +148,13 @@ abstract class GenericTestRunner: ITestRunnerContributor {
         }
 
         onFinish(project)
+
+        if (errorCode == 0) {
+            context.logger.log(project.name, 1, "All tests passed")
+        } else {
+            context.logger.log(project.name, 1, longMessage!!)
+        }
+
         return TestResult(result, shortMessage, longMessage)
     }
 

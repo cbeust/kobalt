@@ -14,11 +14,14 @@ import org.testng.remote.strprotocol.MessageHelper
 import org.testng.remote.strprotocol.MessageHub
 import org.testng.remote.strprotocol.TestResultMessage
 import org.w3c.dom.Attr
+import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 import java.io.File
 import java.io.FileReader
 import java.io.IOException
 import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.xpath.XPathConstants
+import javax.xml.xpath.XPathFactory
 
 class TestNgRunner : GenericTestRunner() {
 
@@ -82,6 +85,15 @@ class TestNgRunner : GenericTestRunner() {
             var failed = 0
             var skipped = 0
             var passed = 0
+            val xp = XPathFactory.newInstance().newXPath()
+            val testMethods = xp.compile("/testng-results/suite/test/class/test-method[@status='FAIL']")
+                    .evaluate(doc, XPathConstants.NODESET)
+                    as NodeList
+            val failedMethods = arrayListOf<String>()
+            repeat(testMethods.length) {
+                val tm = testMethods.item(it)
+                failedMethods.add(tm.attributes.getNamedItem("signature").textContent)
+            }
             repeat(root.attributes.length) {
                 val attribute = root.attributes.item(it)
                 if (attribute is Attr) when (attribute.name) {
@@ -95,6 +107,7 @@ class TestNgRunner : GenericTestRunner() {
                 shortMessage = "$passed tests"
             } else if (failed > 0) {
                 shortMessage = "$failed failed" + (if (skipped > 0) ", $skipped skipped" else "") + " tests"
+                longMessage = "Failed tests:\n  " + failedMethods.joinToString("\n  ")
             }
         }
     }
