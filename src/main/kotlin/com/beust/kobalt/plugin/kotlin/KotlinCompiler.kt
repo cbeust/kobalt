@@ -74,17 +74,6 @@ class KotlinCompiler @Inject constructor(
                 File(outputDir).parentFile.mkdirs()
             }
             val classpath = cp.joinToString(File.pathSeparator)
-            val allArgs = arrayListOf(
-                    "-d", outputDir,
-                    "-classpath", classpath,
-                    *(info.compilerArgs.toTypedArray()),
-                    *(info.sourceFiles.toTypedArray())
-            )
-
-            // Get rid of annoying and useless warning
-            if (! info.compilerArgs.contains("-no-stdlib")) {
-                allArgs.add("-no-stdlib")
-            }
 
             // If the Kotlin compiler version in settings.xml is different from the default, we
             // need to spawn a Kotlin compiler in a separate process. Otherwise, we can just invoke
@@ -113,13 +102,22 @@ class KotlinCompiler @Inject constructor(
                 .filterNotNull()
                 .joinToString(" ")
 
+            val infoDir = info.directory
+
+            val outputDir =
+                    if (infoDir != null) {
+                        KFiles.joinDir(infoDir, info.outputDir.path)
+                    } else {
+                        info.outputDir.path
+                    }
+
             val xFlagsArray = xFlagsString.split(" ").toTypedArray()
             val newArgs = listOf(
                     "-classpath", compilerClasspath,
                     K2JVMCompiler::class.java.name,
                     *info.compilerArgs.toTypedArray(),
                     "-classpath", classpath,
-                    "-d", info.outputDir.absolutePath,
+                    "-d", outputDir,
                     *xFlagsArray,
                     *info.sourceFiles.toTypedArray())
                 .filter { ! it.isEmpty() }
