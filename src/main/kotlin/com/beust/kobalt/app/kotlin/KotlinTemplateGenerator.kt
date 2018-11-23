@@ -8,8 +8,8 @@ class KotlinTemplateGenerator : LanguageTemplateGenerator() {
     override val defaultSourceDirectories = hashSetOf("src/main/kotlin")
     override val defaultTestDirectories = hashSetOf("src/test/kotlin")
     override val mainDependencies = arrayListOf(
-            Pom.Dependency("org.jetbrains.kotlin", "kotlin-runtime", null, Constants.KOTLIN_COMPILER_VERSION),
-            Pom.Dependency("org.jetbrains.kotlin", "kotlin-stdlib", null, Constants.KOTLIN_COMPILER_VERSION))
+            Pom.Dependency("org.jetbrains.kotlin", "kotlin-stdlib", null, Constants.KOTLIN_COMPILER_VERSION)
+    )
     override val testDependencies = arrayListOf<Pom.Dependency>()
     override val directive = "project"
     override val templateName = "kotlin"
