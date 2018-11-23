@@ -16,6 +16,5 @@ class KotlinJarFiles @Inject constructor(val dependencyManager: DependencyManage
     }
 
     val stdlib: File get() = getKotlinCompilerJar("stdlib")
-    val runtime: File get() = getKotlinCompilerJar("runtime")
     val compiler: File get() = getKotlinCompilerJar("compiler-embeddable")
 }
