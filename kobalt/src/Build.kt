@@ -30,7 +30,7 @@ object Versions {
     val okio = "1.13.0"
     val retrofit = "2.3.0"
     val gson = "2.8.2"
-    val guice = "4.1.0"
+    val guice = "4.2.2"
     val maven = "3.5.2"
     val mavenResolver = "1.1.0"
     val slf4j = "1.7.3"
