@@ -102,7 +102,7 @@ val kobaltPluginApi = project {
                 "com.google.inject:guice:${Versions.guice}",
                 "com.google.inject.extensions:guice-assistedinject:4.1.0",
                 "javax.inject:javax.inject:1",
-                "com.google.guava:guava:23.3-jre",
+                "com.google.guava:guava:27.0.1-jre",
                 "org.apache.maven:maven-model:${Versions.maven}",
                 "io.reactivex:rxjava:1.3.3",
                 "com.squareup.okio:okio:${Versions.okio}",
