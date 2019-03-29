@@ -1,0 +1,34 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.beust</groupId>
+    <artifactId>kobalt-pom</artifactId>
+    <packaging>pom</packaging>
+    <version>1.1.0</version>
+
+    <modules>
+        <module>modules/kobalt-plugin-api</module>
+        <module>modules/wrapper</module>
+        <module>modules/kobalt</module>
+    </modules>
+
+    <repositories>
+        <repository>
+            <id>testng</id>
+            <url>https://dl.bintray.com/cbeust/maven</url>
+        </repository>
+    </repositories>
+
+    <properties>
+        <kotlin.version>1.2.71</kotlin.version>
+        <okio.version>1.13.0</okio.version>
+        <okhttp3.version>3.9.1</okhttp3.version>
+        <mavenresolver.version>1.1.0</mavenresolver.version>
+        <junit.version>1.1.0</junit.version>
+        <junitJupiter.version>5.1.0</junitJupiter.version>
+        <testng.version>6.12</testng.version>
+        <slf4j.version>1.7.3</slf4j.version>
+    </properties>
+
+</project>
