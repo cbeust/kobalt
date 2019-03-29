@@ -52,7 +52,7 @@ class KobaltMavenResolver @Inject constructor(val settings: KobaltSettings,
             }
             fun error(s1: String, s2: String) {
                 throw KobaltException("Found \"$s1\" but not \"$s2\" in local.properties for ${Kurl.KEY}.$host",
-                        docUrl = "http://beust.com/kobalt/documentation/index.html#maven-repos-authenticated")
+                        docUrl = "https://beust.com/kobalt/documentation/index.html#maven-repos-authenticated")
             }
             if (! hostInfo.username.isNullOrBlank() && hostInfo.password.isNullOrBlank()) {
                 error("username", "password")

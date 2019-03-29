@@ -57,8 +57,11 @@ class KFiles {
                             "kobalt/wrapper/kobalt-$previousVersion.jar")
                     latestInstalledVersion()
                     val result = listOf("", "modules/kobalt-plugin-api", "modules/wrapper").map {
-                        File(homeDir(KFiles.joinDir("kotlin", "kobalt", it, "kobaltBuild", "classes")))
-                            .absolutePath
+                        File(homeDir(KFiles.joinDir("kotlin", "kobalt", it, "kobaltBuild", "classes"))) //kobalt build dirs
+                                .absolutePath
+                    } + listOf("modules/kobalt", "modules/kobalt-plugin-api", "modules/wrapper").map {
+                        File(homeDir(KFiles.joinDir("kotlin", "kobalt", it, "target", "classes"))) //maven build dirs
+                                .absolutePath
                     } + listOf(previousJar)
                     debug("Couldn't find ${jarFile.absolutePath}, using\n  " + result.joinToString(" "))
                     return result.filter { File(it).exists() }
