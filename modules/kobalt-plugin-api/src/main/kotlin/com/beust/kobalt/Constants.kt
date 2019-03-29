@@ -13,9 +13,9 @@ object Constants {
 
     internal val DEFAULT_REPOS = listOf<HostConfig>(
             //            "https://maven-central.storage.googleapis.com/",
-            HostConfig("http://repo1.maven.org/maven2/", "Maven"),
+            HostConfig("https://repo1.maven.org/maven2/", "Maven"),
             HostConfig("https://jcenter.bintray.com/", "JCenter")
-//            "http://repository.jetbrains.com/all/", // <-- contains snapshots
+//            "https://repository.jetbrains.com/all/", // <-- contains snapshots
 
             // snapshots
 //            "https://oss.sonatype.org/content/repositories/snapshots/"

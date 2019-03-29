@@ -21,7 +21,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 val bs = buildScript {
-    repos("http://dl.bintray.com/cbeust/maven")
+    repos("https://dl.bintray.com/cbeust/maven")
 }
 
 object Versions {
@@ -92,7 +92,7 @@ val kobaltPluginApi = project {
     version = readVersion()
     directory = "modules/kobalt-plugin-api"
     description = "A build system in Kotlin"
-    url = "http://beust.com/kobalt"
+    url = "https://beust.com/kobalt"
 
     pom = createPom(name, "A build system in Kotlin")
 
@@ -309,13 +309,13 @@ fun taskCopyVersionForWrapper(project: Project) : TaskResult {
 fun createPom(projectName: String, projectDescription: String) = Model().apply {
     name = projectName
     description = projectDescription
-    url = "http://beust.com/kobalt"
+    url = "https://beust.com/kobalt"
     licenses = listOf(License().apply {
         name = "Apache-2.0"
-        url = "http://www.apache.org/licenses/LICENSE-2.0"
+        url = "https://www.apache.org/licenses/LICENSE-2.0"
     })
     scm = Scm().apply {
-        url = "http://github.com/cbeust/kobalt"
+        url = "https://github.com/cbeust/kobalt"
         connection = "https://github.com/cbeust/kobalt.git"
         developerConnection = "git@github.com:cbeust/kobalt.git"
     }
