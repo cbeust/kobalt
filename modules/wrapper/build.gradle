@@ -1,0 +1,38 @@
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.beust.kobalt.wrapper.Main'
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from(components.java)
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom {
+                name = project.name
+                description = 'Wrapper for Kobalt'
+                url = 'https://beust.com/kobalt'
+                licenses {
+                    license {
+                        name = 'Apache-2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+                developers {
+                    developer {
+                        name = 'Cedric Beust'
+                        email = 'cedric@beust.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:https://github.com/cbeust/kobalt.git'
+                    developerConnection = 'scm:git@github.com:cbeust/kobalt.git'
+                    url = 'https://github.com/cbeust/kobalt'
+                }
+            }
+        }
+    }
+}

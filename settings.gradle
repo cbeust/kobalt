@@ -1,0 +1,5 @@
+rootProject.name = 'kobalt-pom'
+include(':kobalt-plugin-api', ':wrapper', ':kobalt')
+project(':kobalt-plugin-api').projectDir = file('modules/kobalt-plugin-api')
+project(':wrapper').projectDir = file('modules/wrapper')
+project(':kobalt').projectDir = file('modules/kobalt')
