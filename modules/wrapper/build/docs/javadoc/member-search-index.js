@@ -1,1 +1,0 @@
-memberSearchIndex = [{"p":"com.beust.kobalt.wrapper","c":"Main","l":"Main()","url":"%3Cinit%3E()"},{"p":"com.beust.kobalt.wrapper","c":"Main","l":"main(String[])","url":"main(java.lang.String[])"}]

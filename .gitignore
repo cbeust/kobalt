@@ -11,3 +11,4 @@ libs
 out
 .DS_Store
 lib/kotlin-*
+build
