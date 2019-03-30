@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.beust</groupId>
+  <artifactId>kobalt</artifactId>
+  <version>1.1.0</version>
+  <name>kobalt</name>
+  <description>A build system in Kotlin</description>
+  <url>https://beust.com/kobalt</url>
+  <licenses>
+    <license>
+      <name>Apache-2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Cedric Beust</name>
+      <email>cedric@beust.com</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:https://github.com/cbeust/kobalt.git</connection>
+    <developerConnection>scm:git@github.com:cbeust/kobalt.git</developerConnection>
+    <url>https://github.com/cbeust/kobalt</url>
+  </scm>
+  <dependencies/>
+</project>

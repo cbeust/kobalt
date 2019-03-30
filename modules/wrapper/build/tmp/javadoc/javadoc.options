@@ -1,0 +1,7 @@
+-classpath 'K:\\GitHub\\kobalt\\modules\\wrapper\\build\\classes\\java\\main;K:\\GitHub\\kobalt\\modules\\wrapper\\build\\resources\\main'
+-d 'K:\\GitHub\\kobalt\\modules\\wrapper\\build\\docs\\javadoc'
+-doctitle 'wrapper 1.1.0 API'
+-quiet 
+-windowtitle 'wrapper 1.1.0 API'
+'K:\\GitHub\\kobalt\\modules\\wrapper\\src\\main\\java\\com\\beust\\kobalt\\wrapper\\Config.java'
+'K:\\GitHub\\kobalt\\modules\\wrapper\\src\\main\\java\\com\\beust\\kobalt\\wrapper\\Main.java'
