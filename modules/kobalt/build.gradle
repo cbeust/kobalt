@@ -1,36 +1,35 @@
-
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.2.71'
-    id "com.github.johnrengelman.shadow" version "5.0.0"
+    id 'com.github.johnrengelman.shadow' version '5.0.0'
 }
 
 dependencies {
     implementation project(':wrapper')
     implementation project(':kobalt-plugin-api')
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.2.71'
-    implementation 'org.jetbrains.kotlin:kotlin-compiler-embeddable:1.2.71'
+    implementation "biz.aQute.bnd:biz.aQute.bndlib:$bndlib"
     implementation 'com.github.spullara.mustache.java:compiler:0.9.5'
-    implementation 'javax.inject:javax.inject:1'
-    implementation 'com.google.inject:guice:4.2.2'
-    implementation 'com.google.inject.extensions:guice-assistedinject:4.2.2'
-    implementation 'com.beust:jcommander:1.72'
-    implementation 'org.apache.maven:maven-model:3.5.2'
-    implementation 'com.google.code.findbugs:jsr305:3.0.2'
-    implementation 'com.google.code.gson:gson:2.8.2'
-    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
-    implementation 'biz.aQute.bnd:biz.aQute.bndlib:3.5.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.9.1'
-    implementation 'com.sparkjava:spark-core:2.6.0'
-    implementation 'org.codehaus.groovy:groovy:2.4.12'
-    implementation 'org.apache.maven.resolver:maven-resolver-spi:1.1.0'
-    implementation 'javax.xml.bind:jaxb-api:2.3.0'
-    implementation 'com.sun.xml.bind:jaxb-impl:2.3.0'
-    implementation 'com.sun.xml.bind:jaxb-core:2.3.0'
+    implementation "com.google.code.findbugs:jsr305:$findbugs"
+    implementation "com.sparkjava:spark-core:$spark"
+    implementation "com.squareup.okhttp3:logging-interceptor:$okhttp"
     implementation 'com.sun.activation:javax.activation:1.2.0'
+    implementation "com.sun.xml.bind:jaxb-core:$jaxb"
+    implementation "com.sun.xml.bind:jaxb-impl:$jaxb"
+    implementation "javax.inject:javax.inject:$inject"
+    implementation "javax.xml.bind:jaxb-api:$jaxb"
+    implementation "org.apache.maven.resolver:maven-resolver-spi:$mavenResolver"
+    implementation "org.codehaus.groovy:groovy:$groovy"
+    implementation "com.beust:jcommander:$jcommander"
+    implementation "com.google.code.gson:gson:$gson"
+    implementation "com.google.inject:guice:$guice"
+    implementation "com.google.inject.extensions:guice-assistedinject:$guice"
+    implementation "com.squareup.retrofit2:converter-gson:$retrofit"
+    implementation "com.squareup.retrofit2:retrofit:$retrofit"
+    implementation "org.apache.maven:maven-model:$maven"
+    implementation "org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlin"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin"
     testImplementation 'org.assertj:assertj-core:3.8.0'
-    testImplementation 'org.jetbrains.kotlin:kotlin-test:1.2.71'
-    testImplementation 'org.testng:testng:6.12'
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin"
+    testImplementation "org.testng:testng:$testng"
 }
 
 sourceSets {

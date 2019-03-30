@@ -6,7 +6,30 @@ allprojects {
 subprojects {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
-    apply plugin: 'maven'
+
+    ext {
+        bndlib = '3.5.0'
+        findbugs = '3.0.2'
+        groovy = '2.4.12'
+        gson = '2.8.2'
+        guice = '4.2.2'
+        inject = '1'
+        jaxb = '2.3.0'
+        jcommander = '1.72'
+        kotlin = '1.2.71'
+        maven = '3.5.2'
+        mavenResolver = '1.1.0'
+        okhttp = '3.9.1'
+        okio = '1.13.0'
+        retrofit = '2.3.0'
+        slf4j = '1.7.3'
+        spark = '2.6.0'
+        testng = '6.12'
+
+        junit = '4.12'
+        junitJupiter = '5.1.0'
+        junitPlatform = '1.1.0'
+    }
 
     repositories {
         mavenCentral()
