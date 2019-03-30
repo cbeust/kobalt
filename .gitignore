@@ -12,3 +12,4 @@ out
 .DS_Store
 lib/kotlin-*
 build
+.history
