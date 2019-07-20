@@ -96,7 +96,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
     override fun calculateDependencies(project: Project?, context: KobaltContext,
             dependencyFilter: DependencyFilter,
             scopes: List<Scope>,
-            vararg passedDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
+            passedDependencies: List<IClasspathDependency>): List<IClasspathDependency> {
         val result = arrayListOf<IClasspathDependency>()
 
         /**
@@ -122,7 +122,7 @@ class DependencyManager @Inject constructor(val executors: KobaltExecutors,
         }
 
         val allDependencies : Array<out List<IClasspathDependency>> =
-            if (project == null || passedDependencies.any()) passedDependencies
+            if (project == null || passedDependencies.any()) arrayOf(passedDependencies)
             else arrayOf(filtersToDependencies(project, scopes))
 
         // Make sure that classes/ and test-classes/ are always at the top of this classpath,

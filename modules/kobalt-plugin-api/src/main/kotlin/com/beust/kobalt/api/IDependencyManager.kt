@@ -44,7 +44,7 @@ interface IDependencyManager {
             dependencyFilter: DependencyFilter =
                 createDependencyFilter(project, project?.compileDependencies ?: emptyList()),
             scopes: List<Scope> = listOf(Scope.COMPILE),
-            vararg passedDependencies: List<IClasspathDependency>): List<IClasspathDependency>
+            passedDependencies: List<IClasspathDependency> = emptyList()): List<IClasspathDependency>
 
     /**
      * Create an Aether dependency filter that uses the dependency configuration included in each

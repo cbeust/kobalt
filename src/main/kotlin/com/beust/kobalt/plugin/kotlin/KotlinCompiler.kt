@@ -177,7 +177,7 @@ class KotlinCompiler @Inject constructor(
                         "skip-metadata-version-check" -> args.skipMetadataVersionCheck = true
                         "skip-runtime-version-check" -> args.skipRuntimeVersionCheck = true
                         "single-module" -> args.singleModule = true
-                        "load-builtins-from-dependencies" -> args.loadBuiltInsFromDependencies = true
+//                        "load-builtins-from-dependencies" -> args.loadBuiltInsFromDependencies = true
 
                         "coroutines=enable" -> args.coroutinesState = LanguageFeature.State.ENABLED.name
                         "coroutines=warn" -> args.coroutinesState = LanguageFeature.State.ENABLED_WITH_WARNING.name
@@ -277,7 +277,19 @@ class KotlinCompiler @Inject constructor(
                 collector: MessageCollector) {
             val compiledFiles = arrayListOf<File>()
             val reporter = object : ICReporter {
-                override fun pathsAsString(files: Iterable<File>): String {
+                override fun reportMarkDirtyClass(affectedFiles: Iterable<File>, classFqName: String) {
+                }
+
+                override fun reportMarkDirtyMember(affectedFiles: Iterable<File>, scope: String, name: String) {
+                }
+
+                override fun reportVerbose(message: () -> String) {
+                }
+
+                override fun reportMarkDirty(affectedFiles: Iterable<File>, reason: String) {
+                }
+
+                private fun pathsAsString(files: Iterable<File>): String {
                     return files.joinToString { it.absolutePath }
 //                    return files.joinToString { it.relativeTo(workingDir).path }
                 }
@@ -286,7 +298,8 @@ class KotlinCompiler @Inject constructor(
                     log(3, "    ICReport: ${message()}")
                 }
 
-                override fun reportCompileIteration(sourceFiles: Collection<File>, exitCode: ExitCode) {
+                override fun reportCompileIteration(incremental: Boolean, sourceFiles: Collection<File>,
+                        exitCode: ExitCode) {
                     log(3, "    ICCompileIteration Compiled files: ${pathsAsString(sourceFiles)}")
                     compiledFiles.addAll(sourceFiles)
                 }
