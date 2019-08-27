@@ -118,7 +118,7 @@ public class Main {
     }
 
     private static String downloadUrl(String version) {
-        return "http://beust.com/kobalt/kobalt-" + version + ".zip";
+        return "https://beust.com/kobalt/kobalt-" + version + ".zip";
     }
 
     private void initWrapperFile(String version) throws IOException {
