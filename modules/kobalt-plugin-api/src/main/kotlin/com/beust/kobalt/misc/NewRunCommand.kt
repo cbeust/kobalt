@@ -79,10 +79,13 @@ open class NewRunCommand(val info: RunCommandInfo) {
         val process = pb.start()
 
         // Run the command and collect the return code and streams
-        val processFinished = process.waitFor(120, TimeUnit.SECONDS)
-
+        val processFinished = process.waitFor(240, TimeUnit.SECONDS)
         if (!processFinished)
             kobaltError("process timed out!")
+
+        val processExitedOk = process.exitValue() == 0
+        if (!processExitedOk)
+            kobaltError("process returned non-zero code!")
 
         val input =
                 if (process.inputStream.available() > 0) fromStream(process.inputStream)
@@ -96,7 +99,7 @@ open class NewRunCommand(val info: RunCommandInfo) {
         // Check to see if the command succeeded
         val isSuccess =
                 if (info.containsErrors != null) ! info.containsErrors!!(error)
-                else isSuccess(if (info.ignoreExitValue) true else processFinished, input, error)
+                else isSuccess(processFinished && if (info.ignoreExitValue) true else processExitedOk, input, error)
 
         if (isSuccess) {
             if (!info.useErrorStreamAsErrorIndicator) {
