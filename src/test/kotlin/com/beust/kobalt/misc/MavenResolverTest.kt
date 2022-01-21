@@ -34,7 +34,7 @@ class MavenResolverTest : BaseTest() {
     @DataProvider
     fun rangeProvider() = arrayOf(
             arrayOf("org.sql2o:sql2o:[1.5.0,1.5.1]", "1.5.1"),
-            arrayOf("org.sql2o:sql2o:[1.5.0,)", "1.6.0-RC3"), // can potentially fail
+            arrayOf("org.sql2o:sql2o:[1.5.0,)", "1.6.0"), // can potentially fail when new versions exists
             arrayOf("org.sql2o:sql2o:[1.5.0,1.5.1)", "1.5.0")
     )
 
