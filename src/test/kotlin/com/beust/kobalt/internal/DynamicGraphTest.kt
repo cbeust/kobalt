@@ -201,7 +201,7 @@ class DynamicGraphTest {
         val ca = closure.children
         assertThat(ca.map { it.value }).isEqualTo(listOf("b"))
         val cb = ca[0].children
-        assertThat(cb.map { it.value }).isEqualTo(listOf("d", "c"))
+        assertThat(cb.map { it.value }.toSet()).isEqualTo(setOf("d", "c"))
 
     }
 }
