@@ -12,6 +12,7 @@ import com.google.common.eventbus.EventBus
 import com.google.inject.Provider
 import com.google.inject.Scopes
 import java.io.File
+import java.util.concurrent.ExecutorService
 
 val LOCAL_CACHE = File(SystemProperties.homeDir + File.separatorChar + ".kobalt-test")
 
@@ -38,5 +39,10 @@ class TestModule : MainModule(Args(), TEST_KOBALT_SETTINGS) {
                 }
             }
         }).`in`(Scopes.SINGLETON)
+    }
+
+    override fun bindExecutors() {
+        // in tests do nothing to bind new executors for each tests
+        // this avoids tests submitting tasks after pool shutdown
     }
 }
