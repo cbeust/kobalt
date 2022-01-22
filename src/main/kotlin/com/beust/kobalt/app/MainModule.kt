@@ -46,10 +46,8 @@ open class MainModule(val args: Args, val settings: KobaltSettings) : AbstractMo
 
 //        bind(javaClass<TaskManager>()).toProvider(javaClass<TaskManagerProvider>())
 //                .`in`(Scopes.SINGLETON)
-        bind(object: TypeLiteral<KobaltExecutors>() {}).toInstance(executors)
-        bind(object: TypeLiteral<ExecutorService>() {}).annotatedWith(DependencyExecutor::class.java)
-                .toInstance(executors.dependencyExecutor)
-        bind(Args::class.java).toProvider(Provider<Args> {
+      bindExecutors()
+      bind(Args::class.java).toProvider(Provider<Args> {
             args
         })
         bind(EventBus::class.java).toInstance(EventBus())
@@ -74,4 +72,10 @@ open class MainModule(val args: Args, val settings: KobaltSettings) : AbstractMo
 //            }
 //        })
     }
+
+  protected open fun bindExecutors() {
+    bind(object : TypeLiteral<KobaltExecutors>() {}).toInstance(executors)
+    bind(object : TypeLiteral<ExecutorService>() {}).annotatedWith(DependencyExecutor::class.java)
+      .toInstance(executors.dependencyExecutor)
+  }
 }
