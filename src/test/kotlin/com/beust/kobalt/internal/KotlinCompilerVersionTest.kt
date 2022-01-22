@@ -44,7 +44,7 @@ class KotlinCompilerVersionTest : BaseTest() {
                 BuildFile(
                         listOf("com.beust.kobalt.plugin.packaging.*", "com.beust.kobalt.plugin.kotlin.kotlinCompiler"),
                         """
-                            kotlinCompiler { version = "1.6.10" }
+                            kotlinCompiler { version = "1.1.20" }
                             assemble{ jar{} }
                             """
                 ),
